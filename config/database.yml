@@ -1,0 +1,26 @@
+common: &common
+  reconnect: true
+  template: template0
+  encoding: unicode
+  adapter: postgresql
+  username: backbeat
+  password: backbeat
+  pool: 200
+
+development:
+  <<: *common
+  database: backbeat_dev
+
+test:
+  <<: *common
+  database: backbeat_test
+
+docker:
+  <<: *common
+  reconnect: true
+  adapter: postgresql
+  username: backbeat
+  password: backbeat
+  database: backbeat_docker
+  host: database
+  schema_search_path: public
