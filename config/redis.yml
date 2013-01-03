@@ -1,0 +1,17 @@
+common: &common
+  namespace: backbeat
+  host: localhost
+  port: 6379
+  size: 100
+  network_timeout: 5
+
+development:
+  <<: *common
+
+test:
+  <<: *common
+
+docker:
+  namespace: backbeat
+  host: redis
+  port: 6379

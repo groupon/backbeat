@@ -1,0 +1,18 @@
+common: &common
+  log_level: INFO
+  async_queue: backbeat_server
+  log: /var/groupon/backbeat/shared/log/backbeat.log
+  default_client_timeout: 172800
+
+development:
+  <<: *common
+  log: /tmp/backbeat.log
+
+test:
+  <<: *common
+  log_level: DEBUG
+  log: log/test.log
+
+docker:
+  <<: *common
+  log: /tmp/backbeat.log
