@@ -7,6 +7,7 @@ module WorkflowServer
       field :version, type: String
       field :actor_id, type: Integer
       field :actor_type, type: String
+      field :arguments, type: Array
 
       DEFAULT_OPTIONS = {mode: :blocking, always: false, retry: 3, retry_interval: 15.minutes}.with_indifferent_access
 
@@ -37,12 +38,12 @@ module WorkflowServer
         end
       end
 
-      def run_sub_activity(name, actor, options = {})
+      def run_sub_activity(name, actor, *args, options)
         unless options[:always]
           return if subactivity_handled?(name, actor)
         end
 
-        sub_activity = SubActivity.create!(name: name, actor_id: actor.id, actor_type: actor.class.to_s, options: options, parent: self, workflow: workflow)
+        sub_activity = SubActivity.create!(name: name, actor_id: actor.id, actor_type: actor.class.to_s, arguments: args, options: options, parent: self, workflow: workflow)
         update_status!(:running_sub_activity)
 
         sub_activity.start
