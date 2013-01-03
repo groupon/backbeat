@@ -47,7 +47,7 @@ module WorkflowServer
 
       def refresh
         start_next_action
-        completed if all_activities_completed?
+        completed if all_events_completed?
       end
 
       def completed
@@ -80,10 +80,12 @@ module WorkflowServer
       end
 
       def start_next_action
-        unless any_executing_activities?
-          open_events do |event|
-            event.start
-            break if event.class == Activity
+        with_lock do
+          unless any_incomplete_activities?
+            open_events do |event|
+              event.start
+              break if event.is_a?(Activity) && event.blocking?
+            end
           end
         end
       end
@@ -94,12 +96,12 @@ module WorkflowServer
         end
       end
 
-      def any_executing_activities?
-        Activity.where(parent: self, status: :executing).exists?
+      def any_incomplete_activities?
+        Activity.where(parent: self, :"options.mode" => :blocking, :status.ne => :complete).any?
       end
 
-      def all_activities_completed?
-        Activity.where(parent: self).all? {|event| event.status == :complete }
+      def all_events_completed?
+        !children.where(:"options.mode".ne => :fire_and_forget, :status.ne => :complete).any?
       end
 
       def schedule_next_decision

@@ -32,6 +32,10 @@ module WorkflowServer
           unless subactivities_running?
             update_status!(:complete)
             super
+            if parent.is_a?(Decision)
+              # Add a decision task if this is a top level activity
+              add_decision("#{name}_complete".to_sym)
+            end
           else
             update_status!(:waiting_for_sub_activities)
           end
@@ -112,7 +116,7 @@ module WorkflowServer
       private
 
       def subactivities_running?
-        children.where(options: {:mode.ne => :fire_and_forget}, :status.ne => :complete).type(SubActivity).any?
+        children.where(:"options.mode".ne => :fire_and_forget, :status.ne => :complete).type(SubActivity).any?
       end
 
       def subactivity_hash(name, actor)

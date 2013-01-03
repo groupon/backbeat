@@ -4,7 +4,7 @@ module WorkflowServer
 
       def schedule_next_decision(workflow)
         workflow.with_lock do
-          unless Models::Decision.where(workflow: workflow, status: :executing).exists?
+          unless Models::Decision.where(workflow: workflow, :status.ne => :complete).any?
             if (next_decision = Models::Decision.where(workflow: workflow, status: :open).first)
               next_decision.start
             end
