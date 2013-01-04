@@ -10,7 +10,7 @@ module WorkflowServer
 
       belongs_to :workflow
       belongs_to :parent, class_name: "WorkflowServer::Models::Event"
-      has_many :children, :inverse_of => :parent, class_name: "WorkflowServer::Models::Event"
+      has_many :children, :inverse_of => :parent, class_name: "WorkflowServer::Models::Event", order: {created_at: 1}
 
       validates_presence_of :name
 
