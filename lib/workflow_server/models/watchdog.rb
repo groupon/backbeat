@@ -15,6 +15,7 @@ module WorkflowServer
       validates_presence_of :name, :subject_id, :subject_type
 
       def self.start(subject, name = :timeout, starves_at = 10.minutes)
+        Watchdog.kill(subject,name)
         new_dog = create!(name: name,
                           starves_at: starves_at,
                           subject_type: subject.class.to_s,
@@ -45,7 +46,7 @@ module WorkflowServer
       end
 
       def perform
-        subject.timeout(name)
+        subject.timeout(TimeOut.new("#{name}"))
         delete
       end
 

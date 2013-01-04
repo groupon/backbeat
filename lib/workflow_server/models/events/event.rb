@@ -21,7 +21,11 @@ module WorkflowServer
       def update_status!(new_status, error = nil)
         unless new_status == self.status && new_status != :retrying
           status_hash = {from: self.status, to: new_status, at: Time.now}
-          if error
+          case error
+          when NilClass
+          when TimeOut
+            status_hash[:timeout] = {message: error.message}
+          else
             status_hash[:error] = {message: error.message, backtrace: error.backtrace}
           end
           self.status_history << status_hash
@@ -42,6 +46,11 @@ module WorkflowServer
       def errored(error)
         notify_of_error("#{name}_error", error)
         parent.child_errored(self, error) if parent
+      end
+
+      def timeout(timeout)
+        notify_of_error("#{name}_timeout", timeout)
+        parent.child_timeout(self, timeout) if parent
       end
 
       def child_completed(child)

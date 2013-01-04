@@ -22,6 +22,7 @@ module WorkflowServer
       def start
         super
         WorkflowServer::AsyncClient.perform_activity(id)
+        Watchdog.start(self, "#{name}_timout".to_sym, execution_options[:timeout]) if execution_options[:timeout]
         update_status!(:executing)
       end
       alias_method :perform, :start
@@ -30,6 +31,7 @@ module WorkflowServer
       def completed
         with_lock do
           unless subactivities_running?
+            Watchdog.kill(self, "#{name}_timout".to_sym)
             update_status!(:complete)
             super
             if parent.is_a?(Decision)
@@ -48,6 +50,7 @@ module WorkflowServer
         end
 
         sub_activity = SubActivity.create!(name: name, actor_id: actor.id, actor_type: actor.class.to_s, arguments: args, options: options, parent: self, workflow: workflow)
+        Watchdog.feed(self, "#{name}_timout".to_sym) if execution_options[:timeout]
         update_status!(:running_sub_activity)
 
         sub_activity.start
@@ -71,6 +74,11 @@ module WorkflowServer
       def child_errored(child, error)
         super
         errored(error) if child.is_a?(SubActivity) && !child.fire_and_forget?
+      end
+
+      def child_timeout(child, timeout)
+        super
+        timeout(timeout)
       end
 
       def blocking?
@@ -108,6 +116,7 @@ module WorkflowServer
           end
           update_status!(:retrying)
         else
+          Watchdog.kill(self, "#{name}_timout".to_sym)
           update_status!(:error, error)
           super
           if parent.is_a?(Decision)
@@ -119,6 +128,11 @@ module WorkflowServer
 
       def print_name
         super + " - #{actor_id}"
+      end
+
+      def timeout(timeout)
+        update_status!(:timeout, timeout)
+        super
       end
 
       private

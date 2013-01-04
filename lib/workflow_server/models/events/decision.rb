@@ -7,8 +7,6 @@ module WorkflowServer
 
       attr_accessor_with_default :decisions_to_add, []
 
-      field :error, type: Hash
-
       def start
         super
         WorkflowServer::AsyncClient.make_decision(workflow.decider, self.id, workflow.subject_type, workflow.subject_id)
@@ -71,23 +69,19 @@ module WorkflowServer
         errored(error)
       end
 
-      def child_timeout(child, timeout_name)
+      def child_timeout(child, timeout)
         super
-        timeout(timeout_name)
+        timeout(timeout)
       end
 
       def errored(error)
-        update_status!(:error)
+        update_status!(:error, error)
         Watchdog.kill(self, :decision_executing_time_out)
-        self.error = {error_message: error.message, backtrace: error.backtrace}
-        self.save!
         super
       end
 
-      def timeout(timeout_name)
-        update_status!(:timeout)
-        self.error = {error_message: "TimeOut:#{timeout_name}"}
-        self.save!
+      def timeout(timeout)
+        update_status!(:timeout, timeout)
         super
       end
 
