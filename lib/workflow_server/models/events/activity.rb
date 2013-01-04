@@ -117,6 +117,10 @@ module WorkflowServer
         end
       end
 
+      def print_name
+        super + " - #{actor_id}"
+      end
+
       private
 
       def subactivities_running?

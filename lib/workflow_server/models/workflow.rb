@@ -55,6 +55,17 @@ module WorkflowServer
           end
         end
       end
+
+      def print_tree
+        data = {}
+        data['root_node'] = Tree::TreeNode.new(workflow_type.to_s + " " + subject_id.to_s)
+        self.events.each do |event|
+          node = Tree::TreeNode.new(event.print_name, event.id)
+          data[event.parent.try(:id) || 'root_node'] << node
+          data[event.id] = node
+        end
+        data['root_node'].print_tree
+      end
     end
   end
 end

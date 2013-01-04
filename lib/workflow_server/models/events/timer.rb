@@ -21,6 +21,10 @@ module WorkflowServer
         update_status!(:complete)
         super
       end
+
+      def print_name
+        super + " - fires_at: #{fires_at}"
+      end
     end
   end
 end

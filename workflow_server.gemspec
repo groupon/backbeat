@@ -19,4 +19,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'mongoid'
   gem.add_dependency 'mongoid-locker'
   gem.add_dependency 'delayed_job_mongoid'
+  gem.add_dependency 'rubytree'
 end

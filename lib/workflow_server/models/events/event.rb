@@ -67,6 +67,10 @@ module WorkflowServer
       def notify_of_error(event, error, options = {})
         WorkflowServer::Events.notify_of_error(event, error, {type: _type}.merge(options))
       end
+
+      def print_name
+        "#{status} - #{self.class.to_s.split("::").last} - #{name}"
+      end
     end
   end
 end
