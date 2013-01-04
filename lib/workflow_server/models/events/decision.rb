@@ -1,6 +1,7 @@
 module WorkflowServer
   module Models
     class Decision < Event
+      include Mongoid::Locker
 
       after_create :schedule_next_decision
 
