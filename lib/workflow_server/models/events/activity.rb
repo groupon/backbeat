@@ -34,7 +34,7 @@ module WorkflowServer
             super
             if parent.is_a?(Decision)
               # Add a decision task if this is a top level activity
-              add_decision("#{name}_complete".to_sym)
+              add_decision("#{name}_succeeded".to_sym)
             end
           else
             update_status!(:waiting_for_sub_activities)
@@ -110,6 +110,10 @@ module WorkflowServer
         else
           update_status!(:error, error)
           super
+          if parent.is_a?(Decision)
+            # Add a decision task if this is a top level activity
+            add_decision("#{name}_errored".to_sym)
+          end
         end
       end
 
