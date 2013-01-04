@@ -52,6 +52,10 @@ module WorkflowServer
 
       end
 
+      def child_timeout(child, timeout_name)
+
+      end
+
       def past_flags
         workflow.past_flags(self)
       end

@@ -11,7 +11,7 @@ module WorkflowServer
       def start
         super
         WorkflowServer::AsyncClient.make_decision(workflow.decider, self.id, workflow.subject_type, workflow.subject_id)
-        Watchdog.start(self, :decision_time_out)
+        Watchdog.start(self, :decision_deciding_time_out)
         update_status!(:deciding)
       end
 
@@ -28,7 +28,7 @@ module WorkflowServer
       end
 
       def deciding
-        Watchdog.feed(self, :decision_time_out)
+        Watchdog.feed(self, :decision_deciding_time_out)
         yield
         close
       rescue Exception => err
@@ -36,12 +36,13 @@ module WorkflowServer
       end
 
       def close
-        # TODO add a timeout for this decision tree to complete
-        Watchdog.kill(self, :decision_time_out)
+        Watchdog.kill(self, :decision_deciding_time_out)
         decisions_to_add.each do |type, args|
           type.create!(args)
         end
-        update_status!(:executing)
+        unless decisions_to_add.empty?
+          update_status!(:executing)
+        end
         refresh
       end
 
@@ -65,18 +66,28 @@ module WorkflowServer
       end
 
       def child_errored(child, error)
+        super
         errored(error)
+      end
+
+      def child_timeout(child, timeout_name)
+        super
+        timeout(timeout_name)
       end
 
       def errored(error)
         update_status!(:error)
+        Watchdog.kill(self, :decision_executing_time_out)
         self.error = {error_message: error.message, backtrace: error.backtrace}
         self.save!
         super
       end
 
-      def timeout(name)
+      def timeout(timeout_name)
         update_status!(:timeout)
+        self.error = {error_message: "TimeOut:#{timeout_name}"}
+        self.save!
+        super
       end
 
       def start_next_action

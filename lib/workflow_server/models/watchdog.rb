@@ -29,6 +29,7 @@ module WorkflowServer
         delete
       end
       alias_method :kill, :stop
+      alias_method :dismiss, :stop
 
       def feed
         timer.delete if timer
@@ -51,7 +52,11 @@ module WorkflowServer
       class << self
         def feed(subject, name = :timeout)
           dog = Watchdog.where(subject_type: subject.class.to_s, subject_id: subject.id, name: name).first
-          dog.feed
+          if dog
+            dog.feed
+          else
+            Watchdog.start(subject,name)
+          end
         end
         alias_method :kick, :feed
         alias_method :pet, :feed
@@ -60,9 +65,10 @@ module WorkflowServer
 
         def stop(subject, name = :timeout)
           dog = Watchdog.where(subject_type: subject.class.to_s, subject_id: subject.id, name: name).first
-          dog.stop
+          dog.stop if dog
         end
         alias_method :kill, :stop
+        alias_method :dismiss, :stop
       end
 
     end
