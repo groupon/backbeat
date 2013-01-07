@@ -22,7 +22,7 @@ module WorkflowServer
       end
 
       def add_activity(activity_name, actor, options = {})
-        decisions_to_add << [Activity, {name: activity_name, actor_id: actor.id, actor_type: actor.class.to_s, workflow: workflow, parent: self}.merge{options}]
+        decisions_to_add << [Activity, {name: activity_name, actor_id: actor.id, actor_type: actor.class.to_s, workflow: workflow, parent: self}.merge(options)]
       end
 
       def add_workflow(workflow_name, workflow_type, subject, decider, options = {})
