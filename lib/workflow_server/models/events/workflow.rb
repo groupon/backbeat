@@ -1,18 +1,17 @@
 module WorkflowServer
   module Models
-    class Workflow
-      include Mongoid::Document
-      include Mongoid::Timestamps
-      include Mongoid::Locker
+    class Workflow < Event
 
       field :workflow_type, type: Symbol
       field :subject_id, type: Integer
       field :subject_type, type: String
       field :decider, type: String
+      field :mode, type: Symbol, default: :blocking
+      field :error_workflow, type: Boolean, default: false # whether this workflow should retry the parent decision on complete
 
       index({ workflow_type: 1, subject_type: 1, subject_id: 1 }, { unique: true })
 
-      has_many :events, order: {created_at: 1}
+      has_many :events, inverse_of: :workflow, order: {created_at: 1}
 
       validates_presence_of :workflow_type, :subject_id, :subject_type, :decider
 
@@ -20,12 +19,16 @@ module WorkflowServer
         WorkflowServer::Models::Signal.create!(name: name, workflow: self)
       end
 
+      def blocking?
+        mode == :blocking
+      end
+
       {
         flags: Flag,
         decisions: Decision,
         signals: Signal,
         timers: Timer,
-        activities: Activity
+        activities: Activity,
       }.each_pair do |name, klass|
         #
         # Returns events of the given type

@@ -1,28 +1,31 @@
 module WorkflowServer
   module Models
     class Activity < Event
-      include Mongoid::Locker
 
       field :options, type: Hash, default: {}
       field :version, type: String
       field :actor_id, type: Integer
       field :actor_type, type: String
       field :arguments, type: Array
-
-      DEFAULT_OPTIONS = {mode: :blocking, always: false, retry: 3, retry_interval: 15.minutes}.with_indifferent_access
+      field :mode, type: Symbol, default: :blocking
+      field :always, type: Boolean, default: false
+      field :retry, type: Integer, default: 3
+      field :retry_interval, type: Integer, default: 15.minutes
+      field :timeout, type: Integer, default: 0
+      field :method, type: Boolean, default: false
 
       validate :not_blocking_and_always
 
       def not_blocking_and_always
-        if execution_options[:mode] == :blocking && execution_options[:always]
-          errors.add(:options, 'An Activity can not be blocking and always')
+        if mode == :blocking && always
+          errors.add(:base, 'An Activity can not be blocking and always')
         end
       end
 
       def start
         super
         WorkflowServer::AsyncClient.perform_activity(id)
-        Watchdog.start(self, "#{name}_timout".to_sym, execution_options[:timeout]) if execution_options[:timeout]
+        Watchdog.start(self, "#{name}_timout".to_sym, timeout) if timeout > 0
         update_status!(:executing)
       end
       alias_method :perform, :start
@@ -48,8 +51,8 @@ module WorkflowServer
           return if subactivity_handled?(name, actor)
         end
 
-        sub_activity = SubActivity.create!(name: name, actor_id: actor.id, actor_type: actor.class.to_s, arguments: args, options: options, parent: self, workflow: workflow)
-        Watchdog.feed(self, "#{name}_timout".to_sym) if execution_options[:timeout]
+        sub_activity = SubActivity.create!({name: name, actor_id: actor.id, actor_type: actor.class.to_s, arguments: args, parent: self, workflow: workflow}.merge(options))
+        Watchdog.feed(self, "#{name}_timout".to_sym) if timeout > 0
         update_status!(:running_sub_activity)
 
         sub_activity.start
@@ -81,27 +84,23 @@ module WorkflowServer
       end
 
       def blocking?
-        execution_options[:mode] == :blocking
+        mode == :blocking
       end
 
       def method?
-        !!execution_options[:method]
+        method
       end
 
       def fire_and_forget?
-        execution_options[:mode] == :fire_and_forget
-      end
-
-      def execution_options
-        @execution_options ||= DEFAULT_OPTIONS.merge(options)
+        mode == :fire_and_forget
       end
 
       def retry?
-        execution_options[:retry] && status_history.find_all {|s| s[:to] == :retrying }.count < execution_options[:retry]
+        status_history.find_all {|s| s[:to] == :retrying }.count < self.retry
       end
 
       def retry_interval
-        execution_options[:retry_interval] || 0
+        retry_interval
       end
 
       def errored(error)
@@ -126,11 +125,6 @@ module WorkflowServer
 
       def print_name
         super + " - #{actor_id}"
-      end
-
-      def timeout(timeout)
-        update_status!(:timeout, timeout)
-        super
       end
 
       private

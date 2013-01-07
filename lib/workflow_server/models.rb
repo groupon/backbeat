@@ -1,5 +1,4 @@
 require_relative 'models/events'
-require_relative 'models/workflow'
 require_relative 'models/watchdog'
 
 module WorkflowServer

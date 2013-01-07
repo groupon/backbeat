@@ -3,14 +3,15 @@ module WorkflowServer
     class Event
       include Mongoid::Document
       include Mongoid::Timestamps
+      include Mongoid::Locker
 
       field :status, type: Symbol, default: :open
       field :status_history, type: Array, default: []
       field :name, type: Symbol
 
-      belongs_to :workflow
-      belongs_to :parent, class_name: "WorkflowServer::Models::Event"
-      has_many :children, :inverse_of => :parent, class_name: "WorkflowServer::Models::Event", order: {created_at: 1}
+      belongs_to :workflow, inverse_of: :events, class_name: "WorkflowServer::Models::Workflow"
+      belongs_to :parent, inverse_of: :children, class_name: "WorkflowServer::Models::Event"
+      has_many :children, inverse_of: :parent, class_name: "WorkflowServer::Models::Event", order: {created_at: 1}
 
       validates_presence_of :name
 
@@ -34,6 +35,10 @@ module WorkflowServer
         end
       end
 
+      def blocking?
+        false
+      end
+
       def start
         notify_of("#{name}_start")
       end
@@ -51,6 +56,7 @@ module WorkflowServer
       end
 
       def timeout(timeout)
+        update_status!(:timeout, timeout)
         notify_of_error("#{name}_timeout", timeout)
         parent.child_timeout(self, timeout) if parent
       end

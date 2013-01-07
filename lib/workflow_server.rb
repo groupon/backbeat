@@ -3,6 +3,8 @@
 require 'mongoid'
 require 'mongoid-locker'
 require 'delayed_job_mongoid'
+require 'tree'
+require 'mongoid_indifferent_access'
 
 require 'accounting-utility'
 require_relative 'workflow_server/errors'

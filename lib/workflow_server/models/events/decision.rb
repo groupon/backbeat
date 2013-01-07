@@ -1,7 +1,6 @@
 module WorkflowServer
   module Models
     class Decision < Event
-      include Mongoid::Locker
 
       after_create :schedule_next_decision
 
@@ -23,7 +22,15 @@ module WorkflowServer
       end
 
       def add_activity(activity_name, actor, options = {})
-        decisions_to_add << [Activity, {name: activity_name, actor_id: actor.id, actor_type: actor.class.to_s, workflow: workflow, options: options, parent: self}]
+        decisions_to_add << [Activity, {name: activity_name, actor_id: actor.id, actor_type: actor.class.to_s, workflow: workflow, parent: self}.merge{options}]
+      end
+
+      def add_workflow(workflow_name, workflow_type, subject, decider, options = {})
+        decisions_to_add << [Workflow, {name: workflow_name, workflow_type: workflow_type, subject_type: subject.class.to_s, subject_id: subject.id, decider: decider.to_s, workflow: workflow, parent: self}.merge(options)]
+      end
+
+      def complete_workflow
+        decisions_to_add << [WorkflowCompleteFlag, {name: workflow.name, parent: self, workflow: workflow}]
       end
 
       def deciding
@@ -47,7 +54,7 @@ module WorkflowServer
 
       def refresh
         start_next_action
-        completed if all_activities_completed?
+        completed if all_activities_and_workflows_completed?
       end
 
       def completed
@@ -78,18 +85,11 @@ module WorkflowServer
         super
       end
 
-      def timeout(timeout)
-        update_status!(:timeout, timeout)
-        super
-      end
-
       def start_next_action
         with_lock do
-          unless any_incomplete_blocking_activities?
-            open_events do |event|
-              event.start
-              break if event.is_a?(Activity) && event.blocking?
-            end
+          open_events do |event|
+            break if any_incomplete_blocking_activities_or_workflows?
+            event.start
           end
         end
       end
@@ -100,12 +100,12 @@ module WorkflowServer
         end
       end
 
-      def any_incomplete_blocking_activities?
-        children.type(Activity).where(:"options.mode" => :blocking).not_in(:status => [:complete, :open]).any?
+      def any_incomplete_blocking_activities_or_workflows?
+        children.type([Activity, Workflow]).where(mode: :blocking).not_in(:status => [:complete, :open]).any?
       end
 
-      def all_activities_completed?
-        !children.type(Activity).where(:"options.mode".ne => :fire_and_forget, :status.ne => :complete).any?
+      def all_activities_and_workflows_completed?
+        !children.type([Activity, Workflow]).where(:mode.ne => :fire_and_forget, :status.ne => :complete).any?
       end
 
       def schedule_next_decision
