@@ -17,11 +17,6 @@ module WorkflowServer
       end
       alias_method :perform, :fire
 
-      def completed
-        update_status!(:complete)
-        super
-      end
-
       def print_name
         super + " - fires_at: #{fires_at}"
       end

@@ -6,11 +6,6 @@ module WorkflowServer
         super
         completed
       end
-
-      def completed
-        update_status!(:complete)
-        super
-      end
     end
   end
 end

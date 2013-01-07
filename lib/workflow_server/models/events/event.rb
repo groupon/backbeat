@@ -39,11 +39,13 @@ module WorkflowServer
       end
 
       def completed
+        update_status!(:complete)
         notify_of("#{name}_complete")
         parent.child_completed(self) if parent
       end
 
       def errored(error)
+        update_status!(:error, error)
         notify_of_error("#{name}_error", error)
         parent.child_errored(self, error) if parent
       end

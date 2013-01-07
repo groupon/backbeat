@@ -51,7 +51,6 @@ module WorkflowServer
       end
 
       def completed
-        update_status!(:complete)
         Flag.create(name: "#{self.name}_completed".to_sym, workflow: workflow, parent: self, status: :complete)
         super
         schedule_next_decision
@@ -75,7 +74,6 @@ module WorkflowServer
       end
 
       def errored(error)
-        update_status!(:error, error)
         Watchdog.kill(self, :decision_executing_time_out)
         super
       end

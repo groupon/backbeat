@@ -32,7 +32,6 @@ module WorkflowServer
         with_lock do
           unless subactivities_running?
             Watchdog.kill(self, "#{name}_timout".to_sym)
-            update_status!(:complete)
             super
             if parent.is_a?(Decision)
               # Add a decision task if this is a top level activity
@@ -117,7 +116,6 @@ module WorkflowServer
           update_status!(:retrying)
         else
           Watchdog.kill(self, "#{name}_timout".to_sym)
-          update_status!(:error, error)
           super
           if parent.is_a?(Decision)
             # Add a decision task if this is a top level activity

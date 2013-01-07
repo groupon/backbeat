@@ -9,11 +9,6 @@ module WorkflowServer
         add_decision(name)
         update_status!(:complete)
       end
-
-      def completed
-        update_status!(:complete)
-        super
-      end
     end
   end
 end
