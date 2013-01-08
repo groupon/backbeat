@@ -7,7 +7,7 @@ module WorkflowServer
       def start
         super
         add_decision(name)
-        update_status!(:complete)
+        completed
       end
     end
   end
