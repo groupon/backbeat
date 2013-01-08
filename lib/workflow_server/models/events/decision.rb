@@ -4,7 +4,7 @@ module WorkflowServer
 
       after_create :schedule_next_decision
 
-      attr_accessor_with_default :decisions_to_add, []
+      attr_accessor :decisions_to_add
 
       def start
         super
@@ -35,6 +35,7 @@ module WorkflowServer
 
       def deciding
         Watchdog.feed(self, :decision_deciding_time_out)
+        self.decisions_to_add = []
         yield
         close
       rescue Exception => err
