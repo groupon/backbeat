@@ -7,6 +7,7 @@ require 'tree'
 require 'mongoid_indifferent_access'
 
 require 'accounting-utility'
+require_relative 'workflow_server/config'
 require_relative 'workflow_server/errors'
 require_relative 'workflow_server/events'
 require_relative 'workflow_server/manager'
