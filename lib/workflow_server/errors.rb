@@ -11,7 +11,7 @@ module WorkflowServer
 
   class EventComplete < StandardError
   end
-  
+
   class InvalidParameters < StandardError
     def initialize(message_as_hash)
       @message_as_hash = message_as_hash
@@ -21,4 +21,8 @@ module WorkflowServer
       @message_as_hash
     end
   end
+
+  class InvalidBranchSelection < StandardError
+  end
+
 end

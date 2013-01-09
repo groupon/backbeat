@@ -2,8 +2,6 @@ module WorkflowServer
   module Models
     class Activity < Event
 
-      field :options, type: Hash, default: {}
-      field :version, type: String
       field :actor_id, type: Integer
       field :actor_type, type: String
       field :arguments, type: Array
@@ -25,7 +23,7 @@ module WorkflowServer
       def start
         super
         WorkflowServer::AsyncClient.perform_activity(id)
-        Watchdog.start(self, "#{name}_timout".to_sym, timeout) if timeout > 0
+        Watchdog.start(self, :timeout, timeout) if timeout > 0
         update_status!(:executing)
       end
       alias_method :perform, :start
@@ -34,13 +32,14 @@ module WorkflowServer
       def completed
         with_lock do
           unless subactivities_running?
-            Watchdog.kill(self, "#{name}_timout".to_sym)
+            Watchdog.kill(self) if timeout > 0
             super
             if parent.is_a?(Decision)
               # Add a decision task if this is a top level activity
               add_decision("#{name}_succeeded".to_sym)
             end
           else
+            Watchdog.feed(self) if timeout > 0
             update_status!(:waiting_for_sub_activities)
           end
         end
@@ -52,7 +51,7 @@ module WorkflowServer
         end
 
         sub_activity = SubActivity.create!({name: name, actor_id: actor.id, actor_type: actor.class.to_s, arguments: args, parent: self, workflow: workflow}.merge(options))
-        Watchdog.feed(self, "#{name}_timout".to_sym) if timeout > 0
+        Watchdog.feed(self) if timeout > 0
         update_status!(:running_sub_activity)
 
         sub_activity.start
@@ -106,6 +105,7 @@ module WorkflowServer
       end
 
       def errored(error)
+        Watchdog.kill(self) if timeout > 0
         if retry?
           update_status!(:failed, error)
           notify_of(:error_retry, error: error)
@@ -116,7 +116,6 @@ module WorkflowServer
           end
           update_status!(:retrying)
         else
-          Watchdog.kill(self, "#{name}_timout".to_sym)
           super
           if parent.is_a?(Decision)
             # Add a decision task if this is a top level activity
@@ -132,7 +131,7 @@ module WorkflowServer
       private
 
       def subactivities_running?
-        children.where(:"options.mode".ne => :fire_and_forget, :status.ne => :complete).type(SubActivity).any?
+        children.where(:mode.ne => :fire_and_forget, :status.ne => :complete).type(SubActivity).any?
       end
 
       def subactivity_hash(name, actor)
@@ -142,6 +141,7 @@ module WorkflowServer
       def subactivity_handled?(name, actor)
         children.where(subactivity_hash(name, actor)).type(SubActivity.to_s).any?
       end
+
     end
   end
 end
