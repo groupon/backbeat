@@ -17,7 +17,8 @@ module WorkflowServer
         decisions_to_add << [Flag, {name: name, parent: self, workflow: workflow}]
       end
 
-      def add_timer(name, fires_at)
+      def add_timer(name, time)
+        fires_at = time[:at] || time[:in].from_now
         decisions_to_add << [Timer, {fires_at: fires_at, name: name, parent: self, workflow: workflow}]
       end
 
