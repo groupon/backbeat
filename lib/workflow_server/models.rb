@@ -10,5 +10,6 @@ module WorkflowServer
     autoload :Timer,       'workflow_server/models/events/timer'
     autoload :Decision,    'workflow_server/models/events/decision'
     autoload :Workflow,    'workflow_server/models/events/workflow'
+    autoload :User,        'workflow_server/models/user'
   end
 end

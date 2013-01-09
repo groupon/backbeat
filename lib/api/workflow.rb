@@ -5,6 +5,12 @@ module Api
   class Workflow < Grape::API
     format :json
 
+    helpers do
+      def current_user
+        @current_user ||= env['WORKFLOW_CURRENT_USER']
+      end
+    end
+
     resource 'workflows' do
       params do
         requires :workflow_type, :type => String, :desc => 'Require a workflow type'
@@ -13,7 +19,7 @@ module Api
         requires :decider,       :type => String, :desc => 'Require a workflow decider'
       end
       post "/" do
-        wf = WorkflowServer::Manager.find_or_create_workflow(params[:workflow_type], params[:subject_type], params[:subject_id], params[:decider])
+        wf = WorkflowServer::Manager.find_or_create_workflow(params[:workflow_type], params[:subject_type], params[:subject_id], params[:decider], current_user)
         [201, {}, wf]
       end
     end

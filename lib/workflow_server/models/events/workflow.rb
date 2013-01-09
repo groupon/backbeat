@@ -13,7 +13,9 @@ module WorkflowServer
 
       has_many :events, inverse_of: :workflow, order: {created_at: 1}
 
-      validates_presence_of :workflow_type, :subject_id, :subject_type, :decider
+      belongs_to :user
+
+      validates_presence_of :workflow_type, :subject_id, :subject_type, :decider, :user
 
       def signal(name)
         WorkflowServer::Models::Signal.create!(name: name, workflow: self)

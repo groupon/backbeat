@@ -15,6 +15,9 @@ require 'mongoid_indifferent_access'
 #require 'workflow_server'
 
 class Server < ::Goliath::API
+
+  use Api::Authenticate
+
   def response(env)
     Api::Workflow.call(env)
   end

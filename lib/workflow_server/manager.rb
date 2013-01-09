@@ -18,9 +18,10 @@ module WorkflowServer
         Models::Event.find(id)
       end
 
-      def find_or_create_workflow(workflow_type, subject_type, subject_id, decider = nil)
-        workflow = Models::Workflow.find_or_create_by(workflow_type: workflow_type, subject_type: subject_type, subject_id: subject_id, decider: decider, name: workflow_type)
+      def find_or_create_workflow(workflow_type, subject_type, subject_id, decider, user)
+        workflow = Models::Workflow.find_or_create_by(workflow_type: workflow_type, subject_type: subject_type, subject_id: subject_id, decider: decider, name: workflow_type, user: user)
         workflow.save!
+        workflow
       end
     end
   end
