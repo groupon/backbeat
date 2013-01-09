@@ -22,12 +22,16 @@ module WorkflowServer
         decisions_to_add << [Timer, {fires_at: fires_at, name: name, parent: self, workflow: workflow}]
       end
 
-      def add_activity(activity_name, actor, options = {})
-        decisions_to_add << [Activity, {name: activity_name, actor_id: actor.id, actor_type: actor.class.to_s, workflow: workflow, parent: self}.merge(options)]
+      def add_activity(name, actor, options = {})
+        decisions_to_add << [Activity, {name: name, actor_id: actor.id, actor_type: actor.class.to_s, workflow: workflow, parent: self}.merge(options)]
       end
 
-      def add_workflow(workflow_name, workflow_type, subject, decider, options = {})
-        decisions_to_add << [Workflow, {name: workflow_name, workflow_type: workflow_type, subject_type: subject.class.to_s, subject_id: subject.id, decider: decider.to_s, workflow: workflow, parent: self}.merge(options)]
+      def add_branch(name, branches, options = {})
+        decisions_to_add << [Branch, {name: name, branches: branches, workflow: workflow, parent: self}.merge(options)]
+      end
+
+      def add_workflow(name, workflow_type, subject, decider, options = {})
+        decisions_to_add << [Workflow, {name: name, workflow_type: workflow_type, subject_type: subject.class.to_s, subject_id: subject.id, decider: decider.to_s, workflow: workflow, parent: self}.merge(options)]
       end
 
       def complete_workflow
@@ -56,7 +60,7 @@ module WorkflowServer
 
       def refresh
         start_next_action
-        completed if all_activities_and_workflows_completed?
+        completed if all_activities_branches_and_workflows_completed?
       end
 
       def completed
@@ -67,7 +71,7 @@ module WorkflowServer
 
       def child_completed(child)
         super
-        if child.is_a?(Activity)
+        if child.is_a?(Activity) || child.is_a?(Branch)
           refresh
         end
       end
@@ -90,7 +94,7 @@ module WorkflowServer
       def start_next_action
         with_lock do
           open_events do |event|
-            break if any_incomplete_blocking_activities_or_workflows?
+            break if any_incomplete_blocking_activities_branches_or_workflows?
             event.start
           end
         end
@@ -102,12 +106,12 @@ module WorkflowServer
         end
       end
 
-      def any_incomplete_blocking_activities_or_workflows?
-        children.type([Activity, Workflow]).where(mode: :blocking).not_in(:status => [:complete, :open]).any?
+      def any_incomplete_blocking_activities_branches_or_workflows?
+        children.type([Activity, Branch, Workflow]).where(mode: :blocking).not_in(:status => [:complete, :open]).any?
       end
 
-      def all_activities_and_workflows_completed?
-        !children.type([Activity, Workflow]).where(:mode.ne => :fire_and_forget, :status.ne => :complete).any?
+      def all_activities_branches_and_workflows_completed?
+        !children.type([Activity, Branch, Workflow]).where(:mode.ne => :fire_and_forget, :status.ne => :complete).any?
       end
 
       def schedule_next_decision

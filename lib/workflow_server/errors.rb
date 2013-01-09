@@ -11,7 +11,11 @@ module WorkflowServer
 
   class EventComplete < StandardError
   end
-  
+
   class InvalidParameters < StandardError
   end
+
+  class InvalidBranchSelection < StandardError
+  end
+
 end

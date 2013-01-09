@@ -22,12 +22,12 @@ module WorkflowServer
       def update_status!(new_status, error = nil)
         unless new_status == self.status && new_status != :retrying
           status_hash = {from: self.status, to: new_status, at: Time.now}
-          case error
-          when NilClass
-          when TimeOut
-            status_hash[:timeout] = {message: error.message}
-          else
-            status_hash[:error] = {message: error.message, backtrace: error.backtrace}
+          if error
+            error_hash = {error_klass: error.class.to_s, message: error.message}
+            if error.backtrace
+              error_hash[:backtrace] = error.backtrace
+            end
+            status_hash[:error] = error_hash
           end
           self.status_history << status_hash
           self.status = new_status
