@@ -1,3 +1,5 @@
+require_relative 'models'
+
 module WorkflowServer
   class Manager
     class << self
@@ -17,7 +19,8 @@ module WorkflowServer
       end
 
       def find_or_create_workflow(workflow_type, subject_type, subject_id, decider = nil)
-        Models::Workflow.find_or_create_by(workflow_type: workflow_type, subject_type: subject_type, subject_id: subject_id, decider: decider, name: workflow_type)
+        workflow = Models::Workflow.find_or_create_by(workflow_type: workflow_type, subject_type: subject_type, subject_id: subject_id, decider: decider, name: workflow_type)
+        workflow.save!
       end
     end
   end

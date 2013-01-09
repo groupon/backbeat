@@ -6,13 +6,18 @@ module Api
     format :json
 
     resource 'workflows' do
+      params do
+        requires :workflow_type, :type => String, :desc => 'Require a workflow type'
+        requires :subject_type,  :type => String, :desc => 'Require a subject type'
+        requires :subject_id,    :type => String, :desc => 'Require a subject id'
+        requires :decider,       :type => String, :desc => 'Require a workflow decider'
+      end
       post "/" do
         wf = WorkflowServer::Manager.find_or_create_workflow(params[:workflow_type], params[:subject_type], params[:subject_id], params[:decider])
-        ap wf.attributes
         [201, {}, wf]
       end
     end
-    
+
     get "/events/:id" do
       
     end
