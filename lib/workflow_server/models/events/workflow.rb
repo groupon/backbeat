@@ -18,6 +18,7 @@ module WorkflowServer
       validates_presence_of :workflow_type, :subject_id, :subject_type, :decider, :user
 
       def signal(name)
+        raise WorkflowServer::EventComplete, "Workflow with id(#{id}) is already complete" if status == :complete
         WorkflowServer::Models::Signal.create!(name: name, workflow: self)
       end
 

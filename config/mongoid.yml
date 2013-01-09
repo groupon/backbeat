@@ -4,6 +4,8 @@ development:
       database: mongoid
       hosts:
         - localhost:27017
+  options:
+    raise_not_found_error: false
 
 test:
   sessions:
@@ -11,3 +13,5 @@ test:
       database: mongoid_test
       hosts:
         - localhost:27017
+  options:
+    raise_not_found_error: false

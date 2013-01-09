@@ -6,4 +6,12 @@ module WorkflowServer
   class TimeOut < StandardError
   end
 
+  class EventNotFound < StandardError
+  end
+
+  class EventComplete < StandardError
+  end
+  
+  class InvalidParameters < StandardError
+  end
 end
