@@ -19,7 +19,7 @@ describe Api::Workflow do
         post_request(path: '/workflows', head: {"CLIENT_ID" => user.client_id}) do |c|
           c.response_header.status.should == 400
           json_response = JSON.parse(c.response)
-          json_response['error'].should == "missing parameter: workflow_type"
+          json_response.should == {"error" => {"name"=>["can't be blank"], "workflow_type"=>["can't be blank"], "subject_id"=>["can't be blank"], "subject_type"=>["can't be blank"], "decider"=>["can't be blank"]}}
         end
       end
     end
@@ -57,7 +57,8 @@ describe Api::Workflow do
         user = FactoryGirl.create(:user)
         post_request(path: "/workflows/1000/signal/test", head: {"CLIENT_ID" => user.client_id}) do |c|
           c.response_header.status.should == 404
-          c.response.should == "Workflow with id(1000) not found"
+          json_response = JSON.parse(c.response)
+          json_response.should == {"error" => "Workflow with id(1000) not found"}
         end
       end
     end
@@ -83,7 +84,8 @@ describe Api::Workflow do
         user = wf.user
         post_request(path: "/workflows/#{wf.id}/signal/test", head: {"CLIENT_ID" => user.client_id}) do |c|
           c.response_header.status.should == 400
-          c.response.should == "Workflow with id(#{wf.id}) is already complete"
+          json_response = JSON.parse(c.response)
+          json_response.should == {"error" => "Workflow with id(#{wf.id}) is already complete"}
         end
       end
     end
@@ -94,7 +96,8 @@ describe Api::Workflow do
         user = FactoryGirl.create(:user)
         post_request(path: "/workflows/#{wf.id}/signal/test", head: {"CLIENT_ID" => user.client_id}) do |c|
           c.response_header.status.should == 404
-          c.response.should == "Workflow with id(#{wf.id}) not found"
+          json_response = JSON.parse(c.response)
+          json_response.should == {"error" => "Workflow with id(#{wf.id}) not found"}
         end
       end
     end
@@ -117,7 +120,8 @@ describe Api::Workflow do
         wf = FactoryGirl.create(:workflow)
         get_request(path: "/workflows/1000", head: {"CLIENT_ID" => wf.user.client_id}) do |c|
           c.response_header.status.should == 404
-          c.response.should == "Workflow with id(1000) not found"
+          json_response = JSON.parse(c.response)
+          json_response.should == {"error" => "Workflow with id(1000) not found"}
         end
       end
     end
@@ -128,7 +132,8 @@ describe Api::Workflow do
         user = FactoryGirl.create(:user)
         get_request(path: "/workflows/#{wf.id}", head: {"CLIENT_ID" => user.client_id}) do |c|
           c.response_header.status.should == 404
-          c.response.should == "Workflow with id(#{wf.id}) not found"
+          json_response = JSON.parse(c.response)
+          json_response.should == {"error" => "Workflow with id(#{wf.id}) not found"}
         end
       end
     end

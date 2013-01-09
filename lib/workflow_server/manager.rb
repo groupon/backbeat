@@ -28,7 +28,7 @@ module WorkflowServer
                                                       decider: method_options.delete(:decider),
                                                       name: method_options.delete(:name),
                                                       user: method_options.delete(:user))
-        workflow.save!
+        workflow.save
         workflow
       end
     end

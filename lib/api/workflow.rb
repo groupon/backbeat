@@ -6,11 +6,11 @@ module Api
     format :json
 
     rescue_from WorkflowServer::EventNotFound do |e|
-      Rack::Response.new([ e.message ], 404, { "Content-type" => "text/error" }).finish
+      Rack::Response.new({error: e.message }.to_json, 404, { "Content-type" => "application/json" }).finish
     end
 
-    rescue_from WorkflowServer::EventComplete do |e|
-      Rack::Response.new([ e.message ], 400, { "Content-type" => "text/error" }).finish
+    rescue_from WorkflowServer::EventComplete, WorkflowServer::InvalidParameters do |e|
+      Rack::Response.new({error: e.message }.to_json, 400, { "Content-type" => "application/json" }).finish
     end
 
     helpers do
@@ -20,17 +20,15 @@ module Api
     end
 
     resource 'workflows' do
-      params do
-        requires :workflow_type, :type => String, :desc => 'Require a workflow type'
-        requires :subject_type,  :type => String, :desc => 'Require a subject type'
-        requires :subject_id,    :type => String, :desc => 'Require a subject id'
-        requires :decider,       :type => String, :desc => 'Require a workflow decider'
-      end
-
       post "/" do
         params[:user] = current_user
         wf = WorkflowServer::Manager.find_or_create_workflow(params)
-        [201, {}, wf]
+
+        if wf.valid?
+          [201, {}, wf]
+        else
+          raise WorkflowServer::InvalidParameters, wf.errors.to_hash
+        end
       end
 
       get "/:id" do
