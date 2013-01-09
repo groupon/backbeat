@@ -68,7 +68,9 @@ module WorkflowServer
           if child.blocking?
             continue
           else
-            completed if status == :waiting_for_sub_activities
+            with_lock do
+              completed if status == :waiting_for_sub_activities
+            end
           end
         end
       end
