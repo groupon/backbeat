@@ -61,6 +61,21 @@ module Api
             event.change_status(params[:status], JSON.parse(params[:args] || "[]"))
             [200, {}, ""]
           end
+
+          put "/:id/run_sub_activity" do
+            wf = current_user.workflows.find(params[:workflow_id])
+            raise WorkflowServer::EventNotFound, "Workflow with id(#{params[:workflow_id]}) not found" unless wf
+
+            event = wf.activities.find(params[:id])
+            raise WorkflowServer::EventNotFound, "Event with id(#{params[:id]}) not found" unless event
+
+            sub_activity = event.run_sub_activity(HashWithIndifferentAccess.new(JSON.parse(params[:options] || "{}")))
+            headers = {}
+            if sub_activity.blocking?
+              headers["WAIT_FOR_SUB_ACTIVITY"] = true
+            end
+            [200, headers, ""]
+          end
         end
       end
     end

@@ -31,13 +31,13 @@ module WorkflowServer
         decisions: Decision,
         signals: Signal,
         timers: Timer,
-        activities: Activity,
+        activities: [Activity, SubActivity],
       }.each_pair do |name, klass|
         #
         # Returns events of the given type
         #
         define_method(name) do
-          arel = events.type(klass.to_s)
+          arel = events.type(klass)
           if block_given?
             arel.each do |record|
               yield record

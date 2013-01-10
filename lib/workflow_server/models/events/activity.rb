@@ -45,20 +45,24 @@ module WorkflowServer
         end
       end
 
-      def run_sub_activity(name, actor, *args, options)
+      def run_sub_activity(options = {})
+        raise WorkflowServer::InvalidEventStatus, "Cannot run subactivity while in status(#{status})" unless status == :executing
         unless options[:always]
-          return if subactivity_handled?(name, actor)
+          return if subactivity_handled?(options[:name], options[:actor_type], options[:actor_id])
         end
 
-        sub_activity = SubActivity.create!({name: name, actor_id: actor.id, actor_type: actor.class.to_s, arguments: args, parent: self, workflow: workflow}.merge(options))
+        sa_name = options.delete(:name)
+        sub_activity = SubActivity.new({name: sa_name, actor_id: options.delete(:actor_id), actor_type: options.delete(:actor_type), parent: self, workflow: workflow}.merge(options))
+        unless sub_activity.valid?
+          raise WorkflowServer::InvalidParameters, {sa_name => sub_activity.errors}
+        end
+        sub_activity.save!
+
         Watchdog.feed(self) if timeout > 0
         update_status!(:running_sub_activity)
 
         sub_activity.start
-
-        if sub_activity.blocking?
-          raise WorkflowServer::WaitForSubActivity, "Waiting for sub_activity(#{sub_activity.id}) to complete"
-        end
+        sub_activity
       end
 
       def child_completed(child)
@@ -149,12 +153,12 @@ module WorkflowServer
         children.where(:mode.ne => :fire_and_forget, :status.ne => :complete).type(SubActivity).any?
       end
 
-      def subactivity_hash(name, actor)
-        {name: name, actor_id: actor.id, actor_type: actor.class.to_s}
+      def subactivity_hash(name, actor_type, actor_id)
+        {name: name, actor_type: actor_type, actor_id: actor_id}
       end
 
-      def subactivity_handled?(name, actor)
-        children.where(subactivity_hash(name, actor)).type(SubActivity.to_s).any?
+      def subactivity_handled?(name, actor_type, actor_id)
+        children.where(subactivity_hash(name, actor_type, actor_id)).type(SubActivity.to_s).any?
       end
 
     end
