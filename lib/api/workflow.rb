@@ -30,10 +30,18 @@ module Api
       end
 
       def find_event(event_id, workflow_id = nil, event_type = nil)
-        wf = find_workflow(workflow_id)
-        event_type ||= :events #all events
-        event = wf.__send__(event_type).find(event_id)
-        raise WorkflowServer::EventNotFound, "Event with id(#{event_id}) not found" unless event
+        event = nil
+        if workflow_id
+          wf = find_workflow(workflow_id)
+          event_type ||= :events #all events
+          event = wf.__send__(event_type).find(event_id)
+          raise WorkflowServer::EventNotFound, "Event with id(#{event_id}) not found" unless event
+        else
+          event = WorkflowServer::Models::Event.find(event_id)
+          unless event && event.workflow.user == current_user
+            raise WorkflowServer::EventNotFound, "Event with id(#{event_id}) not found"
+          end
+        end
         event
       end
     end
@@ -88,6 +96,11 @@ module Api
             sub_activity
           end
         end
+      end
+    end
+    resource "events" do
+      get "/:id" do
+        find_event(params[:id])
       end
     end
   end
