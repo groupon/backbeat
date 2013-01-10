@@ -1,6 +1,4 @@
 # -*- encoding : utf-8 -*-
-
-require_relative 'workflow_server/config'
 require_relative 'workflow_server/errors'
 
 module WorkflowServer

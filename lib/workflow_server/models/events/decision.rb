@@ -108,8 +108,8 @@ module WorkflowServer
         decisions_to_add << [Activity, {name: name, actor_id: actor_id, actor_type: actor_type, workflow: workflow, parent: self}.merge(options)]
       end
 
-      def add_branch(name, branches, options = {})
-        decisions_to_add << [Branch, {name: name, branches: branches, workflow: workflow, parent: self}.merge(options)]
+      def add_branch(name, actor, options = {})
+        decisions_to_add << [Branch, {name: name, actor_id: actor.id, actor_type: actor.class.to_s, workflow: workflow, parent: self}.merge(options)]
       end
 
       def add_workflow(name, workflow_type, subject_type, subject_id, decider, options = {})

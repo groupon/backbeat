@@ -11,12 +11,13 @@ module WorkflowServer
       field :retry_interval, type: Integer, default: 15.minutes
       field :timeout, type: Integer, default: 0
       field :method, type: Boolean, default: false
+      field :valid_next_decisions, type: Array, default: []
 
       validate :not_blocking_and_always
 
       def not_blocking_and_always
         if mode == :blocking && always
-          errors.add(:base, 'An Activity can not be blocking and always')
+          errors.add(:base, "#{self.class} cannot be blocking and always")
         end
       end
 
@@ -29,14 +30,17 @@ module WorkflowServer
       alias_method :perform, :start
       alias_method :continue, :start
 
-      def completed
+      def completed(next_decision = "#{name}_succeeded".to_sym)
         with_lock do
           unless subactivities_running?
             Watchdog.kill(self) if timeout > 0
-            super
             if parent.is_a?(Decision)
-              # Add a decision task if this is a top level activity
-              add_decision("#{name}_succeeded".to_sym)
+              #only top level activities are allowed schedule a next decision
+              if next_decision != :none
+                super.errored(InvalidDecisionSelection.new(self)) unless valid_next_decision?(next_decision)
+                add_decision(next_decision)
+              end
+              super()
             end
           else
             Watchdog.feed(self) if timeout > 0
@@ -104,10 +108,6 @@ module WorkflowServer
         status_history.find_all {|s| s[:to] == :retrying }.count < self.retry
       end
 
-      def retry_interval
-        retry_interval
-      end
-
       def change_status(new_status, *args)
         return if status == new_status.to_sym
         case new_status.to_sym
@@ -148,6 +148,10 @@ module WorkflowServer
       end
 
       private
+
+      def valid_next_decision?(next_decision)
+        [valid_next_decisions,"#{name}_succeeded".to_sym].flatten.include?(next_decision)
+      end
 
       def subactivities_running?
         children.where(:mode.ne => :fire_and_forget, :status.ne => :complete).type(SubActivity).any?
