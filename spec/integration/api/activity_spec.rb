@@ -126,7 +126,7 @@ describe Api::Workflow do
         put_request(path: "/workflows/#{wf.id}/events/#{signal.id}/run_sub_activity", head: {"CLIENT_ID" => user.client_id}, query: {sub_activity: sub_activity.to_json}) do |c|
           c.response_header.status.should == 200
           json_response = JSON.parse(c.response)
-          json_response[1]["WAIT_FOR_SUB_ACTIVITY"].should == true
+          c.response_header["WAIT_FOR_SUB_ACTIVITY"].should == "true"
         end
       end
     end

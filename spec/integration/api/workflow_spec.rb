@@ -30,7 +30,7 @@ describe Api::Workflow do
         post_request(path: '/workflows', head: {"CLIENT_ID" => user.client_id}, query: {workflow_type: "WFType", subject_type: "PaymentTerm", subject_id: 100, decider: "PaymentDecider"}) do |c|
           c.response_header.status.should == 201
           json_response = JSON.parse(c.response)
-          wf = json_response.last
+          wf = json_response
           wf_in_db = WorkflowServer::Models::Workflow.last
           wf_in_db.id.to_s.should == wf['_id']
         end
@@ -44,7 +44,7 @@ describe Api::Workflow do
         post_request(path: '/workflows', head: {"CLIENT_ID" => user.client_id}, query: {workflow_type: wf.workflow_type, subject_type: wf.subject_type, subject_id: wf.subject_id, decider: wf.decider}) do |c|
           c.response_header.status.should == 201
           json_response = JSON.parse(c.response)
-          new_wf = json_response.last
+          new_wf = json_response
           wf.id.to_s.should == new_wf['_id']
         end
       end
@@ -72,7 +72,7 @@ describe Api::Workflow do
         post_request(path: "/workflows/#{wf.id}/signal/test", head: {"CLIENT_ID" => user.client_id}) do |c|
           c.response_header.status.should == 201
           json_response = JSON.parse(c.response)
-          signal = json_response.last
+          signal = json_response
           wf.signals.first.id.to_s.should == signal['_id']
         end
       end
@@ -110,7 +110,7 @@ describe Api::Workflow do
         get_request(path: "/workflows/#{wf.id}", head: {"CLIENT_ID" => wf.user.client_id}) do |c|
           c.response_header.status.should == 200
           json_response = JSON.parse(c.response)
-          json_response.last['_id'].should == wf.id.to_s
+          json_response['_id'].should == wf.id.to_s
         end
       end
     end

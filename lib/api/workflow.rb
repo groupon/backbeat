@@ -29,7 +29,7 @@ module Api
         wf = WorkflowServer::Manager.find_or_create_workflow(params)
 
         if wf.valid?
-          [201, {}, wf]
+          wf
         else
           raise WorkflowServer::InvalidParameters, wf.errors.to_hash
         end
@@ -38,14 +38,14 @@ module Api
       get "/:id" do
         wf = current_user.workflows.find(params[:id])
         raise WorkflowServer::EventNotFound, "Workflow with id(#{params[:id]}) not found" unless wf
-        [200, {}, wf]
+        wf
       end
 
       post "/:id/signal/:name" do
         wf = current_user.workflows.find(params[:id])
         raise WorkflowServer::EventNotFound, "Workflow with id(#{params[:id]}) not found" unless wf
         signal = wf.signal(params[:name])
-        [201, {}, signal]
+        signal
       end
 
 
@@ -59,7 +59,6 @@ module Api
             raise WorkflowServer::EventNotFound, "Event with id(#{params[:id]}) not found" unless event
 
             event.change_status(params[:status], HashWithIndifferentAccess.new(JSON.parse(params[:args] || "{}")))
-            [200, {}, ""]
           end
 
           put "/:id/run_sub_activity" do
@@ -70,11 +69,10 @@ module Api
             raise WorkflowServer::EventNotFound, "Event with id(#{params[:id]}) not found" unless event
 
             sub_activity = event.run_sub_activity(HashWithIndifferentAccess.new(JSON.parse(params[:sub_activity] || "{}")))
-            headers = {}
             if sub_activity.blocking?
-              headers["WAIT_FOR_SUB_ACTIVITY"] = true
+              header("WAIT_FOR_SUB_ACTIVITY", "true")
             end
-            [200, headers, ""]
+            sub_activity
           end
         end
       end
