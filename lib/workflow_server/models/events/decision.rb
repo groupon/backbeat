@@ -8,7 +8,7 @@ module WorkflowServer
 
       def start
         super
-        WorkflowServer::AsyncClient.make_decision(workflow.decider, self.id, workflow.subject_type, workflow.subject_id)
+        WorkflowServer::AsyncClient.make_decision(self)
         Watchdog.start(self, :decision_deciding_time_out)
         update_status!(:enqueued)
       end

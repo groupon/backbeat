@@ -40,24 +40,24 @@ module WorkflowServer
       end
 
       def start
-        notify_of("#{name}_start")
+        notify_of("start")
       end
 
       def completed
         update_status!(:complete)
-        notify_of("#{name}_complete")
+        notify_of("complete")
         parent.child_completed(self) if parent
       end
 
       def errored(error)
         update_status!(:error, error)
-        notify_of_error("#{name}_error", error)
+        notify_of("error", error)
         parent.child_errored(self, error) if parent
       end
 
       def timeout(timeout)
         update_status!(:timeout, timeout)
-        notify_of_error("#{name}_timeout", timeout)
+        notify_of("timeout", timeout)
         parent.child_timeout(self, timeout) if parent
       end
 
@@ -77,12 +77,8 @@ module WorkflowServer
         workflow.past_flags(self)
       end
 
-      def notify_of(event = nil, options = {})
-        WorkflowServer::Events.notify_of(event, {type: _type}.merge(options))
-      end
-
-      def notify_of_error(event, error, options = {})
-        WorkflowServer::Events.notify_of_error(event, error, {type: _type}.merge(options))
+      def notify_of(notification, error = nil)
+        WorkflowServer::AsyncClient.notify_of(event, notification, error)
       end
 
       def print_name

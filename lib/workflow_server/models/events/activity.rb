@@ -22,7 +22,7 @@ module WorkflowServer
 
       def start
         super
-        WorkflowServer::AsyncClient.perform_activity(id)
+        WorkflowServer::AsyncClient.perform_activity(self)
         Watchdog.start(self, :timeout, timeout) if timeout > 0
         update_status!(:executing)
       end
