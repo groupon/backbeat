@@ -78,7 +78,7 @@ module WorkflowServer
       end
 
       def notify_of(notification, error = nil)
-        WorkflowServer::AsyncClient.notify_of(event, notification, error)
+        WorkflowServer::AsyncClient.notify_of(self, notification, error)
       end
 
       def print_name

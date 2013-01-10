@@ -7,7 +7,7 @@ module WorkflowServer
     def self.make_decision(decision)
     end
 
-    def self.notify(event, notification, error = nil)
+    def self.notify_of(event, notification, error = nil)
     end
 
   end

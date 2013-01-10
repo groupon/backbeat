@@ -6,7 +6,7 @@ module Api
     format :json
 
     rescue_from :all do |e|
-     Rack::Response.new({error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
+      Rack::Response.new({error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
     end
 
     rescue_from WorkflowServer::EventNotFound do |e|
@@ -69,7 +69,7 @@ module Api
             event = wf.activities.find(params[:id])
             raise WorkflowServer::EventNotFound, "Event with id(#{params[:id]}) not found" unless event
 
-            sub_activity = event.run_sub_activity(HashWithIndifferentAccess.new(JSON.parse(params[:options] || "{}")))
+            sub_activity = event.run_sub_activity(HashWithIndifferentAccess.new(JSON.parse(params[:sub_activity] || "{}")))
             headers = {}
             if sub_activity.blocking?
               headers["WAIT_FOR_SUB_ACTIVITY"] = true
