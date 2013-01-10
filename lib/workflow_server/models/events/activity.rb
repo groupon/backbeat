@@ -30,18 +30,19 @@ module WorkflowServer
       alias_method :perform, :start
       alias_method :continue, :start
 
-      def completed(next_decision = "#{name}_succeeded".to_sym)
+      def completed(next_decision = nil)
         with_lock do
           unless subactivities_running?
+            next_decision ||= "#{name}_succeeded".to_sym
             Watchdog.kill(self) if timeout > 0
             if parent.is_a?(Decision)
               #only top level activities are allowed schedule a next decision
               if next_decision != :none
-                super.errored(InvalidDecisionSelection.new(self)) unless valid_next_decision?(next_decision)
+                raise WorkflowServer::InvalidDecisionSelection.new("activity:#{name} tried to make #{next_decision} the next decision but is not allowed to.") unless valid_next_decision?(next_decision)
                 add_decision(next_decision)
               end
-              super()
             end
+            super()
           else
             Watchdog.feed(self) if timeout > 0
             update_status!(:waiting_for_sub_activities)
@@ -108,16 +109,15 @@ module WorkflowServer
         status_history.find_all {|s| s[:to] == :retrying }.count < self.retry
       end
 
-      def change_status(new_status, *args)
+      def change_status(new_status, args = {})
         return if status == new_status.to_sym
         case new_status.to_sym
         when :completed
           raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" if status != :executing
-          completed
+          completed(args[:next_decision])
         when :errored
           raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" if status != :executing
-          # TODO - FIX THIS
-          errored(args.first)
+          errored(args[:error])
         else
           raise WorkflowServer::InvalidEventStatus, "Invalid status #{new_status}"
         end

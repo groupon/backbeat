@@ -13,7 +13,7 @@ module WorkflowServer
         update_status!(:enqueued)
       end
 
-      def change_status(new_status, decisions = [])
+      def change_status(new_status, decisions_hash = {})
         return if status == new_status.to_sym
         case new_status.to_sym
         when :deciding
@@ -22,7 +22,8 @@ module WorkflowServer
         when :deciding_complete
           raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" if ![:enqueued, :deciding].include?(status)
           self.decisions_to_add = []
-          decisions.each do |decision|
+          
+          (decisions_hash[:decisions] || []).each do |decision|
             add_decision(HashWithIndifferentAccess.new(decision))
           end
           close
@@ -108,8 +109,8 @@ module WorkflowServer
         decisions_to_add << [Activity, {name: name, actor_id: actor_id, actor_type: actor_type, workflow: workflow, parent: self}.merge(options)]
       end
 
-      def add_branch(name, actor, options = {})
-        decisions_to_add << [Branch, {name: name, actor_id: actor.id, actor_type: actor.class.to_s, workflow: workflow, parent: self}.merge(options)]
+      def add_branch(name, actor_type, actor_id, options = {})
+        decisions_to_add << [Branch, {name: name, actor_id: actor_id, actor_type: actor_type, workflow: workflow, parent: self}.merge(options)]
       end
 
       def add_workflow(name, workflow_type, subject_type, subject_id, decider, options = {})

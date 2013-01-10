@@ -104,6 +104,7 @@ GEM
     rubytree (0.8.2)
     slop (3.3.3)
     systemu (2.5.2)
+    timecop (0.4.4)
     tzinfo (0.3.33)
     uuid (2.3.5)
       macaddr (~> 1.0)
@@ -127,4 +128,5 @@ DEPENDENCIES
   pry
   rspec
   rubytree
+  timecop
   uuid

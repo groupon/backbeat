@@ -57,14 +57,15 @@ describe Api::Workflow do
           decision = FactoryGirl.create(:decision, status: :enqueued)
           wf = decision.workflow
           user = wf.user
-          args = [
+          decisions = [
             {type: :flag, name: :wFlag},
             {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
             {type: :activity, name: :make_initial_payment, actor_id: 100, retry: 100, retry_interval: 5},
+            {type: :branch, name: :make_initial_payment_branch, actor_id: 100, retry: 100, retry_interval: 5},
             {type: :workflow, name: :some_name, subject_type: "PaymentTerm", subject_id: 1000, decider: "ErrorDecider"},
             {type: :complete_workflow}
           ]
-          put_request(path: "/workflows/#{wf.id}/events/#{decision.id}/change_status", head: {"CLIENT_ID" => user.client_id}, query: {status: :deciding_complete, args: args.to_json}) do |c|
+          put_request(path: "/workflows/#{wf.id}/events/#{decision.id}/change_status", head: {"CLIENT_ID" => user.client_id}, query: {status: :deciding_complete, args: {decisions: decisions}.to_json}) do |c|
             c.response_header.status.should == 400
             json_response = JSON.parse(c.response)
             json_response.should == {"error"=>[{"some_name"=>{"workflow_type"=>["can't be blank"]}}]}
@@ -84,13 +85,15 @@ describe Api::Workflow do
             {type: :flag, name: :wFlag},
             {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
             {type: :activity, name: :make_initial_payment, actor_type: "LineItem", actor_id: 100, retry: 100, retry_interval: 5},
+            {type: :branch, name: :make_initial_payment_branch, actor_id: 100, retry: 100, retry_interval: 5},
             {type: :workflow, name: :some_name, workflow_type: :error_recovery_workflow, subject_type: "PaymentTerm", subject_id: 1000, decider: "ErrorDecider"},
             {type: :complete_workflow}
           ]
           put_request(path: "/workflows/#{wf.id}/events/#{decision.id}/change_status", head: {"CLIENT_ID" => user.client_id}, query: {status: :deciding_complete, args: args.to_json}) do |c|
             c.response_header.status.should == 200
             decision.reload
-            decision.children.count.should == 5
+            decision.children.count.should == 6
+            # TODO Compare the children
             decision.status.should == :executing
           end
         end

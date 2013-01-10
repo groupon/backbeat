@@ -23,9 +23,6 @@ module WorkflowServer
   end
 
   class InvalidDecisionSelection < StandardError
-    def initialize(activity)
-      self.message = "#{activity.class}:#{activity.id} tried to make #{activity.next_decision} the next decision but is not allowed to."
-    end
   end
 
   class InvalidEventStatus < StandardError

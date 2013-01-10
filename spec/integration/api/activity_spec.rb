@@ -32,14 +32,31 @@ describe Api::Workflow do
             end
           end
         end
-        it "marks the activity as completed when in executing status" do
+        it "returns 400 if the next decision is invalid" do
           with_api(Server) do |api|
-            activity = FactoryGirl.create(:activity, status: :executing)
+            activity = FactoryGirl.create(:activity, status: :executing, parent: FactoryGirl.create(:decision))
+            wf = activity.workflow
+            user = wf.user
+            put_request(path: "/workflows/#{wf.id}/events/#{activity.id}/change_status", head: {"CLIENT_ID" => user.client_id}, query: {status: :completed, args: {next_decision: :test_decision}.to_json}) do |c|
+              c.response_header.status.should == 400
+              activity.reload
+              json_response = JSON.parse(c.response)
+              json_response['error'].should == "activity:#{activity.name} tried to make test_decision the next decision but is not allowed to."
+              activity.status.should_not == :complete
+            end
+          end
+        end
+        it "returns 200 if the next decision is valid and the activity succeeds" do
+          with_api(Server) do |api|
+            activity = FactoryGirl.create(:activity, status: :executing, parent: FactoryGirl.create(:decision))
             wf = activity.workflow
             user = wf.user
             put_request(path: "/workflows/#{wf.id}/events/#{activity.id}/change_status", head: {"CLIENT_ID" => user.client_id}, query: {status: :completed}) do |c|
               c.response_header.status.should == 200
               activity.reload
+              activity.children.count.should == 1
+              child = activity.children.first
+              child.name.should == :make_initial_payment_succeeded
               activity.status.should == :complete
             end
           end
@@ -55,6 +72,19 @@ describe Api::Workflow do
               c.response_header.status.should == 400
               json_response = JSON.parse(c.response)
               json_response['error'].should == "Activity #{activity.name} can't transition from open to errored"
+            end
+          end
+        end
+        it "returns 200 and records the error message" do
+          with_api(Server) do |api|
+            activity = FactoryGirl.create(:activity, status: :executing, retry: 0)
+            wf = activity.workflow
+            user = wf.user
+            put_request(path: "/workflows/#{wf.id}/events/#{activity.id}/change_status", head: {"CLIENT_ID" => user.client_id}, query: {status: :errored, args: {error: {a: 1, b: 2}}.to_json}) do |c|
+              c.response_header.status.should == 200
+              activity.reload
+              activity.status.should == :error
+              activity.status_history.last["error"].should == {"a"=>1, "b"=>2}
             end
           end
         end

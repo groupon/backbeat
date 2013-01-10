@@ -13,10 +13,12 @@ require 'goliath/test_helper'
 FactoryGirl.find_definitions
 
 RSpec.configuration.before(:each) do
+  Timecop.freeze(Time.now)
   #Mongoid::Sessions.default.collections.select {|c| c.name !~ /system/ }.each(&:drop)
 end
 
 RSpec.configuration.after(:each) do
+  Timecop.return
   Mongoid::Sessions.default.collections.select {|c| c.name !~ /system/ }.each(&:drop)
 end
 

@@ -13,7 +13,7 @@ module Api
       Rack::Response.new({error: e.message }.to_json, 404, { "Content-type" => "application/json" }).finish
     end
 
-    rescue_from WorkflowServer::EventComplete, WorkflowServer::InvalidParameters, WorkflowServer::InvalidEventStatus do |e|
+    rescue_from WorkflowServer::EventComplete, WorkflowServer::InvalidParameters, WorkflowServer::InvalidEventStatus, WorkflowServer::InvalidDecisionSelection do |e|
       Rack::Response.new({error: e.message }.to_json, 400, { "Content-type" => "application/json" }).finish
     end
 
@@ -58,7 +58,7 @@ module Api
             event = wf.events.find(params[:id])
             raise WorkflowServer::EventNotFound, "Event with id(#{params[:id]}) not found" unless event
 
-            event.change_status(params[:status], JSON.parse(params[:args] || "[]"))
+            event.change_status(params[:status], HashWithIndifferentAccess.new(JSON.parse(params[:args] || "{}")))
             [200, {}, ""]
           end
 
