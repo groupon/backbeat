@@ -41,6 +41,14 @@ module Api
         wf
       end
 
+      [:flags, :signals, :activities, :timers, :events].each do |event_type|
+        get "/:id/#{event_type}" do
+          wf = current_user.workflows.find(params[:id])
+          raise WorkflowServer::EventNotFound, "Workflow with id(#{params[:id]}) not found" unless wf
+          wf.__send__(event_type)
+        end
+      end
+
       post "/:id/signal/:name" do
         wf = current_user.workflows.find(params[:id])
         raise WorkflowServer::EventNotFound, "Workflow with id(#{params[:id]}) not found" unless wf
