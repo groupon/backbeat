@@ -6,6 +6,7 @@ module Api
     format :json
 
     rescue_from :all do |e|
+      ap e
       Rack::Response.new({error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
     end
 
@@ -20,6 +21,20 @@ module Api
     helpers do
       def current_user
         @current_user ||= env['WORKFLOW_CURRENT_USER']
+      end
+
+      def find_workflow(id)
+        wf = current_user.workflows.find(id)
+        raise WorkflowServer::EventNotFound, "Workflow with id(#{id}) not found" unless wf
+        wf
+      end
+
+      def find_event(event_id, workflow_id = nil, event_type = nil)
+        wf = find_workflow(workflow_id)
+        event_type ||= :events #all events
+        event = wf.__send__(event_type).find(event_id)
+        raise WorkflowServer::EventNotFound, "Event with id(#{event_id}) not found" unless event
+        event
       end
     end
 
@@ -36,22 +51,18 @@ module Api
       end
 
       get "/:id" do
-        wf = current_user.workflows.find(params[:id])
-        raise WorkflowServer::EventNotFound, "Workflow with id(#{params[:id]}) not found" unless wf
-        wf
+        find_workflow(params[:id])
       end
 
       [:flags, :signals, :activities, :timers, :events].each do |event_type|
         get "/:id/#{event_type}" do
-          wf = current_user.workflows.find(params[:id])
-          raise WorkflowServer::EventNotFound, "Workflow with id(#{params[:id]}) not found" unless wf
+          wf = find_workflow(params[:id])
           wf.__send__(event_type)
         end
       end
 
       post "/:id/signal/:name" do
-        wf = current_user.workflows.find(params[:id])
-        raise WorkflowServer::EventNotFound, "Workflow with id(#{params[:id]}) not found" unless wf
+        wf = find_workflow(params[:id])
         signal = wf.signal(params[:name])
         signal
       end
@@ -59,23 +70,17 @@ module Api
 
       segment '/:workflow_id' do
         resource 'events' do
+          get "/:id" do
+            find_event(params[:id], params[:workflow_id])
+          end
+
           put "/:id/change_status" do
-            wf = current_user.workflows.find(params[:workflow_id])
-            raise WorkflowServer::EventNotFound, "Workflow with id(#{params[:workflow_id]}) not found" unless wf
-
-            event = wf.events.find(params[:id])
-            raise WorkflowServer::EventNotFound, "Event with id(#{params[:id]}) not found" unless event
-
+            event = find_event(params[:id], params[:workflow_id])
             event.change_status(params[:status], HashWithIndifferentAccess.new(JSON.parse(params[:args] || "{}")))
           end
 
           put "/:id/run_sub_activity" do
-            wf = current_user.workflows.find(params[:workflow_id])
-            raise WorkflowServer::EventNotFound, "Workflow with id(#{params[:workflow_id]}) not found" unless wf
-
-            event = wf.activities.find(params[:id])
-            raise WorkflowServer::EventNotFound, "Event with id(#{params[:id]}) not found" unless event
-
+            event = find_event(params[:id], params[:workflow_id], :activities)
             sub_activity = event.run_sub_activity(HashWithIndifferentAccess.new(JSON.parse(params[:sub_activity] || "{}")))
             if sub_activity.blocking?
               header("WAIT_FOR_SUB_ACTIVITY", "true")
