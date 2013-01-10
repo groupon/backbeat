@@ -104,6 +104,21 @@ module WorkflowServer
         retry_interval
       end
 
+      def change_status(new_status, *args)
+        return if status == new_status.to_sym
+        case new_status.to_sym
+        when :completed
+          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" if status != :executing
+          completed
+        when :errored
+          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" if status != :executing
+          # TODO - FIX THIS
+          errored(args.first)
+        else
+          raise WorkflowServer::InvalidEventStatus, "Invalid status #{new_status}"
+        end
+      end
+
       def errored(error)
         Watchdog.kill(self) if timeout > 0
         if retry?

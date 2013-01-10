@@ -10,57 +10,25 @@ module WorkflowServer
         super
         WorkflowServer::AsyncClient.make_decision(workflow.decider, self.id, workflow.subject_type, workflow.subject_id)
         Watchdog.start(self, :decision_deciding_time_out)
-        update_status!(:deciding)
+        update_status!(:enqueued)
       end
 
-      def add_flag(name)
-        decisions_to_add << [Flag, {name: name, parent: self, workflow: workflow}]
-      end
-
-      def add_timer(name, time)
-        fires_at = time[:at] || time[:in].from_now
-        decisions_to_add << [Timer, {fires_at: fires_at, name: name, parent: self, workflow: workflow}]
-      end
-
-      def add_activity(name, actor, options = {})
-        decisions_to_add << [Activity, {name: name, actor_id: actor.id, actor_type: actor.class.to_s, workflow: workflow, parent: self}.merge(options)]
-      end
-
-      def add_branch(name, branches, options = {})
-        decisions_to_add << [Branch, {name: name, branches: branches, workflow: workflow, parent: self}.merge(options)]
-      end
-
-      def add_workflow(name, workflow_type, subject, decider, options = {})
-        decisions_to_add << [Workflow, {name: name, workflow_type: workflow_type, subject_type: subject.class.to_s, subject_id: subject.id, decider: decider.to_s, workflow: workflow, parent: self}.merge(options)]
-      end
-
-      def complete_workflow
-        decisions_to_add << [WorkflowCompleteFlag, {name: workflow.name, parent: self, workflow: workflow}]
-      end
-
-      def deciding
-        Watchdog.feed(self, :decision_deciding_time_out)
-        self.decisions_to_add = []
-        yield
-        close
-      rescue Exception => err
-        errored(err)
-      end
-
-      def close
-        Watchdog.kill(self, :decision_deciding_time_out)
-        decisions_to_add.each do |type, args|
-          type.create!(args)
+      def change_status(new_status, decisions = [])
+        return if status == new_status.to_sym
+        case new_status.to_sym
+        when :deciding
+          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" if status != :enqueued
+          deciding
+        when :deciding_complete
+          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" if ![:enqueued, :deciding].include?(status)
+          self.decisions_to_add = []
+          decisions.each do |decision|
+            add_decision(HashWithIndifferentAccess.new(decision))
+          end
+          close
+        else
+          raise WorkflowServer::InvalidEventStatus, "Invalid status #{new_status}"
         end
-        unless decisions_to_add.empty?
-          update_status!(:executing)
-        end
-        refresh
-      end
-
-      def refresh
-        start_next_action
-        completed if all_activities_branches_and_workflows_completed?
       end
 
       def completed
@@ -91,6 +59,84 @@ module WorkflowServer
         super
       end
 
+      # returns true if this task is a duplicate
+      def duplicate?
+        flag_names = past_flags.map(&:name)
+        flag_names.include?("#{name}_completed".to_sym)
+      end
+
+      private
+
+      def deciding
+        update_status!(:deciding)
+        Watchdog.feed(self, :decision_deciding_time_out)
+      end
+
+      def close
+        Watchdog.kill(self, :decision_deciding_time_out)
+        decisions = decisions_to_add.map do |type, args|
+          type.new(args.merge(workflow: workflow, parent: self))
+        end
+
+        if decisions.any?{|d| !d.valid?}
+          invalid_decisions = decisions.select{|d| !d.valid? }
+          raise WorkflowServer::InvalidParameters, invalid_decisions.map{|d| {d.name => d.errors}}
+        else
+          decisions.each{|d| d.save!}
+        end
+
+        unless decisions.empty?
+          update_status!(:executing)
+        end
+        refresh
+      end
+
+      def refresh
+        start_next_action
+        completed if all_activities_branches_and_workflows_completed?
+      end
+
+      def add_flag(name)
+        decisions_to_add << [Flag, {name: name, parent: self, workflow: workflow}]
+      end
+
+      def add_timer(name, fires_at = Time.now)
+        decisions_to_add << [Timer, {fires_at: fires_at, name: name, parent: self, workflow: workflow}]
+      end
+
+      def add_activity(name, actor_type, actor_id, options = {})
+        decisions_to_add << [Activity, {name: name, actor_id: actor_id, actor_type: actor_type, workflow: workflow, parent: self}.merge(options)]
+      end
+
+      def add_branch(name, branches, options = {})
+        decisions_to_add << [Branch, {name: name, branches: branches, workflow: workflow, parent: self}.merge(options)]
+      end
+
+      def add_workflow(name, workflow_type, subject_type, subject_id, decider, options = {})
+        decisions_to_add << [Workflow, {name: name, workflow_type: workflow_type, subject_type: subject_type, subject_id: subject_id, decider: decider.to_s, workflow: workflow, parent: self, user: workflow.user}.merge(options)]
+      end
+
+      def complete_workflow
+        decisions_to_add << [WorkflowCompleteFlag, {name: workflow.name, parent: self, workflow: workflow}]
+      end
+
+      def add_decision(options = {})
+        case options[:type]
+        when 'flag'
+          add_flag(options[:name])
+        when 'timer'
+          add_timer(options[:name], options[:fires_at])
+        when 'activity'
+          add_activity(options.delete(:name), options.delete(:actor_type), options.delete(:actor_id), options)
+        when 'branch'
+          add_branch(options.delete(:name), options.delete(:actor_type), options.delete(:actor_id), options)
+        when 'workflow'
+          add_workflow(options.delete(:name), options.delete(:workflow_type), options.delete(:subject_type), options.delete(:subject_id), options.delete(:decider), options)
+        when 'complete_workflow'
+          complete_workflow
+        end
+      end
+
       def start_next_action
         with_lock do
           open_events do |event|
@@ -116,12 +162,6 @@ module WorkflowServer
 
       def schedule_next_decision
         WorkflowServer::Manager.schedule_next_decision(workflow)
-      end
-
-      # returns true if this task is a duplicate
-      def duplicate?
-        flag_names = past_flags.map(&:name)
-        flag_names.include?("#{name}_completed".to_sym)
       end
     end
 

@@ -13,16 +13,18 @@ module WorkflowServer
   end
 
   class InvalidParameters < StandardError
-    def initialize(message_as_hash)
-      @message_as_hash = message_as_hash
+    def initialize(raw_message)
+      @raw_message = raw_message
       super
     end
     def message
-      @message_as_hash
+      @raw_message
     end
   end
 
   class InvalidBranchSelection < StandardError
   end
 
+  class InvalidEventStatus < StandardError
+  end
 end

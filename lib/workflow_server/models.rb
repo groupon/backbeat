@@ -3,6 +3,7 @@ module WorkflowServer
     autoload :Events,      'workflow_server/models/events'
     autoload :Watchdog,    'workflow_server/models/watchdog'
     autoload :Event,       'workflow_server/models/events/event'
+    autoload :Branch,      'workflow_server/models/events/branch'
     autoload :Activity,    'workflow_server/models/events/activity'
     autoload :SubActivity, 'workflow_server/models/events/sub_activity'
     autoload :Flag,        'workflow_server/models/events/flag'
@@ -11,5 +12,7 @@ module WorkflowServer
     autoload :Decision,    'workflow_server/models/events/decision'
     autoload :Workflow,    'workflow_server/models/events/workflow'
     autoload :User,        'workflow_server/models/user'
+
+    autoload :WorkflowCompleteFlag,    'workflow_server/models/events/workflow_complete_flag'
   end
 end
