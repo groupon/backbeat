@@ -22,16 +22,7 @@ module WorkflowServer
       def update_status!(new_status, error = nil)
         unless new_status == self.status && new_status != :retrying
           status_hash = {from: self.status, to: new_status, at: Time.now}
-          case error
-          when StandardError
-            error_hash = {error_klass: error.class.to_s, message: error.message}
-            if error.backtrace
-              error_hash[:backtrace] = error.backtrace
-            end
-            status_hash[:error] = error_hash
-          else
-            status_hash[:error] = error
-          end if error
+          status_hash[:error] = error_hash(error) if error
           self.status_history << status_hash
           self.status = new_status
           self.save!
@@ -81,11 +72,26 @@ module WorkflowServer
       end
 
       def notify_of(notification, error = nil)
-        WorkflowServer::AsyncClient.notify_of(self, notification, error)
+        WorkflowServer::AsyncClient.notify_of(self, notification, error_hash(error))
       end
 
       def print_name
         "#{status} - #{self.class.to_s.split("::").last} - #{name}"
+      end
+
+      private
+
+      def error_hash(error)
+        case error
+        when StandardError
+          error_hash = {error_klass: error.class.to_s, message: error.message}
+          if error.backtrace
+            error_hash[:backtrace] = error.backtrace
+          end
+          error_hash
+        else
+          error
+        end if error
       end
     end
   end

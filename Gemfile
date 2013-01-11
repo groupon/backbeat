@@ -11,6 +11,7 @@ gem 'awesome_print'
 gem 'grape'
 gem 'em-http-request'
 gem 'uuid'
+gem 'httparty'
 
 group :test do
   gem 'rspec'
