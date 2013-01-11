@@ -6,7 +6,6 @@ module Api
     format :json
 
     rescue_from :all do |e|
-      ap e
       Rack::Response.new({error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
     end
 
