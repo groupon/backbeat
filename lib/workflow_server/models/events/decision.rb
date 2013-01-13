@@ -125,7 +125,7 @@ module WorkflowServer
       end
 
       def add_decision(options = {})
-        case options[:type]
+        case options.delete(:type)
         when 'flag'
           add_flag(options[:name])
         when 'timer'
