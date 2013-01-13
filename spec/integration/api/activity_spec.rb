@@ -3,6 +3,10 @@ require 'spec_helper'
 describe Api::Workflow do
   include Goliath::TestHelper
 
+  before do
+    WorkflowServer::AsyncClient.stub(:make_decision)
+  end
+
   context "PUT /workflows/:id/events/:event_id/change_status" do
     context "invalid status" do
       it "raises 400 if invalid new status" do

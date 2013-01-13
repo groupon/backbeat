@@ -3,6 +3,10 @@ require 'spec_helper'
 describe Api::Workflow do
   include Goliath::TestHelper
 
+  before do
+    WorkflowServer::AsyncClient.stub(:make_decision)
+  end
+
   context "POST /workflows" do
     it "returns 401 without the client it header" do
       with_api(Server) do |api|

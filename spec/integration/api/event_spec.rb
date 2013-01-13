@@ -2,7 +2,11 @@ require 'spec_helper'
 
 describe Api::Workflow do
   include Goliath::TestHelper
-  
+
+  before do
+    WorkflowServer::AsyncClient.stub(:make_decision)
+  end
+
   context "GET /events/id" do
     it "returns an event object with valid params" do
       with_api(Server) do |api|

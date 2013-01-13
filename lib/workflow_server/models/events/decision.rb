@@ -13,8 +13,8 @@ module WorkflowServer
         update_status!(:enqueued)
       end
 
-      def change_status(new_status, decisions_hash = {})
-        return if status == new_status.to_sym
+      def change_status(new_status, args = {})
+        return if status == new_status.try(:to_sym)
         case new_status.to_sym
         when :deciding
           raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" if status != :enqueued
@@ -23,7 +23,7 @@ module WorkflowServer
           raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" if ![:enqueued, :deciding].include?(status)
           self.decisions_to_add = []
           
-          (decisions_hash[:decisions] || []).each do |decision|
+          (args[:decisions] || []).each do |decision|
             add_decision(HashWithIndifferentAccess.new(decision))
           end
           close
