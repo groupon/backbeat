@@ -27,6 +27,9 @@ module WorkflowServer
             add_decision(HashWithIndifferentAccess.new(decision))
           end
           close
+        when :errored
+          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" if ![:enqueued, :deciding].include?(status)
+          errored(args[:error])
         else
           raise WorkflowServer::InvalidEventStatus, "Invalid status #{new_status}"
         end

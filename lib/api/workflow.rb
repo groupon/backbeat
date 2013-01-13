@@ -84,6 +84,7 @@ module Api
           put "/:id/change_status" do
             event = find_event(params[:id], params[:workflow_id])
             event.change_status(params[:status], HashWithIndifferentAccess.new(JSON.parse(params[:args] || "{}")))
+            {success: true}
           end
 
           put "/:id/run_sub_activity" do
