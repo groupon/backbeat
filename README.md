@@ -1,2 +1,2 @@
-## Lumbergh ##
-![alt-text](http://dl.dropbox.com/u/33359843/lumbergh.jpg "Hello Github, what's happening?")
+## Backbeat ##
+![alt-text](https://github.groupondev.com/finance-engineering/backbeat/raw/master/README/drum.gif "Soundoff!")
