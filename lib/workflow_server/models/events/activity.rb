@@ -64,9 +64,11 @@ module WorkflowServer
         sub_activity.save!
 
         Watchdog.feed(self) if timeout > 0
-        update_status!(:running_sub_activity)
 
         sub_activity.start
+        if sub_activity.blocking?
+          update_status!(:running_sub_activity)
+        end
         sub_activity
       end
 
