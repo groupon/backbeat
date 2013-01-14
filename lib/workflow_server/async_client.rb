@@ -25,6 +25,7 @@ module WorkflowServer
 
     def self.post(url, params = {})
       body = params.to_json
+      #TODO use EventMacine HTTP
       ::HTTParty.post(url, body: body, headers: {"Content-Type" => "application/json", "Content-Length" => body.size.to_s})
     end
   end

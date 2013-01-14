@@ -22,7 +22,6 @@ module WorkflowServer
         when :deciding_complete
           raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" if ![:enqueued, :deciding].include?(status)
           self.decisions_to_add = []
-          
           (args[:decisions] || []).each do |decision|
             add_decision(HashWithIndifferentAccess.new(decision))
           end

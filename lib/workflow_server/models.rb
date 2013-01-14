@@ -1,18 +1,16 @@
 module WorkflowServer
   module Models
-    autoload :Events,      'workflow_server/models/events'
-    autoload :Watchdog,    'workflow_server/models/watchdog'
-    autoload :Event,       'workflow_server/models/events/event'
-    autoload :Branch,      'workflow_server/models/events/branch'
-    autoload :Activity,    'workflow_server/models/events/activity'
-    autoload :SubActivity, 'workflow_server/models/events/sub_activity'
-    autoload :Flag,        'workflow_server/models/events/flag'
-    autoload :Signal,      'workflow_server/models/events/signal'
-    autoload :Timer,       'workflow_server/models/events/timer'
-    autoload :Decision,    'workflow_server/models/events/decision'
-    autoload :Workflow,    'workflow_server/models/events/workflow'
-    autoload :User,        'workflow_server/models/user'
-
-    autoload :WorkflowCompleteFlag,    'workflow_server/models/events/workflow_complete_flag'
+    require_relative  'models/events/event'
+    require_relative  'models/events/activity'
+    require_relative  'models/events/sub_activity'
+    require_relative  'models/events/branch'
+    require_relative  'models/events/decision'
+    require_relative  'models/events/flag'
+    require_relative  'models/events/workflow_complete_flag'
+    require_relative  'models/events/signal'
+    require_relative  'models/events/timer'
+    require_relative  'models/watchdog'
+    require_relative  'models/events/workflow'
+    require_relative  'models/user'
   end
 end
