@@ -7,8 +7,13 @@ require 'bundler'
 Bundler.setup
 Bundler.require(:default, :test)
 
-require 'server'
-require 'goliath/test_helper'
+require 'mongoid'
+mongo_path = File.expand_path(File.join(__FILE__, "..", "..", "config", "mongoid.yml"))
+Mongoid.load!(mongo_path, :test)
+
+FullRackApp = Rack::Builder.parse_file(File.expand_path(File.join(__FILE__,'..','..','config.ru'))).first
+
+RSPEC_CONSTANT_USER_CLIENT_ID = UUID.generate
 
 FactoryGirl.find_definitions
 

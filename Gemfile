@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'goliath'
+gem 'unicorn'
 
 gem 'mongoid'
 gem 'mongoid-locker'
@@ -14,6 +14,7 @@ gem 'uuid'
 gem 'httparty'
 
 group :test do
+  gem 'rack-test'
   gem 'rspec'
   gem 'factory_girl'
   gem 'pry'

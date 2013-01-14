@@ -1,40 +1,40 @@
 require 'spec_helper'
 
 describe Api::Workflow do
-  include Goliath::TestHelper
+  include Rack::Test::Methods
+
+  def app
+    FullRackApp
+  end
 
   before do
+    header 'CLIENT_ID', RSPEC_CONSTANT_USER_CLIENT_ID
     WorkflowServer::AsyncClient.stub(:make_decision)
   end
 
   context "PUT /workflows/:id/events/:event_id/change_status" do
     context "invalid status" do
       it "raises 400 if invalid new status" do
-        with_api(Server) do |api|
-          activity = FactoryGirl.create(:activity)
-          wf = activity.workflow
-          user = wf.user
-          put_request(path: "/workflows/#{wf.id}/events/#{activity.id}/change_status", head: {"CLIENT_ID" => user.client_id}, query: {status: :something_invalid}) do |c|
-            c.response_header.status.should == 400
-            activity.reload
-            json_response = JSON.parse(c.response)
-            json_response['error'].should == "Invalid status something_invalid"
-          end
-        end
+        activity = FactoryGirl.create(:activity)
+        wf = activity.workflow
+        user = wf.user
+        put "/workflows/#{wf.id}/events/#{activity.id}/change_status", {status: :something_invalid}
+        last_response.status.should == 400
+        activity.reload
+        json_response = JSON.parse(last_response.body)
+        json_response['error'].should == "Invalid status something_invalid"
       end
+
       context "activity completed" do
         it "returns 400 if the activity is not in executing state" do
-          with_api(Server) do |api|
-            activity = FactoryGirl.create(:activity, status: :open)
-            wf = activity.workflow
-            user = wf.user
-            put_request(path: "/workflows/#{wf.id}/events/#{activity.id}/change_status", head: {"CLIENT_ID" => user.client_id}, query: {status: :completed}) do |c|
-              c.response_header.status.should == 400
-              activity.reload
-              json_response = JSON.parse(c.response)
-              json_response['error'].should == "Activity #{activity.name} can't transition from open to completed"
-            end
-          end
+          activity = FactoryGirl.create(:activity, status: :open)
+          wf = activity.workflow
+          user = wf.user
+          put "/workflows/#{wf.id}/events/#{activity.id}/change_status", {status: :completed}
+          last_response.status.should == 400
+          activity.reload
+          json_response = JSON.parse(last_response.body)
+          json_response['error'].should == "Activity #{activity.name} can't transition from open to completed"
         end
         it "returns 400 if the next decision is invalid" do
           with_api(Server) do |api|
