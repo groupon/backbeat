@@ -33,7 +33,7 @@ describe Api::Workflow do
       json_response = JSON.parse(last_response.body)
       wf = json_response
       wf_in_db = WorkflowServer::Models::Workflow.last
-      wf_in_db.id.to_s.should == wf['_id']
+      wf_in_db.id.to_s.should == wf['id']
     end
 
     it "returns workflow from database if it already exists" do
@@ -43,7 +43,7 @@ describe Api::Workflow do
       last_response.status.should == 201
       json_response = JSON.parse(last_response.body)
       new_wf = json_response
-      wf.id.to_s.should == new_wf['_id']
+      wf.id.to_s.should == new_wf['id']
     end
   end
 
@@ -64,7 +64,7 @@ describe Api::Workflow do
       post "/workflows/#{wf.id}/signal/test"
       last_response.status.should == 201
       signal = JSON.parse(last_response.body)
-      wf.signals.first.id.to_s.should == signal['_id']
+      wf.signals.first.id.to_s.should == signal['id']
     end
 
     it "returns 400 if the workflow is closed for events" do
@@ -93,7 +93,7 @@ describe Api::Workflow do
       get "/workflows/#{wf.id}"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response['_id'].should == wf.id.to_s
+      json_response['id'].should == wf.id.to_s
     end
 
     it "returns a 404 if the workflow is not found" do
@@ -124,7 +124,7 @@ describe Api::Workflow do
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       json_response.count.should == 2
-      json_response.map {|obj| obj["_id"] }.should == [d1, d2].map(&:id).map(&:to_s)
+      json_response.map {|obj| obj["id"] }.should == [d1, d2].map(&:id).map(&:to_s)
     end
 
     it "returns a 404 if the workflow is not found" do

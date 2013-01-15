@@ -166,7 +166,11 @@ module WorkflowServer
       def schedule_next_decision
         WorkflowServer::Manager.schedule_next_decision(workflow)
       end
-    end
 
+      def serializable_hash(options = {})
+        hash = super
+        hash.merge({ duplicate?: duplicate?, past_flags: past_flags.map(&:name) })
+      end
+    end
   end
 end

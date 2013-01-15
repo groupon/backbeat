@@ -18,7 +18,19 @@ describe Api::Workflow do
       get "/events/#{decision.id}"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response['_id'].should == decision.id.to_s
+      json_response['id'].should == decision.id.to_s
+    end
+
+    it "returns duplicate and past flags" do
+      name = 'decision'
+      flag = FactoryGirl.create(:flag, name: "#{name}_completed")
+      wf = flag.workflow
+      decision = FactoryGirl.create(:decision, name: name, workflow: wf)
+      get "/events/#{decision.id}"
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response['duplicate?'].should == true
+      json_response['past_flags'].should == ["#{name}_completed"]
     end
 
     it "returns a 404 if the event is not found" do

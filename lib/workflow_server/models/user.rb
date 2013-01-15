@@ -10,6 +10,12 @@ module WorkflowServer
       field :notification_endpoint,      type: String
 
       has_many :workflows
+
+      def serializable_hash(options = {})
+        hash = super
+        hash.delete("_id")
+        hash.merge({ id: id })
+      end
     end
   end
 end

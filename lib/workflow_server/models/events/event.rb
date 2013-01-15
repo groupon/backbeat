@@ -80,6 +80,12 @@ module WorkflowServer
         "#{status} - #{self.class.to_s.split("::").last} - #{name}"
       end
 
+      def serializable_hash(options = {})
+        hash = super
+        hash.delete("_id")
+        hash.merge({ id: id })
+      end
+
       private
 
       def error_hash(error)

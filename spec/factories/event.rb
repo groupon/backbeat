@@ -13,6 +13,13 @@ FactoryGirl.define do
 end
 
 FactoryGirl.define do
+  factory :flag, class: WorkflowServer::Models::Flag do
+    name "WFDecsion_completed"
+    workflow
+  end
+end
+
+FactoryGirl.define do
   factory :activity, class: WorkflowServer::Models::Activity do
     name "make_initial_payment"
     actor_id 100
