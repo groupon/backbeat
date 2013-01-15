@@ -13,7 +13,7 @@ module Api
       Rack::Response.new({error: e.message }.to_json, 404, { "Content-type" => "application/json" }).finish
     end
 
-    rescue_from WorkflowServer::EventComplete, WorkflowServer::InvalidParameters, WorkflowServer::InvalidEventStatus, WorkflowServer::InvalidDecisionSelection do |e|
+    rescue_from WorkflowServer::EventComplete, WorkflowServer::InvalidParameters, WorkflowServer::InvalidEventStatus, WorkflowServer::InvalidDecisionSelection, Grape::Exceptions::ValidationError do |e|
       Rack::Response.new({error: e.message }.to_json, 400, { "Content-type" => "application/json" }).finish
     end
 
@@ -81,12 +81,18 @@ module Api
             find_event(params[:id], params[:workflow_id])
           end
 
+          params do
+            requires :status, :type => String, :desc => 'The new status to set'
+          end
           put "/:id/change_status" do
             event = find_event(params[:id], params[:workflow_id])
             event.change_status(params[:status], HashWithIndifferentAccess.new(JSON.parse(params[:args] || "{}")))
             {success: true}
           end
 
+          params do
+            requires :sub_activity, :type => String, :desc => 'Sub activity param cannot be empty'
+          end
           put "/:id/run_sub_activity" do
             event = find_event(params[:id], params[:workflow_id], :activities)
             sub_activity = event.run_sub_activity(HashWithIndifferentAccess.new(JSON.parse(params[:sub_activity] || "{}")))
