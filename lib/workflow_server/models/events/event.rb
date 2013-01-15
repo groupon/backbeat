@@ -80,10 +80,23 @@ module WorkflowServer
         "#{status} - #{self.class.to_s.split("::").last} - #{name}"
       end
 
+      # TODO - Refactor this. Move it outside in some constants so that other methods can refer to this (like the ones in workflow.rb)
+      TYPE_TO_STRING_HASH = {
+        'WorkflowServer::Models::Flag'        => 'flag',
+        'WorkflowServer::Models::Workflow'    => 'workflow',
+        'WorkflowServer::Models::Signal'      => 'signal',
+        'WorkflowServer::Models::Decision'    => 'decision',
+        'WorkflowServer::Models::Activity'    => 'activity',
+        'WorkflowServer::Models::SubActivity' => 'activity',
+        'WorkflowServer::Models::Branch'      => 'branch',
+        'WorkflowServer::Models::Timer'       => 'timer'
+      }
+
       def serializable_hash(options = {})
         hash = super
         hash.delete("_id")
-        hash.merge({ id: id })
+        hash.delete("_type")
+        hash.merge({ id: id, type: TYPE_TO_STRING_HASH[self.class.to_s] })
       end
 
       private
