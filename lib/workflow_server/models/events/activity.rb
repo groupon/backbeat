@@ -62,6 +62,8 @@ module WorkflowServer
           raise WorkflowServer::InvalidParameters, {sa_name => sub_activity.errors}
         end
         sub_activity.save!
+        sub_activity.reload
+        reload
 
         Watchdog.feed(self) if timeout > 0
 
@@ -156,7 +158,7 @@ module WorkflowServer
       end
 
       def subactivities_running?
-        children.where(:mode.ne => :fire_and_forget, :status.ne => :complete).type(SubActivity).any?
+        reload.children.where(:mode.ne => :fire_and_forget, :status.ne => :complete).type(SubActivity).any?
       end
 
       def subactivity_hash(name, actor_type, actor_id)
@@ -164,7 +166,7 @@ module WorkflowServer
       end
 
       def subactivity_handled?(name, actor_type, actor_id)
-        children.where(subactivity_hash(name, actor_type, actor_id)).type(SubActivity.to_s).any?
+        reload.children.where(subactivity_hash(name, actor_type, actor_id)).type(SubActivity.to_s).any?
       end
 
     end

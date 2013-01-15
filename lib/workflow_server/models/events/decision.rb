@@ -151,11 +151,11 @@ module WorkflowServer
       end
 
       def any_incomplete_blocking_activities_branches_or_workflows?
-        children.type([Activity, Branch, Workflow]).where(mode: :blocking).not_in(:status => [:complete, :open]).any?
+        reload.children.type([Activity, Branch, Workflow]).where(mode: :blocking).not_in(:status => [:complete, :open]).any?
       end
 
       def all_activities_branches_and_workflows_completed?
-        !children.type([Activity, Branch, Workflow]).where(:mode.ne => :fire_and_forget, :status.ne => :complete).any?
+        !reload.children.type([Activity, Branch, Workflow]).where(:mode.ne => :fire_and_forget, :status.ne => :complete).any?
       end
 
       def schedule_next_decision
