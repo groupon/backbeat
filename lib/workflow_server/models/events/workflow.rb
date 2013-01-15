@@ -26,12 +26,30 @@ module WorkflowServer
         mode == :blocking
       end
 
+      def completed
+        if parent
+          next_decision ||= "#{name}_succeeded".to_sym
+          # Let the parent know you are done
+          parent.add_decision(next_decision)
+        end
+        super
+      end
+
+      def errored(error)
+        if parent
+          next_decision ||= "#{name}_errored".to_sym
+          # Let the parent know you errored. Think more about it.
+          parent.add_decision(next_decision)
+        end
+        super
+      end
+
       {
         flags: Flag,
         decisions: Decision,
         signals: Signal,
         timers: Timer,
-        activities: [Activity, SubActivity],
+        activities: [Activity, SubActivity, Branch],
       }.each_pair do |name, klass|
         #
         # Returns events of the given type
