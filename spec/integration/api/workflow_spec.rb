@@ -78,8 +78,8 @@ describe Api::Workflow do
 
     it "returns a 404 if a user tries to send a signal to a workflow that doesn't belong to them" do
       wf = FactoryGirl.create(:workflow)
-      user = FactoryGirl.create(:user, client_id: UUID.generate)
-      header 'CLIENT_ID', user.client_id
+      user = FactoryGirl.create(:user, id: UUID.generate)
+      header 'CLIENT_ID', user.id
       post "/workflows/#{wf.id}/signal/test"
       last_response.status.should == 404
       json_response = JSON.parse(last_response.body)
@@ -106,8 +106,8 @@ describe Api::Workflow do
 
     it "returns a 404 if a user tries to access a workflow that doesn't belong to them" do
       wf = FactoryGirl.create(:workflow)
-      user = FactoryGirl.create(:user, client_id: UUID.generate)
-      header 'CLIENT_ID', user.client_id
+      user = FactoryGirl.create(:user, id: UUID.generate)
+      header 'CLIENT_ID', user.id
       get "/workflows/#{wf.id}"
       last_response.status.should == 404
       json_response = JSON.parse(last_response.body)
@@ -137,8 +137,8 @@ describe Api::Workflow do
 
     it "returns a 404 if a user tries to access a workflow that doesn't belong to them" do
       wf = FactoryGirl.create(:workflow)
-      user = FactoryGirl.create(:user, client_id: UUID.generate)
-      header 'CLIENT_ID', user.client_id
+      user = FactoryGirl.create(:user, id: UUID.generate)
+      header 'CLIENT_ID', user.id
       get "/workflows/#{wf.id}/events"
       last_response.status.should == 404
       json_response = JSON.parse(last_response.body)

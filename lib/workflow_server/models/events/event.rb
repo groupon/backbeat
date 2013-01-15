@@ -5,9 +5,10 @@ module WorkflowServer
       include Mongoid::Timestamps
       include Mongoid::Locker
 
-      field :status, type: Symbol, default: :open
+      field :_id,            type: String, default: ->{ UUID.generate }
+      field :status,         type: Symbol, default: :open
       field :status_history, type: Array, default: []
-      field :name, type: Symbol
+      field :name,           type: Symbol
 
       belongs_to :workflow, inverse_of: :events, class_name: "WorkflowServer::Models::Workflow"
       belongs_to :parent, inverse_of: :children, class_name: "WorkflowServer::Models::Event"
