@@ -1,4 +1,3 @@
-require 'workflow_server'
 module Api
   class Authenticate
     def initialize(app)

@@ -1,4 +1,5 @@
 module Api
-  require 'api/workflow'
   require 'api/authenticate'
+  require 'api/camel_case'
+  require 'api/workflow'
 end

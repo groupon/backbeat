@@ -1,5 +1,4 @@
 require 'grape'
-require 'workflow_server'
 
 module Api
   class Workflow < Grape::API
