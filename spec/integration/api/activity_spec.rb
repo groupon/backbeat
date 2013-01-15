@@ -12,13 +12,13 @@ describe Api::Workflow do
     WorkflowServer::AsyncClient.stub(:make_decision)
   end
 
-  context "PUT /workflows/:id/events/:event_id/change_status" do
+  context "PUT /workflows/:id/events/:event_id/status/:new_status" do
     context "invalid status" do
       it "raises 400 if invalid new status" do
         activity = FactoryGirl.create(:activity)
         wf = activity.workflow
         user = wf.user
-        put "/workflows/#{wf.id}/events/#{activity.id}/change_status", {status: :something_invalid}
+        put "/workflows/#{wf.id}/events/#{activity.id}/status/something_invalid"
         last_response.status.should == 400
         activity.reload
         json_response = JSON.parse(last_response.body)
@@ -30,7 +30,7 @@ describe Api::Workflow do
           activity = FactoryGirl.create(:activity, status: :open)
           wf = activity.workflow
           user = wf.user
-          put "/workflows/#{wf.id}/events/#{activity.id}/change_status", {status: :completed}
+          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
           last_response.status.should == 400
           activity.reload
           json_response = JSON.parse(last_response.body)
@@ -42,7 +42,7 @@ describe Api::Workflow do
           activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow)
           wf = activity.workflow
           user = wf.user
-          put "/workflows/#{wf.id}/events/#{activity.id}/change_status", {status: :completed, args: {next_decision: :test_decision}.to_json}
+          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision}.to_json}
           last_response.status.should == 400
           activity.reload
           json_response = JSON.parse(last_response.body)
@@ -55,7 +55,7 @@ describe Api::Workflow do
           activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow)
           wf = activity.workflow
           user = wf.user
-          put "/workflows/#{wf.id}/events/#{activity.id}/change_status", {status: :completed}
+          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
           last_response.status.should == 200
           activity.reload
           activity.children.count.should == 1
@@ -69,7 +69,7 @@ describe Api::Workflow do
           activity = FactoryGirl.create(:activity, status: :open)
           wf = activity.workflow
           user = wf.user
-          put "/workflows/#{wf.id}/events/#{activity.id}/change_status", {status: :errored}
+          put "/workflows/#{wf.id}/events/#{activity.id}/status/errored"
           last_response.status.should == 400
           json_response = JSON.parse(last_response.body)
           json_response['error'].should == "Activity #{activity.name} can't transition from open to errored"
@@ -79,7 +79,7 @@ describe Api::Workflow do
           activity = FactoryGirl.create(:activity, status: :executing, retry: 0)
           wf = activity.workflow
           user = wf.user
-          put "/workflows/#{wf.id}/events/#{activity.id}/change_status", {status: :errored, args: {error: {a: 1, b: 2}}.to_json}
+          put "/workflows/#{wf.id}/events/#{activity.id}/status/errored", {args: {error: {a: 1, b: 2}}.to_json}
           last_response.status.should == 200
           activity.reload
           activity.status.should == :error

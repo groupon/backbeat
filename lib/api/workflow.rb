@@ -81,12 +81,9 @@ module Api
             find_event(params[:id], params[:workflow_id])
           end
 
-          params do
-            requires :status, :type => String, :desc => 'The new status to set'
-          end
-          put "/:id/change_status" do
+          put "/:id/status/:new_status" do
             event = find_event(params[:id], params[:workflow_id])
-            event.change_status(params[:status], HashWithIndifferentAccess.new(JSON.parse(params[:args] || "{}")))
+            event.change_status(params[:new_status], HashWithIndifferentAccess.new(JSON.parse(params[:args] || "{}")))
             {success: true}
           end
 

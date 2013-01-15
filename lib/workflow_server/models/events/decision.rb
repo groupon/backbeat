@@ -169,7 +169,7 @@ module WorkflowServer
 
       def serializable_hash(options = {})
         hash = super
-        hash.merge({ duplicate?: duplicate?, past_flags: past_flags.map(&:name) })
+        hash.merge({ past_flags: past_flags.map(&:name) })
       end
     end
   end
