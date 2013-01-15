@@ -89,6 +89,7 @@ module WorkflowServer
       end
 
       def refresh
+        reload
         start_next_action
         completed if all_activities_branches_and_workflows_completed?
       end
