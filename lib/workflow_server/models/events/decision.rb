@@ -62,12 +62,6 @@ module WorkflowServer
         super
       end
 
-      # returns true if this task is a duplicate
-      def duplicate?
-        flag_names = past_flags.map(&:name)
-        flag_names.include?("#{name}_completed".to_sym)
-      end
-
       private
 
       def deciding
