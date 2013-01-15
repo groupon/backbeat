@@ -20,6 +20,14 @@ FactoryGirl.define do
 end
 
 FactoryGirl.define do
+  factory :timer, class: WorkflowServer::Models::Timer do
+    name "WFTimer"
+    fires_at Date.tomorrow
+    workflow
+  end
+end
+
+FactoryGirl.define do
   factory :activity, class: WorkflowServer::Models::Activity do
     name "make_initial_payment"
     actor_id 100
