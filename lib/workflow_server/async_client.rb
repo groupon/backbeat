@@ -17,7 +17,7 @@ module WorkflowServer
 
     def self.notify_of(event, notification, error = nil)
       if (url = event.workflow.user.try(:notification_endpoint))
-        params = {notification: "#{event.name}:#{notification}"}
+        params = {notification: "#{event.workflow.try(:subject_class)}(#{event.workflow.try(:subject_id)}):#{event.name}:#{notification}"}
         params.merge!(error: error) if error
         post(url, params)
       end
