@@ -35,7 +35,7 @@ module WorkflowServer
       end
 
       def completed
-        Flag.create(name: "#{self.name}_completed".to_sym, workflow: workflow, parent: self, status: :complete)
+        self.children << Flag.create(name: "#{self.name}_completed".to_sym, workflow: workflow, parent: self, status: :complete)
         super
         schedule_next_decision
       end
@@ -81,6 +81,7 @@ module WorkflowServer
         else
           decisions.each{|d| d.save!}
         end
+        reload
 
         unless decisions.empty?
           update_status!(:executing)

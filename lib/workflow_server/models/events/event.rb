@@ -17,7 +17,7 @@ module WorkflowServer
       validates_presence_of :name
 
       def add_decision(decision_name)
-        Decision.create!(parent: self, name: decision_name, workflow: self.workflow)
+        self.children << Decision.create!(name: decision_name, workflow: self.workflow, parent: self)
       end
 
       def update_status!(new_status, error = nil)
