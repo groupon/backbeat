@@ -99,7 +99,7 @@ module Api
           end
 
           params do
-            requires :sub_activity, :type => String, :desc => 'Sub activity param cannot be empty'
+            requires :sub_activity, :desc => 'Sub activity param cannot be empty'
           end
           put "/:id/run_sub_activity" do
             event = find_event(params[:id], params[:workflow_id], :activities)
