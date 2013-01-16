@@ -42,7 +42,7 @@ module WorkflowServer
 
       def child_completed(child)
         super
-        if child.is_a?(Activity) || child.is_a?(Branch)
+        if child.is_a?(Activity) || child.is_a?(Branch) || child.is_a?(Workflow)
           refresh
         end
       end

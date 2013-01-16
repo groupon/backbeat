@@ -131,7 +131,7 @@ describe Api::Workflow do
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
 
-    it "runs the sub-activity with camelcase input" do
+    it "runs the sub-activity with camel-case input" do
       activity = FactoryGirl.create(:activity, status: :executing)
       wf = activity.workflow
       user = wf.user
@@ -156,10 +156,22 @@ describe Api::Workflow do
       user = wf.user
       sub_activity = { name: :my_name, actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
       header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {options: sub_activity}.to_json
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity"
       last_response.status.should == 400
       json_response = JSON.parse(last_response.body)
       json_response['error'].should == "missing parameter: sub_activity"
+    end
+
+    it "returns 400 if some of the required parameters are missing" do
+      activity = FactoryGirl.create(:activity, status: :executing)
+      wf = activity.workflow
+      user = wf.user
+      sub_activity = {actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
+      header "Content-Type", "application/json"
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {subActivity: sub_activity}.to_json
+      last_response.status.should == 400
+      json_response = JSON.parse(last_response.body)
+      json_response['error'].should == {"activity"=>{"name"=>["can't be blank"]}}
     end
   end
 end

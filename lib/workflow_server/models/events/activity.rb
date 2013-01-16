@@ -34,18 +34,22 @@ module WorkflowServer
         with_lock do
           unless subactivities_running?
             next_decision ||= "#{name}_succeeded".to_sym
-            Watchdog.kill(self) if timeout > 0
-            if parent.is_a?(Decision)
-              #only top level activities are allowed schedule a next decision
-              if next_decision != :none
-                raise WorkflowServer::InvalidDecisionSelection.new("activity:#{name} tried to make #{next_decision} the next decision but is not allowed to.") unless valid_next_decision?(next_decision)
-                add_decision(next_decision)
-              end
-            end
+            really_complete(next_decision)
             super()
           else
             Watchdog.feed(self) if timeout > 0
             update_status!(:waiting_for_sub_activities)
+          end
+        end
+      end
+
+      def really_complete(next_decision)
+        Watchdog.kill(self) if timeout > 0
+        if parent.is_a?(Decision)
+          #only top level activities are allowed schedule a next decision
+          if next_decision != :none
+            raise WorkflowServer::InvalidDecisionSelection.new("activity:#{name} tried to make #{next_decision} the next decision but is not allowed to.") unless valid_next_decision?(next_decision)
+            add_decision(next_decision)
           end
         end
       end
@@ -56,22 +60,23 @@ module WorkflowServer
           return if subactivity_handled?(options[:name], options[:actor_type], options[:actor_id])
         end
 
-        sa_name = options.delete(:name)
-        sub_activity = SubActivity.new({name: sa_name, actor_id: options.delete(:actor_id), actor_type: options.delete(:actor_type), parent: self, workflow: workflow}.merge(options))
-        unless sub_activity.valid?
-          raise WorkflowServer::InvalidParameters, {sa_name => sub_activity.errors}
-        end
-        sub_activity.save!
-        sub_activity.reload
+        sub_activity = create_sub_activity!(options)
         reload
-
         Watchdog.feed(self) if timeout > 0
 
         sub_activity.start
-        if sub_activity.blocking?
-          update_status!(:running_sub_activity)
-        end
+        update_status!(:running_sub_activity) if sub_activity.blocking?
         sub_activity
+      end
+
+      def create_sub_activity!(options = {})
+        sa_name = options.delete(:name)
+        sub_activity = SubActivity.new({name: sa_name, actor_id: options.delete(:actor_id), actor_type: options.delete(:actor_type), parent: self, workflow: workflow}.merge(options))
+        unless sub_activity.valid?
+          raise WorkflowServer::InvalidParameters, {sub_activity.event_type => sub_activity.errors}
+        end
+        sub_activity.save!
+        sub_activity.reload
       end
 
       def child_completed(child)
@@ -130,21 +135,23 @@ module WorkflowServer
       def errored(error)
         Watchdog.kill(self) if timeout > 0
         if retry?
-          update_status!(:failed, error)
-          notify_of(:error_retry, error: error)
-          unless retry_interval > 0
-            start
-          else
-            Delayed::Backend::Mongoid::Job.enqueue(self, run_at: retry_interval.from_now)
-          end
-          update_status!(:retrying)
+          do_retry(error)
         else
           super
-          if parent.is_a?(Decision)
-            # Add a decision task if this is a top level activity
-            add_decision("#{name}_errored".to_sym)
-          end
+          # Add a decision task if this is a top level activity
+          add_decision("#{name}_errored".to_sym) if parent.is_a?(Decision)
         end
+      end
+
+      def do_retry(error)
+        update_status!(:failed, error)
+        notify_of(:error_retry, error: error)
+        unless retry_interval > 0
+          start
+        else
+          Delayed::Backend::Mongoid::Job.enqueue(self, run_at: retry_interval.from_now)
+        end
+        update_status!(:retrying)
       end
 
       def print_name
