@@ -117,14 +117,31 @@ describe Api::Workflow do
     end
 
     it "runs the sub-activity" do
-      signal = FactoryGirl.create(:activity, status: :executing)
-      wf = signal.workflow
+      activity = FactoryGirl.create(:activity, status: :executing)
+      wf = activity.workflow
       user = wf.user
-      sub_activity = { :name => :make_initial_payment, actorType: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
+      sub_activity = { :name => :make_initial_payment, actor_type: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
       header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{signal.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
+      last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
+    end
+
+    it "runs the sub-activity with camelcase input" do
+      activity = FactoryGirl.create(:activity, status: :executing)
+      wf = activity.workflow
+      user = wf.user
+      sub_activity = { :name => :make_initial_payment, actorType: "LineItem", actorId: 100, retry: 100, retryInterval: 5, arguments: [1,2,3]}
+      header "Content-Type", "application/json"
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {subActivity: sub_activity}.to_json
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      activity.children.count.should == 1
+      sub = activity.children.first
+      sub.actor_id.should == 100
+      sub.actor_type.should == "LineItem"
+      sub.retry_interval.should == 5
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
 

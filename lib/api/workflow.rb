@@ -2,7 +2,16 @@ require 'grape'
 
 module Api
   class Workflow < Grape::API
+
+    # formatter :camel_json, Api::CamelJsonFormatter
+    # content_type :camel_json, 'application/json'
+    # format :camel_json
+
     format :json
+
+    before do
+      ::Api::HashKeyTransformations.underscore_keys(params)
+    end
 
     rescue_from :all do |e|
       Rack::Response.new({error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
