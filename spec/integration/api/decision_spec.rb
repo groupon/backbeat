@@ -65,7 +65,8 @@ describe Api::Workflow do
         {type: :workflow, name: :some_name, subject_type: "PaymentTerm", subject_id: 1000, decider: "ErrorDecider"},
         {type: :complete_workflow}
       ]
-      put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete", {args: {decisions: decisions}.to_json}
+      header "Content-Type", "application/json"
+      put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete", {args: {decisions: decisions}}.to_json
       last_response.status.should == 400
       json_response = JSON.parse(last_response.body)
       json_response.should == {"error"=>[{"some_name"=>{"workflow_type"=>["can't be blank"]}}]}
@@ -86,7 +87,8 @@ describe Api::Workflow do
         {type: :workflow, name: :some_name, workflow_type: :error_recovery_workflow, subject_type: "PaymentTerm", subject_id: 1000, decider: "ErrorDecider"},
         {type: :complete_workflow}
       ]
-      put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete", {args: args.to_json}
+      header "Content-Type", "application/json"
+      put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete", {args: {decisions: args}}.to_json
       last_response.status.should == 200
       decision.reload
       decision.children.count.should == 6
@@ -109,7 +111,8 @@ describe Api::Workflow do
         decision = FactoryGirl.create(:decision, status: :open)
         wf = decision.workflow
         user = wf.user
-        put "/workflows/#{wf.id}/events/#{decision.id}/status/errored", {args: {error: {a: 1, b: 2}}.to_json}
+        header "Content-Type", "application/json"
+        put "/workflows/#{wf.id}/events/#{decision.id}/status/errored", {args: {error: {a: 1, b: 2}}}.to_json
         last_response.status.should == 200
         decision.reload
         decision.status.should == :error

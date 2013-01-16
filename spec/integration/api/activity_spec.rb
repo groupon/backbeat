@@ -42,7 +42,8 @@ describe Api::Workflow do
           activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow)
           wf = activity.workflow
           user = wf.user
-          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision}.to_json}
+          header "Content-Type", "application/json"
+          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision}}.to_json
           last_response.status.should == 400
           activity.reload
           json_response = JSON.parse(last_response.body)
@@ -79,7 +80,8 @@ describe Api::Workflow do
           activity = FactoryGirl.create(:activity, status: :executing, retry: 0)
           wf = activity.workflow
           user = wf.user
-          put "/workflows/#{wf.id}/events/#{activity.id}/status/errored", {args: {error: {a: 1, b: 2}}.to_json}
+          header "Content-Type", "application/json"
+          put "/workflows/#{wf.id}/events/#{activity.id}/status/errored", {args: {error: {a: 1, b: 2}}}.to_json
           last_response.status.should == 200
           activity.reload
           activity.status.should == :error
@@ -95,7 +97,8 @@ describe Api::Workflow do
       wf = signal.workflow
       user = wf.user
       sub_activity = { name: :make_initial_payment, actor_type: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
-      put "/workflows/#{wf.id}/events/#{signal.id}/run_sub_activity", {sub_activity: sub_activity.to_json}
+      header "Content-Type", "application/json"
+      put "/workflows/#{wf.id}/events/#{signal.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 404
       json_response = JSON.parse(last_response.body)
       json_response['error'].should == "Event with id(#{signal.id}) not found"
@@ -106,17 +109,20 @@ describe Api::Workflow do
       wf = activity.workflow
       user = wf.user
       sub_activity = { name: :make_initial_payment, actor_type: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
-      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity.to_json}
+      header "Content-Type", "application/json"
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 400
       json_response = JSON.parse(last_response.body)
       json_response['error'].should == "Cannot run subactivity while in status(#{activity.status})"
     end
+
     it "runs the sub-activity" do
       signal = FactoryGirl.create(:activity, status: :executing)
       wf = signal.workflow
       user = wf.user
-      sub_activity = { name: :make_initial_payment, actor_type: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
-      put "/workflows/#{wf.id}/events/#{signal.id}/run_sub_activity", {sub_activity: sub_activity.to_json}
+      sub_activity = { :name => :make_initial_payment, actorType: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
+      header "Content-Type", "application/json"
+      put "/workflows/#{wf.id}/events/#{signal.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
@@ -127,7 +133,8 @@ describe Api::Workflow do
       wf = activity.workflow
       user = wf.user
       sub_activity = { name: :my_name, actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
-      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {options: sub_activity.to_json}
+      header "Content-Type", "application/json"
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {options: sub_activity}.to_json
       last_response.status.should == 400
       json_response = JSON.parse(last_response.body)
       json_response['error'].should == "missing parameter: sub_activity"
