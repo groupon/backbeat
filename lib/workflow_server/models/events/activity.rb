@@ -158,7 +158,7 @@ module WorkflowServer
       end
 
       def subactivities_running?
-        reload.children.where(:mode.ne => :fire_and_forget, :status.ne => :complete).type(SubActivity).any?
+        children.where(:mode.ne => :fire_and_forget, :status.ne => :complete).type(SubActivity).any?
       end
 
       def subactivity_hash(name, actor_type, actor_id)
@@ -166,7 +166,7 @@ module WorkflowServer
       end
 
       def subactivity_handled?(name, actor_type, actor_id)
-        reload.children.where(subactivity_hash(name, actor_type, actor_id)).type(SubActivity.to_s).any?
+        children.where(subactivity_hash(name, actor_type, actor_id)).type(SubActivity.to_s).any?
       end
 
     end
