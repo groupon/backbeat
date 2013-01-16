@@ -82,7 +82,7 @@ module WorkflowServer
 
         if decisions.any?{|d| !d.valid?}
           invalid_decisions = decisions.select{|d| !d.valid? }
-          raise WorkflowServer::InvalidParameters, invalid_decisions.map{|d| {d.name => d.errors}}
+          raise WorkflowServer::InvalidParameters, invalid_decisions.map{|d| {d.event_type => d.errors}}
         else
           decisions.each{|d| d.save!}
         end

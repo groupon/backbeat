@@ -69,7 +69,7 @@ describe Api::Workflow do
       put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete", {args: {decisions: decisions}}.to_json
       last_response.status.should == 400
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"error"=>[{"some_name"=>{"workflow_type"=>["can't be blank"]}}]}
+      json_response.should == {"error"=>[{"workflow"=>{"workflowType"=>["can't be blank"]}}]}
       decision.reload
       decision.children.count.should == 0
       decision.status.should_not == :executing

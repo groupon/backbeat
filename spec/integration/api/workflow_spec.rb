@@ -23,7 +23,7 @@ describe Api::Workflow do
       user = FactoryGirl.create(:user)
       post '/workflows'
       last_response.status.should == 400
-      JSON.parse(last_response.body).should == {"error" => {"name"=>["can't be blank"], "workflow_type"=>["can't be blank"], "subject_id"=>["can't be blank"], "subject_type"=>["can't be blank"], "decider"=>["can't be blank"]}}
+      JSON.parse(last_response.body).should == {"error" => {"name"=>["can't be blank"], "workflowType"=>["can't be blank"], "subjectId"=>["can't be blank"], "subjectType"=>["can't be blank"], "decider"=>["can't be blank"]}}
     end
 
     it "returns 201 and creates a new workflow when all parameters present" do

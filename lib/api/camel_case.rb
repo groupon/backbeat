@@ -6,7 +6,7 @@ module Api
 
     def call(env)
       status, headers, response = @app.call(env)
-      if headers["Content-Type"] == "application/json" && status.between?(200, 299)
+      if headers["Content-Type"] == "application/json"
         begin
           new_body = response.body.map {|str| JSON.parse(str) }
           ::Api::HashKeyTransformations.camelize_keys(new_body)

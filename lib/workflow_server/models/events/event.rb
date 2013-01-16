@@ -96,7 +96,11 @@ module WorkflowServer
         hash = super
         hash.delete("_id")
         hash.delete("_type")
-        hash.merge({ id: id, type: TYPE_TO_STRING_HASH[self.class.to_s] })
+        hash.merge({ id: id, type: event_type})
+      end
+
+      def event_type
+        TYPE_TO_STRING_HASH[self.class.to_s]
       end
 
       private
