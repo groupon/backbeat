@@ -22,7 +22,7 @@ module WorkflowServer
 
       def update_status!(new_status, error = nil)
         unless new_status == self.status && new_status != :retrying
-          status_hash = {from: self.status, to: new_status, at: Time.now}
+          status_hash = {from: self.status, to: new_status, at: Time.now.to_datetime.to_s}
           status_hash[:error] = error_hash(error) if error
           self.status_history << status_hash
           self.status = new_status

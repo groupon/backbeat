@@ -124,7 +124,10 @@ describe Api::Workflow do
       header "Content-Type", "application/json"
       put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 200
+      activity.reload
+      activity.children.count.should == 1
       json_response = JSON.parse(last_response.body)
+      json_response.should == {"actorId"=>100, "actorType"=>"LineItem", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "parentId"=>activity.id, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "statusHistory"=>[{"from"=>"open", "to"=>"executing", "at"=>Time.now.to_datetime.to_s}], "timeout"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
 
@@ -136,8 +139,10 @@ describe Api::Workflow do
       header "Content-Type", "application/json"
       put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {subActivity: sub_activity}.to_json
       last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      activity.reload
       activity.children.count.should == 1
+      json_response = JSON.parse(last_response.body)
+      json_response.should == {"actorId"=>100, "actorType"=>"LineItem", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "parentId"=>activity.id, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "statusHistory"=>[{"from"=>"open", "to"=>"executing", "at"=>Time.now.to_datetime.to_s}], "timeout"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
       sub = activity.children.first
       sub.actor_id.should == 100
       sub.actor_type.should == "LineItem"

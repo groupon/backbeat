@@ -16,7 +16,7 @@ require 'api'
 
 use Rack::Lint if ENV['RACK_ENV'] == 'test'
 
-#use Api::CamelCase
+use Api::CamelCase
 
 use Api::Authenticate
 

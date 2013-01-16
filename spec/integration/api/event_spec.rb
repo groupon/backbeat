@@ -18,6 +18,7 @@ describe Api::Workflow do
       get "/events/#{decision.id}"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
+      json_response.should == {"createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "name"=>"WFDecsion", "parentId"=>nil, "status"=>"enqueued", "statusHistory"=>[{"from"=>"open", "to"=>"enqueued", "at"=>Time.now.to_datetime.to_s}], "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>decision.workflow.id, "id"=>decision.id, "type"=>"decision", "pastFlags"=>[]}
       json_response['id'].should == decision.id.to_s
     end
 
@@ -29,7 +30,7 @@ describe Api::Workflow do
       get "/events/#{decision.id}"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response['past_flags'].should == ["#{name}_completed"]
+      json_response['pastFlags'].should == ["#{name}_completed"]
     end
 
     it "returns a 404 if the event is not found" do
