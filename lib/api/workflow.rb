@@ -42,6 +42,18 @@ module Api
         end
         event
       end
+
+      def parse_json_param(param)
+        value = case param
+        when Hash
+          param
+        when String
+          JSON.parse(param) rescue {}
+        else
+          {}
+        end
+        HashWithIndifferentAccess.new(value)
+      end
     end
 
     resource 'workflows' do
@@ -82,7 +94,7 @@ module Api
 
           put "/:id/status/:new_status" do
             event = find_event(params[:id], params[:workflow_id])
-            event.change_status(params[:new_status], HashWithIndifferentAccess.new(JSON.parse(params[:args] || "{}")))
+            event.change_status(params[:new_status], parse_json_param(params[:args]))
             {success: true}
           end
 
@@ -91,7 +103,7 @@ module Api
           end
           put "/:id/run_sub_activity" do
             event = find_event(params[:id], params[:workflow_id], :activities)
-            sub_activity = event.run_sub_activity(HashWithIndifferentAccess.new(JSON.parse(params[:sub_activity] || "{}")))
+            sub_activity = event.run_sub_activity(parse_json_param(params[:sub_activity]))
             if sub_activity.blocking?
               header("WAIT_FOR_SUB_ACTIVITY", "true")
             end
