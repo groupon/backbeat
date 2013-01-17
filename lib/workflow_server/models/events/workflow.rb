@@ -8,6 +8,7 @@ module WorkflowServer
       field :decider, type: String
       field :mode, type: Symbol, default: :blocking
       field :error_workflow, type: Boolean, default: false # whether this workflow should retry the parent decision on complete
+      field :start_signal, type: Symbol
 
       index({ workflow_type: 1, subject_type: 1, subject_id: 1 }, { unique: true })
 
@@ -47,6 +48,10 @@ module WorkflowServer
       def start
         super
         update_status!(:executing)
+        if start_signal
+          # send the start signal on the workflow
+          self.signal(start_signal)
+        end
       end
 
       {

@@ -8,9 +8,9 @@ module WorkflowServer
 
       def start
         super
+        update_status!(:enqueued)
         WorkflowServer::AsyncClient.make_decision(self)
         Watchdog.start(self, :decision_deciding_time_out)
-        update_status!(:enqueued)
       end
 
       def change_status(new_status, args = {})

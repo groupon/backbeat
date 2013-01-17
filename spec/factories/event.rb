@@ -50,3 +50,15 @@ FactoryGirl.define do
     workflow
   end
 end
+
+FactoryGirl.define do
+  factory :sub_activity, class: WorkflowServer::Models::SubActivity do
+    name "import_payment"
+    actor_id 100
+    actor_type "PaymentTerm"
+    arguments "123"
+    mode :blocking
+    retry_interval 100
+    workflow
+  end
+end

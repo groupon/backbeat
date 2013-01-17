@@ -93,7 +93,7 @@ describe Api::Workflow do
       get "/workflows/#{wf.id}"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"createdAt"=>Time.now.to_datetime.to_s, "decider"=>"PaymentDecider", "errorWorkflow"=>false, "lockedAt"=>nil, "lockedUntil"=>nil, "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "status"=>"open", "statusHistory"=>[], "subjectId"=>wf.subject_id, "subjectType"=>wf.subject_type, "updatedAt"=>Time.now.to_datetime.to_s, "userId"=>wf.user.id, "workflowId"=>nil, "workflowType"=>"WFType", "id"=>wf.id, "type"=>"workflow"}
+      json_response.should == {"createdAt"=>Time.now.to_datetime.to_s, "decider"=>"PaymentDecider", "errorWorkflow"=>false, "lockedAt"=>nil, "lockedUntil"=>nil, "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "startSignal" => nil, "status"=>"open", "statusHistory"=>[], "subjectId"=>wf.subject_id, "subjectType"=>wf.subject_type, "updatedAt"=>Time.now.to_datetime.to_s, "userId"=>wf.user.id, "workflowId"=>nil, "workflowType"=>"WFType", "id"=>wf.id, "type"=>"workflow"}
       json_response['id'].should == wf.id.to_s
     end
 

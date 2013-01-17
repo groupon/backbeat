@@ -9,7 +9,7 @@ module WorkflowServer
       field :always, type: Boolean, default: false
       field :retry, type: Integer, default: 3
       field :retry_interval, type: Integer, default: 15.minutes
-      field :timeout, type: Integer, default: 0
+      field :time_out, type: Integer, default: 0
       field :method, type: Boolean, default: false
       field :valid_next_decisions, type: Array, default: []
 
@@ -23,9 +23,9 @@ module WorkflowServer
 
       def start
         super
-        WorkflowServer::AsyncClient.perform_activity(self)
-        Watchdog.start(self, :timeout, timeout) if timeout > 0
         update_status!(:executing)
+        WorkflowServer::AsyncClient.perform_activity(self)
+        Watchdog.start(self, :timeout, time_out) if time_out > 0
       end
       alias_method :perform, :start
       alias_method :continue, :start
@@ -37,19 +37,8 @@ module WorkflowServer
             really_complete(next_decision)
             super()
           else
-            Watchdog.feed(self) if timeout > 0
+            Watchdog.feed(self) if time_out > 0
             update_status!(:waiting_for_sub_activities)
-          end
-        end
-      end
-
-      def really_complete(next_decision)
-        Watchdog.kill(self) if timeout > 0
-        if parent.is_a?(Decision)
-          #only top level activities are allowed schedule a next decision
-          if next_decision != :none
-            raise WorkflowServer::InvalidDecisionSelection.new("activity:#{name} tried to make #{next_decision} the next decision but is not allowed to.") unless valid_next_decision?(next_decision)
-            add_decision(next_decision)
           end
         end
       end
@@ -62,21 +51,11 @@ module WorkflowServer
 
         sub_activity = create_sub_activity!(options)
         reload
-        Watchdog.feed(self) if timeout > 0
+        Watchdog.feed(self) if time_out > 0
 
         sub_activity.start
         update_status!(:running_sub_activity) if sub_activity.blocking?
         sub_activity
-      end
-
-      def create_sub_activity!(options = {})
-        sa_name = options.delete(:name)
-        sub_activity = SubActivity.new({name: sa_name, actor_id: options.delete(:actor_id), actor_type: options.delete(:actor_type), parent: self, workflow: workflow}.merge(options))
-        unless sub_activity.valid?
-          raise WorkflowServer::InvalidParameters, {sub_activity.event_type => sub_activity.errors}
-        end
-        sub_activity.save!
-        sub_activity.reload
       end
 
       def child_completed(child)
@@ -99,7 +78,7 @@ module WorkflowServer
 
       def child_timeout(child, timeout)
         super
-        timeout(timeout)
+        self.timeout(timeout) if child.is_a?(SubActivity) && !child.fire_and_forget?
       end
 
       def blocking?
@@ -112,10 +91,6 @@ module WorkflowServer
 
       def fire_and_forget?
         mode == :fire_and_forget
-      end
-
-      def retry?
-        status_history.find_all {|s| s[:to] == :retrying }.count < self.retry
       end
 
       def change_status(new_status, args = {})
@@ -133,7 +108,7 @@ module WorkflowServer
       end
 
       def errored(error)
-        Watchdog.kill(self) if timeout > 0
+        Watchdog.kill(self) if time_out > 0
         if retry?
           do_retry(error)
         else
@@ -141,6 +116,16 @@ module WorkflowServer
           # Add a decision task if this is a top level activity
           add_decision("#{name}_errored".to_sym) if parent.is_a?(Decision)
         end
+      end
+
+      def print_name
+        super + " - #{actor_id}"
+      end
+
+      private
+
+      def retry?
+        status_history.find_all {|s| s[:to] == :retrying || s['to'] == :retrying }.count < self.retry
       end
 
       def do_retry(error)
@@ -154,11 +139,26 @@ module WorkflowServer
         update_status!(:retrying)
       end
 
-      def print_name
-        super + " - #{actor_id}"
+      def really_complete(next_decision)
+        Watchdog.kill(self) if time_out > 0
+        if parent.is_a?(Decision)
+          #only top level activities are allowed schedule a next decision
+          if next_decision != :none
+            raise WorkflowServer::InvalidDecisionSelection.new("activity:#{name} tried to make #{next_decision} the next decision but is not allowed to.") unless valid_next_decision?(next_decision)
+            add_decision(next_decision)
+          end
+        end
       end
 
-      private
+      def create_sub_activity!(options = {})
+        sa_name = options.delete(:name)
+        sub_activity = SubActivity.new({name: sa_name, actor_id: options.delete(:actor_id), actor_type: options.delete(:actor_type), parent: self, workflow: workflow}.merge(options))
+        unless sub_activity.valid?
+          raise WorkflowServer::InvalidParameters, {sub_activity.event_type => sub_activity.errors}
+        end
+        sub_activity.save!
+        sub_activity.reload
+      end
 
       def valid_next_decision?(next_decision)
         [valid_next_decisions,"#{name}_succeeded".to_sym].flatten.include?(next_decision)
