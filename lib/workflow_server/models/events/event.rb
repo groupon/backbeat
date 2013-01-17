@@ -96,6 +96,7 @@ module WorkflowServer
         hash = super
         hash.delete("_id")
         hash.delete("_type")
+        hash.delete("status_history")
         hash.merge({ id: id, type: event_type})
       end
 
