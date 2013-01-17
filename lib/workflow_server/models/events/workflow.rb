@@ -44,6 +44,11 @@ module WorkflowServer
         super
       end
 
+      def start
+        super
+        update_status!(:executing)
+      end
+
       {
         flags: Flag,
         decisions: Decision,

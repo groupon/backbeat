@@ -38,3 +38,15 @@ FactoryGirl.define do
     workflow
   end
 end
+
+FactoryGirl.define do
+  factory :branch, class: WorkflowServer::Models::Branch do
+    name "automate_payment?"
+    actor_id 100
+    actor_type "PaymentTerm"
+    arguments "123"
+    mode :blocking
+    retry_interval 100
+    workflow
+  end
+end
