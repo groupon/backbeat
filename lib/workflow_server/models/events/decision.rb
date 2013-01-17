@@ -64,7 +64,7 @@ module WorkflowServer
 
       def serializable_hash(options = {})
         hash = super
-        hash.merge({ past_flags: past_flags.map(&:name) })
+        hash.merge({ past_flags: past_flags.map(&:name), decider: workflow.decider, subject_type: workflow.subject_type, subject_id: workflow.subject_id })
       end
 
       private

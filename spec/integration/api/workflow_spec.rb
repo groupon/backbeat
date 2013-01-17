@@ -124,8 +124,8 @@ describe Api::Workflow do
       get "/workflows/#{wf.id}/events"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response.should == [{"createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "name"=>"WFDecsion", "parentId"=>nil, "status"=>"enqueued", "statusHistory"=>[{"from"=>"open", "to"=>"enqueued", "at"=>Time.now.to_datetime.to_s}], "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>wf.id, "id"=>d1.id, "type"=>"decision", "pastFlags"=>[]},
-      {"createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "name"=>"WFDecsion", "parentId"=>nil, "status"=>"open", "statusHistory"=>[], "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>wf.id, "id"=>d2.id, "type"=>"decision", "pastFlags"=>[]}]
+      json_response.should == [{"createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "name"=>"WFDecsion", "parentId"=>nil, "status"=>"enqueued", "statusHistory"=>[{"from"=>"open", "to"=>"enqueued", "at"=>Time.now.to_datetime.to_s}], "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>wf.id, "id"=>d1.id, "type"=>"decision", "pastFlags"=>[], "decider"=>"PaymentDecider", "subjectType"=>"PaymentTerm", "subjectId"=>100},
+      {"createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "name"=>"WFDecsion", "parentId"=>nil, "status"=>"open", "statusHistory"=>[], "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>wf.id, "id"=>d2.id, "type"=>"decision", "pastFlags"=>[], "decider"=>"PaymentDecider", "subjectType"=>"PaymentTerm", "subjectId"=>100}]
       json_response.count.should == 2
       json_response.map {|obj| obj["id"] }.should == [d1, d2].map(&:id).map(&:to_s)
     end
