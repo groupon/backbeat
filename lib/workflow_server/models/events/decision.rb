@@ -23,7 +23,7 @@ module WorkflowServer
           raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" if ![:enqueued, :deciding].include?(status)
           self.decisions_to_add = []
           (args[:decisions] || []).each do |decision|
-            add_decision(HashWithIndifferentAccess.new(decision))
+            add_new_decision(HashWithIndifferentAccess.new(decision))
           end
           close
         when :errored
@@ -124,7 +124,7 @@ module WorkflowServer
         decisions_to_add << [WorkflowCompleteFlag, {name: workflow.name, parent: self, workflow: workflow}]
       end
 
-      def add_decision(options = {})
+      def add_new_decision(options = {})
         case options.delete(:type).to_s
         when 'flag'
           add_flag(options[:name])
