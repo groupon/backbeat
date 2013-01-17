@@ -176,4 +176,45 @@ describe WorkflowServer::Models::Decision do
       a4.reload.status.should == :open
     end
   end
+
+  context "#open_events" do
+    it "yields on each open payment" do
+      a1 = FactoryGirl.create(:activity, parent: @d1, workflow: @wf)
+      a2 = FactoryGirl.create(:branch, mode: :non_blocking, parent: @d1, workflow: @wf)
+      collected= []
+      @d1.__send__(:open_events) do |event|
+        collected << event
+      end
+      collected.should include(a1)
+      collected.should include(a2)
+    end
+  end
+
+  context "#any_incomplete_blocking_activities_branches_or_workflows?" do
+    [:activity, :branch, :workflow].each do |event|
+      it "returns true if any blocking #{event} is executing" do
+        child = FactoryGirl.create(event, parent: @d1)
+        @d1.__send__(:any_incomplete_blocking_activities_branches_or_workflows?).should == false
+        child.update_status!(:executing)
+        @d1.__send__(:any_incomplete_blocking_activities_branches_or_workflows?).should == true
+        child.update_status!(:complete)
+        @d1.__send__(:any_incomplete_blocking_activities_branches_or_workflows?).should == false
+      end
+    end
+  end
+
+  context "#all_activities_branches_and_workflows_completed?" do
+    [:activity, :branch, :workflow].each do |event|
+      it "returns true when all non-fire and forget #{event} are completed" do
+        child = FactoryGirl.create(event, parent: @d1)
+        @d1.__send__(:all_activities_branches_and_workflows_completed?).should == false
+        child.update_attributes!(mode: :fire_and_forget)
+        @d1.__send__(:all_activities_branches_and_workflows_completed?).should == true
+        child.update_attributes!(mode: :blocking)
+        @d1.__send__(:all_activities_branches_and_workflows_completed?).should == false
+        child.update_attributes!(status: :complete)
+        @d1.__send__(:all_activities_branches_and_workflows_completed?).should == true
+      end
+    end
+  end
 end
