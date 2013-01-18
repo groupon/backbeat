@@ -158,30 +158,28 @@ describe WorkflowServer::Models::Activity do
   end
 
   context "#child_errored" do
-    it "goes in error state if child wasn't fire_and_forget" do
+    it "dismisses its watchdogs if child was fire_and_forget" do
       @a1.update_attributes!(retry: 0)
+      WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(@a1)
       @a1.child_errored(FactoryGirl.create(:sub_activity, mode: :non_blocking), {:something_bad => :very_bad})
-      @a1.status.should == :error
-      @a1.status_history.last.should == {from: :open, to: :error, at: Time.now.to_datetime.to_s, error: {:something_bad=>:very_bad}}
     end
     it "no changes if child was fire_and_forget" do
       @a1.update_attributes!(retry: 0)
+      WorkflowServer::Models::Watchdog.should_not_receive(:mass_dismiss).with(@a1)
       @a1.child_errored(FactoryGirl.create(:sub_activity, mode: :fire_and_forget), {:something_bad => :very_bad})
-      @a1.status.should_not == :error
     end
   end
 
   context "#child_timeout" do
-    it "goes in error state if child wasn't fire_and_forget" do
+    it "dismisses its watchdogs if child was fire_and_forget" do
       @a1.update_attributes!(retry: 0)
+      WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(@a1)
       @a1.child_timeout(FactoryGirl.create(:sub_activity, mode: :non_blocking), :something)
-      @a1.status.should == :timeout
-      @a1.status_history.last.should == {from: :open, to: :timeout, at: Time.now.to_datetime.to_s, error: :something}
     end
     it "no changes if child was fire_and_forget" do
       @a1.update_attributes!(retry: 0)
+      WorkflowServer::Models::Watchdog.should_not_receive(:mass_dismiss).with(@a1)
       @a1.child_timeout(FactoryGirl.create(:sub_activity, mode: :fire_and_forget), :something)
-      @a1.status.should_not == :timeout
     end
   end
 

@@ -33,7 +33,7 @@ module WorkflowServer
       def completed(next_decision = nil)
         with_lock do
           unless subactivities_running?
-            next_decision ||= "#{name}_succeeded".to_sym
+            next_decision ||= "#{name}_succeeded".to_sym unless self.class == Branch
             really_complete(next_decision)
             super()
           else
@@ -69,16 +69,6 @@ module WorkflowServer
             end
           end
         end
-      end
-
-      def child_errored(child, error)
-        super
-        errored(error) if child.is_a?(SubActivity) && !child.fire_and_forget?
-      end
-
-      def child_timeout(child, timeout)
-        super
-        self.timeout(timeout) if child.is_a?(SubActivity) && !child.fire_and_forget?
       end
 
       def blocking?
@@ -143,7 +133,7 @@ module WorkflowServer
         Watchdog.kill(self) if time_out > 0
         if parent.is_a?(Decision)
           #only top level activities are allowed schedule a next decision
-          if next_decision != :none
+          if !next_decision.nil? && next_decision != :none
             raise WorkflowServer::InvalidDecisionSelection.new("activity:#{name} tried to make #{next_decision} the next decision but is not allowed to.") unless valid_next_decision?(next_decision)
             add_decision(next_decision)
           end

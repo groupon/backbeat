@@ -47,16 +47,6 @@ module WorkflowServer
         end
       end
 
-      def child_errored(child, error)
-        super
-        errored(error)
-      end
-
-      def child_timeout(child, timeout)
-        super
-        timeout(timeout)
-      end
-
       def errored(error)
         Watchdog.kill(self, :decision_executing_time_out)
         super

@@ -84,9 +84,10 @@ before_fork do |server, worker|
 #   # from being lost when the receiving process is busy.
 #   # sleep 1
 end
-# 
+
 after_fork do |server, worker|
   require 'mongoid'
+
   mongo_path = File.expand_path(File.join(app_root, "config", "mongoid.yml"))
   Mongoid.load!(mongo_path, ENV['RACK_ENV'])
 

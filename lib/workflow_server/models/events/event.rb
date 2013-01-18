@@ -14,6 +14,11 @@ module WorkflowServer
       belongs_to :parent, inverse_of: :children, class_name: "WorkflowServer::Models::Event"
       has_many :children, inverse_of: :parent, class_name: "WorkflowServer::Models::Event", order: {created_at: 1}
 
+      before_destroy do
+        Watchdog.mass_dismiss(self)
+        self.children.destroy_all
+      end
+
       validates_presence_of :name
 
       def add_decision(decision_name)
@@ -61,11 +66,17 @@ module WorkflowServer
       end
 
       def child_errored(child, error)
-
+        unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
+          Watchdog.mass_dismiss(self)
+          parent.child_errored(child, error) if parent
+        end
       end
 
       def child_timeout(child, timeout_name)
-
+        unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
+          Watchdog.mass_dismiss(self)
+          parent.child_errored(child, error) if parent
+        end
       end
 
       def past_flags

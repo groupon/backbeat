@@ -14,6 +14,10 @@ module WorkflowServer
 
       validates_presence_of :name, :subject_id, :subject_type
 
+      before_destroy do
+        timer.destroy if timer
+      end
+
       def self.start(subject, name = :timeout, starves_at = 10.minutes)
         Watchdog.kill(subject,name)
         new_dog = create!(name: name,
@@ -25,15 +29,12 @@ module WorkflowServer
         new_dog
       end
 
-      def stop
-        timer.delete if timer
-        delete
-      end
-      alias_method :kill, :stop
-      alias_method :dismiss, :stop
+      alias_method :stop, :destroy
+      alias_method :kill, :destroy
+      alias_method :dismiss, :destroy
 
       def feed
-        timer.delete if timer
+        timer.destroy if timer
         timer = Delayed::Backend::Mongoid::Job.enqueue(self, run_at: starves_at.from_now)
         save!
       end
@@ -47,7 +48,7 @@ module WorkflowServer
 
       def perform
         subject.timeout(TimeOut.new("#{name}"))
-        delete
+        destroy
       end
 
       class << self
@@ -70,6 +71,13 @@ module WorkflowServer
         end
         alias_method :kill, :stop
         alias_method :dismiss, :stop
+
+        def mass_stop(subject)
+          Watchdog.destroy_all(subject_type: subject.class.to_s, subject_id: subject.id)
+        end
+        alias_method :mass_kill, :mass_stop
+        alias_method :mass_dismiss, :mass_stop
+
       end
 
     end
