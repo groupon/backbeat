@@ -15,7 +15,7 @@ module WorkflowServer
       has_many :children, inverse_of: :parent, class_name: "WorkflowServer::Models::Event", order: {created_at: 1}
 
       before_destroy do
-        Watchdog.destroy_all(subject_type: self.class.to_s, subject_id: id)
+        Watchdog.mass_dismiss(self)
         children.destroy_all
       end
 
@@ -66,11 +66,17 @@ module WorkflowServer
       end
 
       def child_errored(child, error)
-
+        unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
+          Watchdog.mass_dismiss(self)
+          parent.child_errored(child, error) if parent
+        end
       end
 
       def child_timeout(child, timeout_name)
-
+        unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
+          Watchdog.mass_dismiss(self)
+          parent.child_errored(child, error) if parent
+        end
       end
 
       def past_flags

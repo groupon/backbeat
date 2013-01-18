@@ -71,6 +71,13 @@ module WorkflowServer
         end
         alias_method :kill, :stop
         alias_method :dismiss, :stop
+
+        def mass_stop(subject)
+          Watchdog.destroy_all(subject_type: subject.class.to_s, subject_id: subject.id)
+        end
+        alias_method :mass_kill, :mass_stop
+        alias_method :mass_dismiss, :mass_stop
+
       end
 
     end

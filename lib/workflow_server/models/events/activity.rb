@@ -71,16 +71,6 @@ module WorkflowServer
         end
       end
 
-      def child_errored(child, error)
-        super
-        errored(error) if child.is_a?(SubActivity) && !child.fire_and_forget?
-      end
-
-      def child_timeout(child, timeout)
-        super
-        self.timeout(timeout) if child.is_a?(SubActivity) && !child.fire_and_forget?
-      end
-
       def blocking?
         mode == :blocking
       end
