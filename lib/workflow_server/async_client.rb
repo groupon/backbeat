@@ -1,17 +1,18 @@
 require 'httparty'
+require_relative 'helper'
 
 module WorkflowServer
   module AsyncClient
 
     def self.perform_activity(activity)
       if (url = activity.workflow.user.try(:activity_callback_endpoint))
-        post(url, activity: activity)
+        post(url, activity: activity.serializable_hash)
       end
     end
 
     def self.make_decision(decision)
       if (url = decision.workflow.user.try(:decision_callback_endpoint))
-        post(url, decision: decision)
+        post(url, decision: decision.serializable_hash)
       end
     end
 
@@ -25,8 +26,7 @@ module WorkflowServer
     end
 
     def self.post(url, params = {})
-      body = params.to_json
-      #TODO use EventMacine HTTP
+      body = WorkflowServer::Helper::HashKeyTransformations.camelize_keys(params).to_json
       ::HTTParty.post(url, body: body, headers: {"Content-Type" => "application/json", "Content-Length" => body.size.to_s})
     end
   end

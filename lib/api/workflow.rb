@@ -10,7 +10,7 @@ module Api
     format :json
 
     before do
-      ::Api::HashKeyTransformations.underscore_keys(params)
+      ::WorkflowServer::Helper::HashKeyTransformations.underscore_keys(params)
     end
 
     rescue_from :all do |e|
