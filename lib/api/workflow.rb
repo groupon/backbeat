@@ -102,7 +102,7 @@ module Api
           put "/:id/run_sub_activity" do
             event = find_event(params[:id], params[:workflow_id], :activities)
             sub_activity = event.run_sub_activity(params[:sub_activity] || {})
-            if sub_activity.blocking?
+            if sub_activity.try(:blocking?)
               header("WAIT_FOR_SUB_ACTIVITY", "true")
             end
             sub_activity
