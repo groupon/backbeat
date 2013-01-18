@@ -14,6 +14,11 @@ module WorkflowServer
       belongs_to :parent, inverse_of: :children, class_name: "WorkflowServer::Models::Event"
       has_many :children, inverse_of: :parent, class_name: "WorkflowServer::Models::Event", order: {created_at: 1}
 
+      before_destroy do
+        Watchdog.destroy_all(subject_type: self.class.to_s, subject_id: id)
+        children.destroy_all
+      end
+
       validates_presence_of :name
 
       def add_decision(decision_name)

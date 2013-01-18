@@ -11,6 +11,10 @@ module WorkflowServer
 
       has_many :workflows
 
+      before_destroy do
+        workflows.destroy_all
+      end
+
       def serializable_hash(options = {})
         hash = super
         hash.delete("_id")
