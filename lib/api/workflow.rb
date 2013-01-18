@@ -91,13 +91,13 @@ module Api
 
           put "/:id/status/:new_status" do
             event = find_event(params[:id], params[:workflow_id])
-            raise WorkflowServer::InvalidParameters if params[:args] && !params[:args].is_a?(Hash)
+            raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
             event.change_status(params[:new_status], params[:args] || {})
             {success: true}
           end
 
           params do
-            requires :sub_activity, type: Hash, :desc => 'Sub activity param cannot be empty'
+            requires :sub_activity, type: Hash, :desc => 'sub activity param cannot be empty'
           end
           put "/:id/run_sub_activity" do
             event = find_event(params[:id], params[:workflow_id], :activities)
