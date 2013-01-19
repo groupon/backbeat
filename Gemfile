@@ -19,4 +19,5 @@ group :test do
   gem 'factory_girl'
   gem 'pry'
   gem 'timecop'
+  gem 'webmock'
 end

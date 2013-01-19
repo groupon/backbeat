@@ -13,6 +13,7 @@ GEM
     builder (3.0.4)
     coderay (1.0.7)
     cookiejar (0.3.0)
+    crack (0.3.2)
     delayed_job (3.0.3)
       activesupport (~> 3.0)
     delayed_job_mongoid (2.0.0)
@@ -98,6 +99,9 @@ GEM
     virtus (0.5.4)
       backports (~> 2.6.1)
       descendants_tracker (~> 0.0.1)
+    webmock (1.9.0)
+      addressable (>= 2.2.7)
+      crack (>= 0.1.7)
 
 PLATFORMS
   ruby
@@ -119,3 +123,4 @@ DEPENDENCIES
   timecop
   unicorn
   uuid
+  webmock
