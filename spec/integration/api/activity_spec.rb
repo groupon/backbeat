@@ -53,6 +53,21 @@ describe Api::Workflow do
 
         it "returns 200 if the next decision is valid and the activity succeeds" do
           decision = FactoryGirl.create(:decision)
+          activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow, valid_next_decisions: [:test_decision])
+          wf = activity.workflow
+          user = wf.user
+          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}.to_json
+          last_response.status.should == 200
+          activity.reload
+          activity.result.should == 'i_was_successful'
+          activity.children.count.should == 1
+          child = activity.children.first
+          child.name.should == :test_decision
+          activity.status.should == :complete
+        end
+
+        it "returns 200 if no next decision is present" do
+          decision = FactoryGirl.create(:decision)
           activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow)
           wf = activity.workflow
           user = wf.user
@@ -127,7 +142,7 @@ describe Api::Workflow do
       activity.reload
       activity.children.count.should == 1
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"actorId"=>100, "actorType"=>"LineItem", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "parentId"=>activity.id, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
+      json_response.should == {"actorId"=>100, "actorType"=>"LineItem", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
 
@@ -142,7 +157,7 @@ describe Api::Workflow do
       activity.reload
       activity.children.count.should == 1
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"actorId"=>100, "actorType"=>"LineItem", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "parentId"=>activity.id, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
+      json_response.should == {"actorId"=>100, "actorType"=>"LineItem", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
       sub = activity.children.first
       sub.actor_id.should == 100
       sub.actor_type.should == "LineItem"

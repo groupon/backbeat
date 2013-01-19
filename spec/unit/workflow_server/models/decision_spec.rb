@@ -136,23 +136,23 @@ describe WorkflowServer::Models::Decision do
     end
   end
 
-  context "#child_errored" do
-    it "goes in error state" do
-      @d1.status.should_not == :error
-      @d1.child_errored(FactoryGirl.create(:flag), {something: :bad_happened})
-      @d1.status.should == :error
-      @d1.status_history.last.should == {from: :enqueued, to: :error, at: Time.now.to_datetime.to_s, error: {something: :bad_happened}}
-    end
-  end
-
-  context "#child_timeout" do
-    it "goes in timeout state" do
-      @d1.status.should_not == :timeout
-      @d1.child_timeout(FactoryGirl.create(:flag), {something: :timed_out})
-      @d1.status.should == :timeout
-      @d1.status_history.last.should == {from: :enqueued, to: :timeout, at: Time.now.to_datetime.to_s, error: {something: :timed_out}}
-    end
-  end
+  # context "#child_errored" do
+  #   it "goes in error state" do
+  #     @d1.status.should_not == :error
+  #     @d1.child_errored(FactoryGirl.create(:flag), {something: :bad_happened})
+  #     @d1.status.should == :error
+  #     @d1.status_history.last.should == {from: :enqueued, to: :error, at: Time.now.to_datetime.to_s, error: {something: :bad_happened}}
+  #   end
+  # end
+  # 
+  # context "#child_timeout" do
+  #   it "goes in timeout state" do
+  #     @d1.status.should_not == :timeout
+  #     @d1.child_timeout(FactoryGirl.create(:flag), {something: :timed_out})
+  #     @d1.status.should == :timeout
+  #     @d1.status_history.last.should == {from: :enqueued, to: :timeout, at: Time.now.to_datetime.to_s, error: {something: :timed_out}}
+  #   end
+  # end
 
   context "#start_next_action" do
     it "keeps starting the next actions till it hits a blocking action" do

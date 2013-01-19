@@ -37,7 +37,8 @@ describe WorkflowServer::Models::Activity do
       end
       context "parent is not a decision" do
         it "goes to complete state - no decision task scheduled" do
-          @a1.completed(:decision_blah_blah)
+          @a1.update_attributes!(next_decision: :blah)
+          @a1.completed
           @a1.reload.children.count.should == 0
           @a1.status.should == :complete
         end
@@ -47,14 +48,9 @@ describe WorkflowServer::Models::Activity do
           @activity = FactoryGirl.create(:activity, parent: FactoryGirl.create(:decision), workflow: @wf)
         end
         context "next decision is set" do
-          it "raises an error if invalid next decision is given" do
-            expect {
-              @activity.completed(:decision_blah_blah)
-            }.to raise_error(WorkflowServer::InvalidDecisionSelection, "activity:#{@activity.name} tried to make decision_blah_blah the next decision but is not allowed to.")
-          end
           it "schedules a decision task and goes to complete state" do
-            @activity.update_attributes!(valid_next_decisions: [:decision_blah_blah])
-            @activity.completed(:decision_blah_blah)
+            @activity.update_attributes!(next_decision: :decision_blah_blah)
+            @activity.completed
             @activity.reload.children.count.should == 1
             decision = @activity.children.first
             decision.name.should == :decision_blah_blah
@@ -62,17 +58,17 @@ describe WorkflowServer::Models::Activity do
           end
         end
         context "next decision is nil" do
-          it "schedules a activity_succeeded decision" do
-            @activity.completed(nil)
-            @activity.reload.children.count.should == 1
-            decision = @activity.children.first
-            decision.name.should == "#{@activity.name}_succeeded".to_sym
+          it "no decision event scheduled" do
+            @activity.update_attributes!(next_decision: nil)
+            @activity.completed
+            @activity.reload.children.count.should == 0
             @activity.status.should == :complete
           end
         end
-        context "next decision is :none" do
+        context "next decision is 'none'" do
           it "no decision event scheduled" do
-            @activity.completed(:none)
+            @activity.update_attributes!(next_decision: 'none')
+            @activity.completed
             @activity.reload.children.count.should == 0
             @activity.status.should == :complete
           end
@@ -201,10 +197,40 @@ describe WorkflowServer::Models::Activity do
           @a1.change_status(:completed)
         }.to raise_error(WorkflowServer::InvalidEventStatus, "Activity make_initial_payment can't transition from open to completed")
       end
-      it "calls completed with the next decision" do
-        @a1.update_status!(:executing)
-        @a1.should_receive(:completed).with(:none)
-        @a1.change_status(:completed, {next_decision: :none})
+      it "raises error if next decision is invalid" do
+        @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
+        expect {
+          @a1.change_status(:completed, {next_decision: :something_wrong, result: {a: :b, c: :d}})
+        }.to raise_error(WorkflowServer::InvalidDecisionSelection, "activity:#{@a1.name} tried to make something_wrong the next decision but is not allowed to.")
+      end
+      it "records the next decision and result" do
+        @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
+        @a1.should_receive(:completed)
+        @a1.change_status(:completed, {next_decision: :more_test, result: {a: :b, c: :d}})
+        @a1.reload.result.should == {"a" => :b, "c" => :d}
+        @a1.reload.next_decision.should == 'more_test'
+      end
+      it "records name_succeeded as the next decision when nothing is passed" do
+        @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
+        @a1.should_receive(:completed)
+        @a1.change_status(:completed, {result: {a: :b, c: :d}})
+        @a1.reload.result.should == {"a" => :b, "c" => :d}
+        @a1.reload.next_decision.should == "#{@a1.name}_succeeded"
+      end
+      it "records none as the next decision" do
+        @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
+        @a1.should_receive(:completed)
+        @a1.change_status(:completed, {next_decision: :none, result: {a: :b, c: :d}})
+        @a1.reload.result.should == {"a" => :b, "c" => :d}
+        @a1.reload.next_decision.should == 'none'
+      end
+      it "branches raise an error if no next_decision is given" do
+        a1 = FactoryGirl.create(:branch)
+        a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
+        a1.should_not_receive(:completed)
+        expect {
+          a1.change_status(:completed, {result: {a: :b, c: :d}})
+        }.to raise_error()
       end
     end
     context "errored" do

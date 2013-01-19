@@ -12,6 +12,9 @@ module WorkflowServer
       field :time_out, type: Integer, default: 0
       field :method, type: Boolean, default: false
       field :valid_next_decisions, type: Array, default: []
+      # These two fields come from client
+      field :result
+      field :next_decision, type: String
 
       validate :not_blocking_and_always
 
@@ -30,12 +33,11 @@ module WorkflowServer
       alias_method :perform, :start
       alias_method :continue, :start
 
-      def completed(next_decision = nil)
+      def completed
         with_lock do
           unless subactivities_running?
-            next_decision ||= "#{name}_succeeded".to_sym unless self.class == Branch
-            really_complete(next_decision)
-            super()
+            really_complete
+            super
           else
             Watchdog.feed(self) if time_out > 0
             update_status!(:waiting_for_sub_activities)
@@ -88,7 +90,8 @@ module WorkflowServer
         case new_status.to_sym
         when :completed
           raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" if status != :executing
-          completed(args[:next_decision])
+          update_attributes!(result: args[:result], next_decision: verify_and_get_next_decision(args[:next_decision]))
+          completed
         when :errored
           raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" if status != :executing
           errored(args[:error])
@@ -112,6 +115,19 @@ module WorkflowServer
         super + " - #{actor_id}"
       end
 
+      def verify_and_get_next_decision(next_decision_arg)
+        validate_next_decision(next_decision_arg)
+        next_decision_arg || "#{name}_succeeded"
+      end
+
+      def validate_next_decision(next_decision_arg)
+        if next_decision_arg && next_decision_arg.to_s != 'none'
+          unless valid_next_decisions.map(&:to_sym).include?(next_decision_arg.to_sym)
+            raise WorkflowServer::InvalidDecisionSelection.new("activity:#{name} tried to make #{next_decision_arg} the next decision but is not allowed to.")
+          end
+        end
+      end
+
       private
 
       def retry?
@@ -129,14 +145,11 @@ module WorkflowServer
         update_status!(:retrying)
       end
 
-      def really_complete(next_decision)
+      def really_complete
         Watchdog.kill(self) if time_out > 0
-        if parent.is_a?(Decision)
+        if parent.is_a?(Decision) && next_decision != 'none'
           #only top level activities are allowed schedule a next decision
-          if !next_decision.nil? && next_decision != :none
-            raise WorkflowServer::InvalidDecisionSelection.new("activity:#{name} tried to make #{next_decision} the next decision but is not allowed to.") unless valid_next_decision?(next_decision)
-            add_decision(next_decision)
-          end
+          add_decision(next_decision) if next_decision
         end
       end
 
@@ -148,10 +161,6 @@ module WorkflowServer
         end
         sub_activity.save!
         sub_activity.reload
-      end
-
-      def valid_next_decision?(next_decision)
-        [valid_next_decisions,"#{name}_succeeded".to_sym].flatten.include?(next_decision)
       end
 
       def subactivities_running?
