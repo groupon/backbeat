@@ -21,7 +21,7 @@ app_root = if ENV['RACK_ENV'] == 'development'
 shared_root = if ENV['RACK_ENV'] == 'development'
                 "#{app_root}/shared"
               else
-                "#{app_root}/../shared" # Get out of the current directory
+                "#{app_root}/../../shared" # Get out of the current directory
               end
 
 # # Since Unicorn is never exposed to outside clients, it does not need to

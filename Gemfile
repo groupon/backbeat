@@ -13,6 +13,13 @@ gem 'em-http-request'
 gem 'uuid'
 gem 'httparty'
 
+group :development do
+  # deployment
+  gem 'capistrano'
+  gem 'capistrano-ext'
+  gem 'capistrano-campfire'
+end
+
 group :test do
   gem 'rack-test'
   gem 'rspec'
