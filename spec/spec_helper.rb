@@ -1,8 +1,10 @@
 $: << File.expand_path(File.join(__FILE__, "../.."))
+$: << File.expand_path(File.join(__FILE__, ".."))
 
 ENV['RACK_ENV'] = "test"
 
 require 'bundler'
+require 'helper/mongo'
 
 Bundler.setup
 Bundler.require(:default, :test)
@@ -19,7 +21,6 @@ FactoryGirl.find_definitions
 
 RSpec.configuration.before(:each) do
   Timecop.freeze(Time.now)
-  #Mongoid::Sessions.default.collections.select {|c| c.name !~ /system/ }.each(&:drop)
 end
 
 RSpec.configuration.after(:each) do
@@ -27,8 +28,13 @@ RSpec.configuration.after(:each) do
   Mongoid::Sessions.default.collections.select {|c| c.name !~ /system/ }.each(&:drop)
 end
 
+RSpec.configuration.before(:suite) do
+  Helper::Mongo.start(27018)
+end
+
 RSpec.configuration.after(:suite) do
   Mongoid::Sessions.default.collections.select {|c| c.name !~ /system/ }.each(&:drop)
+  Helper::Mongo.stop(27018)
 end
 
 RSpec.configure do |config|
@@ -38,3 +44,4 @@ RSpec.configure do |config|
   # Use the specified formatter
   config.formatter = :documentation # :progress, :html, :textmate
 end
+  
