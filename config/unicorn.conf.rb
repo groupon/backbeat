@@ -32,7 +32,7 @@ working_directory app_root # available in 0.94.0+
 listen 9000, :tcp_nopush => true
 # 
 # # nuke workers after 30 seconds instead of 60 seconds (the default)
-# timeout 30
+timeout 30
 # 
 # # feel free to point this anywhere accessible on the filesystem
 # pid "/path/to/app/shared/pids/unicorn.pid"

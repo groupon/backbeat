@@ -122,7 +122,7 @@ module WorkflowServer
 
       def validate_next_decision(next_decision_arg)
         if next_decision_arg && next_decision_arg.to_s != 'none'
-          unless valid_next_decisions.map(&:to_sym).include?(next_decision_arg.to_sym)
+          unless valid_next_decisions.map(&:to_s).include?(next_decision_arg.to_s)
             raise WorkflowServer::InvalidDecisionSelection.new("activity:#{name} tried to make #{next_decision_arg} the next decision but is not allowed to.")
           end
         end
