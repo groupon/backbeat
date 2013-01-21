@@ -51,7 +51,7 @@ module Helper
     end
 
     def root_dir
-      File.expand_path(File.join(__FILE__, "..", "data", "mongo-#{self.port}"))
+      File.expand_path(File.join(__FILE__, "..", "..", "data", "mongo-#{self.port}"))
     end
 
     def db_dir

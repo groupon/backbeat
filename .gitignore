@@ -2,4 +2,4 @@ shared/log/unicorn.stderr.log
 shared/log/unicorn.stdout.log
 shared/pids/unicorn.pid
 shared/sockets/unicorn.sock
-spec/helper/data
+spec/data
