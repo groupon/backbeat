@@ -10,9 +10,19 @@
 
 # Use at least one worker per core if you're on a dedicated server,
 # more will usually help for _short_ waits on databases/caches.
-worker_processes 4
+worker_processes 8
 
-app_root = File.expand_path(File.join(__FILE__, "../.."))
+app_root = if ENV['RACK_ENV'] == 'development'
+             File.expand_path(File.join(__FILE__, "..", ".."))
+           else
+             "/var/groupon/backbeat/current"
+           end
+
+shared_root = if ENV['RACK_ENV'] == 'development'
+                "#{app_root}/shared"
+              else
+                "#{app_root}/../shared" # Get out of the current directory
+              end
 
 # # Since Unicorn is never exposed to outside clients, it does not need to
 # # run on the standard HTTP port (80), there is no reason to start Unicorn
@@ -28,25 +38,30 @@ working_directory app_root # available in 0.94.0+
 # 
 # # listen on both a Unix domain socket and a TCP port,
 # # we use a shorter backlog for quicker failover when busy
-# listen "/tmp/.sock", :backlog => 64
+system("mkdir -p #{shared_root}/sockets")
+listen "#{shared_root}/sockets/unicorn.sock", :backlog => 64
 listen 9000, :tcp_nopush => true
 # 
 # # nuke workers after 30 seconds instead of 60 seconds (the default)
 timeout 30
 # 
 # # feel free to point this anywhere accessible on the filesystem
-# pid "/path/to/app/shared/pids/unicorn.pid"
+system("mkdir -p #{shared_root}/pids")
+pid "#{shared_root}/pids/unicorn.pid"
+
 # 
 # # By default, the Unicorn logger will write to stderr.
 # # Additionally, ome applications/frameworks log to stderr or stdout,
 # # so prevent them from going to /dev/null when daemonized here:
-stderr_path "#{app_root}/shared/log/unicorn.stderr.log"
-stdout_path "#{app_root}/shared/log/unicorn.stdout.log"
+system("mkdir -p #{shared_root}/log")
+stderr_path "#{shared_root}/log/unicorn.stderr.log"
+stdout_path "#{shared_root}/log/unicorn.stdout.log"
 
 # 
 # # combine Ruby 2.0.0dev or REE with "preload_app true" for memory savings
 # # http://rubyenterpriseedition.com/faq.html#adapt_apps_for_cow
-# preload_app true
+preload_app true
+
 # GC.respond_to?(:copy_on_write_friendly=) and
 #   GC.copy_on_write_friendly = true
 # 
@@ -59,7 +74,18 @@ stdout_path "#{app_root}/shared/log/unicorn.stdout.log"
 # check_client_connection false
 # 
 before_fork do |server, worker|
-# 
+  # by default, BUNDLE_GEMFILE is a fully resolved path (e.g., /var/groupon/backbeat/releases/20111202202204/Gemfile)
+  # since Unicorn forks/execs, the new process gets the parent environment, which means we never pick up a new Gemfile
+  # (and even worse, eventually, the Gemfile ceases to exist after 10 releases (we purge after 10 releases).
+  begin
+    ENV['BUNDLE_GEMFILE'] = File.join(File.readlink(app_root), 'Gemfile')
+
+    $stdout.puts "I, [#{Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L")} \##{$$}] INFO -- : setting BUNDLE_GEMFILE to #{ENV['BUNDLE_GEMFILE']}"
+  rescue Errno::EINVAL
+    $stdout.puts "E, [#{Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L")} \##{$$}] ERROR -- : Unable to set BUNDLE_GEMFILE (/var/groupon/backbeat/current symlink doesn't exist?), defaulting to /var/groupon/backbeat/current/Gemfile"
+    ENV['BUNDLE_GEMFILE'] = "/var/groupon/backbeat/current/Gemfile"
+  end
+
 #   # The following is only recommended for memory/DB-constrained
 #   # installations.  It is not needed if your system can house
 #   # twice as many worker_processes as you have configured.
@@ -69,14 +95,15 @@ before_fork do |server, worker|
 #   # # thundering herd (especially in the "preload_app false" case)
 #   # # when doing a transparent upgrade.  The last worker spawned
 #   # # will then kill off the old master process with a SIGQUIT.
-#   # old_pid = "#{server.config[:pid]}.oldbin"
-#   # if old_pid != server.pid
-#   #   begin
-#   #     sig = (worker.nr + 1) >= server.worker_processes ? :QUIT : :TTOU
-#   #     Process.kill(sig, File.read(old_pid).to_i)
-#   #   rescue Errno::ENOENT, Errno::ESRCH
-#   #   end
-#   # end
+  pidfile = "#{shared_root}/pids/unicorn.pid"
+  old_pid = pidfile + '.oldbin'
+  if File.exists?(old_pid) && server.pid != old_pid
+    begin
+      Process.kill("QUIT", File.read(old_pid).to_i)
+    rescue Errno::ENOENT, Errno::ESRCH
+      # someone else did our job for us
+    end
+  end
 #   #
 #   # Throttle the master from forking too quickly by sleeping.  Due
 #   # to the implementation of standard Unix signal handlers, this
@@ -86,10 +113,18 @@ before_fork do |server, worker|
 end
 
 after_fork do |server, worker|
-  require 'mongoid'
+  begin
+    ENV['BUNDLE_GEMFILE'] = File.join(File.readlink(app_root), 'Gemfile')
 
+    $stdout.puts "I, [#{Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L")} \##{$$}] INFO -- : setting BUNDLE_GEMFILE to #{ENV['BUNDLE_GEMFILE']}"
+  rescue Errno::EINVAL
+    $stdout.puts "E, [#{Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L")} \##{$$}] ERROR -- : Unable to set BUNDLE_GEMFILE (/var/groupon/backbeat/current symlink doesn't exist?), defaulting to /var/groupon/backbeat/current/Gemfile"
+    ENV['BUNDLE_GEMFILE'] = "/var/groupon/backbeat/current/Gemfile" 
+  end
+
+  require 'mongoid'
   mongo_path = File.expand_path(File.join(app_root, "config", "mongoid.yml"))
-  Mongoid.load!(mongo_path, ENV['RACK_ENV'])
+  Mongoid.load!(mongo_path, ENV['RACK_ENV'] || 'development')
 
 #   # per-process listener ports for debugging/admin/migrations
 #   # addr = "127.0.0.1:#{9293 + worker.nr}"
