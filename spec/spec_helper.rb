@@ -1,5 +1,9 @@
 require 'simplecov'
-SimpleCov.start
+SimpleCov.start do
+  add_filter "/bin/"
+  add_filter "/config/"
+  add_filter "/spec/"
+end
 
 $: << File.expand_path(File.join(__FILE__, "../.."))
 $: << File.expand_path(File.join(__FILE__, ".."))
