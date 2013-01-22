@@ -19,9 +19,9 @@ app_root = if ENV['RACK_ENV'] == 'development'
            end
 
 shared_root = if ENV['RACK_ENV'] == 'development'
-                "#{app_root}/shared"
+                File.expand_path(File.join(app_root, "shared"))
               else
-                "#{app_root}/../../shared" # Get out of the current directory
+                File.expand_path(File.join(app_root, "..", "shared")) # Get out of the current directory
               end
 
 # # Since Unicorn is never exposed to outside clients, it does not need to
