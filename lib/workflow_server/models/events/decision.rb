@@ -98,12 +98,12 @@ module WorkflowServer
         decisions_to_add << [Timer, {fires_at: fires_at, name: name, parent: self, workflow: workflow}]
       end
 
-      def add_activity(name, actor_type, actor_id, options = {})
-        decisions_to_add << [Activity, {name: name, actor_id: actor_id, actor_type: actor_type, workflow: workflow, parent: self}.merge(options)]
+      def add_activity(name, actor_klass, actor_id, options = {})
+        decisions_to_add << [Activity, {name: name, actor_id: actor_id, actor_klass: actor_klass, workflow: workflow, parent: self}.merge(options)]
       end
 
-      def add_branch(name, actor_type, actor_id, options = {})
-        decisions_to_add << [Branch, {name: name, actor_id: actor_id, actor_type: actor_type, workflow: workflow, parent: self}.merge(options)]
+      def add_branch(name, actor_klass, actor_id, options = {})
+        decisions_to_add << [Branch, {name: name, actor_id: actor_id, actor_klass: actor_klass, workflow: workflow, parent: self}.merge(options)]
       end
 
       def add_workflow(name, workflow_type, subject_type, subject_id, decider, options = {})
@@ -121,9 +121,9 @@ module WorkflowServer
         when 'timer'
           add_timer(options[:name], options[:fires_at])
         when 'activity'
-          add_activity(options.delete(:name), options.delete(:actor_type), options.delete(:actor_id), options)
+          add_activity(options.delete(:name), options.delete(:actor_klass), options.delete(:actor_id), options)
         when 'branch'
-          add_branch(options.delete(:name), options.delete(:actor_type), options.delete(:actor_id), options)
+          add_branch(options.delete(:name), options.delete(:actor_klass), options.delete(:actor_id), options)
         when 'workflow'
           add_workflow(options.delete(:name), options.delete(:workflow_type), options.delete(:subject_type), options.delete(:subject_id), options.delete(:decider), options)
         when 'complete_workflow'

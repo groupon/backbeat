@@ -82,7 +82,7 @@ describe Api::Workflow do
       args = [
         {type: :flag, name: :wFlag},
         {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
-        {type: :activity, name: :make_initial_payment, actor_type: "LineItem", actor_id: 100, retry: 100, retry_interval: 5},
+        {type: :activity, name: :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5},
         {type: :branch, name: :make_initial_payment_branch, actor_id: 100, retry: 100, retry_interval: 5},
         {type: :workflow, name: :some_name, workflow_type: :error_recovery_workflow, subject_type: "PaymentTerm", subject_id: 1000, decider: "ErrorDecider"},
         {type: :complete_workflow}

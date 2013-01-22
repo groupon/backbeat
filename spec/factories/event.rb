@@ -31,7 +31,7 @@ FactoryGirl.define do
   factory :activity, class: WorkflowServer::Models::Activity do
     name "make_initial_payment"
     actor_id 100
-    actor_type "PaymentTerm"
+    actor_klass "PaymentTerm"
     arguments "123"
     mode :blocking
     retry_interval 100
@@ -43,7 +43,7 @@ FactoryGirl.define do
   factory :branch, class: WorkflowServer::Models::Branch do
     name "automate_payment?"
     actor_id 100
-    actor_type "PaymentTerm"
+    actor_klass "PaymentTerm"
     arguments "123"
     mode :blocking
     retry_interval 100
@@ -55,7 +55,7 @@ FactoryGirl.define do
   factory :sub_activity, class: WorkflowServer::Models::SubActivity do
     name "import_payment"
     actor_id 100
-    actor_type "PaymentTerm"
+    actor_klass "PaymentTerm"
     arguments "123"
     mode :blocking
     retry_interval 100

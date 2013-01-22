@@ -3,7 +3,7 @@ module WorkflowServer
     class Activity < Event
 
       field :actor_id, type: Integer
-      field :actor_type, type: String
+      field :actor_klass, type: String
       field :arguments, type: Array
       field :mode, type: Symbol, default: :blocking
       field :always, type: Boolean, default: false
@@ -48,7 +48,7 @@ module WorkflowServer
       def run_sub_activity(options = {})
         raise WorkflowServer::InvalidEventStatus, "Cannot run subactivity while in status(#{status})" unless status == :executing
         unless options[:always]
-          return if subactivity_handled?(options[:name], options[:actor_type], options[:actor_id])
+          return if subactivity_handled?(options[:name], options[:actor_klass], options[:actor_id])
         end
 
         sub_activity = create_sub_activity!(options)
@@ -155,7 +155,7 @@ module WorkflowServer
 
       def create_sub_activity!(options = {})
         sa_name = options.delete(:name)
-        sub_activity = SubActivity.new({name: sa_name, actor_id: options.delete(:actor_id), actor_type: options.delete(:actor_type), parent: self, workflow: workflow}.merge(options))
+        sub_activity = SubActivity.new({name: sa_name, actor_id: options.delete(:actor_id), actor_klass: options.delete(:actor_klass), parent: self, workflow: workflow}.merge(options))
         sub_activity.valid? ? sub_activity.save! : raise(WorkflowServer::InvalidParameters, {sub_activity.event_type => sub_activity.errors})
         sub_activity
       end
@@ -164,12 +164,12 @@ module WorkflowServer
         children.where(:mode.ne => :fire_and_forget, :status.ne => :complete).type(SubActivity).any?
       end
 
-      def subactivity_hash(name, actor_type, actor_id)
-        {name: name, actor_type: actor_type, actor_id: actor_id}
+      def subactivity_hash(name, actor_klass, actor_id)
+        {name: name, actor_klass: actor_klass, actor_id: actor_id}
       end
 
-      def subactivity_handled?(name, actor_type, actor_id)
-        children.where(subactivity_hash(name, actor_type, actor_id)).type(SubActivity.to_s).any?
+      def subactivity_handled?(name, actor_klass, actor_id)
+        children.where(subactivity_hash(name, actor_klass, actor_id)).type(SubActivity.to_s).any?
       end
 
     end

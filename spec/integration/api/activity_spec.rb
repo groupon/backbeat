@@ -111,7 +111,7 @@ describe Api::Workflow do
       signal = FactoryGirl.create(:signal, status: :open)
       wf = signal.workflow
       user = wf.user
-      sub_activity = { name: :make_initial_payment, actor_type: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
+      sub_activity = { name: :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
       header "Content-Type", "application/json"
       put "/workflows/#{wf.id}/events/#{signal.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 404
@@ -123,7 +123,7 @@ describe Api::Workflow do
       activity = FactoryGirl.create(:activity, status: :open)
       wf = activity.workflow
       user = wf.user
-      sub_activity = { name: :make_initial_payment, actor_type: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
+      sub_activity = { name: :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
       header "Content-Type", "application/json"
       put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 400
@@ -135,14 +135,14 @@ describe Api::Workflow do
       activity = FactoryGirl.create(:activity, status: :executing)
       wf = activity.workflow
       user = wf.user
-      sub_activity = { :name => :make_initial_payment, actor_type: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
+      sub_activity = { :name => :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
       header "Content-Type", "application/json"
       put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 200
       activity.reload
       activity.children.count.should == 1
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"actorId"=>100, "actorType"=>"LineItem", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
+      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
 
@@ -150,17 +150,17 @@ describe Api::Workflow do
       activity = FactoryGirl.create(:activity, status: :executing)
       wf = activity.workflow
       user = wf.user
-      sub_activity = { :name => :make_initial_payment, actorType: "LineItem", actorId: 100, retry: 100, retryInterval: 5, arguments: [1,2,3]}
+      sub_activity = { :name => :make_initial_payment, actorKlass: "LineItem", actorId: 100, retry: 100, retryInterval: 5, arguments: [1,2,3]}
       header "Content-Type", "application/json"
       put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {subActivity: sub_activity}.to_json
       last_response.status.should == 200
       activity.reload
       activity.children.count.should == 1
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"actorId"=>100, "actorType"=>"LineItem", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
+      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
       sub = activity.children.first
       sub.actor_id.should == 100
-      sub.actor_type.should == "LineItem"
+      sub.actor_klass.should == "LineItem"
       sub.retry_interval.should == 5
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
