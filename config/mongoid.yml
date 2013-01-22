@@ -18,25 +18,26 @@ test:
 
 uat:
   sessions:
-    default:
-      database: workflow_uat
+    replica_set:
+      # This configuration is a 3 node replica set.
       hosts:
-        - localhost:27017
+        - accounting-utility1-uat.snc1:27018
+        - accounting-utility1-staging.snc1:27018
       options:
-        consistency: :strong
+        consistency: :eventual
         max_retries: 5
         retry_interval: 1
   options:
     raise_not_found_error: false
 
-stage:
+staging:
   sessions:
     default:
       database: workflow_stage
       hosts:
         - localhost:27017
       options:
-        consistency: :strong
+        consistency: :eventual
         max_retries: 5
         retry_interval: 1
   options:
