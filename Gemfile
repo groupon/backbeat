@@ -27,4 +27,5 @@ group :test do
   gem 'pry'
   gem 'timecop'
   gem 'webmock'
+  gem 'simplecov'
 end

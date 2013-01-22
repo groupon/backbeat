@@ -1,3 +1,6 @@
+require 'simplecov'
+SimpleCov.start
+
 $: << File.expand_path(File.join(__FILE__, "../.."))
 $: << File.expand_path(File.join(__FILE__, ".."))
 
@@ -44,4 +47,3 @@ RSpec.configure do |config|
   # Use the specified formatter
   config.formatter = :documentation # :progress, :html, :textmate
 end
-  
