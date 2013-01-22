@@ -142,7 +142,7 @@ describe Api::Workflow do
       activity.reload
       activity.children.count.should == 1
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
+      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "actorType" => "model", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
 
@@ -157,7 +157,7 @@ describe Api::Workflow do
       activity.reload
       activity.children.count.should == 1
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
+      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "actorType" => "model", "always"=>false, "arguments"=>[1, 2, 3], "createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "method"=>false, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
       sub = activity.children.first
       sub.actor_id.should == 100
       sub.actor_klass.should == "LineItem"

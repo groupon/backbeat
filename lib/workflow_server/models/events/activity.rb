@@ -4,6 +4,7 @@ module WorkflowServer
 
       field :actor_id, type: Integer
       field :actor_klass, type: String
+      field :actor_type, type: Symbol, default: :model
       field :arguments, type: Array
       field :mode, type: Symbol, default: :blocking
       field :always, type: Boolean, default: false
