@@ -156,11 +156,8 @@ module WorkflowServer
       def create_sub_activity!(options = {})
         sa_name = options.delete(:name)
         sub_activity = SubActivity.new({name: sa_name, actor_id: options.delete(:actor_id), actor_type: options.delete(:actor_type), parent: self, workflow: workflow}.merge(options))
-        unless sub_activity.valid?
-          raise WorkflowServer::InvalidParameters, {sub_activity.event_type => sub_activity.errors}
-        end
-        sub_activity.save!
-        sub_activity.reload
+        sub_activity.valid? ? sub_activity.save! : raise(WorkflowServer::InvalidParameters, {sub_activity.event_type => sub_activity.errors})
+        sub_activity
       end
 
       def subactivities_running?
