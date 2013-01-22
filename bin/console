@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+require_relative '../app'
+
+require 'irb'
+
+hostname = `hostname`.chomp
+
+ENV['RACK_ENV'] = if ENV['RACK_ENV']
+                    ENV['RACK_ENV']
+                  elsif hostname.match /^accounting-utility1(-(.+))?.snc1$/
+                    $2.nil? ? 'production' : $2
+                  else
+                    'development'
+                  end
+
+app_root = if ENV['RACK_ENV'] == 'development'
+             File.expand_path(File.join(__FILE__, "..", ".."))
+           else
+             "/var/groupon/backbeat/current"
+           end
+
+mongo_path = File.expand_path(File.join(app_root, "config", "mongoid.yml"))
+Mongoid.load!(mongo_path, ENV['RACK_ENV'])
+
+IRB.start
