@@ -100,6 +100,13 @@ module WorkflowServer
         end
         data['root_node'].print_tree
       end
+
+      def show
+        events.each do |e|
+          ap e.attributes
+        end
+      end
+
     end
   end
 end
