@@ -258,7 +258,7 @@ namespace :deploy do
   desc "let campfire room know about deploy"
   task :campfire_notify do
     deploy_branch = exists?(:branch) ? branch : 'master'
-    campfire_speak "Backbeat is marching!\n#{ENV['USER']} started deploying branch(#{deploy_branch}) SHA(#{sha_from_branch(deploy_branch)}) to #{stage}"
+    campfire_speak "Backbeat is marching to #{stage}!\n#{ENV['USER']} started deploying branch(#{deploy_branch}) SHA(#{sha_from_branch(deploy_branch)})"
     memes = []
     case stage
     when :uat
