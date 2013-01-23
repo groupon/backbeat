@@ -147,6 +147,33 @@ namespace :setup do
   end
 end
 
+namespace :roller do
+  desc "build a new roller package.  pass PACKAGE=<package_name> on cl"
+  task :build_package do
+    set :user, ENV['DEPLOYER'] || ENV['USER']
+
+    package_name = ENV['PACKAGE']
+    local_package_location = "config/roller/#{package_name}/"
+
+    if package_name.nil? || package_name.empty?
+      puts "Please specify PACKAGE=package_name on command line"
+      exit 1
+    elsif !Dir.exists?(local_package_location)
+      puts "Can't find #{package_name} under config/roller"
+      exit 2
+    end
+
+    date_ext = Time.now.strftime("%Y.%m.%d_%H.%M")
+    dirname = "#{package_name}-#{date_ext}"
+    filename = "#{dirname}.tar.gz"
+    system("rsync -a #{local_package_location} /tmp/#{dirname}; cd /tmp; tar zcf #{filename} #{dirname}")
+
+    upload( "/tmp/#{filename}", "./#{filename}", :hosts => ["dev1.snc1"] )
+    run( "publish_encap #{filename}", :hosts => ["dev1.snc1"] )
+    puts "created roller package named: #{dirname}"
+  end
+end
+
 namespace :workers do
   [:start, :stop, :restart, :status].each do |command|
     desc "#{command} worker processes on utility box"
