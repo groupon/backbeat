@@ -49,9 +49,11 @@ production:
     default:
       database: workflow_production
       hosts:
-        - localhost:27017
+        - accounting-mongodb1.snc1:27017
+        - accounting-mongodb2.snc1:27017
+        - accounting-mongodb3.snc1:27017
       options:
-        consistency: :strong
+        consistency: :eventual
         max_retries: 5
         retry_interval: 1
   options:
