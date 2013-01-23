@@ -11,7 +11,7 @@ ROOT="/var/groupon/backbeat/current"
 export USER="accounting"
 LOGFILE=/var/groupon/backbeat/shared/log/$(basename $0).log
 BUNDLER="/usr/local/bin/bundle"
-PIDDIR="/var/groupon/backbeat/shared/pids"
+PIDFILE="/var/groupon/backbeat/shared/pids/$(basename $0).pid"
 PROGRAM="$BUNDLER exec ruby $ROOT/script/delayed_job"
 
 start() {
@@ -22,7 +22,7 @@ start() {
     user_args="--user=$USER"
   fi
   echo "starting delayed_job..."
-  daemon $user_args "cd $ROOT; $PROGRAM start $PIDDIR > $LOGFILE 2>&1 &"
+  daemon $user_args "cd $ROOT; $PROGRAM start $PIDFILE > $LOGFILE 2>&1 &"
   echo
 }
 stop() {
@@ -33,12 +33,11 @@ stop() {
     user_args="--user=$USER"
   fi
   echo "stopping delayed_job..."
-  daemon $user_args "cd $ROOT; $PROGRAM stop $PIDDIR"
+  daemon $user_args "cd $ROOT; $PROGRAM stop $PIDFILE"
   echo
 }
 status_int() {
 	local pidfile
-  PIDFILE="$PIDDIR/delayed_job.%d.pid"
 	for i in $(seq 1 $COUNT); do
 		pidfile=$(printf "$PIDFILE" $i)
 
@@ -54,7 +53,7 @@ restart() {
     user_args="--user=$USER"
   fi
   echo "restarting delayed_job..."
-  daemon $user_args "cd $ROOT; $PROGRAM restart $PIDDIR"
+  daemon $user_args "cd $ROOT; $PROGRAM restart $PIDFILE"
   echo
 }
 
