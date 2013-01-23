@@ -10,13 +10,7 @@ def start(pidfile)
     File.open(pidfile, File::CREAT|File::TRUNC|File::RDWR) do |f|
       f.write(Process.pid)
     end
-    ENV['RACK_ENV'] = if ENV['RACK_ENV']
-      ENV['RACK_ENV']
-    elsif hostname.match /^accounting-utility1(-(.+))?$/
-      $2.nil? ? 'production' : $2
-    else
-      'development'
-    end
+
     mongo_path = File.expand_path(File.join(__FILE__, "..", "..", "config", "mongoid.yml"))
     Mongoid.load!(mongo_path, ENV['RACK_ENV'] || 'development')
 
@@ -30,6 +24,17 @@ end
 
 def restart(pidfile)
   stop(pidfile)
+  killed_it = false
+  10.times do
+    unless running?(pidfile)
+      killed_it = true
+      break
+    end
+    sleep 1
+  end
+  if killed_it == false
+    raise "unable to kill #{File.read(pidfile).chomp rescue pidfile}. giving up." 
+  end
   start(pidfile)
 end
 

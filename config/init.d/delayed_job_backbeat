@@ -14,6 +14,10 @@ BUNDLER="/usr/local/bin/bundle"
 PIDFILE="/var/groupon/backbeat/shared/pids/$(basename $0).pid"
 PROGRAM="$BUNDLER exec ruby $ROOT/script/delayed_job"
 
+HOST=`hostname`
+# avert your eyes
+RACK_ENV=`ruby -e "puts(case $HOST; when /uat/; 'uat'; when /staging/; 'staging'; else; 'production'; end)"`
+
 start() {
   local user_args
   if [[ $EUID -ne 0 ]]; then
@@ -22,7 +26,7 @@ start() {
     user_args="--user=$USER"
   fi
   echo "starting delayed_job..."
-  daemon $user_args "cd $ROOT; $PROGRAM start $PIDFILE > $LOGFILE 2>&1 &"
+  daemon $user_args "cd $ROOT; RACK_ENV=$RACK_ENV $PROGRAM start $PIDFILE > $LOGFILE 2>&1 &"
   echo
 }
 stop() {
@@ -53,7 +57,7 @@ restart() {
     user_args="--user=$USER"
   fi
   echo "restarting delayed_job..."
-  daemon $user_args "cd $ROOT; $PROGRAM restart $PIDFILE"
+  daemon $user_args "cd $ROOT; RACK_ENV=$RACK_ENV $PROGRAM restart $PIDFILE"
   echo
 }
 
