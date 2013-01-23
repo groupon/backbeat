@@ -16,7 +16,7 @@ PROGRAM="$BUNDLER exec ruby $ROOT/script/delayed_job"
 
 HOST=`hostname`
 # avert your eyes
-RACK_ENV=`ruby -e "puts(case $HOST; when /uat/; 'uat'; when /staging/; 'staging'; else; 'production'; end)"`
+RACK_ENV=`ruby -e "puts(case \"$HOST\"; when /uat/; 'uat'; when /staging/; 'staging'; else; 'production'; end)"`
 
 start() {
   local user_args

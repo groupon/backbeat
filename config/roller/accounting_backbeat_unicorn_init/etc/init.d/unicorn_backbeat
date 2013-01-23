@@ -18,7 +18,7 @@ PIDFILE=$ROOT_DIR/shared/pids/unicorn.pid
 OLD_PID="$PIDFILE.oldbin"
 UNICORN_CONF=$APP_ROOT/config/unicorn.conf.rb
 HOST=`hostname`
-RACK_ENV=`ruby -e "puts(case $HOST; when /uat/; 'uat'; when /staging/; 'staging'; else; 'production'; end)"`
+RACK_ENV=`ruby -e "puts(case \"$HOST\"; when /uat/; 'uat'; when /staging/; 'staging'; else; 'production'; end)"`
 UNICORN_EXEC="sudo -u $UNICORN_USER PATH=$PATH RUBYOPT=rubygems NEWRELIC_DISPATCHER=unicorn NEWRELIC_ENABLE=true RACK_ENV=$RACK_ENV bundle exec unicorn -c $UNICORN_CONF -D"
 
 sig () {
