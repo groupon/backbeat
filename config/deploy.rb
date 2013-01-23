@@ -25,8 +25,8 @@ set :campfire_options, { :account => 'thepoint',
 set :application, "backbeat"
 set :repository,  'git@github.groupondev.com:finance-engineering/backbeat.git'
 set :scm, :git
-set :user, :accounting
-set :group, :accounting
+set :user, :backbeat
+set :group, :backbeat
 set :use_sudo, false
 set :deploy_via, :remote_cache
 set :deploy_to, "/var/groupon/#{application}"
@@ -142,8 +142,7 @@ namespace :setup do
   desc "configure deploy directories"
   task :deploy_dirs, :roles => :utility do
     set :user, ENV['DEPLOYER'] || ENV['USER']
-    sudo "sudo mkdir -p #{deploy_to}; sudo chown -R accounting:accounting #{deploy_to}"
-    sudo "sudo mkdir -p #{deploy_to}/releases; sudo chown -R accounting:accounting #{deploy_to}/releases"
+    sudo "mkdir -p #{deploy_to}/releases; sudo chown -R backbeat:backbeat #{deploy_to}"
   end
 end
 
@@ -166,7 +165,7 @@ namespace :roller do
     date_ext = Time.now.strftime("%Y.%m.%d_%H.%M")
     dirname = "#{package_name}-#{date_ext}"
     filename = "#{dirname}.tar.gz"
-    system("rsync -a #{local_package_location} /tmp/#{dirname}; cd /tmp; tar zcf #{filename} #{dirname}")
+    system("rsync -a #{local_package_location} /tmp/#{dirname}; cd /tmp; gnutar zcf #{filename} #{dirname}")
 
     upload( "/tmp/#{filename}", "./#{filename}", :hosts => ["dev1.snc1"] )
     run( "publish_encap #{filename}", :hosts => ["dev1.snc1"] )
