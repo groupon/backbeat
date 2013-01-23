@@ -8,7 +8,7 @@
 export PATH=/usr/local/bin:$PATH
 NAME="backbeat delayed job"
 ROOT="/var/groupon/backbeat/current"
-export USER="accounting"
+export USER="backbeat"
 LOGFILE=/var/groupon/backbeat/shared/log/$(basename $0).log
 BUNDLER="/usr/local/bin/bundle"
 PIDFILE="/var/groupon/backbeat/shared/pids/$(basename $0).pid"
