@@ -152,7 +152,7 @@ namespace :workers do
     desc "#{command} worker processes on utility box"
     task command, :roles => [:delayed_job] do
       worker_init_scripts.each do |script|
-        run "/usr/local/etc/init.d/#{script} #{command}"
+        run "/usr/local/etc/init.d/#{script}_#{application} #{command}"
       end
     end
   end
