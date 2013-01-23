@@ -39,6 +39,7 @@ set :bundle_flags, "--deployment"
 set :unicorn_binary, "bundle exec unicorn"
 set :unicorn_config, "#{current_path}/config/unicorn.conf.rb"
 set :unicorn_pid, "#{deploy_to}/shared/pids/unicorn.pid"
+set :worker_init_scripts, [:delayed_job]
 
 ssh_options[:forward_agent] = true
 
@@ -141,7 +142,19 @@ namespace :setup do
   desc "configure deploy directories"
   task :deploy_dirs, :roles => :utility do
     set :user, ENV['DEPLOYER'] || ENV['USER']
-    sudo "sudo mkdir #{deploy_to}; sudo chown -R accounting:accounting #{deploy_to}"
+    sudo "sudo mkdir -p #{deploy_to}; sudo chown -R accounting:accounting #{deploy_to}"
+    sudo "sudo mkdir -p #{deploy_to}/releases; sudo chown -R accounting:accounting #{deploy_to}/releases"
+  end
+end
+
+namespace :workers do
+  [:start, :stop, :restart, :status].each do |command|
+    desc "#{command} worker processes on utility box"
+    task command, :roles => [:delayed_job] do
+      worker_init_scripts.each do |script|
+        run "/usr/local/etc/init.d/#{script} #{command}"
+      end
+    end
   end
 end
 
@@ -350,11 +363,11 @@ before :deploy do
   deploy.check_lock
 end
 
-before "deploy:update_code", "deploy:confirm", "deploy:campfire_notify"
+before "deploy:update_code", "deploy:confirm", "deploy:campfire_notify", "workers:stop"
 #after "deploy:update_code"#, "deploy:copy_settings"
 
 before "deploy:restart", "deploy:find_existing_unicorn_processes"
 after "deploy:restart", "deploy:check_for_new_unicorn_processes", "deploy:cleanup"
-after "deploy:cleanup", "deploy:check_processes", "deploy:campfire_notify_complete"
+after "deploy:cleanup", "deploy:check_processes", "workers:start", "deploy:campfire_notify_complete"
 
 #after "deploy:create_symlink", "newrelic:notice_deployment"

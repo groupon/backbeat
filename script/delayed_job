@@ -1,0 +1,65 @@
+#!/usr/bin/env ruby
+
+# simple script to start one process
+
+require_relative '../app'
+
+def start(pidfile)
+  fork do
+    hostname = `hostname`.chomp
+    File.open(pidfile, File::CREAT|File::TRUNC|File::RDWR) do |f|
+      f.write(Process.pid)
+    end
+    ENV['RACK_ENV'] = if ENV['RACK_ENV']
+      ENV['RACK_ENV']
+    elsif hostname.match /^accounting-utility1(-(.+))?$/
+      $2.nil? ? 'production' : $2
+    else
+      'development'
+    end
+    mongo_path = File.expand_path(File.join(__FILE__, "..", "..", "config", "mongoid.yml"))
+    Mongoid.load!(mongo_path, ENV['RACK_ENV'] || 'development')
+
+    Delayed::Worker.new.start
+  end
+end
+
+def stop(pidfile)
+  signal("TERM", pidfile)
+end
+
+def restart(pidfile)
+  stop(pidfile)
+  start(pidfile)
+end
+
+def running?(pidfile)
+  signal(0, pidfile)
+end
+
+# Signal a process.
+def signal(signal, pidfile)
+  process_id = pid = File.read(pidfile).chomp
+  begin
+    process_id.nil? ? false : Process.kill(signal, process_id.to_i) && true
+  rescue Errno::ESRCH
+    File.delete(pidfile)
+    false
+  end
+end
+
+begin
+  raise "No arguments" if ARGV.size == 0
+  raise "Too many arguments" if ARGV.size > 2
+  command = case
+    when ARGV[0] =~ /^\s*start\s*/ then start(ARGV[1])
+    when ARGV[0] =~ /^\s*stop\s*/ then stop(ARGV[1])
+    when ARGV[0] =~ /^\s*restart\s*/ then restart(ARGV[1])
+    when ARGV[0] =~ /^\s*status\s*/ then running?(ARGV[1])
+    else raise "No method found for #{ARGV[0]}"
+  end
+  exit(command ? 0 : 1)
+rescue => e
+  puts e
+  exit(1)
+end

@@ -1,0 +1,79 @@
+#!/bin/bash
+# ==========================================================================
+# resque - start and stop resque workers
+# ==========================================================================
+# Source function library.
+. /usr/local/etc/init.d/functions
+
+export PATH=/usr/local/bin:$PATH
+NAME="backbeat delayed job"
+ROOT="/var/groupon/backbeat/current"
+export USER="accounting"
+LOGFILE=/var/groupon/backbeat/shared/log/$(basename $0).log
+BUNDLER="/usr/local/bin/bundle"
+PIDDIR="/var/groupon/backbeat/shared/pids"
+PROGRAM="$BUNDLER exec ruby $ROOT/script/delayed_job"
+
+start() {
+  local user_args
+  if [[ $EUID -ne 0 ]]; then
+    user_args=""
+  else
+    user_args="--user=$USER"
+  fi
+  echo "starting delayed_job..."
+  daemon $user_args "cd $ROOT; $PROGRAM start $PIDDIR > $LOGFILE 2>&1 &"
+  echo
+}
+stop() {
+  local user_args
+  if [[ $EUID -ne 0 ]]; then
+    user_args=""
+  else
+    user_args="--user=$USER"
+  fi
+  echo "stopping delayed_job..."
+  daemon $user_args "cd $ROOT; $PROGRAM stop $PIDDIR"
+  echo
+}
+status_int() {
+	local pidfile
+  PIDFILE="$PIDDIR/delayed_job.%d.pid"
+	for i in $(seq 1 $COUNT); do
+		pidfile=$(printf "$PIDFILE" $i)
+
+    echo -n "checking $i..."
+		status -p $pidfile
+	done
+}
+restart() {
+  local user_args
+  if [[ $EUID -ne 0 ]]; then
+    user_args=""
+  else
+    user_args="--user=$USER"
+  fi
+  echo "restarting delayed_job..."
+  daemon $user_args "cd $ROOT; $PROGRAM restart $PIDDIR"
+  echo
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+        status_int
+        ;;
+  restart)
+        restart
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|status|restart}"
+        exit 2
+esac
+
+exit $?
