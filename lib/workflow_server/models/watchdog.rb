@@ -5,14 +5,14 @@ module WorkflowServer
 
       field :name, type: Symbol
       field :starves_at, type: Integer
-      field :subject_type, type: String
+      field :subject_klass, type: String
       field :subject_id, type: String
 
-      index({ name: 1, subject_type: 1, subject_id: 1 }, { unique: true })
+      index({ name: 1, subject_klass: 1, subject_id: 1 }, { unique: true })
 
       belongs_to :timer, class_name: "Delayed::Backend::Mongoid::Job", inverse_of: nil
 
-      validates_presence_of :name, :subject_id, :subject_type
+      validates_presence_of :name, :subject_id, :subject_klass
 
       before_destroy do
         timer.destroy if timer
@@ -22,7 +22,7 @@ module WorkflowServer
         Watchdog.kill(subject,name)
         new_dog = create!(name: name,
                           starves_at: starves_at,
-                          subject_type: subject.class.to_s,
+                          subject_klass: subject.class.to_s,
                           subject_id: subject.id)
         new_dog.timer = Delayed::Backend::Mongoid::Job.enqueue(new_dog, run_at: new_dog.starves_at.from_now)
         new_dog.save!
@@ -43,7 +43,7 @@ module WorkflowServer
       alias_method :wake, :feed
 
       def subject
-        subject_type.constantize.find(subject_id)
+        subject_klass.constantize.find(subject_id)
       end
 
       def perform
@@ -53,7 +53,7 @@ module WorkflowServer
 
       class << self
         def feed(subject, name = :timeout)
-          dog = Watchdog.where(subject_type: subject.class.to_s, subject_id: subject.id, name: name).first
+          dog = Watchdog.where(subject_klass: subject.class.to_s, subject_id: subject.id, name: name).first
           if dog
             dog.feed
           else
@@ -66,14 +66,14 @@ module WorkflowServer
 
 
         def stop(subject, name = :timeout)
-          dog = Watchdog.where(subject_type: subject.class.to_s, subject_id: subject.id, name: name).first
+          dog = Watchdog.where(subject_klass: subject.class.to_s, subject_id: subject.id, name: name).first
           dog.stop if dog
         end
         alias_method :kill, :stop
         alias_method :dismiss, :stop
 
         def mass_stop(subject)
-          Watchdog.destroy_all(subject_type: subject.class.to_s, subject_id: subject.id)
+          Watchdog.destroy_all(subject_klass: subject.class.to_s, subject_id: subject.id)
         end
         alias_method :mass_kill, :mass_stop
         alias_method :mass_dismiss, :mass_stop

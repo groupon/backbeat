@@ -4,13 +4,13 @@ require_relative 'event_se'
 describe WorkflowServer::Models::Workflow do
   before do
     @event_klass = WorkflowServer::Models::Workflow
-    @event_data = {name: :test_flag, workflow_type: :wf_type, subject_type: "PaymentTerm", subject_id: 100, decider: "A::B::C", user: FactoryGirl.create(:user) }
+    @event_data = {name: :test_flag, workflow_type: :wf_type, subject_klass: "PaymentTerm", subject_id: 100, decider: "A::B::C", user: FactoryGirl.create(:user) }
     @wf = FactoryGirl.create(:workflow)
   end
 
   it_should_behave_like 'events'
 
-  [:workflow_type, :subject_type, :subject_id, :decider, :user].each do |field|
+  [:workflow_type, :subject_klass, :subject_id, :decider, :user].each do |field|
     it "validates presence of #{field}" do
       @event_data.delete(field)
       wf = WorkflowServer::Models::Workflow.new(@event_data)

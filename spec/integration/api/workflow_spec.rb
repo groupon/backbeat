@@ -23,12 +23,12 @@ describe Api::Workflow do
       user = FactoryGirl.create(:user)
       post '/workflows'
       last_response.status.should == 400
-      JSON.parse(last_response.body).should == {"error" => {"name"=>["can't be blank"], "workflowType"=>["can't be blank"], "subjectId"=>["can't be blank"], "subjectType"=>["can't be blank"], "decider"=>["can't be blank"]}}
+      JSON.parse(last_response.body).should == {"error" => {"name"=>["can't be blank"], "workflowType"=>["can't be blank"], "subjectId"=>["can't be blank"], "subjectKlass"=>["can't be blank"], "decider"=>["can't be blank"]}}
     end
 
     it "returns 201 and creates a new workflow when all parameters present" do
       user = FactoryGirl.create(:user)
-      post '/workflows', {workflow_type: "WFType", subject_type: "PaymentTerm", subject_id: 100, decider: "PaymentDecider"}
+      post '/workflows', {workflow_type: "WFType", subject_klass: "PaymentTerm", subject_id: 100, decider: "PaymentDecider"}
       last_response.status.should == 201
       json_response = JSON.parse(last_response.body)
       wf = json_response
@@ -39,7 +39,7 @@ describe Api::Workflow do
     it "returns workflow from database if it already exists" do
       wf = FactoryGirl.create(:workflow)
       user = wf.user
-      post '/workflows', {workflow_type: wf.workflow_type, subject_type: wf.subject_type, subject_id: wf.subject_id, decider: wf.decider}
+      post '/workflows', {workflow_type: wf.workflow_type, subject_klass: wf.subject_klass, subject_id: wf.subject_id, decider: wf.decider}
       last_response.status.should == 201
       json_response = JSON.parse(last_response.body)
       new_wf = json_response
@@ -93,7 +93,7 @@ describe Api::Workflow do
       get "/workflows/#{wf.id}"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"createdAt"=>Time.now.to_datetime.to_s, "decider"=>"PaymentDecider", "errorWorkflow"=>false, "lockedAt"=>nil, "lockedUntil"=>nil, "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "startSignal" => nil, "status"=>"open", "subjectId"=>wf.subject_id, "subjectType"=>wf.subject_type, "updatedAt"=>Time.now.to_datetime.to_s, "userId"=>wf.user.id, "workflowId"=>nil, "workflowType"=>"WFType", "id"=>wf.id, "type"=>"workflow"}
+      json_response.should == {"createdAt"=>Time.now.to_datetime.to_s, "decider"=>"PaymentDecider", "errorWorkflow"=>false, "lockedAt"=>nil, "lockedUntil"=>nil, "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "startSignal" => nil, "status"=>"open", "subjectId"=>wf.subject_id, "subjectKlass"=>wf.subject_klass, "updatedAt"=>Time.now.to_datetime.to_s, "userId"=>wf.user.id, "workflowId"=>nil, "workflowType"=>"WFType", "id"=>wf.id, "type"=>"workflow"}
       json_response['id'].should == wf.id.to_s
     end
 
@@ -124,8 +124,8 @@ describe Api::Workflow do
       get "/workflows/#{wf.id}/events"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response.should == [{"createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "name"=>"WFDecsion", "parentId"=>nil, "status"=>"enqueued", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>wf.id, "id"=>d1.id, "type"=>"decision", "pastFlags"=>[], "decider"=>"PaymentDecider", "subjectType"=>"PaymentTerm", "subjectId"=>100},
-      {"createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "name"=>"WFDecsion", "parentId"=>nil, "status"=>"open", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>wf.id, "id"=>d2.id, "type"=>"decision", "pastFlags"=>[], "decider"=>"PaymentDecider", "subjectType"=>"PaymentTerm", "subjectId"=>100}]
+      json_response.should == [{"createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "name"=>"WFDecsion", "parentId"=>nil, "status"=>"enqueued", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>wf.id, "id"=>d1.id, "type"=>"decision", "pastFlags"=>[], "decider"=>"PaymentDecider", "subjectKlass"=>"PaymentTerm", "subjectId"=>100},
+      {"createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "name"=>"WFDecsion", "parentId"=>nil, "status"=>"open", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>wf.id, "id"=>d2.id, "type"=>"decision", "pastFlags"=>[], "decider"=>"PaymentDecider", "subjectKlass"=>"PaymentTerm", "subjectId"=>100}]
       json_response.count.should == 2
       json_response.map {|obj| obj["id"] }.should == [d1, d2].map(&:id).map(&:to_s)
     end

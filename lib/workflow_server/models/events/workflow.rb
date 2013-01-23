@@ -4,19 +4,19 @@ module WorkflowServer
 
       field :workflow_type, type: Symbol
       field :subject_id, type: Integer
-      field :subject_type, type: String
+      field :subject_klass, type: String
       field :decider, type: String
       field :mode, type: Symbol, default: :blocking
       field :error_workflow, type: Boolean, default: false # whether this workflow should retry the parent decision on complete
       field :start_signal, type: Symbol
 
-      index({ workflow_type: 1, subject_type: 1, subject_id: 1 }, { unique: true })
+      index({ workflow_type: 1, subject_klass: 1, subject_id: 1 }, { unique: true })
 
       has_many :events, inverse_of: :workflow, order: {created_at: 1}
 
       belongs_to :user
 
-      validates_presence_of :workflow_type, :subject_id, :subject_type, :decider, :user
+      validates_presence_of :workflow_type, :subject_id, :subject_klass, :decider, :user
 
       def signal(name)
         raise WorkflowServer::EventComplete, "Workflow with id(#{id}) is already complete" if status == :complete

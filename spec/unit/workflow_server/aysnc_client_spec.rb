@@ -16,10 +16,10 @@ describe WorkflowServer::AsyncClient do
     it "calls the make decision endpoint" do
       decision = FactoryGirl.create(:decision, workflow: FactoryGirl.create(:workflow, user: user))
       WorkflowServer::AsyncClient.unstub!(:make_decision)
-      WebMock.stub_request(:post, "http://decisions.com/api/v1/workflows/make_decision").with(:body => {decision: WorkflowServer::Helper::HashKeyTransformations.camelize_keys(decision.serializable_hash)}.to_json, :headers => {'Content-Length'=>'380', 'Content-Type'=>'application/json'} )
+      WebMock.stub_request(:post, "http://decisions.com/api/v1/workflows/make_decision").with(:body => {decision: WorkflowServer::Helper::HashKeyTransformations.camelize_keys(decision.serializable_hash)}.to_json, :headers => {'Content-Length'=>'381', 'Content-Type'=>'application/json'} )
       WorkflowServer::AsyncClient.make_decision(decision)
 
-      WebMock.should have_requested(:post, "http://decisions.com/api/v1/workflows/make_decision").with(:body => {decision: WorkflowServer::Helper::HashKeyTransformations.camelize_keys(decision.serializable_hash)}.to_json, :headers => {'Content-Length'=>'380', 'Content-Type'=>'application/json'} )
+      WebMock.should have_requested(:post, "http://decisions.com/api/v1/workflows/make_decision").with(:body => {decision: WorkflowServer::Helper::HashKeyTransformations.camelize_keys(decision.serializable_hash)}.to_json, :headers => {'Content-Length'=>'381', 'Content-Type'=>'application/json'} )
     end
   end
 
