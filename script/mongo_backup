@@ -6,14 +6,15 @@ require 'optparse'
 module WorkflowServer
   class BackbeatMongo
 
-    attr_accessor :client, :db, :init_script, :src_db_path, :dest_db_path
+    attr_accessor :client, :db, :init_script, :pid_file, :src_db_path, :dest_db_path
 
     def initialize(options = {})
       self.client = ::Mongo::MongoClient.new(options[:host], options[:port])
       self.db = client['admin']
       self.init_script = "/usr/local/etc/init.d/mongodb#{options[:mongo_id]}"
+      self.pid_file = "/var/groupon/mongo/mongodb#{options[:mongo_id]}/mongod.lock"
       self.src_db_path = "/var/groupon/mongo/mongodb#{options[:mongo_id]}/"
-      self.dest_db_path = "/var/groupon/mongo-backup/mongodb#{options[:mongo_id]}/#{Time.now.strftime('%Y%m%d_%H%M%S')}"
+      self.dest_db_path = "/var/groupon/mongo-backup/mongodb#{options[:mongo_id]}"#/#{Time.now.strftime('%Y%m%d_%H%M%S')}"
     end
 
     def perform
@@ -30,10 +31,10 @@ module WorkflowServer
     end
 
     def shutdown
-      `#{init_script} stop`
+      `#{init_script} stop` if running?
       done = false
       20.times do
-        done = true if `#{init_script} status`.chomp.empty?
+        done = true unless running?
         break if done
         sleep 1
       end
@@ -46,7 +47,9 @@ module WorkflowServer
     end
 
     def start
-      `#{init_script} start`
+      unless running?
+        `#{init_script} start`
+      end
     end
 
     def my_id
@@ -57,6 +60,20 @@ module WorkflowServer
 
     def secondary_ids
       @secondary_ids ||= status['members'].find_all {|member| member["stateStr"] == "SECONDARY"}.map {|secondary| secondary["_id"]}
+    end
+
+    def running?
+      signal(0)
+    end
+
+    def signal(signal)
+      process_id = pid = File.read(pid_file).chomp
+      begin
+        process_id.nil? ? false : Process.kill(signal, process_id.to_i) && true
+      rescue Errno::ESRCH
+        File.delete(pid_file)
+        false
+      end
     end
 
     def status
