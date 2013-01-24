@@ -27,7 +27,7 @@ module WorkflowServer
     private
 
     def eligible?
-      my_id && (secondary_ids.sort.first == my_id)
+      my_id && (secondary_ids.sort.last == my_id) # use the last secondary for this operation
     end
 
     def shutdown
