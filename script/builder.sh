@@ -89,6 +89,6 @@ else
   fi
 fi
 
-gzip log/test.log
+#gzip log/test.log
 
 exit $exit_code
