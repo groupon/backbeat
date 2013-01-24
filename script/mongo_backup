@@ -1,0 +1,95 @@
+#!/usr/bin/env ruby
+
+require 'mongo'
+require 'optparse'
+
+module WorkflowServer
+  class BackbeatMongo
+
+    attr_accessor :client, :db, :init_script, :src_db_path, :dest_db_path
+
+    def initialize(options = {})
+      self.client = ::Mongo::MongoClient.new(options[:host], options[:port])
+      self.db = client['admin']
+      self.init_script = "/usr/local/etc/init.d/mongodb#{options[:mongo_id]}"
+      self.src_db_path = "/var/groupon/mongo/mongodb#{options[:mongo_id]}/"
+      self.dest_db_path = "/var/groupon/mongo-backup/mongodb#{options[:mongo_id]}/#{Time.now.strftime('%Y%m%d_%H%M%S')}"
+    end
+
+    def perform
+      raise "Not eligible to perform backups on this mongo node" unless eligible?
+      shutdown
+      backup
+      start
+    end
+
+    private
+
+    def eligible?
+      my_id && (secondary_ids.sort.first == my_id)
+    end
+
+    def shutdown
+      `#{init_script} stop`
+      done = false
+      20.times do
+        done = true if `#{init_script} status`.chomp.empty?
+        break if done
+        sleep 1
+      end
+      raise "unable to shutdown mongo for backup" unless done
+    end
+
+    def backup
+      `mkdir -p #{dest_db_path}`
+      `rsync -avz --delete #{src_db_path} #{dest_db_path}`
+    end
+
+    def start
+      `#{init_script} start`
+    end
+
+    def my_id
+      @my_id = nil
+      me = status['members'].find {|member| member["self"] == true }
+      @my_id = me ? me["_id"] : nil
+    end
+
+    def secondary_ids
+      @secondary_ids ||= status['members'].find_all {|member| member["stateStr"] == "SECONDARY"}.map {|secondary| secondary["_id"]}
+    end
+
+    def status
+      @status ||= run(:replSetGetStatus)
+    end
+
+    private
+
+    def run(command)
+      db.command({command => 1})
+    end
+  end
+end
+
+def parse_args(args)
+  options = {
+    host: 'localhost',
+    port: 27017,
+    mongo_id: 1
+  }
+
+  opts = OptionParser.new do |opts|
+    opts.banner = "Usage: #{File.basename($0)} -h host -p port -i mongo_id"
+    opts.on("-h host", "--host host", String, "mongo host") { |h| options[:host] = h}
+    opts.on("-p port", "--port port", String, "mongo port") {|p| options[:port] = p}
+    opts.on("-i id", "--mongoid id", String, "mongo instance id") {|i| options[:mongo_id] = i}
+    opts.on_tail("-h", "--help", "show this message") do
+      puts opts
+      exit
+    end
+  end
+  opts.parse(args)
+  WorkflowServer::BackbeatMongo.new(options).perform
+end
+
+parse_args(ARGV)
