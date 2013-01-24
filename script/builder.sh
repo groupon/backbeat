@@ -50,8 +50,12 @@ rm -fr log/* .git/rebase-apply
 gem install --no-ri --no-rdoc bundler >> $setup_log
 # the first commands are for building mysql, second for ffi
 echo "Installing gems via bundler"
+
 #(CONFIGURE_ARGS="--with-ldflags='-Xlinker -R/usr/local/lib/mysql'" make="make CFLAGS='-fPIC -D__USE_XOPEN2K8'" bundle install --without=development >> $setup_log) || exit 1
-echo "YES" | bundle install
+#echo "YES" | bundle install
+bundle install --without=development >> $setup_log || exit 1
+#echo "YES" | bundle install
+
 
 export DATABASE_SUFFIX="_$build_name"
 #bundle exec rake db:create:all >> $setup_log
