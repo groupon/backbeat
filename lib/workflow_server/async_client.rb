@@ -3,6 +3,7 @@ require_relative 'helper'
 
 module WorkflowServer
   module AsyncClient
+    include WorkflowServer::Logger
 
     def self.perform_activity(activity)
       if (url = activity.workflow.user.try(:activity_callback_endpoint))
@@ -19,7 +20,13 @@ module WorkflowServer
     def self.notify_of(event, notification, error = nil)
       workflow = event.is_a?(WorkflowServer::Models::Workflow) ? event : event.workflow
       if (url = workflow.user.try(:notification_endpoint))
-        params = {notification: "#{workflow.try(:subject_klass)}(#{workflow.try(:subject_id)}):#{event.event_type}(#{event.name}):#{notification}"}
+        notification = "#{workflow.try(:subject_klass)}(#{workflow.try(:subject_id)}):#{event.event_type}(#{event.name}):#{notification}"
+        if error
+          error(notification: notification, error: error)
+        else
+          info(notification: notification, error: error)
+        end
+        params = {notification: notification}
         params.merge!(error: error) if error
         post(url, params)
       end

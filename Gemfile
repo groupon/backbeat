@@ -12,6 +12,7 @@ gem 'grape'
 gem 'em-http-request'
 gem 'uuid'
 gem 'httparty'
+gem 'log4r'
 
 group :development do
   # deployment
