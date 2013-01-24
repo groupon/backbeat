@@ -66,6 +66,7 @@ GEM
     i18n (0.6.1)
     json (1.7.6)
     kgio (2.7.4)
+    log4r (1.1.10)
     macaddr (1.6.1)
       systemu (~> 2.5.0)
     method_source (0.8)
@@ -160,6 +161,7 @@ DEPENDENCIES
   factory_girl
   grape
   httparty
+  log4r
   mongoid
   mongoid-indifferent-access
   mongoid-locker
