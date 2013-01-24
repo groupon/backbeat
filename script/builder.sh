@@ -29,7 +29,7 @@ echo "Building branch: ${branch}"
 
 source "$HOME/.rvm/scripts/rvm"
 #rvm use "$ruby_version@groupon-$build_name" --create
-rvm use "$ruby_version@groupon-accounting" --create
+rvm use "$ruby_version@groupon-workflow" --create
 
 if [ $rebuild_gemset ]; then
   echo "Emptying gemset"
