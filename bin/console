@@ -8,8 +8,15 @@ hostname = `hostname`.chomp
 
 ENV['RACK_ENV'] = if ENV['RACK_ENV']
                     ENV['RACK_ENV']
-                  elsif hostname.match /^accounting-utility1(-(.+))?$/
-                    $2.nil? ? 'production' : $2
+                  elsif hostname.match /accounting/
+                    case hostname
+                    when /uat/
+                      'uat'
+                    when /staging/
+                      'staging'
+                    else
+                      'production'
+                    end
                   else
                     'development'
                   end
