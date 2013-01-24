@@ -47,9 +47,11 @@ rm -fr log/* .git/rebase-apply
 #cp config/database.yml.example config/database.yml
 
 #gem install --no-ri --no-rdoc rake --version=0.8.7 > $setup_log
-gem install --no-ri --no-rdoc bundler >> $setup_log
+gem install --no-ri --no-rdoc bundler --version=1.2.3 >> $setup_log
 # the first commands are for building mysql, second for ffi
 echo "Installing gems via bundler"
+
+bundle -v
 
 #(CONFIGURE_ARGS="--with-ldflags='-Xlinker -R/usr/local/lib/mysql'" make="make CFLAGS='-fPIC -D__USE_XOPEN2K8'" bundle install --without=development >> $setup_log) || exit 1
 #echo "YES" | bundle install
