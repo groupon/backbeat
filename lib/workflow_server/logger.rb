@@ -34,7 +34,7 @@ module WorkflowServer
         @@logger = ::Log4r::Logger.new("backbeat_logger")
         @@logger.outputters = Log4r::RollingFileOutputter.new("backbeat_formatter",
                                                              formatter: WorkflowServer::OutputFormatter,
-                                                             filename: WorkflowServer::Config.option[:log] || "/tmp/test.log",
+                                                             filename: WorkflowServer::Config.options[:log] || "/tmp/test.log",
                                                              maxtime: (24 * 3600))
       end
       @@logger 

@@ -4,6 +4,7 @@ module WorkflowServer
       include Mongoid::Document
       include Mongoid::Timestamps
       include Mongoid::Locker
+      include WorkflowServer::Logger
 
       field :_id,            type: String, default: ->{ UUID.generate }
       field :status,         type: Symbol, default: :open

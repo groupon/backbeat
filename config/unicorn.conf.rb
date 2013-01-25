@@ -12,7 +12,7 @@
 # more will usually help for _short_ waits on databases/caches.
 worker_processes 8
 
-$: << File.expand_path(File.join(__FILE__, "..", "lib"))
+$: << File.expand_path(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require 'rubygems'
 require 'bundler/setup'
@@ -124,9 +124,11 @@ after_fork do |server, worker|
     ENV['BUNDLE_GEMFILE'] = "/var/groupon/backbeat/current/Gemfile" 
   end
 
-  require 'mongoid'
-  mongo_path = File.expand_path(File.join(app_root, "config", "mongoid.yml"))
-  Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
+    $stdout.puts "Env is #{WorkflowServer::Config.environment}. Root is #{WorkflowServer::Config.root}"
+
+   require 'mongoid'
+   mongo_path = File.expand_path(File.join(app_root, "config", "mongoid.yml"))
+   Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 
 #   # per-process listener ports for debugging/admin/migrations
 #   # addr = "127.0.0.1:#{9293 + worker.nr}"
