@@ -5,16 +5,10 @@ module WorkflowServer
       klass.extend(ClassMethods)
     end
 
-    def debug(message)
-      WorkflowServer::Logger.logger.debug({:name => self.class.to_s, :message => message})
-    end
-
-    def info(message)
-      WorkflowServer::Logger.logger.info({:name => self.class.to_s, :message => message})
-    end
-
-    def error(message)
-      WorkflowServer::Logger.error({:name => self.class.to_s, :message => message})
+    [:debug, :info, :warn, :error, :fatal].each do |level|
+      define_method(level) do |message|
+        WorkflowServer::Logger.logger.__send__(level, {:name => self.class.to_s, :message => message})
+      end
     end
 
     # Returns a uniq tid
@@ -43,23 +37,23 @@ module WorkflowServer
   
 
   module ClassMethods
-    def debug(message)
-      WorkflowServer::Logger.logger.debug({:name => self.to_s, :message => message})
-    end
-
-    def info(message)
-      WorkflowServer::Logger.logger.info({:name => self.to_s, :message => message})
-    end
-
-    def error(message)
-      WorkflowServer::Logger.logger.error({:name => self.to_s, :message => message})
+    [:debug, :info, :warn, :error, :fatal].each do |level|
+      define_method(level) do |message|
+        WorkflowServer::Logger.logger.__send__(level, {:name => self.to_s, :message => message})
+      end
     end
   end
 
   class OutputFormatter < Log4r::BasicFormatter
     LOG_FORMAT = "%s | %s | %s | %s | %s | %s\n"
     def format(event)
-      sprintf(LOG_FORMAT, Time.now, Process.pid, WorkflowServer::Logger.tid || "none", Log4r::LNAMES[event.level], event.data[:name], event.data[:message])
+      sprintf(LOG_FORMAT,
+              Time.now,
+              Process.pid,
+              WorkflowServer::Logger.tid || "none",
+              Log4r::LNAMES[event.level],
+              event.data[:name],
+              event.data[:message])
     end
   end
 end
