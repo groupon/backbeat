@@ -4,30 +4,7 @@ require_relative '../app'
 
 require 'irb'
 
-hostname = `hostname`.chomp
-
-ENV['RACK_ENV'] = if ENV['RACK_ENV']
-                    ENV['RACK_ENV']
-                  elsif hostname.match /accounting/
-                    case hostname
-                    when /uat/
-                      'uat'
-                    when /staging/
-                      'staging'
-                    else
-                      'production'
-                    end
-                  else
-                    'development'
-                  end
-
-app_root = if ENV['RACK_ENV'] == 'development'
-             File.expand_path(File.join(__FILE__, "..", ".."))
-           else
-             "/var/groupon/backbeat/current"
-           end
-
-mongo_path = File.expand_path(File.join(app_root, "config", "mongoid.yml"))
-Mongoid.load!(mongo_path, ENV['RACK_ENV'])
+mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, "config", "mongoid.yml"))
+Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 
 IRB.start

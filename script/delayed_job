@@ -11,8 +11,8 @@ def start(pidfile)
       f.write(Process.pid)
     end
 
-    mongo_path = File.expand_path(File.join(__FILE__, "..", "..", "config", "mongoid.yml"))
-    Mongoid.load!(mongo_path, ENV['RACK_ENV'] || 'development')
+    mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, "config", "mongoid.yml"))
+    Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 
     Delayed::Worker.new.start
   end

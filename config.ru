@@ -4,7 +4,7 @@ require 'app'
 
 use Api::Log
 
-use Rack::Lint if ENV['RACK_ENV'] == 'test'
+use Rack::Lint if WorkflowServer::Config.environment == :test
 
 use Api::CamelCase
 

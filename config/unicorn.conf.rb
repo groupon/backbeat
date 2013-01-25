@@ -12,13 +12,15 @@
 # more will usually help for _short_ waits on databases/caches.
 worker_processes 8
 
-app_root = if ENV['RACK_ENV'] == 'development'
-             File.expand_path(File.join(__FILE__, "..", ".."))
-           else
-             "/var/groupon/backbeat/current"
-           end
+$: << File.expand_path(File.join(__FILE__, "..", "lib"))
 
-shared_root = if ENV['RACK_ENV'] == 'development'
+require 'rubygems'
+require 'bundler/setup'
+require 'workflow_server/config'
+
+app_root = WorkflowServer::Config.root
+
+shared_root = if WorkflowServer::Config.environment == :development
                 File.expand_path(File.join(app_root, "shared"))
               else
                 File.expand_path(File.join(app_root, "..", "shared")) # Get out of the current directory
@@ -124,7 +126,7 @@ after_fork do |server, worker|
 
   require 'mongoid'
   mongo_path = File.expand_path(File.join(app_root, "config", "mongoid.yml"))
-  Mongoid.load!(mongo_path, ENV['RACK_ENV'] || 'development')
+  Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 
 #   # per-process listener ports for debugging/admin/migrations
 #   # addr = "127.0.0.1:#{9293 + worker.nr}"

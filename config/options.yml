@@ -1,0 +1,14 @@
+test:
+  log: /tmp/backbeat.log
+
+development:
+  log: /tmp/backbeat.log
+
+uat:
+  log: /var/groupon/backbeat/shared/log/backbeat.log
+
+staging:
+  log: /var/groupon/backbeat/shared/log/backbeat.log
+
+production:
+  log: /var/groupon/backbeat/shared/log/backbeat.log
