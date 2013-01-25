@@ -31,14 +31,16 @@ module WorkflowServer
     end
 
     def shutdown
-      `#{init_script} stop` if running?
-      done = false
-      20.times do
-        done = true unless running?
-        break if done
-        sleep 1
+      if running?
+        `#{init_script} stop`
+        done = false
+        20.times do
+          done = true unless running?
+          break if done
+          sleep 1
+        end
+        raise "unable to shutdown mongo for backup" unless done
       end
-      raise "unable to shutdown mongo for backup" unless done
     end
 
     def backup
@@ -49,6 +51,13 @@ module WorkflowServer
     def start
       unless running?
         `#{init_script} start`
+        done = false
+        20.times do
+          done = true if running?
+          break if done
+          sleep 1
+        end
+        raise "unable to startup mongo after backup" unless done
       end
     end
 
@@ -67,11 +76,14 @@ module WorkflowServer
     end
 
     def signal(signal)
-      process_id = pid = File.read(pid_file).chomp
       begin
+        process_id = File.read(pid_file).chomp
         process_id.nil? ? false : Process.kill(signal, process_id.to_i) && true
       rescue Errno::ESRCH
-        File.delete(pid_file)
+        File.delete(pid_file) rescue nil
+        false
+      rescue Errno::ENOENT
+        # bad file
         false
       end
     end
