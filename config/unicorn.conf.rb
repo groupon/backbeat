@@ -12,7 +12,7 @@
 # more will usually help for _short_ waits on databases/caches.
 worker_processes 8
 
-$: << File.expand_path(File.join(__FILE__, "..", "lib"))
+$: << File.expand_path(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require 'rubygems'
 require 'bundler/setup'
