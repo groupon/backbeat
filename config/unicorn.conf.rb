@@ -124,9 +124,11 @@ after_fork do |server, worker|
     ENV['BUNDLE_GEMFILE'] = "/var/groupon/backbeat/current/Gemfile" 
   end
 
-  require 'mongoid'
-  mongo_path = File.expand_path(File.join(app_root, "config", "mongoid.yml"))
-  Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
+    $stdout.puts "Env is #{WorkflowServer::Config.environment}. Root is #{WorkflowServer::Config.root}"
+
+   require 'mongoid'
+   mongo_path = File.expand_path(File.join(app_root, "config", "mongoid.yml"))
+   Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 
 #   # per-process listener ports for debugging/admin/migrations
 #   # addr = "127.0.0.1:#{9293 + worker.nr}"
