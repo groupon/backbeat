@@ -8,6 +8,10 @@ module WorkflowServer
       @root ||= get_root
     end
 
+    def self.log_file
+      ENV['LOG_FILE'] || WorkflowServer::Config.options[:log] || "/tmp/test.log"
+    end
+
     def self.options
       @options ||= HashWithIndifferentAccess.new(YAML.load(File.read(File.join(root, "config", "options.yml"))))[environment]
     end

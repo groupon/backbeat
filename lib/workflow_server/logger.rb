@@ -29,7 +29,7 @@ module WorkflowServer
         @@logger.outputters = Log4r::RollingFileOutputter.new("backbeat_formatter",
                                                               level: Log4r::LNAMES.index(WorkflowServer::Config.options[:log_level]) || 0,
                                                               formatter: WorkflowServer::OutputFormatter,
-                                                              filename: ENV['LOG_FILE'] || WorkflowServer::Config.options[:log] || "/tmp/test.log",
+                                                              filename: WorkflowServer::Config.log_file,
                                                               maxtime: (24 * 3600), # 1 DAY
                                                               maxsize: (2*1024*1024*1024) # 2 GB
                                                               )
@@ -61,7 +61,7 @@ module WorkflowServer
 
   class DelayedJobLogger
     def self.add(level, text)
-      WorkflowServer::Logger.logger(@@filename).__send__(Log4r::LNAMES[level + 1].to_s.downcase, {:name => self.to_s, :message => text})
+      WorkflowServer::Logger.logger.__send__(Log4r::LNAMES[level + 1].to_s.downcase, {:name => self.to_s, :message => text})
     end
   end
 end
