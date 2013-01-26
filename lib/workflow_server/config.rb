@@ -20,8 +20,9 @@ module WorkflowServer
       hostname = `hostname`.chomp
 
       if ENV['RACK_ENV']
-        ENV['RACK_ENV']
-      elsif hostname.match /accounting/
+        return ENV['RACK_ENV']
+      end
+      ENV['RACK_ENV'] = if hostname.match /accounting/
         case hostname
         when /uat/
           'uat'
