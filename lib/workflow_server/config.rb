@@ -8,6 +8,10 @@ module WorkflowServer
       @root ||= get_root
     end
 
+    def self.log_file
+      ENV['LOG_FILE'] || WorkflowServer::Config.options[:log] || "/tmp/test.log"
+    end
+
     def self.options
       @options ||= HashWithIndifferentAccess.new(YAML.load(File.read(File.join(root, "config", "options.yml"))))[environment]
     end
@@ -20,8 +24,9 @@ module WorkflowServer
       hostname = `hostname`.chomp
 
       if ENV['RACK_ENV']
-        ENV['RACK_ENV']
-      elsif hostname.match /accounting/
+        return ENV['RACK_ENV']
+      end
+      ENV['RACK_ENV'] = if hostname.match /accounting/
         case hostname
         when /uat/
           'uat'

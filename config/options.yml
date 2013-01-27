@@ -1,14 +1,19 @@
 test:
   log: /tmp/backbeat.log
+  log_level: DEBUG
 
 development:
   log: /tmp/backbeat.log
+  log_level: DEBUG
 
 uat:
   log: /var/groupon/backbeat/shared/log/backbeat.log
+  log_level: DEBUG
 
 staging:
   log: /var/groupon/backbeat/shared/log/backbeat.log
+  log_level: DEBUG
 
 production:
   log: /var/groupon/backbeat/shared/log/backbeat.log
+  log_level: INFO

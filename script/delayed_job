@@ -14,6 +14,9 @@ def start(pidfile)
     mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, "config", "mongoid.yml"))
     Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 
+    Delayed::Worker.logger = WorkflowServer::DelayedJobLogger
+    Delayed::Worker.lifecycle.before(:perform) { |*args| WorkflowServer::Logger.tid(:set) }
+    Delayed::Worker.lifecycle.after(:perform) { |*args| WorkflowServer::Logger.tid(:clear) }
     Delayed::Worker.new.start
   end
 end
