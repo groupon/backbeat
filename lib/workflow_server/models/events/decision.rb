@@ -158,7 +158,7 @@ module WorkflowServer
       end
 
       def send_to_client
-        WorkflowServer::Async::Client.make_decision(self)
+        WorkflowServer::Client.make_decision(self)
         Watchdog.start(self, :decision_deciding_time_out)
       end
     end

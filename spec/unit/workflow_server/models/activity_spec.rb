@@ -32,7 +32,7 @@ describe WorkflowServer::Models::Activity do
 
   context "#send_to_client" do
     it "calls out to workflow async client to perform activity" do
-      WorkflowServer::Async::Client.should_receive(:perform_activity).with(@a1)
+      WorkflowServer::Client.should_receive(:perform_activity).with(@a1)
       @a1.send(:send_to_client)
     end
   end

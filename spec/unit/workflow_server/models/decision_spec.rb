@@ -34,7 +34,7 @@ describe WorkflowServer::Models::Decision do
 
   context "#send_to_client" do
     it "calls out to workflow async client to make decision" do
-      WorkflowServer::Async::Client.should_receive(:make_decision).with(@d1)
+      WorkflowServer::Client.should_receive(:make_decision).with(@d1)
       @d1.send(:send_to_client)
     end
   end

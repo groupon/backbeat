@@ -167,7 +167,7 @@ module WorkflowServer
       end
 
       def send_to_client
-        WorkflowServer::Async::Client.perform_activity(self)
+        WorkflowServer::Client.perform_activity(self)
         Watchdog.start(self, :timeout, time_out) if time_out > 0
       end
 
