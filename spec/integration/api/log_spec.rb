@@ -9,7 +9,7 @@ describe Api::Workflow do
 
   before do
     header 'CLIENT_ID', RSPEC_CONSTANT_USER_CLIENT_ID
-    WorkflowServer::AsyncClient.stub(:make_decision)
+    WorkflowServer::Async::Client.stub(:make_decision)
   end
 
   it "includes the transaction id in the response" do

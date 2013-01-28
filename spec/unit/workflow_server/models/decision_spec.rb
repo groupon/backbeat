@@ -18,10 +18,24 @@ describe WorkflowServer::Models::Decision do
   end
 
   context "#start" do
-    it "calls make_decision and changes status to enqueued" do
-      WorkflowServer::AsyncClient.should_receive(:make_decision).with(@d1)
+    it "schedules a job to call out to the client and changes status to enqueued" do
+      Delayed::Job.destroy_all # remove any jobs created while creating the decisino
       @d1.start
       @d1.status.should == :enqueued
+      Delayed::Job.where(handler: /send_to_client/).count.should == 1
+      Delayed::Job.where(handler: /notify_client/).count.should == 1
+      job = Delayed::Job.where(handler: /send_to_client/).first
+      handler = YAML.load(job.handler)
+      handler.event_id.should == @d1.id
+      handler.method.should == :send_to_client
+      handler.max_attempts.should == 25
+    end
+  end
+
+  context "#send_to_client" do
+    it "calls out to workflow async client to make decision" do
+      WorkflowServer::Async::Client.should_receive(:make_decision).with(@d1)
+      @d1.send(:send_to_client)
     end
   end
 

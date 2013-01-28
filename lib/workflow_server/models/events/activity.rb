@@ -26,8 +26,7 @@ module WorkflowServer
       def start
         super
         update_status!(:executing)
-        WorkflowServer::AsyncClient.perform_activity(self)
-        Watchdog.start(self, :timeout, time_out) if time_out > 0
+        WorkflowServer::Async::Job.schedule(event: self, method: :send_to_client, max_attempts: 25)
       end
       alias_method :perform, :start
       alias_method :continue, :start
@@ -165,6 +164,11 @@ module WorkflowServer
 
       def subactivity_handled?(name, arguments)
         children.type(SubActivity).where(arguments: arguments).any?
+      end
+
+      def send_to_client
+        WorkflowServer::Async::Client.perform_activity(self)
+        Watchdog.start(self, :timeout, time_out) if time_out > 0
       end
 
     end

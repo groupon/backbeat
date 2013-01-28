@@ -16,10 +16,24 @@ describe WorkflowServer::Models::Activity do
   end
 
   context "#start" do
-    it "calls perform_activity and goes into executing state" do
-      WorkflowServer::AsyncClient.should_receive(:perform_activity).with(@a1)
+    it "schedules a job to perform_activity and goes into executing state" do
+      Delayed::Job.destroy_all
       @a1.start
+      Delayed::Job.where(handler: /send_to_client/).count.should == 1
+      Delayed::Job.where(handler: /notify_client/).count.should == 1
+      job = Delayed::Job.where(handler: /send_to_client/).first
+      handler = YAML.load(job.handler)
+      handler.event_id.should == @a1.id
+      handler.method.should == :send_to_client
+      handler.max_attempts.should == 25
       @a1.status.should == :executing
+    end
+  end
+
+  context "#send_to_client" do
+    it "calls out to workflow async client to perform activity" do
+      WorkflowServer::Async::Client.should_receive(:perform_activity).with(@a1)
+      @a1.send(:send_to_client)
     end
   end
 

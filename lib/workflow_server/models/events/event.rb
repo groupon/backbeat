@@ -91,7 +91,10 @@ module WorkflowServer
         else
           info(notification: notification, error: error_data)
         end
+        WorkflowServer::Async::Job.schedule(event: self, method: :notify_client, args: [notification, error_data], max_attempts: 2)
+      end
 
+      def notify_client(notification, error_data)
         WorkflowServer::Async::Client.notify_of(self, notification, error_data)
       end
 

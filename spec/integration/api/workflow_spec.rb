@@ -9,7 +9,7 @@ describe Api::Workflow do
 
   before do
     header 'CLIENT_ID', RSPEC_CONSTANT_USER_CLIENT_ID
-    WorkflowServer::AsyncClient.stub(:make_decision)
+    WorkflowServer::Async::Client.stub(:make_decision)
   end
 
   context "POST /workflows" do
@@ -59,12 +59,13 @@ describe Api::Workflow do
     it "returns 201 and the signal json if workflow exists" do
       wf = FactoryGirl.create(:workflow)
       user = wf.user
-      # TODO - Put a webmock here once we actually call out to the accounting service
-      WorkflowServer::AsyncClient.should_receive(:make_decision)
+      Delayed::Job.destroy_all
       post "/workflows/#{wf.id}/signal/test"
       last_response.status.should == 201
       signal = JSON.parse(last_response.body)
       wf.signals.first.id.to_s.should == signal['id']
+      Delayed::Job.where(handler: /send_to_client/).count.should == 1
+      Delayed::Job.where(handler: /notify_client/).count.should == 3
     end
 
     it "returns 400 if the workflow is closed for events" do
