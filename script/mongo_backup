@@ -43,7 +43,7 @@ module WorkflowServer
     end
 
     def backup
-      system("rsync","-av","--delete",src_db_path,dest_db_path)
+      system("rsync","-av","--stats","--delete",src_db_path,dest_db_path)
     end
 
     def start
