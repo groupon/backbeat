@@ -9,8 +9,7 @@ module WorkflowServer
       def start
         super
         update_status!(:enqueued)
-        WorkflowServer::AsyncClient.make_decision(self)
-        Watchdog.start(self, :decision_deciding_time_out)
+        WorkflowServer::Async::Job.schedule(event: self, method: :send_to_client, max_attempts: 25)
       end
 
       def change_status(new_status, args = {})
@@ -156,6 +155,11 @@ module WorkflowServer
 
       def schedule_next_decision
         WorkflowServer::Manager.schedule_next_decision(workflow)
+      end
+
+      def send_to_client
+        WorkflowServer::Async::Client.make_decision(self)
+        Watchdog.start(self, :decision_deciding_time_out)
       end
     end
   end

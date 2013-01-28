@@ -27,4 +27,12 @@ module WorkflowServer
 
   class InvalidEventStatus < StandardError
   end
+
+  class HttpError < StandardError
+    attr_accessor :response
+    def initialize(message, response)
+      self.response = response
+      super(message)
+    end
+  end
 end
