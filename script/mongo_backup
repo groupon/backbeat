@@ -32,7 +32,7 @@ module WorkflowServer
 
     def shutdown
       if running?
-        `#{init_script} stop`
+        system(init_script, "stop")
         done = false
         20.times do
           done = true unless running?
@@ -44,13 +44,12 @@ module WorkflowServer
     end
 
     def backup
-      `mkdir -p #{dest_db_path}`
-      `rsync -avz --delete #{src_db_path} #{dest_db_path}`
+      system("rsync","-av","--delete",src_db_path,dest_db_path)
     end
 
     def start
       unless running?
-        `#{init_script} start`
+        system(init_script,"start")
         done = false
         20.times do
           done = true if running?
@@ -83,7 +82,7 @@ module WorkflowServer
         File.delete(pid_file) rescue nil
         false
       rescue Errno::ENOENT
-        # bad file
+        # bad file, nothing is running
         false
       end
     end
