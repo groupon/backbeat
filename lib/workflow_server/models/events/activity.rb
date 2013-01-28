@@ -110,7 +110,7 @@ module WorkflowServer
       end
 
       def print_name
-        super + " - #{actor_id}"
+        super + " - #{arguments.first}"
       end
 
       def verify_and_get_next_decision(next_decision_arg)
