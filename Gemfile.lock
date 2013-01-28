@@ -10,6 +10,7 @@ GEM
     addressable (2.3.2)
     awesome_print (1.1.0)
     backports (2.6.5)
+    bson (1.8.2)
     builder (3.0.4)
     capistrano (2.14.1)
       highline
@@ -71,6 +72,8 @@ GEM
       systemu (~> 2.5.0)
     method_source (0.8)
     mime-types (1.19)
+    mongo (1.8.2)
+      bson (~> 1.8.2)
     mongoid (3.0.16)
       activemodel (~> 3.1)
       moped (~> 1.1)
@@ -162,6 +165,7 @@ DEPENDENCIES
   grape
   httparty
   log4r
+  mongo
   mongoid
   mongoid-indifferent-access
   mongoid-locker

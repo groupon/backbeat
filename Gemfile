@@ -13,6 +13,7 @@ gem 'em-http-request'
 gem 'uuid'
 gem 'httparty'
 gem 'log4r'
+gem 'mongo'
 
 group :development do
   # deployment
