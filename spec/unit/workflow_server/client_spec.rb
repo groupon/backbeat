@@ -8,8 +8,8 @@ describe WorkflowServer::Client do
     WorkflowServer::Client.stub(:perform_activity)
   end
   let(:user) { FactoryGirl.create(:user,
-                                   decision_callback_endpoint: "http://decisions.com/api/v1/workflows/make_decision",
-                                   activity_callback_endpoint: "http://activity.com/api/v1/workflows/perform_activity",
+                                   decision_endpoint: "http://decisions.com/api/v1/workflows/make_decision",
+                                   activity_endpoint: "http://activity.com/api/v1/workflows/perform_activity",
                                    notification_endpoint:      "http://notifications.com/api/v1/workflows/notify_of") }
 
   context "#make_decisions" do
