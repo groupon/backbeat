@@ -43,7 +43,7 @@ describe Api::Workflow do
 
     it "returns a 404 if a user tries to access a workflow that doesn't belong to them" do
       decision = FactoryGirl.create(:decision)
-      user = FactoryGirl.create(:user, id: UUID.generate)
+      user = FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s)
       header 'CLIENT_ID', user.id
       get "/events/#{decision.id}"
       last_response.status.should == 404

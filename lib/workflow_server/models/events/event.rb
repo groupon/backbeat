@@ -6,7 +6,7 @@ module WorkflowServer
       include Mongoid::Locker
       include WorkflowServer::Logger
 
-      field :_id,            type: String, default: ->{ UUID.generate }
+      field :_id,            type: String, default: ->{ UUIDTools::UUID.random_create.to_s }
       field :status,         type: Symbol, default: :open
       field :status_history, type: Array, default: []
       field :name,           type: Symbol

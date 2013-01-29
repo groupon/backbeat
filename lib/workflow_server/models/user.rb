@@ -4,7 +4,7 @@ module WorkflowServer
       include Mongoid::Document
       include Mongoid::Timestamps
 
-      field :_id,                        type: String, default: ->{ UUID.generate }
+      field :_id,                        type: String, default: ->{ UUIDTools::UUID.random_create.to_s }
       field :decision_endpoint,          type: String
       field :activity_endpoint,          type: String
       field :notification_endpoint,      type: String

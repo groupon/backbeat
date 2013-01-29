@@ -22,7 +22,7 @@ Mongoid.load!(mongo_path, :test)
 
 FullRackApp = Rack::Builder.parse_file(File.expand_path(File.join(__FILE__,'..','..','config.ru'))).first
 
-RSPEC_CONSTANT_USER_CLIENT_ID = UUID.generate
+RSPEC_CONSTANT_USER_CLIENT_ID = UUIDTools::UUID.random_create.to_s
 
 FactoryGirl.find_definitions
 
