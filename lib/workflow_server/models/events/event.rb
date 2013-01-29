@@ -114,11 +114,14 @@ module WorkflowServer
         'WorkflowServer::Models::Timer'       => 'timer'
       }
 
+      # These fields are not included in the hash sent out to the client
+      def blacklisted_fields
+        ["_id", "_type", "locked_at", "locked_until", "start_signal", "status_history"]
+      end
+
       def serializable_hash(options = {})
         hash = super
-        hash.delete("_id")
-        hash.delete("_type")
-        hash.delete("status_history")
+        blacklisted_fields.each { |field| hash.delete(field) }
         hash.merge({ id: id, type: event_type})
       end
 
