@@ -16,17 +16,17 @@ module WorkflowServer
         return if status == new_status.try(:to_sym)
         case new_status.to_sym
         when :deciding
-          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" if status != :enqueued
+          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:enqueued, :timeout].include?(status)
           deciding
         when :deciding_complete
-          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" if ![:enqueued, :deciding].include?(status)
+          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:enqueued, :deciding, :timeout].include?(status)
           self.decisions_to_add = []
           (args[:decisions] || []).each do |decision|
             add_new_decision(HashWithIndifferentAccess.new(decision))
           end
           close
         when :errored
-          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" if ![:enqueued, :deciding].include?(status)
+          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:enqueued, :deciding, :timeout].include?(status)
           errored(args[:error])
         else
           raise WorkflowServer::InvalidEventStatus, "Invalid status #{new_status}"

@@ -14,6 +14,7 @@ gem 'uuid'
 gem 'httparty'
 gem 'log4r'
 gem 'mongo'
+gem 'bson_ext'
 
 group :development do
   # deployment

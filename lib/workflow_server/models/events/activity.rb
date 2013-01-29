@@ -87,11 +87,11 @@ module WorkflowServer
         return if status == new_status.to_sym
         case new_status.to_sym
         when :completed
-          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" if status != :executing
+          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)
           update_attributes!(result: args[:result], next_decision: verify_and_get_next_decision(args[:next_decision]))
           completed
         when :errored
-          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" if status != :executing
+          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)
           errored(args[:error])
         else
           raise WorkflowServer::InvalidEventStatus, "Invalid status #{new_status}"
