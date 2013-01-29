@@ -14,7 +14,7 @@ module WorkflowServer
     # Returns a uniq tid
     def self.tid(option = nil)
       if option == :set
-        @tid = UUID.generate.to_s.slice(0,7)
+        @tid = UUIDTools::UUID.random_create.to_s.slice(0,7)
       elsif option.kind_of?(String)
         @tid = option
       elsif option == :clear
