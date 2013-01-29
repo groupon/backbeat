@@ -1,9 +1,9 @@
 # as found on http://unicorn.bogomips.org/examples/logrotate.conf and heavily modified
-/data/accounting_service/shared/log/*.log {
+/var/groupon/backbeat/shared/log/*.log {
    daily
 
    # because logs aren't owned by root, we have to do this
-   su accounting accounting
+   su backbeat backbeat
 
    # stick the rotated ones into a subdir (named "old")
    olddir old
