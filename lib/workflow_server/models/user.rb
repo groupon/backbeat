@@ -5,11 +5,13 @@ module WorkflowServer
       include Mongoid::Timestamps
 
       field :_id,                        type: String, default: ->{ UUID.generate }
-      field :decision_callback_endpoint, type: String
-      field :activity_callback_endpoint, type: String
+      field :decision_endpoint,          type: String
+      field :activity_endpoint,          type: String
       field :notification_endpoint,      type: String
 
       has_many :workflows
+
+      validates_presence_of :decision_endpoint, :activity_endpoint, :notification_endpoint
 
       def serializable_hash(options = {})
         hash = super
