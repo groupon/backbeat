@@ -94,7 +94,7 @@ describe Api::Workflow do
       get "/workflows/#{wf.id}"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"createdAt"=>Time.now.to_datetime.to_s, "decider"=>"PaymentDecider", "errorWorkflow"=>false, "lockedAt"=>nil, "lockedUntil"=>nil, "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "startSignal" => nil, "status"=>"open", "subjectId"=>wf.subject_id, "subjectKlass"=>wf.subject_klass, "updatedAt"=>Time.now.to_datetime.to_s, "userId"=>wf.user.id, "workflowId"=>nil, "workflowType"=>"WFType", "id"=>wf.id, "type"=>"workflow"}
+      json_response.should == {"createdAt"=>Time.now.to_datetime.to_s, "decider"=>"PaymentDecider", "errorWorkflow"=>false, "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "status"=>"open", "subjectId"=>wf.subject_id, "subjectKlass"=>wf.subject_klass, "updatedAt"=>Time.now.to_datetime.to_s, "userId"=>wf.user.id, "workflowId"=>nil, "workflowType"=>"WFType", "id"=>wf.id, "type"=>"workflow"}
       json_response['id'].should == wf.id.to_s
     end
 
@@ -125,8 +125,8 @@ describe Api::Workflow do
       get "/workflows/#{wf.id}/events"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response.should == [{"createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "name"=>"WFDecsion", "parentId"=>nil, "status"=>"enqueued", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>wf.id, "id"=>d1.id, "type"=>"decision", "pastFlags"=>[], "decider"=>"PaymentDecider", "subjectKlass"=>"PaymentTerm", "subjectId"=>100},
-      {"createdAt"=>Time.now.to_datetime.to_s, "lockedAt"=>nil, "lockedUntil"=>nil, "name"=>"WFDecsion", "parentId"=>nil, "status"=>"open", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>wf.id, "id"=>d2.id, "type"=>"decision", "pastFlags"=>[], "decider"=>"PaymentDecider", "subjectKlass"=>"PaymentTerm", "subjectId"=>100}]
+      json_response.should == [{"createdAt"=>Time.now.to_datetime.to_s, "name"=>"WFDecsion", "parentId"=>nil, "status"=>"enqueued", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>wf.id, "id"=>d1.id, "type"=>"decision", "pastFlags"=>[], "decider"=>"PaymentDecider", "subjectKlass"=>"PaymentTerm", "subjectId"=>100},
+      {"createdAt"=>Time.now.to_datetime.to_s, "name"=>"WFDecsion", "parentId"=>nil, "status"=>"open", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>wf.id, "id"=>d2.id, "type"=>"decision", "pastFlags"=>[], "decider"=>"PaymentDecider", "subjectKlass"=>"PaymentTerm", "subjectId"=>100}]
       json_response.count.should == 2
       json_response.map {|obj| obj["id"] }.should == [d1, d2].map(&:id).map(&:to_s)
     end
