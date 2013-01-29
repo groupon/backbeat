@@ -68,7 +68,7 @@ module WorkflowServer
     end
 
     def secondary_ids
-      @secondary_ids ||= status['members'].find_all {|member| member["stateStr"] == "SECONDARY"}.map {|secondary| secondary["_id"]}
+      @secondary_ids ||= status['members'].find_all {|member| member["stateStr"] != "PRIMARY"}.map {|secondary| secondary["_id"]}
     end
 
     def status
