@@ -1,4 +1,3 @@
-# Create mongo backup directory
 create_directory '/var/groupon/mongo_backup', 'mongo:mongo'
 
 mongo = host.params['mongodb']
@@ -13,13 +12,10 @@ mongo.each_with_index do |x,i|
   config = {}
   config.merge! x if x
 
-  # Run logrotate once an hour
-  cmd = [
-    "1 * * * * /usr/local/bin/lockrun  /usr/local/bin/mongo_backup --port #{config[:port]} --mongoid #{mongo_instance_id}",
-    ">> /var/groupon/mongo/log/mongo_backup_#{mongo_instance_id} 2>&1"
-   ].join ' '
-add_cron_job cmd, 'root'
-  
-end
-  
+  port = config[:port] ? "--port #{config[:port]}" : ""
+  cron_times = config[:backup_times] || "20 */3 * * *"
 
+  # Run logrotate once an hour
+  cmd = "#{cron_times} /usr/local/bin/lockrun --lockfile=/tmp/mongo_backup_#{mongo_instance_id}.lock -- /bin/bash -l -c 'cd /var/groupon/backbeat/current; bundle exec /usr/local/bin/mongo_backup #{port} --mongoid #{mongo_instance_id} >> /var/groupon/mongo/log/mongo_backup_#{mongo_instance_id} 2>&1'"
+  add_cron_job cmd, 'root'
+end
