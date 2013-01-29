@@ -9,13 +9,15 @@ end
 mongo.each_with_index do |x,i|
   mongo_instance_id = i+1
 
-  config = {}
-  config.merge! x if x
+  config = {'mongo_backup' => {}}
+  config = config.merge(x) if x
 
-  port = config[:port] ? "--port #{config[:port]}" : ""
-  cron_times = config[:backup_times] || "20 */3 * * *"
+  port = config['port'] ? "--port #{config['port']}" : ""
+
+  cron_times      = config['mongo_backup']['backup_times'] || "20 */3 * * *"
+  bundler_preexec = config['mongo_backup']['backup_preexec'] || ""
 
   # Run logrotate once an hour
-  cmd = "#{cron_times} /usr/local/bin/lockrun --lockfile=/tmp/mongo_backup_#{mongo_instance_id}.lock -- /bin/bash -l -c 'cd /var/groupon/backbeat/current; bundle exec /usr/local/bin/mongo_backup #{port} --mongoid #{mongo_instance_id} >> /var/groupon/mongo/log/mongo_backup_#{mongo_instance_id} 2>&1'"
+  cmd = "#{cron_times} /usr/local/bin/lockrun --lockfile=/tmp/mongo_backup_#{mongo_instance_id}.lock -- /bin/bash -l -c '#{bundler_preexec} /usr/local/bin/mongo_backup #{port} --mongoid #{mongo_instance_id} >> /var/groupon/mongo/log/mongo_backup_#{mongo_instance_id} 2>&1'"
   add_cron_job cmd, 'root'
 end
