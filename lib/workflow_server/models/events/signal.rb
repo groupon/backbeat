@@ -9,6 +9,7 @@ module WorkflowServer
         add_decision(name)
         completed
       end
+
     end
   end
 end

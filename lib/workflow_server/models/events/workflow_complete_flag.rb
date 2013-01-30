@@ -6,6 +6,7 @@ module WorkflowServer
         workflow.completed
         super
       end
+
     end
   end
 end

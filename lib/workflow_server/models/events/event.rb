@@ -5,6 +5,7 @@ module WorkflowServer
       include Mongoid::Timestamps
       include Mongoid::Locker
       include WorkflowServer::Logger
+      include Tree
 
       field :_id,            type: String, default: ->{ UUIDTools::UUID.random_create.to_s }
       field :status,         type: Symbol, default: :open
@@ -98,10 +99,6 @@ module WorkflowServer
         WorkflowServer::Client.notify_of(self, notification, error_data)
       end
 
-      def print_name
-        "#{status} - #{self.class.to_s.split("::").last} - #{name}"
-      end
-
       # TODO - Refactor this. Move it outside in some constants so that other methods can refer to this (like the ones in workflow.rb)
       TYPE_TO_STRING_HASH = {
         'WorkflowServer::Models::Flag'        => 'flag',
@@ -143,6 +140,7 @@ module WorkflowServer
           error
         end if error
       end
+
     end
   end
 end

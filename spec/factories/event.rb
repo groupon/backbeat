@@ -1,6 +1,6 @@
 FactoryGirl.define do
   factory :decision, class: WorkflowServer::Models::Decision do
-    name "WFDecsion"
+    name "WFDecision"
     workflow
   end
 end
@@ -14,7 +14,7 @@ end
 
 FactoryGirl.define do
   factory :flag, class: WorkflowServer::Models::Flag do
-    name "WFDecsion_completed"
+    name "WFDecision_completed"
     workflow
   end
 end

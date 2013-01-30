@@ -10,6 +10,7 @@ module WorkflowServer
         end
         super
       end
+
     end
   end
 end

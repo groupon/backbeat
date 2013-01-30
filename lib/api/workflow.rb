@@ -76,6 +76,16 @@ module Api
         end
       end
 
+      get "/:id/tree" do
+        wf = find_workflow(params[:id])
+        wf.tree
+      end
+
+      get "/:id/big_tree" do
+        wf = find_workflow(params[:id])
+        wf.big_tree
+      end
+
       post "/:id/signal/:name" do
         wf = find_workflow(params[:id])
         signal = wf.signal(params[:name])
@@ -87,6 +97,16 @@ module Api
         resource 'events' do
           get "/:id" do
             find_event(params[:id], params[:workflow_id])
+          end
+
+          get "/:id/tree" do
+            e = find_event(params[:id], params[:workflow_id])
+            e.tree
+          end
+
+          get "/:id/big_tree" do
+            e = find_event(params[:id], params[:workflow_id])
+            e.big_tree
           end
 
           put "/:id/status/:new_status" do
@@ -113,6 +133,16 @@ module Api
     resource "events" do
       get "/:id" do
         find_event(params[:id])
+      end
+
+      get "/:id/tree" do
+        e = find_event(params[:id])
+        e.tree
+      end
+
+      get "/:id/big_tree" do
+        e = find_event(params[:id])
+        e.big_tree
       end
     end
   end
