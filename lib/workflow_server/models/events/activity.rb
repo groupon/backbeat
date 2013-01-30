@@ -109,10 +109,6 @@ module WorkflowServer
         end
       end
 
-      def print_name
-        super + " - #{arguments.first}"
-      end
-
       def verify_and_get_next_decision(next_decision_arg)
         validate_next_decision(next_decision_arg)
         next_decision_arg || "#{name}_succeeded"

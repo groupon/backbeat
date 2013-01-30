@@ -90,15 +90,12 @@ module WorkflowServer
         end
       end
 
-      def print_tree
-        data = {}
-        data['root_node'] = Tree::TreeNode.new(workflow_type.to_s + " " + subject_id.to_s)
-        self.events.each do |event|
-          node = Tree::TreeNode.new(event.print_name, event.id)
-          data[event.parent.try(:id) || 'root_node'] << node
-          data[event.id] = node
+      def get_child_trees
+        child_trees = []
+        self.events.where(parent: nil).each do |child|
+          child_trees << child.tree
         end
-        data['root_node'].print_tree
+        child_trees
       end
 
       def show

@@ -161,6 +161,7 @@ module WorkflowServer
         WorkflowServer::Client.make_decision(self)
         Watchdog.start(self, :decision_deciding_time_out)
       end
+
     end
   end
 end
