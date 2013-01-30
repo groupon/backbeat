@@ -38,7 +38,7 @@ def restart(pidfile)
     sleep 1
   end
   if killed_it == false
-    raise "unable to kill #{File.read(pidfile).chomp rescue pidfile}. giving up." 
+    raise "unable to kill #{File.read(pidfile).chomp rescue pidfile}. giving up."
   end
   start(pidfile)
 end
