@@ -140,3 +140,18 @@ after_fork do |server, worker|
 #   # between any number of forked children (assuming your kernel
 #   # correctly implements pread()/pwrite() system calls)
 end
+
+before_exec do |server|
+  # by default, BUNDLE_GEMFILE is a fully resolved path (e.g., /data/accounting_service/releases/20111202202204/Gemfile)
+  # since Unicorn forks/execs, the new process gets the parent environment, which means we never pick up a new Gemfile
+  # (and even worse, eventually, the Gemfile ceases to exist after 10 releases (we purge after 10 releases).
+  # Recommended here http://unicorn.bogomips.org/Sandbox.html
+  begin
+    ENV['BUNDLE_GEMFILE'] = File.join(File.readlink(app_root), 'Gemfile')
+
+    $stdout.puts "I, [#{Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L")} \##{$$}] INFO -- : setting BUNDLE_GEMFILE to #{ENV['BUNDLE_GEMFILE']}"
+  rescue Errno::EINVAL
+    $stdout.puts "E, [#{Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L")} \##{$$}] ERROR -- : Unable to set BUNDLE_GEMFILE (/var/groupon/backbeat/current symlink doesn't exist?), defaulting to /var/groupon/backbeat/current/Gemfile"
+    ENV['BUNDLE_GEMFILE'] = "/var/groupon/backbeat/current/Gemfile"
+  end
+end
