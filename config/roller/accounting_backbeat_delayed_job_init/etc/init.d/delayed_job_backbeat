@@ -11,35 +11,33 @@ ROOT="/var/groupon/backbeat/current"
 export USER="backbeat"
 LOGFILE=/var/groupon/backbeat/shared/log/$(basename $0).log
 BUNDLER="/usr/local/bin/bundle"
-PIDFILE="/var/groupon/backbeat/shared/pids/$(basename $0).pid"
-PROGRAM="$BUNDLER exec ruby $ROOT/script/delayed_job"
+PIDFILE="/var/groupon/backbeat/shared/pids/$(basename $0).%d.pid"
+PROGRAM="$BUNDLER exec ruby $ROOT/script/delayed_job_backbeat"
+COUNT=32
 
 HOST=`hostname`
 # avert your eyes
 RACK_ENV=`ruby -e "puts(case \"$HOST\"; when /uat/; 'uat'; when /staging/; 'staging'; else; 'production'; end)"`
 
-start() {
+action() {
+  local command = $1
   local user_args
+	local pidfile
+
   if [[ $EUID -ne 0 ]]; then
     user_args=""
   else
     user_args="--user=$USER"
   fi
-  echo "starting delayed_job..."
-  daemon $user_args "cd $ROOT; RACK_ENV=$RACK_ENV $PROGRAM start $PIDFILE > $LOGFILE 2>&1 &"
-  echo
+
+  for i in $(seq 1 $COUNT); do
+		pidfile=$(printf "$PIDFILE" $i)
+    echo -n "${command}ing delayed_job $i: "
+    daemon $user_args "cd $ROOT; RACK_ENV=$RACK_ENV $PROGRAM $command $pidfile > $LOGFILE 2>&1 &"
+    echo
+  done
 }
-stop() {
-  local user_args
-  if [[ $EUID -ne 0 ]]; then
-    user_args=""
-  else
-    user_args="--user=$USER"
-  fi
-  echo "stopping delayed_job..."
-  daemon $user_args "cd $ROOT; $PROGRAM stop $PIDFILE"
-  echo
-}
+
 status_int() {
 	local pidfile
 	for i in $(seq 1 $COUNT); do
@@ -49,30 +47,19 @@ status_int() {
 		status -p $pidfile
 	done
 }
-restart() {
-  local user_args
-  if [[ $EUID -ne 0 ]]; then
-    user_args=""
-  else
-    user_args="--user=$USER"
-  fi
-  echo "restarting delayed_job..."
-  daemon $user_args "cd $ROOT; RACK_ENV=$RACK_ENV $PROGRAM restart $PIDFILE"
-  echo
-}
 
 case "$1" in
   start)
-        start
+        action "start"
         ;;
   stop)
-        stop
+        action "stop"
         ;;
   status)
         status_int
         ;;
   restart)
-        restart
+        action "restart"
         ;;
   *)
         echo $"Usage: $0 {start|stop|status|restart}"
