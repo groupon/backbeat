@@ -2,9 +2,10 @@ module WorkflowServer
   module Models
     class Watchdog
       include Mongoid::Document
+      include Mongoid::Timestamps
 
       field :name, type: Symbol
-      field :starves_at, type: Integer
+      field :starves_in, type: Integer, default: 10.minutes
       field :subject_klass, type: String
       field :subject_id, type: String
 
@@ -18,13 +19,13 @@ module WorkflowServer
         timer.destroy if timer
       end
 
-      def self.start(subject, name = :timeout, starves_at = 10.minutes)
+      def self.start(subject, name = :timeout, starves_in = 10.minutes)
         Watchdog.kill(subject,name)
         new_dog = create!(name: name,
-                          starves_at: starves_at,
+                          starves_in: starves_in,
                           subject_klass: subject.class.to_s,
                           subject_id: subject.id)
-        new_dog.timer = Delayed::Backend::Mongoid::Job.enqueue(new_dog, run_at: new_dog.starves_at.from_now)
+        new_dog.timer = Delayed::Backend::Mongoid::Job.enqueue(new_dog, run_at: new_dog.starves_in.from_now)
         new_dog.save!
         new_dog
       end
@@ -35,7 +36,7 @@ module WorkflowServer
 
       def feed
         timer.destroy if timer
-        timer = Delayed::Backend::Mongoid::Job.enqueue(self, run_at: starves_at.from_now)
+        timer = Delayed::Backend::Mongoid::Job.enqueue(self, run_at: starves_in.from_now)
         save!
       end
       alias_method :kick, :feed
