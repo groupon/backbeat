@@ -18,7 +18,7 @@ HOST=`hostname`
 # avert your eyes
 RACK_ENV=`ruby -e "puts(case \"$HOST\"; when /uat/; 'uat'; when /staging/; 'staging'; else; 'production'; end)"`
 COUNT=2
-case RACK_ENV in
+case $RACK_ENV in
   production)
              COUNT=32
              ;;
