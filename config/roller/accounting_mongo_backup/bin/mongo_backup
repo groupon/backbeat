@@ -13,7 +13,7 @@ module WorkflowServer
       self.init_script = "/usr/local/etc/init.d/mongodb#{options[:mongo_id]}"
       self.pid_file = "/var/groupon/mongo/mongodb#{options[:mongo_id]}/mongod.lock"
       self.src_db_path = "/var/groupon/mongo/mongodb#{options[:mongo_id]}/"
-      self.dest_db_path = "/var/groupon/mongo-backup/mongodb#{options[:mongo_id]}"#/#{Time.now.strftime('%Y%m%d_%H%M%S')}"
+      self.dest_db_path = "/var/groupon/mongo_backup/mongodb#{options[:mongo_id]}"
     end
 
     def perform
@@ -43,7 +43,9 @@ module WorkflowServer
     end
 
     def backup
+      puts "Starting rsync at #{Time.now}"
       system("rsync","-av","--stats","--delete",src_db_path,dest_db_path)
+      puts "Finished rsync at #{Time.now}"
     end
 
     def start
