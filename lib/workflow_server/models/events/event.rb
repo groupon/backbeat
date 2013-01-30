@@ -12,9 +12,11 @@ module WorkflowServer
       field :status_history, type: Array, default: []
       field :name,           type: Symbol
 
-      belongs_to :workflow, inverse_of: :events, class_name: "WorkflowServer::Models::Workflow"
-      belongs_to :parent, inverse_of: :children, class_name: "WorkflowServer::Models::Event"
+      belongs_to :workflow, inverse_of: :events, class_name: "WorkflowServer::Models::Workflow", index: true
+      belongs_to :parent, inverse_of: :children, class_name: "WorkflowServer::Models::Event", index: true
       has_many :children, inverse_of: :parent, class_name: "WorkflowServer::Models::Event", order: {created_at: 1}
+
+      index({ status: 1 })
 
       before_destroy do
         Watchdog.mass_dismiss(self)

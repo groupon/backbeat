@@ -11,12 +11,15 @@ module WorkflowServer
       field :start_signal, type: Symbol
 
       index({ workflow_type: 1, subject_klass: 1, subject_id: 1 }, { unique: true })
+      index({ subject_klass: 1, subject_id: 1 })
 
       has_many :events, inverse_of: :workflow, order: {created_at: 1}
 
-      belongs_to :user
+      belongs_to :user, index: true
 
       validates_presence_of :workflow_type, :subject_id, :subject_klass, :decider, :user
+
+      index({ workflow_type: 1 })
 
       def signal(name)
         raise WorkflowServer::EventComplete, "Workflow with id(#{id}) is already complete" if status == :complete
@@ -61,48 +64,48 @@ module WorkflowServer
         timers: Timer,
         activities: [Activity, SubActivity, Branch],
       }.each_pair do |name, klass|
-        #
-        # Returns events of the given type
-        #
-        define_method(name) do
-          arel = events.type(klass)
-          if block_given?
-            arel.each do |record|
-              yield record
+          #
+          # Returns events of the given type
+          #
+          define_method(name) do
+            arel = events.type(klass)
+            if block_given?
+              arel.each do |record|
+                yield record
+              end
+            else
+              arel.all
             end
-          else
-            arel.all
+          end
+
+          #
+          # Returns events of a particular type in the past given the reference task
+          #
+          define_method("past_#{name}") do |task|
+            arel = events.where(:created_at.lte => task.created_at, :id.ne => task.id).type(klass.to_s)
+            if block_given?
+              arel.each do |record|
+                yield record
+              end
+            else
+              arel.all
+            end
           end
         end
 
-        #
-        # Returns events of a particular type in the past given the reference task
-        #
-        define_method("past_#{name}") do |task|
-          arel = events.where(:created_at.lte => task.created_at, :id.ne => task.id).type(klass.to_s)
-          if block_given?
-            arel.each do |record|
-              yield record
-            end
-          else
-            arel.all
+        def get_child_trees(big_tree = false)
+          child_trees = []
+          self.events.where(parent: nil).each do |child|
+            child_trees << child.tree(big_tree)
+          end
+          child_trees
+        end
+
+        def show
+          events.each do |e|
+            ap e.attributes
           end
         end
-      end
-
-      def get_child_trees(big_tree = false)
-        child_trees = []
-        self.events.where(parent: nil).each do |child|
-          child_trees << child.tree(big_tree)
-        end
-        child_trees
-      end
-
-      def show
-        events.each do |e|
-          ap e.attributes
-        end
-      end
 
     end
   end
