@@ -13,14 +13,19 @@ LOGFILE=/var/groupon/backbeat/shared/log/$(basename $0).log
 BUNDLER="/usr/local/bin/bundle"
 PIDFILE="/var/groupon/backbeat/shared/pids/$(basename $0).%d.pid"
 PROGRAM="$BUNDLER exec ruby $ROOT/script/delayed_job_backbeat"
-COUNT=32
 
 HOST=`hostname`
 # avert your eyes
 RACK_ENV=`ruby -e "puts(case \"$HOST\"; when /uat/; 'uat'; when /staging/; 'staging'; else; 'production'; end)"`
+COUNT=2
+case RACK_ENV in
+  production)
+             COUNT=32
+             ;;
+esac
 
 action() {
-  local command = $1
+  local command=$1
   local user_args
 	local pidfile
 
