@@ -352,7 +352,8 @@ namespace :deploy do
       new_pids = new_unicorn_pids_by_host[host] - pids
       if new_pids.size == 0
         puts Color.red("WARNING: No New Unicorn processes on #{host}, only the old ones: #{pids.inspect}.  Killing/restarting the brutally unicorn the hard way.")
-        run "kill -9 #{pids.join(" ")}; sleep 1; cd #{current_path} && #{unicorn_binary} -c #{unicorn_config} -E #{rails_env} -D; sleep 2", :hosts => host
+        run "kill -9 `cat #{unicorn_pid}` || true", :hosts => host
+        run "`cd #{current_path} && RACK_ENV=#{stage} #{unicorn_binary} -c #{unicorn_config} -D; sleep 40`", :hosts => host
       else
         puts Color.green("Woo hoo.  New unicorn processes are spinning up: #{new_pids.join(",")}")
       end
