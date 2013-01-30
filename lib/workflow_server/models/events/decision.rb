@@ -154,7 +154,7 @@ module WorkflowServer
       end
 
       def schedule_next_decision
-        WorkflowServer::Manager.schedule_next_decision(workflow)
+        WorkflowServer.schedule_next_decision(workflow)
       end
 
       def send_to_client
