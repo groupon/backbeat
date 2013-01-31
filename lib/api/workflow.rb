@@ -2,7 +2,7 @@ require 'grape'
 
 module Api
   class Workflow < Grape::API
-
+    include WorkflowServer::Logger
     # formatter :camel_json, Api::CamelJsonFormatter
     # content_type :camel_json, 'application/json'
     # format :camel_json
@@ -14,14 +14,17 @@ module Api
     end
 
     rescue_from :all do |e|
+      Api::Workflow.error(e)
       Rack::Response.new({error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
     end
 
     rescue_from WorkflowServer::EventNotFound do |e|
+      Api::Workflow.error(e)
       Rack::Response.new({error: e.message }.to_json, 404, { "Content-type" => "application/json" }).finish
     end
 
     rescue_from WorkflowServer::EventComplete, WorkflowServer::InvalidParameters, WorkflowServer::InvalidEventStatus, WorkflowServer::InvalidDecisionSelection, Grape::Exceptions::ValidationError do |e|
+      Api::Workflow.error(e)
       Rack::Response.new({error: e.message }.to_json, 400, { "Content-type" => "application/json" }).finish
     end
 
