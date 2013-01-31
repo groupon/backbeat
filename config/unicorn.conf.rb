@@ -149,6 +149,18 @@ before_exec do |server|
   begin
     ENV['BUNDLE_GEMFILE'] = File.join(File.readlink(app_root), 'Gemfile')
 
+    # Hack to ensure we have indexes
+    Dir.glob(File.join(WorkflowServer::Config.root, "lib", "workflow_server", "models", "**", "*.rb")).map do |file|
+      begin
+        model = "WorkflowServer::Models::#{file.match(/.+\/(?<model>.*).rb$/)['model'].camelize}"
+        klass = model.constantize
+        klass.create_indexes
+        $stdout.puts "I, [#{Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L")} \##{$$}] INFO -- : created indexes for class #{klass}"
+      rescue NameError, LoadError
+        $stdout.puts "I, [#{Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L")} \##{$$}] ERROR -- : failed to create index for file #{file}"
+      end
+    end
+
     $stdout.puts "I, [#{Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L")} \##{$$}] INFO -- : setting BUNDLE_GEMFILE to #{ENV['BUNDLE_GEMFILE']}"
   rescue Errno::EINVAL
     $stdout.puts "E, [#{Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L")} \##{$$}] ERROR -- : Unable to set BUNDLE_GEMFILE (/var/groupon/backbeat/current symlink doesn't exist?), defaulting to /var/groupon/backbeat/current/Gemfile"
