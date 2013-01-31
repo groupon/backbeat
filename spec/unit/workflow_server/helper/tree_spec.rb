@@ -28,7 +28,7 @@ describe Tree do
     it 'defaults :big_tree to false' do
       activity = FactoryGirl.create(:activity, status: :open)
 
-      activity.should_receive(:node).with(false)
+      activity.should_receive(:node).with(false, 1)
 
       activity.tree
     end
@@ -38,7 +38,7 @@ describe Tree do
     it 'calls #tree with true' do
       activity = FactoryGirl.create(:activity, status: :open)
 
-      activity.should_receive(:tree).with(true)
+      activity.should_receive(:tree).with(true, 0)
 
       activity.big_tree
     end
@@ -62,7 +62,7 @@ describe Tree do
 
       result = activity.send(:node, true)
 
-      result.should eq activity.serializable_hash
+      result.should eq Tree::Node.new(activity.serializable_hash,0)
     end
   end
 
