@@ -270,6 +270,10 @@ namespace :deploy do
     end
   end
 
+  task :create_indexes, :roles => :utility do
+    run "(cd #{current_path} && RACK_ENV=#{stage} bundle exec rake create_indexes)"
+  end
+
   desc "rolling killing/restarting of unicorn. use this if unicorn gets in a weird state"
   task :rolling_restart, :roles => :utility do
     roles[:utility].instance_variable_get('@static_servers').each do |host|
@@ -394,7 +398,7 @@ before "deploy:update_code", "deploy:confirm", "deploy:campfire_notify", "worker
 #after "deploy:update_code"#, "deploy:copy_settings"
 
 before "deploy:restart", "deploy:find_existing_unicorn_processes"
-after "deploy:restart", "deploy:check_for_new_unicorn_processes", "deploy:cleanup"
+after "deploy:restart", "deploy:check_for_new_unicorn_processes", "deploy:create_indexes", "deploy:cleanup"
 after "deploy:cleanup", "deploy:check_processes", "workers:start", "deploy:campfire_notify_complete"
 
 #after "deploy:create_symlink", "newrelic:notice_deployment"
