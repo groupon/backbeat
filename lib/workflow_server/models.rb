@@ -12,8 +12,5 @@ module WorkflowServer
     require_relative  'models/watchdog'
     require_relative  'models/events/workflow'
     require_relative  'models/user'
-
-    MODELS_TEST_CONSTANT = 'xysz'
-
   end
 end
