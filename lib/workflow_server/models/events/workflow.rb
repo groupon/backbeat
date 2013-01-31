@@ -19,7 +19,6 @@ module WorkflowServer
       index({ workflow_type: 1, subject_klass: 1, subject_id: 1 }, { unique: true })
       index({ subject_klass: 1, subject_id: 1 })
       index({ workflow_type: 1 })
-      index({ mode: 1 })
 
       def signal(name)
         raise WorkflowServer::EventComplete, "Workflow with id(#{id}) is already complete" if status == :complete
