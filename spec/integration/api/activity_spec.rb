@@ -56,7 +56,7 @@ describe Api::Workflow do
           activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow, valid_next_decisions: [:test_decision])
           wf = activity.workflow
           user = wf.user
-          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}.to_json
+          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
           last_response.status.should == 200
           activity.reload
           activity.result.should == 'i_was_successful'

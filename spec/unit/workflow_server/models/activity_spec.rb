@@ -119,6 +119,7 @@ describe WorkflowServer::Models::Activity do
         child.name.should == :import_payment
         child.status.should == :executing
       end
+
       it "doesn't run the same sub_activity twice" do
         @a1.update_status!(:executing)
         @a1.run_sub_activity(@sub_activity.dup)
@@ -159,6 +160,7 @@ describe WorkflowServer::Models::Activity do
         @a1.should_not_receive(:completed)
         @a1.child_completed(FactoryGirl.create(:sub_activity, mode: :non_blocking))
       end
+
       it "parent activity completed" do
         @a1.update_status!(:waiting_for_sub_activities)
         @a1.should_receive(:completed)
@@ -173,6 +175,7 @@ describe WorkflowServer::Models::Activity do
       WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(@a1)
       @a1.child_errored(FactoryGirl.create(:sub_activity, mode: :non_blocking), {:something_bad => :very_bad})
     end
+
     it "no changes if child was fire_and_forget" do
       @a1.update_attributes!(retry: 0)
       WorkflowServer::Models::Watchdog.should_not_receive(:mass_dismiss).with(@a1)
@@ -186,6 +189,7 @@ describe WorkflowServer::Models::Activity do
       WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(@a1)
       @a1.child_timeout(FactoryGirl.create(:sub_activity, mode: :non_blocking), :something)
     end
+
     it "no changes if child was fire_and_forget" do
       @a1.update_attributes!(retry: 0)
       WorkflowServer::Models::Watchdog.should_not_receive(:mass_dismiss).with(@a1)
@@ -199,11 +203,13 @@ describe WorkflowServer::Models::Activity do
         @a1.change_status(@a1.status)
       }.to_not raise_error
     end
+
     it "raises error if the new status field is invalid" do
       expect {
         @a1.change_status(:some_crap)
       }.to raise_error(WorkflowServer::InvalidEventStatus, "Invalid status some_crap")
     end
+
     context "completed" do
       it "raises error if status is not executing" do
         @a1.update_status!(:open)
@@ -211,12 +217,14 @@ describe WorkflowServer::Models::Activity do
           @a1.change_status(:completed)
         }.to raise_error(WorkflowServer::InvalidEventStatus, "Activity make_initial_payment can't transition from open to completed")
       end
+
       it "raises error if next decision is invalid" do
         @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
         expect {
           @a1.change_status(:completed, {next_decision: :something_wrong, result: {a: :b, c: :d}})
         }.to raise_error(WorkflowServer::InvalidDecisionSelection, "activity:#{@a1.name} tried to make something_wrong the next decision but is not allowed to.")
       end
+
       it "records the next decision and result" do
         @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
         @a1.should_receive(:completed)
@@ -224,6 +232,7 @@ describe WorkflowServer::Models::Activity do
         @a1.reload.result.should == {"a" => :b, "c" => :d}
         @a1.reload.next_decision.should == 'more_test'
       end
+
       it "records name_succeeded as the next decision when nothing is passed" do
         @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
         @a1.should_receive(:completed)
@@ -231,6 +240,7 @@ describe WorkflowServer::Models::Activity do
         @a1.reload.result.should == {"a" => :b, "c" => :d}
         @a1.reload.next_decision.should == "#{@a1.name}_succeeded"
       end
+
       it "records none as the next decision" do
         @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
         @a1.should_receive(:completed)
@@ -238,6 +248,7 @@ describe WorkflowServer::Models::Activity do
         @a1.reload.result.should == {"a" => :b, "c" => :d}
         @a1.reload.next_decision.should == 'none'
       end
+
       it "branches raise an error if no next_decision is given" do
         a1 = FactoryGirl.create(:branch)
         a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
@@ -254,6 +265,7 @@ describe WorkflowServer::Models::Activity do
           @a1.change_status(:errored)
         }.to raise_error(WorkflowServer::InvalidEventStatus, "Activity make_initial_payment can't transition from open to errored")
       end
+
       it "calls errored with the error argument" do
         @a1.update_status!(:executing)
         @a1.should_receive(:errored).with({message: 100, backtrace: 200})
@@ -272,8 +284,9 @@ describe WorkflowServer::Models::Activity do
       job = Delayed::Job.last
       job.run_at.to_s.should == (Time.now + 40.minutes).to_s
       handler = YAML.load(job.handler)
-      handler.should == @a1
+      handler.should eq @a1
     end
+
     it "goes into error state andd puts a decision task" do
       @a1.update_attributes!(parent: FactoryGirl.create(:decision))
       @a1.update_attributes!(retry: 2, retry_interval: 40.minutes)
