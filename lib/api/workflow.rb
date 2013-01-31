@@ -84,6 +84,12 @@ module Api
         wf.tree
       end
 
+      #TODO test this endpoint
+      get "/:id/tree/print" do
+        wf = find_workflow(params[:id])
+        {print: wf.tree.print(true)}
+      end
+
       get "/:id/big_tree" do
         wf = find_workflow(params[:id])
         wf.big_tree
@@ -105,6 +111,12 @@ module Api
           get "/:id/tree" do
             e = find_event(params[:id], params[:workflow_id])
             e.tree
+          end
+
+          #TODO test this endpoint
+          get "/:id/tree/print" do
+            e = find_event(params[:id], params[:workflow_id])
+            {print: e.tree.print(true)}
           end
 
           get "/:id/big_tree" do
@@ -141,6 +153,12 @@ module Api
       get "/:id/tree" do
         e = find_event(params[:id])
         e.tree
+      end
+
+      #TODO test this endpoint
+      get "/:id/tree/print" do
+        e = find_event(params[:id])
+        {print: e.tree.print(true)}
       end
 
       get "/:id/big_tree" do
