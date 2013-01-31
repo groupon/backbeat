@@ -12,6 +12,7 @@ gem 'em-http-request'
 gem 'uuidtools'
 gem 'httparty'
 gem 'log4r'
+gem 'rake'
 
 group :development do
   # deployment
