@@ -28,9 +28,9 @@ module WorkflowServer
       end
       ENV['RACK_ENV'] = if hostname.match /accounting/
         case hostname
-        when /uat/
+        when /uat/, /fed2-tat.snc1/
           'uat'
-        when /staging/
+        when /staging/, /fed1-tat.snc1/
           'staging'
         else
           'production'

@@ -16,7 +16,7 @@ PROGRAM="$BUNDLER exec ruby $ROOT/script/delayed_job_backbeat"
 
 HOST=`hostname`
 # avert your eyes
-RACK_ENV=`ruby -e "puts(case \"$HOST\"; when /uat/; 'uat'; when /staging/; 'staging'; else; 'production'; end)"`
+RACK_ENV=`ruby -e "puts(case \"$HOST\"; when /uat/, /fed2-tat.snc1/; 'uat'; when /staging/, /fed1-tat.snc1/; 'staging'; else; 'production'; end)"`
 COUNT=2
 case $RACK_ENV in
   production)
