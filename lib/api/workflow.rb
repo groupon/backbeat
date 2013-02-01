@@ -68,6 +68,16 @@ module Api
         end
       end
 
+      get "/" do
+        query = {}
+        [:workflow_type, :decider, :subject_klass, :subject_id].each do |query_param|
+          if params.include?(query_param)
+            query[query_param] = params[query_param]
+          end
+        end
+        current_user.workflows.where(query).map {|wf| wf }
+      end
+
       get "/:id" do
         find_workflow(params[:id])
       end
