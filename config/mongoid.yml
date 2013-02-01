@@ -24,7 +24,7 @@ uat:
         - accounting-utility1-uat.snc1:27018
         - accounting-utility1-staging.snc1:27018
       options:
-        consistency: :eventual
+        consistency: :strong
         max_retries: 5
         retry_interval: 1
   options:
@@ -38,7 +38,7 @@ staging:
         - accounting-utility1-staging.snc1:27017
         - accounting-utility1-uat.snc1:27017
       options:
-        consistency: :eventual
+        consistency: :strong
         max_retries: 5
         retry_interval: 1
   options:
@@ -53,7 +53,7 @@ production:
         - accounting-mongodb2.snc1:27017
         - accounting-mongodb3.snc1:27017
       options:
-        consistency: :eventual
+        consistency: :strong
         max_retries: 5
         retry_interval: 1
   options:
