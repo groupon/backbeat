@@ -49,6 +49,50 @@ describe Api::Workflow do
     end
   end
 
+  context "GET /workflows" do
+    it "returns an empty array when no workflow matches" do
+      get '/workflows', workflow_type: "WT1", subject_klass: "PT1", subject_id: 1, decider: "D1"
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response.should be_empty
+    end
+    it "returns all the workflows for the user" do
+      @wf1 = FactoryGirl.create(:workflow, user: @user)
+      @wf2 = FactoryGirl.create(:workflow, user: @user)
+      header 'CLIENT_ID', @user.id
+      get '/workflows'
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response.map{|wf| wf['id'] }.should == [@wf1.id, @wf2.id]
+    end
+    [:workflow_type, :subject_klass, :subject_id, :decider].each do |filter_field|
+      it "filters search by the #{filter_field}" do
+        @wf1 = FactoryGirl.create(:workflow, filter_field => "123")
+        @wf2 = FactoryGirl.create(:workflow, filter_field => "789")
+        get '/workflows', filter_field => "123"
+        last_response.status.should == 200
+        json_response = JSON.parse(last_response.body)
+        json_response.size.should == 1
+        json_response.first['id'].should == @wf1.id
+
+        get '/workflows', filter_field => "789"
+        last_response.status.should == 200
+        json_response = JSON.parse(last_response.body)
+        json_response.size.should == 1
+        json_response.first['id'].should == @wf2.id
+      end
+    end
+    it "works across combination of search parameters" do
+      @wf1 = FactoryGirl.create(:workflow, workflow_type: "WT1", subject_klass: "PT1", subject_id: 1, decider: "D1")
+      @wf2 = FactoryGirl.create(:workflow, workflow_type: "WT2", subject_klass: "PT2", subject_id: 2, decider: "D2")
+      get '/workflows', workflow_type: "WT1", subject_klass: "PT1", subject_id: 1, decider: "D1"
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response.size.should == 1
+      json_response.first['id'].should == @wf1.id
+    end
+  end
+
   context "POST /workflows/id/signal/name" do
     it "returns 404 when workflow not found" do
       post "/workflows/1000/signal/test"
