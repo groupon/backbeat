@@ -12,8 +12,6 @@ gem 'em-http-request'
 gem 'uuidtools'
 gem 'httparty'
 gem 'log4r'
-gem 'mongo'
-gem 'bson_ext'
 
 group :development do
   # deployment

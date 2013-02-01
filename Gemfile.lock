@@ -10,9 +10,6 @@ GEM
     addressable (2.3.2)
     awesome_print (1.1.0)
     backports (2.6.7)
-    bson (1.8.2)
-    bson_ext (1.8.2)
-      bson (~> 1.8.2)
     builder (3.0.4)
     capistrano (2.14.1)
       highline
@@ -72,8 +69,6 @@ GEM
     log4r (1.1.10)
     method_source (0.8.1)
     mime-types (1.19)
-    mongo (1.8.2)
-      bson (~> 1.8.2)
     mongoid (3.0.19)
       activemodel (~> 3.1)
       moped (~> 1.2)
@@ -153,7 +148,6 @@ PLATFORMS
 
 DEPENDENCIES
   awesome_print
-  bson_ext
   capistrano
   capistrano-campfire
   capistrano-ext
@@ -163,7 +157,6 @@ DEPENDENCIES
   grape
   httparty
   log4r
-  mongo
   mongoid
   mongoid-indifferent-access
   mongoid-locker
