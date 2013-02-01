@@ -279,8 +279,8 @@ namespace :deploy do
     roles[:utility].instance_variable_get('@static_servers').each do |host|
       run "kill -9 `cat #{unicorn_pid}` || true", :hosts => host
       # 30 is the timeout for any unicorn request. we should be able to restart within 30 seconds. 35 just to be safe
-      run "for i in {1..35}; do if nc -z localhost 8080;then sleep 1; else break; fi done", :hosts => host
-      run "`cd #{current_path} && RACK_ENV=#{stage} #{unicorn_binary} -c #{unicorn_config} -D; sleep 40`", :hosts => host
+      run "for i in {1..35}; do if nc -z localhost 9000;then sleep 1; else break; fi done", :hosts => host
+      run "`cd #{current_path} && RACK_ENV=#{stage} #{unicorn_binary} -c #{unicorn_config} -D`", :hosts => host
     end
   end
 
