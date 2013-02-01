@@ -1,9 +1,9 @@
 module WorkflowServer
   module Async
-    JobStruct ||= Struct.new(:event_id, :method, :args, :max_attempts)
+    JobStruct ||= Struct.new(:event_id, :method_to_call, :args, :max_attempts)
     class Job < JobStruct
       def perform
-        event.__send__(method, *args)
+        event.__send__(method_to_call, *args)
       end
 
       def self.schedule(options = {}, run_at = Time.now)
