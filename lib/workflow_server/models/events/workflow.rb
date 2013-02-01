@@ -16,9 +16,9 @@ module WorkflowServer
 
       validates_presence_of :workflow_type, :subject_id, :subject_klass, :decider, :user
 
-      index({ workflow_type: 1, subject_klass: 1, subject_id: 1 }, { unique: true })
-      index({ subject_klass: 1, subject_id: 1 })
-      index({ workflow_type: 1 })
+      index({ workflow_type: 1, subject_klass: 1, subject_id: 1 }, { unique: true, sparse: true })
+      index({ subject_klass: 1, subject_id: 1 }, { sparse: true })
+      index({ workflow_type: 1 }, { sparse: true })
 
       def signal(name)
         raise WorkflowServer::EventComplete, "Workflow with id(#{id}) is already complete" if status == :complete
