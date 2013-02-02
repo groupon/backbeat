@@ -27,7 +27,7 @@ describe WorkflowServer::Models::Decision do
       job = Delayed::Job.where(handler: /send_to_client/).first
       handler = YAML.load(job.handler)
       handler.event_id.should == @d1.id
-      handler.method.should == :send_to_client
+      handler.method_to_call.should == :send_to_client
       handler.max_attempts.should == 25
     end
   end
