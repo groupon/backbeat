@@ -32,8 +32,8 @@ module WorkflowServer
       alias_method :dismiss, :destroy
 
       def feed
-        timer.delete if timer
-        timer = Delayed::Backend::Mongoid::Job.enqueue(self, run_at: starves_in.from_now)
+        self.timer.delete if self.timer
+        self.timer = Delayed::Backend::Mongoid::Job.enqueue(self, run_at: starves_in.from_now)
         save!
       end
       alias_method :kick, :feed
