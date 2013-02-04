@@ -146,6 +146,41 @@ describe Api::Workflow do
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
 
+    it "doesn't run the same sub-activity twice" do
+      activity = FactoryGirl.create(:activity, status: :executing)
+      wf = activity.workflow
+      user = wf.user
+      sub_activity = { :name => :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, arguments: [1,2,3]}
+      header "Content-Type", "application/json"
+
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      last_response.status.should == 200
+      last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
+
+      put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
+      last_response.status.should == 200
+
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      last_response.status.should == 200
+      last_response.headers.should_not include("WAIT_FOR_SUB_ACTIVITY")
+
+      # change the name
+      sub_activity[:name] = :make_initial_payment_SOMETHING_ELSE
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      last_response.status.should == 200
+      last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
+      sa = JSON.parse(last_response.body)
+
+      put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
+      last_response.status.should == 200
+
+      # change the arguments this time
+      sub_activity[:arguments] = [1,2,3,4]
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      last_response.status.should == 200
+      last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
+    end
+
     it "runs the sub-activity with camel-case input" do
       activity = FactoryGirl.create(:activity, status: :executing)
       wf = activity.workflow
