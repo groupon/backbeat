@@ -49,18 +49,21 @@ module WorkflowServer
 
       def completed
         update_status!(:complete)
+        Watchdog.mass_dismiss(self)
         notify_of("complete")
         parent.child_completed(self) if parent
       end
 
       def errored(error)
         update_status!(:error, error)
+        Watchdog.mass_dismiss(self)
         notify_of("error", error)
         parent.child_errored(self, error) if parent
       end
 
       def timeout(timeout)
         update_status!(:timeout, timeout)
+        Watchdog.mass_dismiss(self)
         notify_of("timeout", timeout)
         parent.child_timeout(self, timeout) if parent
       end

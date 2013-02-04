@@ -10,6 +10,7 @@ module WorkflowServer
       field :subject_id, type: String
 
       index({ name: 1, subject_klass: 1, subject_id: 1 }, { unique: true })
+      index({ subject_klass: 1, subject_id: 1 })
 
       belongs_to :timer, class_name: "Delayed::Backend::Mongoid::Job", inverse_of: nil
 

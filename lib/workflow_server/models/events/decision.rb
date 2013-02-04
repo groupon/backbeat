@@ -47,7 +47,6 @@ module WorkflowServer
       end
 
       def errored(error)
-        Watchdog.kill(self, :decision_executing_time_out)
         super
       end
 
