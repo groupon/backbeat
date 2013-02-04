@@ -16,7 +16,7 @@ module WorkflowServer
         # TODO - notify_client errors can be ignored (this looks like
         # a bad hack, and i might change this to work based off
         # priority. anyways, should work for now)
-        unless method_to_call == :notify_client
+        unless method_to_call.to_s == 'notify_client'
           event.update_status!(error, :async_job_error)
         end
       end
