@@ -14,7 +14,7 @@ module WorkflowServer
 
       belongs_to :workflow, inverse_of: :events, class_name: "WorkflowServer::Models::Workflow", index: true
       belongs_to :parent, inverse_of: :children, class_name: "WorkflowServer::Models::Event", index: true
-      has_many :children, inverse_of: :parent, class_name: "WorkflowServer::Models::Event", order: {created_at: 1}
+      has_many :children, inverse_of: :parent, class_name: "WorkflowServer::Models::Event", order: {created_at: 1}, dependent: :destroy
 
       index({ status: 1 })
 
