@@ -161,7 +161,7 @@ module WorkflowServer
       end
 
       def subactivity_handled?(name, arguments)
-        children.type(SubActivity).where(arguments: arguments).any?
+        children.type(SubActivity).where(name: name, arguments: arguments).any?
       end
 
       def send_to_client
