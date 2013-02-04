@@ -271,7 +271,11 @@ namespace :deploy do
   end
 
   task :create_indexes, :roles => :utility do
-    run "(cd #{current_path} && RACK_ENV=#{stage} bundle exec rake create_indexes)"
+    run "(cd #{current_path} && RACK_ENV=#{stage} bundle exec rake mongo:create_indexes)"
+  end
+
+  task :remove_indexes, :roles => :utility do
+    run "(cd #{current_path} && RACK_ENV=#{stage} bundle exec rake mongo:remove_indexes)"
   end
 
   desc "rolling killing/restarting of unicorn. use this if unicorn gets in a weird state"
