@@ -20,7 +20,6 @@ module WorkflowServer
 
       before_destroy do
         Watchdog.mass_dismiss(self)
-        self.children.destroy_all
       end
 
       validates_presence_of :name

@@ -12,13 +12,9 @@ module WorkflowServer
       index({ name: 1, subject_klass: 1, subject_id: 1 }, { unique: true })
       index({ subject_klass: 1, subject_id: 1 })
 
-      belongs_to :timer, class_name: "Delayed::Backend::Mongoid::Job", inverse_of: nil
+      belongs_to :timer, class_name: "Delayed::Backend::Mongoid::Job", inverse_of: nil, dependent: :delete
 
       validates_presence_of :name, :subject_id, :subject_klass
-
-      before_destroy do
-        timer.destroy if timer
-      end
 
       def self.start(subject, name = :timeout, starves_in = 10.minutes)
         Watchdog.kill(subject,name)
@@ -36,7 +32,7 @@ module WorkflowServer
       alias_method :dismiss, :destroy
 
       def feed
-        timer.destroy if timer
+        timer.delete if timer
         timer = Delayed::Backend::Mongoid::Job.enqueue(self, run_at: starves_in.from_now)
         save!
       end
@@ -68,14 +64,13 @@ module WorkflowServer
 
 
         def stop(subject, name = :timeout)
-          dog = Watchdog.where(subject_klass: subject.class.to_s, subject_id: subject.id, name: name).first
-          dog.stop if dog
+          Watchdog.where(subject_klass: subject.class.to_s, subject_id: subject.id, name: name).destroy
         end
         alias_method :kill, :stop
         alias_method :dismiss, :stop
 
         def mass_stop(subject)
-          Watchdog.destroy_all(subject_klass: subject.class.to_s, subject_id: subject.id)
+          Watchdog.where(subject_klass: subject.class.to_s, subject_id: subject.id).destroy
         end
         alias_method :mass_kill, :mass_stop
         alias_method :mass_dismiss, :mass_stop
