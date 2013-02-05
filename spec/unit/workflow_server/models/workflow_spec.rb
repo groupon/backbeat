@@ -6,6 +6,7 @@ describe WorkflowServer::Models::Workflow do
     @event_klass = WorkflowServer::Models::Workflow
     @event_data = {name: :test_flag, workflow_type: :wf_type, subject_klass: "PaymentTerm", subject_id: 100, decider: "A::B::C", user: FactoryGirl.create(:user) }
     @wf = FactoryGirl.create(:workflow)
+    @event = @wf
   end
 
   it_should_behave_like 'events'

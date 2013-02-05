@@ -6,6 +6,7 @@ describe WorkflowServer::Models::Activity do
     @event_klass = WorkflowServer::Models::Activity
     @wf = FactoryGirl.create(:workflow)
     @a1 = FactoryGirl.create(:activity, workflow: @wf).reload
+    @event = @a1
   end
   it_should_behave_like 'events'
 

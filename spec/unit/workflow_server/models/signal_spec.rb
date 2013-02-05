@@ -5,6 +5,7 @@ describe WorkflowServer::Models::Signal do
   before do
     @event_klass = WorkflowServer::Models::Signal
     @event_data = {name: :test_sig}
+    @event = FactoryGirl.create(:signal)
   end
 
   it_should_behave_like 'events'

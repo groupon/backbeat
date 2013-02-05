@@ -5,6 +5,7 @@ describe WorkflowServer::Models::Timer do
   before do
     @event_klass = WorkflowServer::Models::Timer
     @event_data = {name: :test_timer, fires_at: Date.tomorrow}
+    @event = FactoryGirl.create(:timer, fires_at: Date.tomorrow)
   end
 
   it_should_behave_like 'events'
