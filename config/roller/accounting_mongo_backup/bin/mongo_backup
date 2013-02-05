@@ -18,6 +18,7 @@ module WorkflowServer
 
     def perform
       raise "Not eligible to perform backups on this mongo node" unless eligible?
+      raise "This node is not ready for backup" unless status_good_for_backup?
       shutdown
       backup
       start
@@ -27,7 +28,7 @@ module WorkflowServer
 
     def eligible?
       # use the last secondary for this operation
-      my_id && (secondary_ids.sort.last == my_id) && status_good_for_backup?
+      my_id && (secondary_ids.sort.last == my_id)
     end
 
     def shutdown
