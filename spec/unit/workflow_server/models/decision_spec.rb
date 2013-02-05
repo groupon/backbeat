@@ -7,6 +7,7 @@ describe WorkflowServer::Models::Decision do
     @event_data = {name: :test_decision}
     @wf = FactoryGirl.create(:workflow)
     @d1 = FactoryGirl.create(:decision, workflow: @wf, name: "WF_Decision-1").reload
+    @event = @d1
   end
 
   it_should_behave_like 'events'

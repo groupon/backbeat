@@ -5,6 +5,7 @@ describe WorkflowServer::Models::Timer do
   before do
     @event_klass = WorkflowServer::Models::Timer
     @event_data = {name: :test_timer, fires_at: Date.tomorrow}
+    @event = FactoryGirl.create(:timer, fires_at: Date.tomorrow)
   end
 
   it_should_behave_like 'events'
@@ -25,9 +26,10 @@ describe WorkflowServer::Models::Timer do
       timer.start
       timer.status.should == :executing
       job = Delayed::Job.last
-      handler = YAML.load(job.handler)
-      handler['_id'].should == timer.id
       job.run_at.should == Date.tomorrow.to_time
+      async_job = job.payload_object
+      async_job.event.should eq timer
+      async_job.method_to_call.should eq :fire
     end
   end
 

@@ -24,6 +24,11 @@ module WorkflowServer
       def event
         @event ||= WorkflowServer::Models::Event.find(event_id)
       end
+
+      def self.jobs(event)
+        Delayed::Job.where(handler: /WorkflowServer::Async::Job/).and(handler: /#{event.id}/)
+      end
+
     end
   end
 end

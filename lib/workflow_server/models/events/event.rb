@@ -20,6 +20,7 @@ module WorkflowServer
 
       before_destroy do
         Watchdog.mass_dismiss(self)
+        destroy_jobs
       end
 
       validates_presence_of :name
@@ -128,6 +129,14 @@ module WorkflowServer
 
       def event_type
         TYPE_TO_STRING_HASH[self.class.to_s]
+      end
+
+      def async_jobs
+        WorkflowServer::Async::Job.jobs(self)
+      end
+
+      def destroy_jobs
+        self.async_jobs.destroy
       end
 
       private
