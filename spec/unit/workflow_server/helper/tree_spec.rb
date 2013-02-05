@@ -6,7 +6,7 @@ describe Tree do
     it 'calls #get_child_trees' do
       activity = FactoryGirl.create(:activity, status: :open)
 
-      activity.should_receive(:get_child_trees).once
+      activity.should_receive(:get_child_trees).and_return([])
 
       activity.tree
     end
@@ -28,7 +28,7 @@ describe Tree do
     it 'defaults :big_tree to false' do
       activity = FactoryGirl.create(:activity, status: :open)
 
-      activity.should_receive(:node).with(false, 1)
+      activity.should_receive(:node).with(false)
 
       activity.tree
     end
@@ -38,7 +38,7 @@ describe Tree do
     it 'calls #tree with true' do
       activity = FactoryGirl.create(:activity, status: :open)
 
-      activity.should_receive(:tree).with(true, 0)
+      activity.should_receive(:tree).with(true)
 
       activity.big_tree
     end
@@ -60,9 +60,7 @@ describe Tree do
     it 'returns a hash of the object attributes when :big_tree is true' do
       activity = FactoryGirl.create(:activity, status: :open)
 
-      result = activity.send(:node, true)
-
-      result.should eq Tree::Node.new(activity.serializable_hash,0)
+      activity.send(:node, true).should eq activity.serializable_hash
     end
   end
 
