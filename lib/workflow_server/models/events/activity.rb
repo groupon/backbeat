@@ -27,10 +27,16 @@ module WorkflowServer
 
       def start
         super
-        update_status!(:executing)
         WorkflowServer::Async::Job.schedule(event: self, method: :send_to_client, max_attempts: 25)
+        update_status!(:executing)
       end
       alias_method :continue, :start
+
+      def restart
+        raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to restarting" unless [:error, :timeout].include?(status)
+        update_status!(:restarting)
+        start
+      end
 
       def completed
         with_lock do

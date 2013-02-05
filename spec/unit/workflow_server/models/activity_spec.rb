@@ -31,6 +31,40 @@ describe WorkflowServer::Models::Activity do
     end
   end
 
+  context "#restart" do
+    it "updates status to :restarting before calling start" do
+      @a1.update_status!(:timeout)
+      @a1.should_receive(:update_status!).with(:restarting)
+      @a1.should_receive(:start).and_raise
+
+      expect{@a1.restart}.to raise_error
+    end
+
+    it "calls start" do
+      @a1.update_status!(:timeout)
+      @a1.should_receive(:start)
+
+      @a1.restart
+    end
+
+    it "raises an error if the current status is not either :error or :timeout" do
+      @a1.update_status!(:open)
+      expect {
+        @a1.restart
+      }.to raise_error(WorkflowServer::InvalidEventStatus, "Activity make_initial_payment can't transition from open to restarting")
+
+      @a1.update_status!(:error)
+      expect {
+        @a1.restart
+      }.to_not raise_error
+
+      @a1.update_status!(:timeout)
+      expect {
+        @a1.restart
+      }.to_not raise_error
+    end
+  end
+
   context "#send_to_client" do
     it "calls out to workflow async client to perform activity" do
       WorkflowServer::Client.should_receive(:perform_activity).with(@a1)

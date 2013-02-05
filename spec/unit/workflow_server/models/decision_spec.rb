@@ -33,6 +33,42 @@ describe WorkflowServer::Models::Decision do
     end
   end
 
+  context "#restart" do
+    it "calls start" do
+      @d1.update_status!(:timeout)
+
+      @d1.should_receive(:start)
+
+      @d1.restart
+    end
+
+    it "updates status to :restarting before calling start" do
+      @d1.update_status!(:timeout)
+
+      @d1.should_receive(:update_status!).with(:restarting)
+      @d1.should_receive(:start).and_raise
+
+      expect{@d1.restart}.to raise_error
+    end
+
+    it "raises an error if the current status is not either :errored or :timeout" do
+      @d1.update_status!(:open)
+      expect {
+        @d1.restart
+      }.to raise_error(WorkflowServer::InvalidEventStatus, "Decision WF_Decision-1 can't transition from open to restarting")
+
+      @d1.update_status!(:error)
+      expect {
+        @d1.restart
+      }.to_not raise_error
+
+      @d1.update_status!(:timeout)
+      expect {
+        @d1.restart
+      }.to_not raise_error
+    end
+  end
+
   context "#send_to_client" do
     it "calls out to workflow async client to make decision" do
       WorkflowServer::Client.should_receive(:make_decision).with(@d1)

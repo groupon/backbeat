@@ -134,4 +134,27 @@ describe Api::Workflow do
       json_response['error'].should == "Invalid status something_invalid"
     end
   end
+  context "PUT /workflows/:id/events/:event_id/restart" do
+    it "returns 400 if the decision can NOT be restarted" do
+      decision = FactoryGirl.create(:decision)
+      wf = decision.workflow
+      user = wf.user
+      put "/workflows/#{wf.id}/events/#{decision.id}/restart"
+      last_response.status.should == 400
+      json_response = JSON.parse(last_response.body)
+      json_response['error'].should == "Decision #{decision.name} can't transition from enqueued to restarting"
+    end
+
+    it "returns 200 and restarts the decisions" do
+      decision = FactoryGirl.create(:decision, status: :error)
+      wf = decision.workflow
+      user = wf.user
+      header "Content-Type", "application/json"
+      put "/workflows/#{wf.id}/events/#{decision.id}/restart"
+      last_response.status.should == 200
+      decision.reload
+      decision.status_history.first['to'].should == :restarting
+      decision.status_history.last['to'].should == :enqueued
+    end
+  end
 end

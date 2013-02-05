@@ -12,6 +12,13 @@ module WorkflowServer
         WorkflowServer::Async::Job.schedule(event: self, method: :send_to_client, max_attempts: 25)
       end
 
+      def restart
+        raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to restarting" unless [:error, :timeout].include?(status)
+        update_status!(:restarting)
+        cleaup
+        start
+      end
+
       def change_status(new_status, args = {})
         return if status == new_status.try(:to_sym)
         case new_status.to_sym
