@@ -25,9 +25,10 @@ describe WorkflowServer::Models::Timer do
       timer.start
       timer.status.should == :executing
       job = Delayed::Job.last
-      handler = YAML.load(job.handler)
-      handler['_id'].should == timer.id
       job.run_at.should == Date.tomorrow.to_time
+      async_job = job.payload_object
+      async_job.event.should eq timer
+      async_job.method_to_call.should eq :fire
     end
   end
 

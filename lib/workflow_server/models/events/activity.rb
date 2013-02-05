@@ -30,7 +30,6 @@ module WorkflowServer
         update_status!(:executing)
         WorkflowServer::Async::Job.schedule(event: self, method: :send_to_client, max_attempts: 25)
       end
-      alias_method :perform, :start
       alias_method :continue, :start
 
       def completed
@@ -136,7 +135,7 @@ module WorkflowServer
         unless retry_interval > 0
           start
         else
-          Delayed::Backend::Mongoid::Job.enqueue(self, run_at: retry_interval.from_now)
+          WorkflowServer::Async::Job.schedule({event: self, method: :start, max_attempts: 5}, retry_interval.from_now)
         end
         update_status!(:retrying)
       end
@@ -168,7 +167,6 @@ module WorkflowServer
         WorkflowServer::Client.perform_activity(self)
         Watchdog.start(self, :timeout, time_out) if time_out > 0
       end
-
     end
   end
 end

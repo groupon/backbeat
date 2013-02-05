@@ -283,8 +283,9 @@ describe WorkflowServer::Models::Activity do
       @a1.status_history[-1] = {"from"=>:failed, "to"=>:retrying, "at"=>Time.now.to_datetime.to_s}
       job = Delayed::Job.last
       job.run_at.to_s.should == (Time.now + 40.minutes).to_s
-      handler = YAML.load(job.handler)
-      handler.should eq @a1
+      async_job = job.payload_object
+      async_job.event.should eq @a1
+      async_job.method_to_call.should eq :start
     end
 
     it "goes into error state andd puts a decision task" do

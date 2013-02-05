@@ -8,14 +8,13 @@ module WorkflowServer
       def start
         super
         update_status!(:executing)
-        Delayed::Backend::Mongoid::Job.enqueue(self, run_at: fires_at)
+        WorkflowServer::Async::Job.schedule({event: self, method: :fire, max_attempts: 5}, fires_at)
       end
 
       def fire
         add_decision(name)
         completed
       end
-      alias_method :perform, :fire
 
     end
   end
