@@ -26,7 +26,8 @@ module WorkflowServer
     private
 
     def eligible?
-      my_id && (secondary_ids.sort.last == my_id) # use the last secondary for this operation
+      # use the last secondary for this operation
+      my_id && (secondary_ids.sort.last == my_id) && status_good_for_backup?
     end
 
     def shutdown
@@ -69,8 +70,18 @@ module WorkflowServer
       @my_id
     end
 
+    def my_status
+      status['members'].find {|member| member["self"] == true }
+    end
+
     def secondary_ids
       @secondary_ids ||= status['members'].find_all {|member| member["stateStr"] != "PRIMARY"}.map {|secondary| secondary["_id"]}
+    end
+
+    def status_good_for_backup?
+      # This checks whether the secondary node is ready for backup or not. The node used for backup needs few minutes to catch up
+      # with the recent updates. If we start another backup during that period, the data might be stale.
+      !my_status.has_key?("errmsg") && my_status["health"] == 1.0 && my_status["state"] == 2
     end
 
     def status
