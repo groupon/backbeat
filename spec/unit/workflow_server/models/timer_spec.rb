@@ -2,10 +2,14 @@ require 'spec_helper'
 require_relative 'event_se'
 
 describe WorkflowServer::Models::Timer do
+
+  let(:user) { FactoryGirl.create(:user) }
+  let(:workflow) { FactoryGirl.create(:workflow, user: user) }
+
   before do
     @event_klass = WorkflowServer::Models::Timer
     @event_data = {name: :test_timer, fires_at: Date.tomorrow}
-    @event = FactoryGirl.create(:timer, fires_at: Date.tomorrow)
+    @event = FactoryGirl.create(:timer, fires_at: Date.tomorrow, workflow: workflow)
   end
 
   it_should_behave_like 'events'
@@ -21,7 +25,7 @@ describe WorkflowServer::Models::Timer do
 
   context "#start" do
     it "updates the status to executing and schedules a delayed job to go at the" do
-      timer = FactoryGirl.create(:timer, fires_at: Date.tomorrow)
+      timer = FactoryGirl.create(:timer, fires_at: Date.tomorrow, workflow: workflow)
       timer.status.should == :open
       timer.start
       timer.status.should == :executing
@@ -35,7 +39,7 @@ describe WorkflowServer::Models::Timer do
 
   context "#fire" do
     it "schedules a decision task" do
-      timer = FactoryGirl.create(:timer, fires_at: Date.tomorrow)
+      timer = FactoryGirl.create(:timer, fires_at: Date.tomorrow, workflow: workflow)
       timer.children.count.should == 0
       timer.fire
       timer.status.should == :complete

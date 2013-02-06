@@ -2,10 +2,12 @@ require 'spec_helper'
 require_relative 'event_se'
 
 describe WorkflowServer::Models::Decision do
+  let(:user) { FactoryGirl.create(:user) }
+
   before do
     @event_klass = WorkflowServer::Models::Decision
     @event_data = {name: :test_decision}
-    @wf = FactoryGirl.create(:workflow)
+    @wf = FactoryGirl.create(:workflow, user: user)
     @d1 = FactoryGirl.create(:decision, workflow: @wf, name: "WF_Decision-1").reload
     @event = @d1
   end
@@ -59,12 +61,14 @@ describe WorkflowServer::Models::Decision do
   context "#child_completed" do
     it "calls refresh if child is Activity, Branch or Workflow" do
       [:activity, :workflow].each do |child|
-        child = FactoryGirl.create(child, parent: @d1)
+        options = {parent: @d1, workflow: @wf}
+        options[:user] = user if child == :workflow
+        child = FactoryGirl.create(child, options)
         @d1.should_receive(:refresh)
         @d1.child_completed(child)
       end
       [:flag, :signal].each do |child|
-        child = FactoryGirl.create(child, parent: @d1)
+        child = FactoryGirl.create(child, parent: @d1, workflow: @wf)
         @d1.should_not_receive(:refresh)
         @d1.child_completed(child)
       end
@@ -173,7 +177,7 @@ describe WorkflowServer::Models::Decision do
     it "keeps starting the next actions till it hits a blocking action" do
       a1 = FactoryGirl.create(:activity, parent: @d1, workflow: @wf)
       a2 = FactoryGirl.create(:branch, mode: :non_blocking, parent: @d1, workflow: @wf)
-      a3 = FactoryGirl.create(:workflow, parent: @d1, workflow: @wf)
+      a3 = FactoryGirl.create(:workflow, parent: @d1, workflow: @wf, user: user)
       a4 = FactoryGirl.create(:flag, parent: @d1, workflow: @wf)
       @d1.reload
       @d1.__send__ :start_next_action
@@ -208,7 +212,9 @@ describe WorkflowServer::Models::Decision do
   context "#any_incomplete_blocking_activities_branches_or_workflows?" do
     [:activity, :branch, :workflow].each do |event|
       it "returns true if any blocking #{event} is executing" do
-        child = FactoryGirl.create(event, parent: @d1)
+        options = {parent: @d1, workflow: @wf}
+        options[:user] = user if event == :workflow
+        child = FactoryGirl.create(event, options)
         @d1.__send__(:any_incomplete_blocking_activities_branches_or_workflows?).should == false
         child.update_status!(:executing)
         @d1.__send__(:any_incomplete_blocking_activities_branches_or_workflows?).should == true
@@ -221,7 +227,9 @@ describe WorkflowServer::Models::Decision do
   context "#all_activities_branches_and_workflows_completed?" do
     [:activity, :branch, :workflow].each do |event|
       it "returns true when all non-fire and forget #{event} are completed" do
-        child = FactoryGirl.create(event, parent: @d1)
+        options = {parent: @d1, workflow: @wf}
+        options[:user] = user if event == :workflow
+        child = FactoryGirl.create(event, options)
         @d1.__send__(:all_activities_branches_and_workflows_completed?).should == false
         child.update_attributes!(mode: :fire_and_forget)
         @d1.__send__(:all_activities_branches_and_workflows_completed?).should == true
