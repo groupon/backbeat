@@ -139,6 +139,10 @@ module WorkflowServer
         self.async_jobs.destroy
       end
 
+      def my_user
+        workflow.user
+      end
+
       private
 
       def error_hash(error)
