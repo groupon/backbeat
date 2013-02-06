@@ -47,6 +47,10 @@ module WorkflowServer
         notify_of("start")
       end
 
+      def restart
+        raise 'This event does not support restarting'
+      end
+
       def completed
         update_status!(:complete)
         Watchdog.mass_dismiss(self)
@@ -135,6 +139,11 @@ module WorkflowServer
 
       def async_jobs
         WorkflowServer::Async::Job.jobs(self)
+      end
+
+      def cleanup
+        destroy_jobs
+        Watchdog.mass_dismiss(self)
       end
 
       def destroy_jobs

@@ -168,5 +168,6 @@ describe Api::Workflow do
         json_response.should == {"error" => "Workflow with id(1000) not found"}
       end
     end
+
   end
 end

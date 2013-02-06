@@ -40,7 +40,7 @@ describe WorkflowServer::Models::Workflow do
     it "drops a signal / decision task to notify the workflow" do
       workflow = FactoryGirl.create(:workflow, user: user)
       @wf.update_attributes!(workflow: workflow)
-      @wf.completed                              
+      @wf.completed
       workflow.signals.count.should == 1
       workflow.decisions.count.should == 1
       decision = workflow.decisions.first
@@ -56,7 +56,7 @@ describe WorkflowServer::Models::Workflow do
     it "drops a signal / decision task to notify the workflow" do
       workflow = FactoryGirl.create(:workflow, user: user)
       @wf.update_attributes!(workflow: workflow)
-      @wf.errored(:some_error)                              
+      @wf.errored(:some_error)
       workflow.signals.count.should == 1
       workflow.decisions.count.should == 1
       decision = workflow.decisions.first

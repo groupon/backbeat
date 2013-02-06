@@ -96,7 +96,6 @@ module Api
         wf.tree
       end
 
-      #TODO test this endpoint
       get "/:id/tree/print" do
         wf = find_workflow(params[:id])
         {print: wf.tree.print(true)}
@@ -112,50 +111,55 @@ module Api
         signal = wf.signal(params[:name])
         signal
       end
-    end
 
-    # Events can be reached using two url's
-    # 1) as a subresource /workflows/<workflow_id>/events/<id>
-    # 2) or as a top level resource /events/<id>
-    # This proc here is the general declaration that is at the end consumed by both the above endpoints.
-    EventSpecification = Proc.new do
-      get "/:id" do
-        find_event(params)
-      end
-
-      get "/:id/tree" do
-        e = find_event(params)
-        e.tree
-      end
-
-      #TODO test this endpoint
-      get "/:id/tree/print" do
-        e = find_event(params)
-        {print: e.tree.print(true)}
-      end
-
-      get "/:id/big_tree" do
-        e = find_event(params)
-        e.big_tree
-      end
-
-      put "/:id/status/:new_status" do
-        event = find_event(params)
-        raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
-        event.change_status(params[:new_status], params[:args] || {})
-        {success: true}
-      end
-
-      params do
-        requires :sub_activity, type: Hash, :desc => 'sub activity param cannot be empty'
-      end
-      put "/:id/run_sub_activity" do
-        event = find_event(params, :activities)
-        sub_activity = event.run_sub_activity(params[:sub_activity] || {})
-        if sub_activity.try(:blocking?)
-          header("WAIT_FOR_SUB_ACTIVITY", "true")
+      # Events can be reached using two url's
+      # 1) as a subresource /workflows/<workflow_id>/events/<id>
+      # 2) or as a top level resource /events/<id>
+      # This proc here is the general declaration that is at the end consumed by both the above endpoints.
+      EventSpecification = Proc.new do
+        get "/:id" do
+          find_event(params)
         end
-        sub_activity
+
+        put "/:id/restart" do
+          e = find_event(params)
+          e.restart
+          {success: true}
+        end
+
+        get "/:id/tree" do
+          e = find_event(params)
+          e.tree
+        end
+
+        get "/:id/tree/print" do
+          e = find_event(params)
+          {print: e.tree.print(true)}
+        end
+
+        get "/:id/big_tree" do
+          e = find_event(params)
+          e.big_tree
+        end
+
+        put "/:id/status/:new_status" do
+          event = find_event(params)
+          raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
+          event.change_status(params[:new_status], params[:args] || {})
+          {success: true}
+        end
+
+        params do
+          requires :sub_activity, type: Hash, :desc => 'sub activity param cannot be empty'
+        end
+        put "/:id/run_sub_activity" do
+          event = find_event(params, :activities)
+          sub_activity = event.run_sub_activity(params[:sub_activity] || {})
+          if sub_activity.try(:blocking?)
+            header("WAIT_FOR_SUB_ACTIVITY", "true")
+          end
+          sub_activity
+        end
       end
     end
 

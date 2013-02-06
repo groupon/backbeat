@@ -224,4 +224,25 @@ describe Api::Workflow do
       json_response['error'].should == {"activity"=>{"name"=>["can't be blank"]}}
     end
   end
+
+  context "PUT /events/:event_id/restart" do
+    it "returns 400 if the activity can NOT be restarted" do
+      activity = FactoryGirl.create(:activity, status: :open)
+      header "Content-Type", "application/json"
+      put "/events/#{activity.id}/restart"
+      last_response.status.should == 400
+      json_response = JSON.parse(last_response.body)
+      json_response['error'].should == "Activity #{activity.name} can't transition from open to restarting"
+    end
+
+    it "returns 200 and restarts the activity" do
+      activity = FactoryGirl.create(:activity, status: :error, retry: 0)
+      header "Content-Type", "application/json"
+      put "/events/#{activity.id}/restart"
+      last_response.status.should == 200
+      activity.reload
+      activity.status_history.first['to'].should == :restarting
+      activity.status_history.last['to'].should == :executing
+    end
+  end
 end
