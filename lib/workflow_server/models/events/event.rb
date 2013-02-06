@@ -15,11 +15,11 @@ module WorkflowServer
       belongs_to :workflow, inverse_of: :events, class_name: "WorkflowServer::Models::Workflow", index: true
       belongs_to :parent, inverse_of: :children, class_name: "WorkflowServer::Models::Event", index: true
       has_many :children, inverse_of: :parent, class_name: "WorkflowServer::Models::Event", order: {created_at: 1}, dependent: :destroy
+      has_many :watchdogs, inverse_of: :subject, class_name: "WorkflowServer::Models::Watchdog", dependent: :destroy
 
       index({ status: 1 })
 
       before_destroy do
-        Watchdog.mass_dismiss(self)
         destroy_jobs
       end
 
@@ -106,14 +106,16 @@ module WorkflowServer
 
       # TODO - Refactor this. Move it outside in some constants so that other methods can refer to this (like the ones in workflow.rb)
       TYPE_TO_STRING_HASH = {
-        'WorkflowServer::Models::Flag'        => 'flag',
-        'WorkflowServer::Models::Workflow'    => 'workflow',
-        'WorkflowServer::Models::Signal'      => 'signal',
-        'WorkflowServer::Models::Decision'    => 'decision',
-        'WorkflowServer::Models::Activity'    => 'activity',
-        'WorkflowServer::Models::SubActivity' => 'activity',
-        'WorkflowServer::Models::Branch'      => 'branch',
-        'WorkflowServer::Models::Timer'       => 'timer'
+        'WorkflowServer::Models::Event'                       => 'event',    # We shouldn't ever get this one, but this way we won't blow up if we do
+        'WorkflowServer::Models::Activity'                    => 'activity',
+        'WorkflowServer::Models::SubActivity'                 => 'activity',
+        'WorkflowServer::Models::Branch'                      => 'branch',
+        'WorkflowServer::Models::Decision'                    => 'decision',
+        'WorkflowServer::Models::Flag'                        => 'flag',
+        'WorkflowServer::Models::WorkflowCompleteFlag'        => 'flag',
+        'WorkflowServer::Models::Signal'                      => 'signal',
+        'WorkflowServer::Models::Timer'                       => 'timer',
+        'WorkflowServer::Models::Workflow'                    => 'workflow'
       }
 
       # These fields are not included in the hash sent out to the client

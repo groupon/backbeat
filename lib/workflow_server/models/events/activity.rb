@@ -100,7 +100,7 @@ module WorkflowServer
       end
 
       def errored(error)
-        Watchdog.kill(self) if time_out > 0
+        Watchdog.dismiss(self) if time_out > 0
         if retry?
           do_retry(error)
         else
@@ -141,7 +141,7 @@ module WorkflowServer
       end
 
       def really_complete
-        Watchdog.kill(self) if time_out > 0
+        Watchdog.dismiss(self) if time_out > 0
         if parent.is_a?(Decision) && next_decision != 'none'
           #only top level activities are allowed schedule a next decision
           add_decision(next_decision) if next_decision

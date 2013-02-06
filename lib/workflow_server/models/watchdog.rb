@@ -6,33 +6,20 @@ module WorkflowServer
 
       field :name, type: Symbol
       field :starves_in, type: Integer, default: 10.minutes
-      field :subject_klass, type: String
-      field :subject_id, type: String
 
-      index({ name: 1, subject_klass: 1, subject_id: 1 }, { unique: true })
-      index({ subject_klass: 1, subject_id: 1 })
+      belongs_to :subject, inverse_of: :watchdogs, class_name: "WorkflowServer::Models::Event", index: true
+      belongs_to :timer, class_name: "Delayed::Backend::Mongoid::Job", inverse_of: nil, dependent: :destroy
 
-      belongs_to :timer, class_name: "Delayed::Backend::Mongoid::Job", inverse_of: nil, dependent: :delete
+      index({ name: 1, subject: 1}, { unique: true })
 
-      validates_presence_of :name, :subject_id, :subject_klass
+      validates_presence_of :name, :subject
 
-      def self.start(subject, name = :timeout, starves_in = 10.minutes)
-        Watchdog.kill(subject,name)
-        new_dog = create!(name: name,
-                          starves_in: starves_in,
-                          subject_klass: subject.class.to_s,
-                          subject_id: subject.id)
-        new_dog.timer = Delayed::Backend::Mongoid::Job.enqueue(new_dog, run_at: new_dog.starves_in.from_now)
-        new_dog.save!
-        new_dog
+      before_destroy do
+        self.timer.destroy if self.timer
       end
 
-      alias_method :stop, :destroy
-      alias_method :kill, :destroy
-      alias_method :dismiss, :destroy
-
       def feed
-        self.timer.delete if self.timer
+        self.timer.destroy if self.timer
         self.timer = Delayed::Backend::Mongoid::Job.enqueue(self, run_at: starves_in.from_now)
         save!
       end
@@ -40,41 +27,52 @@ module WorkflowServer
       alias_method :pet, :feed
       alias_method :wake, :feed
 
-      def subject
-        subject_klass.constantize.find(subject_id)
-      end
+      alias_method :dismiss, :destroy
+      alias_method :stop, :destroy
+      alias_method :kill, :destroy
 
       def perform
-        subject.timeout(TimeOut.new("#{name}"))
+        self.subject.timeout(TimeOut.new("#{name}"))
         destroy
       end
 
       class << self
+        def start(subject, name = :timeout, starves_in = 10.minutes)
+          Watchdog.dismiss(subject,name)
+          new_dog = create!(name: name,
+                            starves_in: starves_in,
+                            subject: subject)
+          new_dog.timer = Delayed::Backend::Mongoid::Job.enqueue(new_dog, run_at: new_dog.starves_in.from_now)
+          new_dog.save!
+          new_dog
+        end
+
         def feed(subject, name = :timeout)
-          dog = Watchdog.where(subject_klass: subject.class.to_s, subject_id: subject.id, name: name).first
+          dog = Watchdog.where(subject: subject, name: name).first
           if dog
             dog.feed
           else
             Watchdog.start(subject,name)
           end
         end
+
         alias_method :kick, :feed
         alias_method :pet, :feed
         alias_method :wake, :feed
 
-
         def stop(subject, name = :timeout)
-          Watchdog.where(subject_klass: subject.class.to_s, subject_id: subject.id, name: name).destroy
+          Watchdog.destroy_all(subject: subject, name: name)
         end
-        alias_method :kill, :stop
+
         alias_method :dismiss, :stop
+        alias_method :kill, :stop
 
         def mass_stop(subject)
-          Watchdog.where(subject_klass: subject.class.to_s, subject_id: subject.id).destroy
+          Watchdog.destroy_all(subject: subject)
         end
-        alias_method :mass_kill, :mass_stop
-        alias_method :mass_dismiss, :mass_stop
 
+        alias_method :mass_dismiss, :mass_stop
+        alias_method :mass_kill, :mass_stop
       end
 
     end
