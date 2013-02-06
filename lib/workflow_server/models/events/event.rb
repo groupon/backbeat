@@ -141,7 +141,7 @@ module WorkflowServer
         WorkflowServer::Async::Job.jobs(self)
       end
 
-      def cleaup
+      def cleanup
         destroy_jobs
         Watchdog.mass_dismiss(self)
       end
