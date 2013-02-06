@@ -7,11 +7,13 @@ describe Api::Workflow do
     FullRackApp
   end
 
+  let(:user) { FactoryGirl.create(:user) }
+
   before do
     header 'CLIENT_ID', RSPEC_CONSTANT_USER_CLIENT_ID
     WorkflowServer::Client.stub(:make_decision)
 
-    @wf = FactoryGirl.create(:workflow)
+    @wf = FactoryGirl.create(:workflow, user: user)
     @d1 = FactoryGirl.create(:decision, workflow: @wf)
     @d2 = FactoryGirl.create(:decision, workflow: @wf)
     @user = FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s)
@@ -67,8 +69,8 @@ describe Api::Workflow do
     end
     [:workflow_type, :subject_klass, :subject_id, :decider].each do |filter_field|
       it "filters search by the #{filter_field}" do
-        @wf1 = FactoryGirl.create(:workflow, filter_field => "123")
-        @wf2 = FactoryGirl.create(:workflow, filter_field => "789")
+        @wf1 = FactoryGirl.create(:workflow, filter_field => "123", user: user)
+        @wf2 = FactoryGirl.create(:workflow, filter_field => "789", user: user)
         get '/workflows', filter_field => "123"
         last_response.status.should == 200
         json_response = JSON.parse(last_response.body)
@@ -83,8 +85,8 @@ describe Api::Workflow do
       end
     end
     it "works across combination of search parameters" do
-      @wf1 = FactoryGirl.create(:workflow, workflow_type: "WT1", subject_klass: "PT1", subject_id: 1, decider: "D1")
-      @wf2 = FactoryGirl.create(:workflow, workflow_type: "WT2", subject_klass: "PT2", subject_id: 2, decider: "D2")
+      @wf1 = FactoryGirl.create(:workflow, workflow_type: "WT1", subject_klass: "PT1", subject_id: 1, decider: "D1", user: user)
+      @wf2 = FactoryGirl.create(:workflow, workflow_type: "WT2", subject_klass: "PT2", subject_id: 2, decider: "D2", user: user)
       get '/workflows', workflow_type: "WT1", subject_klass: "PT1", subject_id: 1, decider: "D1"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
@@ -102,7 +104,7 @@ describe Api::Workflow do
     end
 
     it "returns 201 and the signal json if workflow exists" do
-      @wf = FactoryGirl.create(:workflow)
+      @wf = FactoryGirl.create(:workflow, user: user)
       @user = @wf.user
       Delayed::Job.destroy_all
       post "/workflows/#{@wf.id}/signal/test"

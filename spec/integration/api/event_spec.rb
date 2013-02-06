@@ -7,12 +7,14 @@ describe Api::Workflow do
     FullRackApp
   end
 
+  let(:user) { FactoryGirl.create(:user) }
+  let(:workflow) { FactoryGirl.create(:workflow, user: user) }
+
   before do
     header 'CLIENT_ID', RSPEC_CONSTANT_USER_CLIENT_ID
     WorkflowServer::Client.stub(:make_decision)
     @user = FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s)
-    @wf = FactoryGirl.create(:workflow)
-    @d1 = FactoryGirl.create(:decision, workflow: @wf)
+    @d1 = FactoryGirl.create(:decision, workflow: workflow)
   end
 
   def uri(template, event)
@@ -25,19 +27,17 @@ describe Api::Workflow do
   ["/workflows/<%=workflow_id%>/events/<%=event_id%>", "/events/<%=event_id%>"].each do |template|
     context "GET #{template}" do
       it "returns an event object with valid params" do
-        decision = FactoryGirl.create(:decision)
-        get uri(template, decision)
+        get uri(template, @d1)
         last_response.status.should == 200
         json_response = JSON.parse(last_response.body)
-        json_response.should == {"createdAt"=>Time.now.to_datetime.to_s, "decider" => "PaymentDecider", "name"=>"WFDecision", "parentId"=>nil, "status"=>"enqueued", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>decision.workflow.id, "id"=>decision.id, "type"=>"decision", "pastFlags"=>[], "subjectKlass"=>"PaymentTerm", "subjectId"=>100}
-        json_response['id'].should == decision.id.to_s
+        json_response.should include({"createdAt"=>Time.now.to_datetime.to_s, "decider" => "PaymentDecider", "name"=>"WFDecision", "parentId"=>nil, "status"=>"enqueued", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@d1.workflow.id, "id"=>@d1.id, "type"=>"decision", "pastFlags"=>[], "subjectKlass"=>"PaymentTerm", "subjectId"=>100})
+        json_response['id'].should == @d1.id.to_s
       end
 
       it "returns the past flags" do
         name = 'decision'
-        flag = FactoryGirl.create(:flag, name: "#{name}_completed")
-        wf = flag.workflow
-        decision = FactoryGirl.create(:decision, name: name, workflow: wf)
+        flag = FactoryGirl.create(:flag, name: "#{name}_completed", workflow: workflow)
+        decision = FactoryGirl.create(:decision, name: name, workflow: workflow)
         get uri(template, decision)
         last_response.status.should == 200
         json_response = JSON.parse(last_response.body)
@@ -45,8 +45,7 @@ describe Api::Workflow do
       end
 
       it "returns a 404 if the event is not found" do
-        wf = FactoryGirl.create(:workflow)
-        event = mock('mock', id: 1000, workflow: wf)
+        event = mock('mock', id: 1000, workflow: workflow)
         get uri(template, event)
         last_response.status.should == 404
         json_response = JSON.parse(last_response.body)
@@ -54,7 +53,7 @@ describe Api::Workflow do
       end
 
       it "returns a 404 if a user tries to access a workflow that doesn't belong to them" do
-        decision = FactoryGirl.create(:decision)
+        decision = FactoryGirl.create(:decision, workflow: workflow)
         user = FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s)
         header 'CLIENT_ID', user.id
         get uri(template, decision)
@@ -119,7 +118,7 @@ describe Api::Workflow do
         get "#{uri(template, @d1)}/big_tree"
         last_response.status.should == 200
         json_response = JSON.parse(last_response.body)
-        json_response.should == {"createdAt"=>Time.now.to_datetime.to_s, "name"=>"WFDecision", "parentId"=>nil, "status"=>"enqueued", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@wf.id, "id"=>@d1.id, "type"=>"decision", "pastFlags"=>[], "decider"=>"PaymentDecider", "subjectKlass"=>"PaymentTerm", "subjectId"=>100}
+        json_response.should == {"createdAt"=>Time.now.to_datetime.to_s, "name"=>"WFDecision", "parentId"=>nil, "status"=>"enqueued", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>workflow.id, "id"=>@d1.id, "type"=>"decision", "pastFlags"=>[], "decider"=>"PaymentDecider", "subjectKlass"=>"PaymentTerm", "subjectId"=>100}
       end
 
       it "returns a 404 if the event is not found" do

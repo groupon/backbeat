@@ -4,6 +4,8 @@ development:
       database: workflow_dev
       hosts:
         - localhost:27017
+      options:
+        safe: true
   options:
     raise_not_found_error: false
 
@@ -13,6 +15,8 @@ test:
       database: workflow_test
       hosts:
         - localhost:27018
+      options:
+        safe: true
   options:
     raise_not_found_error: false
 
@@ -27,6 +31,7 @@ uat:
         consistency: :strong
         max_retries: 5
         retry_interval: 1
+        safe: true
   options:
     raise_not_found_error: false
 
@@ -41,6 +46,7 @@ staging:
         consistency: :strong
         max_retries: 5
         retry_interval: 1
+        safe: true
   options:
     raise_not_found_error: false
 
@@ -56,5 +62,6 @@ production:
         consistency: :strong
         max_retries: 5
         retry_interval: 1
+        safe: true
   options:
     raise_not_found_error: false

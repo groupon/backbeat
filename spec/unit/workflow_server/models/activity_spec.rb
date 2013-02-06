@@ -2,9 +2,11 @@ require 'spec_helper'
 require_relative 'event_se'
 
 describe WorkflowServer::Models::Activity do
+  let(:user) { FactoryGirl.create(:user) }
+
   before do
     @event_klass = WorkflowServer::Models::Activity
-    @wf = FactoryGirl.create(:workflow)
+    @wf = FactoryGirl.create(:workflow, user: user)
     @a1 = FactoryGirl.create(:activity, workflow: @wf).reload
     @event = @a1
   end
@@ -60,7 +62,7 @@ describe WorkflowServer::Models::Activity do
       end
       context "parent is a decision" do
         before do
-          @activity = FactoryGirl.create(:activity, parent: FactoryGirl.create(:decision), workflow: @wf)
+          @activity = FactoryGirl.create(:activity, parent: FactoryGirl.create(:decision, workflow: @wf), workflow: @wf)
         end
         context "next decision is set" do
           it "schedules a decision task and goes to complete state" do
@@ -152,20 +154,20 @@ describe WorkflowServer::Models::Activity do
       it "goes back into executing state" do
         @a1.update_status!(:running_sub_activity)
         @a1.should_receive(:continue)
-        @a1.child_completed(FactoryGirl.create(:sub_activity))
+        @a1.child_completed(FactoryGirl.create(:sub_activity, workflow: @wf))
       end
     end
     context "child was non-blocking" do
       it "parent activity not complete" do
         @a1.should_not_receive(:continue)
         @a1.should_not_receive(:completed)
-        @a1.child_completed(FactoryGirl.create(:sub_activity, mode: :non_blocking))
+        @a1.child_completed(FactoryGirl.create(:sub_activity, mode: :non_blocking, workflow: @wf))
       end
 
       it "parent activity completed" do
         @a1.update_status!(:waiting_for_sub_activities)
         @a1.should_receive(:completed)
-        @a1.child_completed(FactoryGirl.create(:sub_activity, mode: :non_blocking))
+        @a1.child_completed(FactoryGirl.create(:sub_activity, mode: :non_blocking, workflow: @wf))
       end
     end
   end
@@ -174,13 +176,13 @@ describe WorkflowServer::Models::Activity do
     it "dismisses its watchdogs if child was fire_and_forget" do
       @a1.update_attributes!(retry: 0)
       WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(@a1)
-      @a1.child_errored(FactoryGirl.create(:sub_activity, mode: :non_blocking), {:something_bad => :very_bad})
+      @a1.child_errored(FactoryGirl.create(:sub_activity, mode: :non_blocking, workflow: @wf), {:something_bad => :very_bad})
     end
 
     it "no changes if child was fire_and_forget" do
       @a1.update_attributes!(retry: 0)
       WorkflowServer::Models::Watchdog.should_not_receive(:mass_dismiss).with(@a1)
-      @a1.child_errored(FactoryGirl.create(:sub_activity, mode: :fire_and_forget), {:something_bad => :very_bad})
+      @a1.child_errored(FactoryGirl.create(:sub_activity, mode: :fire_and_forget, workflow: @wf), {:something_bad => :very_bad})
     end
   end
 
@@ -188,13 +190,13 @@ describe WorkflowServer::Models::Activity do
     it "dismisses its watchdogs if child was fire_and_forget" do
       @a1.update_attributes!(retry: 0)
       WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(@a1)
-      @a1.child_timeout(FactoryGirl.create(:sub_activity, mode: :non_blocking), :something)
+      @a1.child_timeout(FactoryGirl.create(:sub_activity, mode: :non_blocking, workflow: @wf), :something)
     end
 
     it "no changes if child was fire_and_forget" do
       @a1.update_attributes!(retry: 0)
       WorkflowServer::Models::Watchdog.should_not_receive(:mass_dismiss).with(@a1)
-      @a1.child_timeout(FactoryGirl.create(:sub_activity, mode: :fire_and_forget), :something)
+      @a1.child_timeout(FactoryGirl.create(:sub_activity, mode: :fire_and_forget, workflow: @wf), :something)
     end
   end
 
@@ -251,7 +253,7 @@ describe WorkflowServer::Models::Activity do
       end
 
       it "branches raise an error if no next_decision is given" do
-        a1 = FactoryGirl.create(:branch)
+        a1 = FactoryGirl.create(:branch, workflow: @wf)
         a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
         a1.should_not_receive(:completed)
         expect {
@@ -290,7 +292,7 @@ describe WorkflowServer::Models::Activity do
     end
 
     it "goes into error state andd puts a decision task" do
-      @a1.update_attributes!(parent: FactoryGirl.create(:decision))
+      @a1.update_attributes!(parent: FactoryGirl.create(:decision, workflow: @wf))
       @a1.update_attributes!(retry: 2, retry_interval: 40.minutes)
       2.times do
         @a1.errored(:some_error)
@@ -306,7 +308,7 @@ describe WorkflowServer::Models::Activity do
 
   context "#subactivities_running?" do
     it "true when any non fire_and_forget is not in complete state" do
-      child = FactoryGirl.create(:sub_activity, parent: @a1)
+      child = FactoryGirl.create(:sub_activity, parent: @a1, workflow: @wf)
       @a1.__send__(:subactivities_running?).should == true
 
       child.update_status!(:complete)
@@ -314,7 +316,7 @@ describe WorkflowServer::Models::Activity do
     end
 
     it "false when the running subactivity is in fire_and_forget" do
-      child = FactoryGirl.create(:sub_activity, parent: @a1, mode: :fire_and_forget)
+      child = FactoryGirl.create(:sub_activity, parent: @a1, mode: :fire_and_forget, workflow: @wf)
       @a1.__send__(:subactivities_running?).should == false
 
       child.update_attributes!(mode: :blocking)

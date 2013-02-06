@@ -2,10 +2,13 @@ require 'spec_helper'
 require_relative 'event_se'
 
 describe WorkflowServer::Models::Workflow do
+
+  let(:user) { FactoryGirl.create(:user) }
+
   before do
     @event_klass = WorkflowServer::Models::Workflow
-    @event_data = {name: :test_flag, workflow_type: :wf_type, subject_klass: "PaymentTerm", subject_id: 100, decider: "A::B::C", user: FactoryGirl.create(:user) }
-    @wf = FactoryGirl.create(:workflow)
+    @event_data = {name: :test_flag, workflow_type: :wf_type, subject_klass: "PaymentTerm", subject_id: 100, decider: "A::B::C", user: user }
+    @wf = FactoryGirl.create(:workflow, user: user)
     @event = @wf
   end
 
@@ -35,7 +38,7 @@ describe WorkflowServer::Models::Workflow do
       @wf.status.should == :complete
     end
     it "drops a signal / decision task to notify the workflow" do
-      workflow = FactoryGirl.create(:workflow)
+      workflow = FactoryGirl.create(:workflow, user: user)
       @wf.update_attributes!(workflow: workflow)
       @wf.completed                              
       workflow.signals.count.should == 1
@@ -51,7 +54,7 @@ describe WorkflowServer::Models::Workflow do
       @wf.status.should == :error
     end
     it "drops a signal / decision task to notify the workflow" do
-      workflow = FactoryGirl.create(:workflow)
+      workflow = FactoryGirl.create(:workflow, user: user)
       @wf.update_attributes!(workflow: workflow)
       @wf.errored(:some_error)                              
       workflow.signals.count.should == 1
@@ -68,7 +71,7 @@ describe WorkflowServer::Models::Workflow do
       @wf.signals.count.should == 0
     end
     it "drops a signal if called with a start signal" do
-      wf = FactoryGirl.create(:workflow, start_signal: :some_signal)
+      wf = FactoryGirl.create(:workflow, start_signal: :some_signal, user: user)
       wf.start
       wf.signals.count.should == 1
       signal = wf.signals.first
