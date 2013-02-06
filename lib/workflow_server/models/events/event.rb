@@ -143,10 +143,25 @@ module WorkflowServer
         workflow.user
       end
 
-      def with_lock(options = {}, &block)
-        options[:wait] = true if options[:wait].nil?
-        super(options, &block)
+      def with_lock_with_retry(options = {}, &block)
+        retry_sleep = options.delete(:retry_sleep) || 0.5
+        retries = options.delete(:retries) || 5
+        options[:timeout] ||= 2
+
+        begin
+          with_lock_without_retry(options, &block)
+        rescue Mongoid::LockError => error
+          if retries > 0
+            retries -= 1
+            sleep retry_sleep
+            retry
+          else
+            raise error
+          end
+        end
       end
+      alias_method :with_lock_without_retry, :with_lock
+      alias_method :with_lock, :with_lock_with_retry
 
       private
 
