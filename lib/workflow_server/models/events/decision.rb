@@ -146,7 +146,7 @@ module WorkflowServer
       end
 
       def open_events
-        Event.where(parent: self, status: :open).each do |event|
+        children.where(status: :open).each do |event|
           yield event
         end
       end
