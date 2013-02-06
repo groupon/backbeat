@@ -56,6 +56,8 @@ module WorkflowServer
         end
       end
 
+      alias_method :my_user, :user
+
       {
         flags: Flag,
         decisions: Decision,

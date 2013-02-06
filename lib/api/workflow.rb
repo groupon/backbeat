@@ -39,8 +39,10 @@ module Api
         wf
       end
 
-      def find_event(event_id, workflow_id = nil, event_type = nil)
+      def find_event(params, event_type = nil)
         event = nil
+        event_id = params[:id]
+        workflow_id = params[:workflow_id]
         if workflow_id
           wf = find_workflow(workflow_id)
           event_type ||= :events #all events
@@ -48,7 +50,7 @@ module Api
           raise WorkflowServer::EventNotFound, "Event with id(#{event_id}) not found" unless event
         else
           event = WorkflowServer::Models::Event.find(event_id)
-          unless event && event.workflow.user == current_user
+          unless event && event.my_user == current_user
             raise WorkflowServer::EventNotFound, "Event with id(#{event_id}) not found"
           end
         end
@@ -110,71 +112,62 @@ module Api
         signal = wf.signal(params[:name])
         signal
       end
-
-
-      segment '/:workflow_id' do
-        resource 'events' do
-          get "/:id" do
-            find_event(params[:id], params[:workflow_id])
-          end
-
-          get "/:id/tree" do
-            e = find_event(params[:id], params[:workflow_id])
-            e.tree
-          end
-
-          #TODO test this endpoint
-          get "/:id/tree/print" do
-            e = find_event(params[:id], params[:workflow_id])
-            {print: e.tree.print(true)}
-          end
-
-          get "/:id/big_tree" do
-            e = find_event(params[:id], params[:workflow_id])
-            e.big_tree
-          end
-
-          put "/:id/status/:new_status" do
-            event = find_event(params[:id], params[:workflow_id])
-            raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
-            event.change_status(params[:new_status], params[:args] || {})
-            {success: true}
-          end
-
-          params do
-            requires :sub_activity, type: Hash, :desc => 'sub activity param cannot be empty'
-          end
-          put "/:id/run_sub_activity" do
-            event = find_event(params[:id], params[:workflow_id], :activities)
-            sub_activity = event.run_sub_activity(params[:sub_activity] || {})
-            if sub_activity.try(:blocking?)
-              header("WAIT_FOR_SUB_ACTIVITY", "true")
-            end
-            sub_activity
-          end
-        end
-      end
     end
-    resource "events" do
+
+    # Events can be reached using two url's
+    # 1) as a subresource /workflows/<workflow_id>/events/<id>
+    # 2) or as a top level resource /events/<id>
+    # This proc here is the general declaration that is at the end consumed by both the above endpoints.
+    EventSpecification = Proc.new do
       get "/:id" do
-        find_event(params[:id])
+        find_event(params)
       end
 
       get "/:id/tree" do
-        e = find_event(params[:id])
+        e = find_event(params)
         e.tree
       end
 
       #TODO test this endpoint
       get "/:id/tree/print" do
-        e = find_event(params[:id])
+        e = find_event(params)
         {print: e.tree.print(true)}
       end
 
       get "/:id/big_tree" do
-        e = find_event(params[:id])
+        e = find_event(params)
         e.big_tree
       end
+
+      put "/:id/status/:new_status" do
+        event = find_event(params)
+        raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
+        event.change_status(params[:new_status], params[:args] || {})
+        {success: true}
+      end
+
+      params do
+        requires :sub_activity, type: Hash, :desc => 'sub activity param cannot be empty'
+      end
+      put "/:id/run_sub_activity" do
+        event = find_event(params, :activities)
+        sub_activity = event.run_sub_activity(params[:sub_activity] || {})
+        if sub_activity.try(:blocking?)
+          header("WAIT_FOR_SUB_ACTIVITY", "true")
+        end
+        sub_activity
+      end
+    end
+
+    resource 'workflows' do
+      segment '/:workflow_id' do
+        resource 'events' do
+          EventSpecification.call
+        end
+      end
+    end
+    resource "events" do
+      EventSpecification.call
     end
   end
 end
