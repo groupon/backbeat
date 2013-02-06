@@ -143,6 +143,11 @@ module WorkflowServer
         workflow.user
       end
 
+      def with_lock(options = {}, &block)
+        options[:wait] = true if options[:wait].nil?
+        super(options, &block)
+      end
+
       private
 
       def error_hash(error)
