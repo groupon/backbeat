@@ -209,12 +209,12 @@ describe Api::Workflow do
     end
   end
 
-  context "GET /workflows/id/tree/print" do
+  context "GET /workflows/:id/tree/print" do
     it "returns a tree of the workflow with valid params" do
       get "/workflows/#{@wf.id}/tree/print"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"print"=>"\e[36m*--\e[0mWorkflow:WFType is open.\t ID -> #{@wf.id}\n\e[36m*--\e[0mDecision:WFDecision is enqueued.\t ID -> #{@d1.id}\n\e[36m*--\e[0mDecision:WFDecision is open.\t ID -> #{@d2.id}\n"}
+      json_response["print"].should be_a(String)
     end
 
     it "returns a 404 if the workflow is not found" do
@@ -230,54 +230,6 @@ describe Api::Workflow do
       last_response.status.should == 404
       json_response = JSON.parse(last_response.body)
       json_response.should == {"error" => "Workflow with id(#{@wf.id}) not found"}
-    end
-  end
-
-  context "GET /events/id/tree" do
-    it "returns a tree of the event with valid params" do
-      get "/events/#{@d1.id}/tree"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
-      json_response.should == {"id"=>@d1.id, "type"=>"decision", "name"=>"WFDecision", "status"=>"enqueued"}
-    end
-
-    it "returns a 404 if the event is not found" do
-      get "/events/1000/tree"
-      last_response.status.should == 404
-      json_response = JSON.parse(last_response.body)
-      json_response.should == {"error" => "Event with id(1000) not found"}
-    end
-
-    it "returns a 404 if a user tries to access an event that doesn't belong to them" do
-      header 'CLIENT_ID', @user.id
-      get "/events/#{@d1.id}/tree"
-      last_response.status.should == 404
-      json_response = JSON.parse(last_response.body)
-      json_response.should == {"error" => "Event with id(#{@d1.id}) not found"}
-    end
-  end
-
-  context "GET /events/id/tree/print" do
-    it "returns a tree of the event with valid params" do
-      get "/events/#{@d1.id}/tree/print"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
-      json_response.should == {"print" => "\e[36m*--\e[0mDecision:WFDecision is enqueued.\t ID -> #{@d1.id}\n"}
-    end
-
-    it "returns a 404 if the event is not found" do
-      get "/events/1000/tree/print"
-      last_response.status.should == 404
-      json_response = JSON.parse(last_response.body)
-      json_response.should == {"error" => "Event with id(1000) not found"}
-    end
-
-    it "returns a 404 if a user tries to access an event that doesn't belong to them" do
-      header 'CLIENT_ID', @user.id
-      get "/events/#{@d1.id}/tree/print"
-      last_response.status.should == 404
-      json_response = JSON.parse(last_response.body)
-      json_response.should == {"error" => "Event with id(#{@d1.id}) not found"}
     end
   end
 

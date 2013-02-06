@@ -98,7 +98,7 @@ module Api
 
       get "/:id/tree/print" do
         wf = find_workflow(params[:id])
-        {print: wf.print_tree(true)}
+        {print: wf.tree_to_s}
       end
 
       post "/:id/signal/:name" do
@@ -129,7 +129,7 @@ module Api
 
         get "/:id/tree/print" do
           e = find_event(params)
-          {print: e.tree.print(true)}
+          {print: e.tree_to_s}
         end
 
         put "/:id/status/:new_status" do

@@ -1,70 +1,74 @@
 module Tree
-  include Colorize
 
-  def tree(big_tree = false)
-    child_trees = get_child_trees(big_tree)
-    child_trees.empty? ? node(big_tree) : node(big_tree).merge(children: child_trees)
+  def tree
+    child_trees = get_child_trees
+    child_trees.empty? ? Node.new(self) : Node.new(self).merge(children: child_trees)
   end
 
-  def big_tree
-    tree(true)
-  end
-
-  def print_tree(to_string = false)
-    string = spacer + color_code(to_s_for_tree) + "\n"
+  def tree_to_s(first_call = true , nodes = [])
+    nodes << Node.new(self)
     get_children.each do |child|
-      string += child.print_tree(true)
+      nodes << child.tree_to_s(false, nodes)
     end
-    to_string ? string : (puts string)
+    if first_call
+      "\n" + nodes.compact.map{|node| node.to_s}.join("\n") + "\n\n"
+    end
   end
 
-  private
+  def print_tree
+    puts tree_to_s
+  end
 
   def depth
     @depth ||= self.parent.nil? ? 0 : self.parent.depth + 1
   end
 
-  def node(big_tree = false)
-    big_tree ? serializable_hash : {id: self.id, type: event_type, name: self.name, status: self.status}
-  end
+  private
 
   def get_children
     self.children
   end
 
-  def get_child_trees(big_tree = false)
+  def get_child_trees
     child_trees = []
     get_children.each do |child|
-      child_trees << child.tree(big_tree)
+      child_trees << child.tree
     end
     child_trees
   end
 
-  def to_s_for_tree
-    "#{event_type.capitalize}:#{self.name} is #{self.status}.\t ID -> #{self.id}"
-  rescue
-    self.to_s
+  class Node < Hash
+    include Colorize
+
+    def initialize(model)
+      merge!({id: model.id, type: model.event_type, name: model.name, status: model.status})
+      @depth = model.depth
+    end
+
+    def to_s
+      self[:id].to_s + spacer + color_code("#{self[:type].capitalize}:#{self[:name]} is #{self[:status]}.")
+    end
+
+    private
+
+    def spacer
+      cyan("#{('   ' * @depth)}\|--")
+    end
+
+    def color_code(text)
+      case self[:status]
+      when :executing, :running_sub_activity, :waiting_for_sub_activities
+        yellow(text)
+      when :complete
+        green(text)
+      when :error, :failed, :timeout
+        red(text)
+      else
+        white(text)
+      end
+    end
+
   end
 
-  def spacer
-    if depth > 1
-      cyan("#{('   ' * (depth - 2))}\|--")
-    else
-      cyan('*--')
-    end
-  end
-
-  def color_code(text)
-    case self[:status]
-    when :executing, :running_sub_activity, :waiting_for_sub_activities
-      yellow(text)
-    when :complete
-      green(text)
-    when :error, :errored, :failed, :timeout
-      red(text)
-    else
-      text
-    end
-  end
 
 end
