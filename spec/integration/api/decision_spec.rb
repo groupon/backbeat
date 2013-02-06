@@ -27,14 +27,16 @@ describe Api::Workflow do
         json_response['error'].should == "Decision #{decision.name} can't transition from open to deciding"
       end
 
-      it "puts a decision in deciding state if enqueued" do
-        decision = FactoryGirl.create(:decision, status: :enqueued)
-        wf = decision.workflow
-        user = wf.user
-        put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding"
-        last_response.status.should == 200
-        decision.reload
-        decision.status.should == :deciding
+      [:enqueued, :timeout, :deciding].each do |new_status|
+        it "goes to deciding state from #{new_status} state" do
+          decision = FactoryGirl.create(:decision, status: new_status)
+          wf = decision.workflow
+          user = wf.user
+          put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding"
+          last_response.status.should == 200
+          decision.reload
+          decision.status.should == :deciding
+        end
       end
     end
   end
