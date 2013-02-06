@@ -63,7 +63,7 @@ module WorkflowServer
       end
 
       def close
-        Watchdog.kill(self, :decision_deciding_time_out)
+        Watchdog.dismiss(self, :decision_deciding_time_out)
         decisions = decisions_to_add.map do |type, args|
           type.new(args.merge(workflow: workflow, parent: self))
         end
