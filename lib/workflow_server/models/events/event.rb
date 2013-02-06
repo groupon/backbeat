@@ -20,6 +20,7 @@ module WorkflowServer
       has_many :watchdogs, inverse_of: :subject, class_name: "WorkflowServer::Models::Watchdog", dependent: :destroy
 
       index({ status: 1 })
+      index({ sequence: 1 })
 
       before_destroy do
         destroy_jobs
