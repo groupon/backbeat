@@ -13,6 +13,7 @@ gem 'uuidtools'
 gem 'httparty'
 gem 'log4r'
 gem 'rake'
+gem 'mongoid_auto_increment'
 
 group :development do
   # deployment

@@ -78,6 +78,9 @@ GEM
       mongoid
     mongoid-locker (0.2.1)
       mongoid (>= 2.4, <= 3.1)
+    mongoid_auto_increment (0.1.0)
+      mongoid
+      mongoid_auto_increment
     moped (1.3.2)
     multi_json (1.5.0)
     multi_xml (0.5.2)
@@ -161,6 +164,7 @@ DEPENDENCIES
   mongoid
   mongoid-indifferent-access
   mongoid-locker
+  mongoid_auto_increment
   pry
   rack-test
   rake

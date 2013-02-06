@@ -10,7 +10,7 @@ module WorkflowServer
       field :error_workflow, type: Boolean, default: false # whether this workflow should retry the parent decision on complete
       field :start_signal, type: Symbol
 
-      has_many :events, inverse_of: :workflow, order: {created_at: 1}, dependent: :destroy
+      has_many :events, inverse_of: :workflow, order: {sequence: 1}, dependent: :destroy
 
       belongs_to :user, index: true
 

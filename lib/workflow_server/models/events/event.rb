@@ -12,9 +12,11 @@ module WorkflowServer
       field :status_history, type: Array, default: []
       field :name,           type: Symbol
 
+      auto_increment :sequence, seed: 1
+
       belongs_to :workflow, inverse_of: :events, class_name: "WorkflowServer::Models::Workflow", index: true
       belongs_to :parent, inverse_of: :children, class_name: "WorkflowServer::Models::Event", index: true
-      has_many :children, inverse_of: :parent, class_name: "WorkflowServer::Models::Event", order: {created_at: 1}, dependent: :destroy
+      has_many :children, inverse_of: :parent, class_name: "WorkflowServer::Models::Event", order: {sequence: 1}, dependent: :destroy
       has_many :watchdogs, inverse_of: :subject, class_name: "WorkflowServer::Models::Watchdog", dependent: :destroy
 
       index({ status: 1 })
@@ -124,7 +126,7 @@ module WorkflowServer
 
       # These fields are not included in the hash sent out to the client
       def blacklisted_fields
-        ["_id", "_type", "locked_at", "locked_until", "start_signal", "status_history"]
+        ["_id", "_type", "locked_at", "locked_until", "start_signal", "status_history", "sequence"]
       end
 
       def serializable_hash(options = {})
