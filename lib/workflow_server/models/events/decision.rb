@@ -15,7 +15,7 @@ module WorkflowServer
       def restart
         raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to restarting" unless [:error, :timeout].include?(status)
         update_status!(:restarting)
-        cleaup
+        cleanup
         start
       end
 
