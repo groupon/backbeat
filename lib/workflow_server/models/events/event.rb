@@ -12,7 +12,7 @@ module WorkflowServer
       field :status_history, type: Array, default: []
       field :name,           type: Symbol
 
-      auto_increment :sequence, seed: 1
+      auto_increment :sequence
 
       belongs_to :workflow, inverse_of: :events, class_name: "WorkflowServer::Models::Workflow", index: true
       belongs_to :parent, inverse_of: :children, class_name: "WorkflowServer::Models::Event", index: true
