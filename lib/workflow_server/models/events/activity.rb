@@ -137,11 +137,10 @@ module WorkflowServer
 
       def do_retry(error)
         update_status!(:failed, error)
-        notify_of(:error_retry, error: error)
-        unless retry_interval > 0
-          start
-        else
+        if retry_interval > 0
           WorkflowServer::Async::Job.schedule({event: self, method: :start, max_attempts: 5}, retry_interval.from_now)
+        else
+          start
         end
         update_status!(:retrying)
       end
