@@ -118,7 +118,7 @@ module WorkflowServer
 
       def verify_and_get_next_decision(next_decision_arg)
         validate_next_decision(next_decision_arg)
-        next_decision_arg || "#{name}_succeeded"
+        next_decision_arg
       end
 
       def validate_next_decision(next_decision_arg)

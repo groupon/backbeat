@@ -74,12 +74,10 @@ describe Api::Workflow do
           put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
           last_response.status.should == 200
           activity.reload
-          activity.children.count.should == 1
-          child = activity.children.first
-          child.name.should == :make_initial_payment_succeeded
           activity.status.should == :complete
         end
       end
+
       context "activity errored" do
         it "returns 400 if the activity is not in executing state" do
           activity = FactoryGirl.create(:activity, status: :open)

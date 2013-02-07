@@ -79,16 +79,13 @@ describe WorkflowServer::Models::Decision do
   end
 
   context "#completed" do
-    it "adds a Flag to mark completion and checks with workflow manager to schedule the next decision" do
+    it "checks with workflow manager to schedule the next decision" do
       @d2 = FactoryGirl.create(:decision, workflow: @wf, name: "WF_Decision-2")
       @d1.reload
       @d2.reload
       @d1.status.should == :enqueued
       @d2.status.should == :open
       @d1.completed
-      @d1.children.count == 1
-      child = @d1.children.first
-      child.name.should == "#{@d1.name}_completed".to_sym
       @d2.reload
       @d2.status.should == :enqueued
     end
