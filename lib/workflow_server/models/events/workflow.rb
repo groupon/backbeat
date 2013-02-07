@@ -94,12 +94,8 @@ module WorkflowServer
           end
         end
 
-        def get_child_trees(big_tree = false, depth = 0)
-          child_trees = []
-          self.events.where(parent: nil).each do |child|
-            child_trees << child.tree(big_tree, depth + 1)
-          end
-          child_trees
+        def get_children
+          self.events.where(parent: nil)
         end
 
         def show

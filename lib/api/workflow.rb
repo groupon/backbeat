@@ -98,12 +98,7 @@ module Api
 
       get "/:id/tree/print" do
         wf = find_workflow(params[:id])
-        {print: wf.tree.print(true)}
-      end
-
-      get "/:id/big_tree" do
-        wf = find_workflow(params[:id])
-        wf.big_tree
+        {print: wf.tree_to_s}
       end
 
       post "/:id/signal/:name" do
@@ -134,12 +129,7 @@ module Api
 
         get "/:id/tree/print" do
           e = find_event(params)
-          {print: e.tree.print(true)}
-        end
-
-        get "/:id/big_tree" do
-          e = find_event(params)
-          e.big_tree
+          {print: e.tree_to_s}
         end
 
         put "/:id/status/:new_status" do
