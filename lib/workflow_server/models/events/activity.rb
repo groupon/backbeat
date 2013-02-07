@@ -40,12 +40,12 @@ module WorkflowServer
 
       def completed
         with_lock do
-          unless subactivities_running?
-            really_complete
-            super
-          else
+          if subactivities_running?
             Watchdog.feed(self) if time_out > 0
             update_status!(:waiting_for_sub_activities)
+          else
+            really_complete
+            super
           end
         end
       end

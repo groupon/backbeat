@@ -262,10 +262,10 @@ namespace :deploy do
   desc "gracefully stop/start unicorn (execs new unicorn instance, old one times out)"
   task :restart, :roles => :utility do
     roles[:utility].instance_variable_get('@static_servers').each do |host|
-      unless unicorn_pids_by_host[host].empty?
-        run "kill -s USR2 `cat #{unicorn_pid}`"
-      else
+      if unicorn_pids_by_host[host].empty?
         run "(cd #{current_path} && RACK_ENV=#{stage} #{unicorn_binary} -c #{unicorn_config} -D)"
+      else
+        run "kill -s USR2 `cat #{unicorn_pid}`"
       end
     end
   end
