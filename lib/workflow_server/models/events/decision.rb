@@ -41,7 +41,6 @@ module WorkflowServer
       end
 
       def completed
-        self.children << Flag.create(name: "#{self.name}_completed".to_sym, workflow: workflow, parent: self, status: :complete)
         super
         schedule_next_decision
       end

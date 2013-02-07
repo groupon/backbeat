@@ -270,14 +270,6 @@ describe WorkflowServer::Models::Activity do
         @a1.reload.next_decision.should == 'more_test'
       end
 
-      it "records name_succeeded as the next decision when nothing is passed" do
-        @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
-        @a1.should_receive(:completed)
-        @a1.change_status(:completed, {result: {a: :b, c: :d}})
-        @a1.reload.result.should == {"a" => :b, "c" => :d}
-        @a1.reload.next_decision.should == "#{@a1.name}_succeeded"
-      end
-
       it "records none as the next decision" do
         @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
         @a1.should_receive(:completed)
