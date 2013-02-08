@@ -47,7 +47,7 @@ describe Api::Workflow do
           last_response.status.should == 400
           activity.reload
           json_response = JSON.parse(last_response.body)
-          json_response['error'].should == "activity:#{activity.name} tried to make test_decision the next decision but is not allowed to."
+          json_response['error'].should == "Activity:#{activity.name} tried to make test_decision the next decision but is not allowed to."
           activity.status.should_not == :complete
         end
 

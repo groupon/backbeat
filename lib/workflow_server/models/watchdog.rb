@@ -5,7 +5,7 @@ module WorkflowServer
       include Mongoid::Timestamps
 
       field :name, type: Symbol
-      field :starves_in, type: Integer, default: 10.minutes
+      field :starves_in, type: Integer, default: 15.minutes
 
       belongs_to :subject, inverse_of: :watchdogs, class_name: "WorkflowServer::Models::Event", index: true
       belongs_to :timer, class_name: "Delayed::Backend::Mongoid::Job", inverse_of: nil, dependent: :destroy
@@ -37,7 +37,7 @@ module WorkflowServer
       end
 
       class << self
-        def start(subject, name = :timeout, starves_in = 10.minutes)
+        def start(subject, name = :timeout, starves_in = 15.minutes)
           Watchdog.dismiss(subject,name)
           new_dog = create!(name: name,
                             starves_in: starves_in,

@@ -33,10 +33,10 @@ describe WorkflowServer::Models::Watchdog do
 
         wd.name.should eq :timeout
       end
-      it 'defaults starves_in to 10 minutes' do
+      it 'defaults starves_in to 15 minutes' do
         wd = subject.start(@a1)
 
-        wd.starves_in.should eq 10.minutes
+        wd.starves_in.should eq 15.minutes
       end
       it 'has its timer' do
         wd = subject.start(@a1)

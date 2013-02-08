@@ -111,8 +111,6 @@ module WorkflowServer
           do_retry(error)
         else
           super
-          # Add a decision task if this is a top level activity
-          add_decision("#{name}_errored".to_sym) if parent.is_a?(Decision)
         end
       end
 
@@ -124,7 +122,7 @@ module WorkflowServer
       def validate_next_decision(next_decision_arg)
         if next_decision_arg && next_decision_arg.to_s != 'none'
           unless valid_next_decisions.map(&:to_s).include?(next_decision_arg.to_s)
-            raise WorkflowServer::InvalidDecisionSelection.new("activity:#{name} tried to make #{next_decision_arg} the next decision but is not allowed to.")
+            raise WorkflowServer::InvalidDecisionSelection.new("Activity:#{name} tried to make #{next_decision_arg} the next decision but is not allowed to.")
           end
         end
       end
@@ -146,7 +144,6 @@ module WorkflowServer
       end
 
       def really_complete
-        Watchdog.dismiss(self) if time_out > 0
         if parent.is_a?(Decision) && next_decision != 'none'
           #only top level activities are allowed schedule a next decision
           add_decision(next_decision) if next_decision

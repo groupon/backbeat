@@ -259,7 +259,7 @@ describe WorkflowServer::Models::Activity do
         @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
         expect {
           @a1.change_status(:completed, {next_decision: :something_wrong, result: {a: :b, c: :d}})
-        }.to raise_error(WorkflowServer::InvalidDecisionSelection, "activity:#{@a1.name} tried to make something_wrong the next decision but is not allowed to.")
+        }.to raise_error(WorkflowServer::InvalidDecisionSelection, "Activity:#{@a1.name} tried to make something_wrong the next decision but is not allowed to.")
       end
 
       it "records the next decision and result" do
@@ -317,7 +317,7 @@ describe WorkflowServer::Models::Activity do
       async_job.method_to_call.should eq :start
     end
 
-    it "goes into error state andd puts a decision task" do
+    it "goes into error state" do
       @a1.update_attributes!(parent: FactoryGirl.create(:decision, workflow: @wf))
       @a1.update_attributes!(retry: 2, retry_interval: 40.minutes)
       2.times do
@@ -326,9 +326,6 @@ describe WorkflowServer::Models::Activity do
       end
       @a1.errored(:some_error)
       @a1.reload.status.should == :error
-      @a1.reload.children.count.should == 1
-      dec = @a1.children.first
-      dec.name.should == "#{@a1.name}_errored".to_sym
     end
   end
 
