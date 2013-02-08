@@ -3,7 +3,7 @@ source 'http://rubygems.org'
 gem 'unicorn'
 
 gem 'mongoid'
-gem 'mongoid-locker', :git => "git://github.com/mooremo/mongoid-locker.git"
+gem 'mongoid-locker'
 gem 'delayed_job_mongoid'
 gem 'mongoid-indifferent-access'
 gem 'awesome_print'
