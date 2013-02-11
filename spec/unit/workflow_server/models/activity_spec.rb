@@ -76,11 +76,7 @@ describe WorkflowServer::Models::Activity do
 
   context "on complete" do
     context "subactivities running" do
-      it "sets the status to waiting_for_sub_activities" do
-        @a1.stub(subactivities_running?: true)
-        @a1.completed
-        @a1.status.should == :waiting_for_sub_activities
-      end
+
     end
     context "no subactivities running" do
       before do
@@ -199,7 +195,7 @@ describe WorkflowServer::Models::Activity do
       end
 
       it "parent activity completed" do
-        @a1.update_status!(:waiting_for_sub_activities)
+        @a1.update_status!(:client_called_complete)
         @a1.should_receive(:completed)
         @a1.child_completed(FactoryGirl.create(:sub_activity, mode: :non_blocking, workflow: @wf))
       end
@@ -235,6 +231,9 @@ describe WorkflowServer::Models::Activity do
   end
 
   context "#change_status" do
+    before do
+      @a1.stub(:completed)
+    end
     it "returns if the new status is the same as existing status" do
       expect {
         @a1.change_status(@a1.status)
@@ -260,6 +259,13 @@ describe WorkflowServer::Models::Activity do
         expect {
           @a1.change_status(:completed, {next_decision: :something_wrong, result: {a: :b, c: :d}})
         }.to raise_error(WorkflowServer::InvalidDecisionSelection, "Activity:#{@a1.name} tried to make something_wrong the next decision but is not allowed to.")
+      end
+
+      it "sets the status to waiting_for_sub_activities" do
+        @a1.update_attributes!(status: :executing)
+        @a1.should_receive(:complete_if_done)
+        @a1.change_status(:completed)
+        @a1.status.should == :client_called_complete
       end
 
       it "records the next decision and result" do

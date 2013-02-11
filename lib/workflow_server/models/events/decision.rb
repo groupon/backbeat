@@ -47,8 +47,10 @@ module WorkflowServer
 
       def child_completed(child)
         super
-        if child.is_a?(Activity) || child.is_a?(Branch) || child.is_a?(Workflow)
-          refresh
+        if child.blocking?
+          continue
+        else
+          complete_if_done
         end
       end
 
@@ -85,13 +87,23 @@ module WorkflowServer
         unless decisions.empty?
           update_status!(:executing)
         end
-        refresh
+        work_on_decisions
       end
 
-      def refresh
+      def work_on_decisions
         reload
         start_next_action
-        completed if all_activities_branches_and_workflows_completed?
+        complete_if_done
+      end
+      alias_method :continue, :work_on_decisions
+
+      def complete_if_done
+        if status != :complete && all_children_done?
+          with_lock do
+            # check complete again inside the lock
+            completed if status != :complete
+          end
+        end
       end
 
       def add_flag(name)
@@ -136,11 +148,9 @@ module WorkflowServer
       end
 
       def start_next_action
-        with_lock do
-          open_events do |event|
-            break if any_incomplete_blocking_activities_branches_or_workflows?
-            event.start
-          end
+        open_events do |event|
+          break if any_incomplete_blocking_activities_branches_or_workflows?
+          event.start
         end
       end
 
@@ -154,8 +164,9 @@ module WorkflowServer
         children.type([Activity, Branch, Workflow]).where(mode: :blocking).not_in(:status => [:complete, :open]).any?
       end
 
-      def all_activities_branches_and_workflows_completed?
-        !children.type([Activity, Branch, Workflow]).where(:mode.ne => :fire_and_forget, :status.ne => :complete).any?
+      def all_children_done?
+        children.not_in(_type: Timer).where(:mode.ne => :fire_and_forget, :status.ne => :complete).none? &&
+        children.type(Timer).where(:status => :open).none?
       end
 
       def schedule_next_decision
