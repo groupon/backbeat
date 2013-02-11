@@ -25,8 +25,9 @@ uat:
     default:
       database: workflow_uat
       hosts:
-        - accounting-utility1-uat.snc1:27018
-        - accounting-utility1-staging.snc1:27018
+        - accounting-mongodb1-uat.snc1:27017
+        - accounting-mongodb2-uat.snc1:27017
+        - accounting-mongodb3-uat.snc1:27017
       options:
         consistency: :strong
         max_retries: 5
@@ -38,10 +39,11 @@ uat:
 staging:
   sessions:
     default:
-      database: workflow_stage
+      database: workflow_staging
       hosts:
-        - accounting-utility1-staging.snc1:27017
-        - accounting-utility1-uat.snc1:27017
+        - accounting-mongodb1-staging.snc1:27017
+        - accounting-mongodb2-staging.snc1:27017
+        - accounting-mongodb3-staging.snc1:27017
       options:
         consistency: :strong
         max_retries: 5
