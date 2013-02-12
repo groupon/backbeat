@@ -83,7 +83,7 @@ module WorkflowServer
           # Returns events of a particular type in the past given the reference task
           #
           define_method("past_#{name}") do |task|
-            arel = events.where(:created_at.lte => task.created_at, :id.ne => task.id).type(klass.to_s)
+            arel = events.where(:sequence.lt => task.sequence).type(klass.to_s)
             if block_given?
               arel.each do |record|
                 yield record

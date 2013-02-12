@@ -93,8 +93,8 @@ module WorkflowServer
         end
       end
 
-      def past_flags
-        workflow.past_flags(self)
+      def past_decisions
+        workflow.past_decisions(self)
       end
 
       def notify_of(notification, error = nil)
