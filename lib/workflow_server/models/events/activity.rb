@@ -10,6 +10,9 @@ module WorkflowServer
       field :method, type: Boolean, default: false
       field :valid_next_decisions, type: Array, default: []
 
+      # indicates whether the client has called completed endpoint on this activity
+      field :_client_done_with_activity, type: Boolean, default: false
+
       # These fields come from client
       field :arguments
       field :result
@@ -39,13 +42,18 @@ module WorkflowServer
       end
 
       def completed
-        with_lock do
-          if subactivities_running?
-            Watchdog.feed(self) if time_out > 0
-            update_status!(:waiting_for_sub_activities)
-          else
-            really_complete
-            super
+        if parent.is_a?(Decision) && next_decision && next_decision != 'none'
+          #only top level activities are allowed to schedule the next decision
+          add_decision(next_decision)
+        end
+        super
+      end
+
+      def complete_if_done
+        Watchdog.feed(self) if time_out > 0
+        if self._client_done_with_activity && status != :complete && !subactivities_running?
+          with_lock do
+            completed if status != :complete
           end
         end
       end
@@ -67,14 +75,10 @@ module WorkflowServer
 
       def child_completed(child)
         super
-        if child.is_a?(SubActivity)
-          if child.blocking?
-            continue
-          else
-            with_lock do
-              completed if status == :waiting_for_sub_activities
-            end
-          end
+        if child.blocking?
+          continue
+        elsif child.mode != :fire_and_forget
+          complete_if_done
         end
       end
 
@@ -95,8 +99,8 @@ module WorkflowServer
         case new_status.to_sym
         when :completed
           raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)
-          update_attributes!(result: args[:result], next_decision: verify_and_get_next_decision(args[:next_decision]))
-          completed
+          update_attributes!(result: args[:result], next_decision: verify_and_get_next_decision(args[:next_decision]), _client_done_with_activity: true)
+          complete_if_done
         when :errored
           raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)
           errored(args[:error])
@@ -141,13 +145,6 @@ module WorkflowServer
           start
         end
         update_status!(:retrying)
-      end
-
-      def really_complete
-        if parent.is_a?(Decision) && next_decision != 'none'
-          #only top level activities are allowed schedule a next decision
-          add_decision(next_decision) if next_decision
-        end
       end
 
       def create_sub_activity!(options = {})

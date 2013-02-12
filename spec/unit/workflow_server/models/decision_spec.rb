@@ -97,7 +97,7 @@ describe WorkflowServer::Models::Decision do
         options = {parent: @d1, workflow: @wf}
         options[:user] = user if child == :workflow
         child = FactoryGirl.create(child, options)
-        @d1.should_receive(:refresh)
+        @d1.should_receive(:continue)
         @d1.child_completed(child)
       end
       [:flag, :signal].each do |child|
@@ -257,19 +257,39 @@ describe WorkflowServer::Models::Decision do
     end
   end
 
-  context "#all_activities_branches_and_workflows_completed?" do
-    [:activity, :branch, :workflow].each do |event|
+  context "#all_children_done?" do
+    [:activity, :branch, :workflow, :flag].each do |event|
       it "returns true when all non-fire and forget #{event} are completed" do
         options = {parent: @d1, workflow: @wf}
         options[:user] = user if event == :workflow
         child = FactoryGirl.create(event, options)
-        @d1.__send__(:all_activities_branches_and_workflows_completed?).should == false
+        @d1.__send__(:all_children_done?).should == false
         child.update_attributes!(mode: :fire_and_forget)
-        @d1.__send__(:all_activities_branches_and_workflows_completed?).should == true
+        @d1.__send__(:all_children_done?).should == true
         child.update_attributes!(mode: :blocking)
-        @d1.__send__(:all_activities_branches_and_workflows_completed?).should == false
+        @d1.__send__(:all_children_done?).should == false
         child.update_attributes!(status: :complete)
-        @d1.__send__(:all_activities_branches_and_workflows_completed?).should == true
+        @d1.__send__(:all_children_done?).should == true
+      end
+    end
+    it "returns false if signal is open or executing" do
+      child = FactoryGirl.create(:signal, {parent: @d1, workflow: @wf})
+      child.update_status!(:executing)
+      @d1.__send__(:all_children_done?).should == false
+      child.update_attributes!(mode: :fire_and_forget)
+      @d1.__send__(:all_children_done?).should == true
+    end
+    context "#timer" do
+      it "returns false if any timer is open" do
+        child = FactoryGirl.create(:timer, {parent: @d1, workflow: @wf})
+        @d1.__send__(:all_children_done?).should == false
+      end
+      [:executing, :fired, :complete].each do |status|
+        it "returns true if timer is in state #{status}" do
+          child = FactoryGirl.create(:timer, {parent: @d1, workflow: @wf})
+          child.update_status!(status)
+          @d1.__send__(:all_children_done?).should == true
+        end
       end
     end
   end
