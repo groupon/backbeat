@@ -7,8 +7,6 @@ module WorkflowServer
       include WorkflowServer::Logger
       include Tree
 
-      timeout_lock_after 2
-
       field :_id,            type: String, default: ->{ UUIDTools::UUID.random_create.to_s }
       field :status,         type: Symbol, default: :open
       field :status_history, type: Array, default: []
@@ -160,7 +158,7 @@ module WorkflowServer
       end
 
       def with_lock_with_defaults(options = {}, &block)
-        {retry_sleep: 0.5, retries: 10}.merge(options)
+        {retry_sleep: 0.5, retries: 10, timeout: 2}.merge(options)
         with_lock_without_defaults(options, &block)
       end
       alias_method :with_lock_without_defaults, :with_lock
