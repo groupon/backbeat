@@ -10,6 +10,9 @@ module WorkflowServer
       field :method, type: Boolean, default: false
       field :valid_next_decisions, type: Array, default: []
 
+      # indicates whether the client has called completed endpoint on this activity
+      field :_client_done_with_activity, type: Boolean, default: false
+
       # These fields come from client
       field :arguments
       field :result
@@ -48,9 +51,9 @@ module WorkflowServer
 
       def complete_if_done
         Watchdog.feed(self) if time_out > 0
-        if status == :client_called_complete && !subactivities_running?
+        if self._client_done_with_activity && status != :complete && !subactivities_running?
           with_lock do
-            completed if status == :client_called_complete
+            completed if status != :complete
           end
         end
       end
@@ -96,8 +99,7 @@ module WorkflowServer
         case new_status.to_sym
         when :completed
           raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)
-          update_attributes!(result: args[:result], next_decision: verify_and_get_next_decision(args[:next_decision]))
-          update_status!(:client_called_complete)
+          update_attributes!(result: args[:result], next_decision: verify_and_get_next_decision(args[:next_decision]), _client_done_with_activity: true)
           complete_if_done
         when :errored
           raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)

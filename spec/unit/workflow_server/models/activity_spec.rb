@@ -195,7 +195,7 @@ describe WorkflowServer::Models::Activity do
       end
 
       it "parent activity completed" do
-        @a1.update_status!(:client_called_complete)
+        @a1.update_attributes!(_client_done_with_activity: true)
         @a1.should_receive(:completed)
         @a1.child_completed(FactoryGirl.create(:sub_activity, mode: :non_blocking, workflow: @wf))
       end
@@ -261,11 +261,12 @@ describe WorkflowServer::Models::Activity do
         }.to raise_error(WorkflowServer::InvalidDecisionSelection, "Activity:#{@a1.name} tried to make something_wrong the next decision but is not allowed to.")
       end
 
-      it "sets the status to waiting_for_sub_activities" do
+      it "sets the field _client_done_with_activityd to indicate client is done with this activity" do
         @a1.update_attributes!(status: :executing)
         @a1.should_receive(:complete_if_done)
+        @a1._client_done_with_activity.should == false
         @a1.change_status(:completed)
-        @a1.status.should == :client_called_complete
+        @a1._client_done_with_activity.should == true
       end
 
       it "records the next decision and result" do
