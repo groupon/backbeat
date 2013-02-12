@@ -15,7 +15,11 @@ module WorkflowServer
       validates_presence_of :name, :subject
 
       def feed
-        self.timer.update_attributes!(run_at: (Time.now + self.starves_in))
+        if self.timer
+          self.timer.update_attributes!(run_at: self.starves_in.from_now)
+        else
+          self.update_attributes!(timer: Delayed::Backend::Mongoid::Job.enqueue(self, run_at: self.starves_in.from_now))
+        end
       end
       alias_method :kick, :feed
       alias_method :pet, :feed
