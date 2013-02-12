@@ -109,9 +109,9 @@ describe WorkflowServer::Models::Watchdog do
 
     [:feed, :kick, :pet, :wake].each do |method|
       context "#{method}" do
-        it 'destroys the Watchdogs timer, recreates it, and saves the changes to the DB' do
+        it 'extends the Watchdogs timer by the starves_in time' do
           wd = subject.start(@a1, :my_timeout)
-          Delayed::Job.any_instance.should_receive(:destroy)
+          Delayed::Job.any_instance.should_receive(:update_attributes!).with(run_at: (Time.now + 15.minutes))
 
           subject.send(method, @a1, :my_timeout)
 

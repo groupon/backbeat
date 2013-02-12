@@ -14,14 +14,8 @@ module WorkflowServer
 
       validates_presence_of :name, :subject
 
-      before_destroy do
-        self.timer.destroy if self.timer
-      end
-
       def feed
-        self.timer.destroy if self.timer
-        self.timer = Delayed::Backend::Mongoid::Job.enqueue(self, run_at: starves_in.from_now)
-        save!
+        self.timer.update_attributes!(run_at: (Time.now + self.starves_in))
       end
       alias_method :kick, :feed
       alias_method :pet, :feed
