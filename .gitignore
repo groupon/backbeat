@@ -2,7 +2,7 @@ shared/log/unicorn.stderr.log
 shared/log/unicorn.stdout.log
 shared/pids/unicorn.pid
 shared/sockets/unicorn.sock
-
+coverage
 *.gem
 *.rbc
 .bundle
