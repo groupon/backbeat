@@ -13,7 +13,7 @@ module WorkflowServer
 
     def schedule_next_decision(workflow)
       workflow.with_lock do
-        unless workflow.events.type(WorkflowServer::Models::Decision).not_in(:status => [:complete, :open]).any?
+        if workflow.decisions.not_in(:status => [:complete, :open]).empty?
           if (next_decision = workflow.decisions.where(status: :open).first)
             next_decision.start
           end
