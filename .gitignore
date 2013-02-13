@@ -7,7 +7,6 @@ shared/sockets/unicorn.sock
 *.rbc
 .bundle
 .config
-coverage
 InstalledFiles
 lib/bundler/man
 pkg
