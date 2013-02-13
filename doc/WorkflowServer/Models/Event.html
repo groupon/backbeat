@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+
+<title>class WorkflowServer::Models::Event - RDoc Documentation</title>
+
+<link type="text/css" media="screen" href="../../rdoc.css" rel="stylesheet">
+
+<script type="text/javascript">
+  var rdoc_rel_prefix = "../../";
+</script>
+
+<script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
+<script type="text/javascript" charset="utf-8" src="../../js/navigation.js"></script>
+<script type="text/javascript" charset="utf-8" src="../../js/search_index.js"></script>
+<script type="text/javascript" charset="utf-8" src="../../js/search.js"></script>
+<script type="text/javascript" charset="utf-8" src="../../js/searcher.js"></script>
+<script type="text/javascript" charset="utf-8" src="../../js/darkfish.js"></script>
+
+
+<body id="top" class="class">
+<nav id="metadata">
+  <nav id="home-section" class="section">
+  <h3 class="section-header">
+    <a href="../../index.html">Home</a>
+    <a href="../../table_of_contents.html#classes">Classes</a>
+    <a href="../../table_of_contents.html#methods">Methods</a>
+  </h3>
+</nav>
+
+
+  <nav id="search-section" class="section project-section" class="initially-hidden">
+  <form action="#" method="get" accept-charset="utf-8">
+    <h3 class="section-header">
+      <input type="text" name="search" placeholder="Search" id="search-field"
+             title="Type to search, Up and Down to navigate, Enter to load">
+    </h3>
+  </form>
+
+  <ul id="search-results" class="initially-hidden"></ul>
+</nav>
+
+
+  <div id="file-metadata">
+    <nav id="file-list-section" class="section">
+  <h3 class="section-header">Defined In</h3>
+  <ul>
+    <li>lib/workflow_server/models/events/event.rb
+  </ul>
+</nav>
+
+    
+  </div>
+
+  <div id="class-metadata">
+    
+    <nav id="parent-class-section" class="section">
+  <h3 class="section-header">Parent</h3>
+  
+  <p class="link"><a href="../../Object.html">Object</a>
+  
+</nav>
+
+    <!-- Included Modules -->
+<nav id="includes-section" class="section">
+  <h3 class="section-header">Included Modules</h3>
+
+  <ul class="link-list">
+  
+  
+    <li><span class="include">Mongoid::Document</span>
+  
+  
+  
+    <li><span class="include">Mongoid::Timestamps</span>
+  
+  
+  
+    <li><span class="include">Mongoid::Locker</span>
+  
+  
+  
+    <li><a class="include" href="../Logger.html">WorkflowServer::Logger</a>
+  
+  
+  
+    <li><a class="include" href="../../Tree.html">Tree</a>
+  
+  
+  </ul>
+</nav>
+
+    <!-- Method Quickref -->
+<nav id="method-list-section" class="section">
+  <h3 class="section-header">Methods</h3>
+
+  <ul class="link-list">
+    
+    <li><a href="#method-i-add_decision">#add_decision</a>
+    
+    <li><a href="#method-i-async_jobs">#async_jobs</a>
+    
+    <li><a href="#method-i-blacklisted_fields">#blacklisted_fields</a>
+    
+    <li><a href="#method-i-blocking-3F">#blocking?</a>
+    
+    <li><a href="#method-i-child_completed">#child_completed</a>
+    
+    <li><a href="#method-i-child_errored">#child_errored</a>
+    
+    <li><a href="#method-i-child_timeout">#child_timeout</a>
+    
+    <li><a href="#method-i-cleanup">#cleanup</a>
+    
+    <li><a href="#method-i-completed">#completed</a>
+    
+    <li><a href="#method-i-destroy_jobs">#destroy_jobs</a>
+    
+    <li><a href="#method-i-errored">#errored</a>
+    
+    <li><a href="#method-i-event_type">#event_type</a>
+    
+    <li><a href="#method-i-my_user">#my_user</a>
+    
+    <li><a href="#method-i-notify_client">#notify_client</a>
+    
+    <li><a href="#method-i-notify_of">#notify_of</a>
+    
+    <li><a href="#method-i-past_flags">#past_flags</a>
+    
+    <li><a href="#method-i-restart">#restart</a>
+    
+    <li><a href="#method-i-serializable_hash">#serializable_hash</a>
+    
+    <li><a href="#method-i-start">#start</a>
+    
+    <li><a href="#method-i-timeout">#timeout</a>
+    
+    <li><a href="#method-i-update_status-21">#update_status!</a>
+    
+    <li><a href="#method-i-with_lock">#with_lock</a>
+    
+    <li><a href="#method-i-with_lock_with_defaults">#with_lock_with_defaults</a>
+    
+    <li><a href="#method-i-with_lock_without_defaults">#with_lock_without_defaults</a>
+    
+  </ul>
+</nav>
+
+  </div>
+
+  <div id="project-metadata">
+    <nav id="fileindex-section" class="section project-section">
+  <h3 class="section-header">Pages</h3>
+
+  <ul>
+  
+    <li class="file"><a href="../../Capfile.html">Capfile</a>
+  
+    <li class="file"><a href="../../Gemfile.html">Gemfile</a>
+  
+    <li class="file"><a href="../../Rakefile.html">Rakefile</a>
+  
+    <li class="file"><a href="../../config/roller/accounting_backbeat_delayed_job_init/etc/init_d/delayed_job_backbeat.html">delayed_job_backbeat</a>
+  
+    <li class="file"><a href="../../config/roller/accounting_backbeat_delayed_job_init/etc/rc_d/K61delayed_job_backbeat.html">K61delayed_job_backbeat</a>
+  
+    <li class="file"><a href="../../config/roller/accounting_backbeat_delayed_job_init/etc/rc_d/S61delayed_job_backbeat.html">S61delayed_job_backbeat</a>
+  
+    <li class="file"><a href="../../config/roller/accounting_backbeat_logrotate_config/etc/logrotate_d/backbeat.html">backbeat</a>
+  
+    <li class="file"><a href="../../config/roller/accounting_backbeat_unicorn_init/etc/init_d/unicorn_backbeat.html">unicorn_backbeat</a>
+  
+    <li class="file"><a href="../../config/roller/accounting_backbeat_unicorn_init/etc/rc_d/K61unicorn_backbeat.html">K61unicorn_backbeat</a>
+  
+    <li class="file"><a href="../../config/roller/accounting_backbeat_unicorn_init/etc/rc_d/S61unicorn_backbeat.html">S61unicorn_backbeat</a>
+  
+    <li class="file"><a href="../../config/roller/accounting_mongo_backup/config/C50mongo_backup.html">C50mongo_backup</a>
+  
+  </ul>
+</nav>
+
+    <nav id="classindex-section" class="section project-section">
+  <h3 class="section-header">Class and Module Index</h3>
+
+  <ul class="link-list">
+  
+    <li><a href="../../WorkflowServer.html">WorkflowServer</a>
+  
+    <li><a href="../../WorkflowServer/Async.html">WorkflowServer::Async</a>
+  
+    <li><a href="../../WorkflowServer/Async/Job.html">WorkflowServer::Async::Job</a>
+  
+    <li><a href="../../WorkflowServer/BackbeatMongo.html">WorkflowServer::BackbeatMongo</a>
+  
+    <li><a href="../../WorkflowServer/ClassMethods.html">WorkflowServer::ClassMethods</a>
+  
+    <li><a href="../../WorkflowServer/Client.html">WorkflowServer::Client</a>
+  
+    <li><a href="../../WorkflowServer/Config.html">WorkflowServer::Config</a>
+  
+    <li><a href="../../WorkflowServer/DelayedJobLogger.html">WorkflowServer::DelayedJobLogger</a>
+  
+    <li><a href="../../WorkflowServer/EventComplete.html">WorkflowServer::EventComplete</a>
+  
+    <li><a href="../../WorkflowServer/EventNotFound.html">WorkflowServer::EventNotFound</a>
+  
+    <li><a href="../../WorkflowServer/Helper.html">WorkflowServer::Helper</a>
+  
+    <li><a href="../../WorkflowServer/Helper/HashKeyTransformations.html">WorkflowServer::Helper::HashKeyTransformations</a>
+  
+    <li><a href="../../WorkflowServer/HttpError.html">WorkflowServer::HttpError</a>
+  
+    <li><a href="../../WorkflowServer/InvalidDecisionSelection.html">WorkflowServer::InvalidDecisionSelection</a>
+  
+    <li><a href="../../WorkflowServer/InvalidEventStatus.html">WorkflowServer::InvalidEventStatus</a>
+  
+    <li><a href="../../WorkflowServer/InvalidParameters.html">WorkflowServer::InvalidParameters</a>
+  
+    <li><a href="../../WorkflowServer/Logger.html">WorkflowServer::Logger</a>
+  
+    <li><a href="../../WorkflowServer/Models.html">WorkflowServer::Models</a>
+  
+    <li><a href="../../WorkflowServer/Models/Activity.html">WorkflowServer::Models::Activity</a>
+  
+    <li><a href="../../WorkflowServer/Models/Branch.html">WorkflowServer::Models::Branch</a>
+  
+    <li><a href="../../WorkflowServer/Models/Decision.html">WorkflowServer::Models::Decision</a>
+  
+    <li><a href="../../WorkflowServer/Models/Event.html">WorkflowServer::Models::Event</a>
+  
+    <li><a href="../../WorkflowServer/Models/Flag.html">WorkflowServer::Models::Flag</a>
+  
+    <li><a href="../../WorkflowServer/Models/Signal.html">WorkflowServer::Models::Signal</a>
+  
+    <li><a href="../../WorkflowServer/Models/SubActivity.html">WorkflowServer::Models::SubActivity</a>
+  
+    <li><a href="../../WorkflowServer/Models/Timer.html">WorkflowServer::Models::Timer</a>
+  
+    <li><a href="../../WorkflowServer/Models/User.html">WorkflowServer::Models::User</a>
+  
+    <li><a href="../../WorkflowServer/Models/Watchdog.html">WorkflowServer::Models::Watchdog</a>
+  
+    <li><a href="../../WorkflowServer/Models/Workflow.html">WorkflowServer::Models::Workflow</a>
+  
+    <li><a href="../../WorkflowServer/Models/WorkflowCompleteFlag.html">WorkflowServer::Models::WorkflowCompleteFlag</a>
+  
+    <li><a href="../../WorkflowServer/OutputFormatter.html">WorkflowServer::OutputFormatter</a>
+  
+    <li><a href="../../WorkflowServer/TimeOut.html">WorkflowServer::TimeOut</a>
+  
+    <li><a href="../../WorkflowServer/WaitForSubActivity.html">WorkflowServer::WaitForSubActivity</a>
+  
+    <li><a href="../../Api.html">Api</a>
+  
+    <li><a href="../../Api/Authenticate.html">Api::Authenticate</a>
+  
+    <li><a href="../../Api/CamelCase.html">Api::CamelCase</a>
+  
+    <li><a href="../../Api/CamelJsonFormatter.html">Api::CamelJsonFormatter</a>
+  
+    <li><a href="../../Api/Health.html">Api::Health</a>
+  
+    <li><a href="../../Api/Log.html">Api::Log</a>
+  
+    <li><a href="../../Api/Workflow.html">Api::Workflow</a>
+  
+    <li><a href="../../Delayed.html">Delayed</a>
+  
+    <li><a href="../../Delayed/Backend.html">Delayed::Backend</a>
+  
+    <li><a href="../../Delayed/Backend/Mongoid.html">Delayed::Backend::Mongoid</a>
+  
+    <li><a href="../../Delayed/Backend/Mongoid/Job.html">Delayed::Backend::Mongoid::Job</a>
+  
+    <li><a href="../../Groupon.html">Groupon</a>
+  
+    <li><a href="../../Groupon/FinancialEngineering.html">Groupon::FinancialEngineering</a>
+  
+    <li><a href="../../Groupon/FinancialEngineering/Capistrano.html">Groupon::FinancialEngineering::Capistrano</a>
+  
+    <li><a href="../../Helper.html">Helper</a>
+  
+    <li><a href="../../Helper/Mongo.html">Helper::Mongo</a>
+  
+    <li><a href="../../Tree.html">Tree</a>
+  
+    <li><a href="../../Tree/Node.html">Tree::Node</a>
+  
+    <li><a href="../../Color.html">Color</a>
+  
+    <li><a href="../../Colorize.html">Colorize</a>
+  
+    <li><a href="../../Object.html">Object</a>
+  
+  </ul>
+</nav>
+
+  </div>
+</nav>
+
+<div id="documentation">
+  <h1 class="class">class WorkflowServer::Models::Event</h1>
+
+  <div id="description" class="description">
+    
+  </div><!-- description -->
+
+  
+  
+  
+  <section id="5Buntitled-5D" class="documentation-section">
+    
+
+    
+
+    
+    <!-- Constants -->
+    <section id="constants-list" class="section">
+      <h3 class="section-header">Constants</h3>
+      <dl>
+      
+        <dt id="TYPE_TO_STRING_HASH">TYPE_TO_STRING_HASH
+        
+        <dd class="description"><p>TODO - Refactor this. Move it outside in some constants so that other
+methods can refer to this (like the ones in workflow.rb)</p>
+        
+      
+      </dl>
+    </section>
+    
+
+    
+
+    <!-- Methods -->
+    
+     <section id="public-instance-5Buntitled-5D-method-details" class="method-section section">
+      <h3 class="section-header">Public Instance Methods</h3>
+
+    
+      <div id="method-i-add_decision" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">add_decision</span><span
+            class="method-args">(decision_name)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="add_decision-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 31</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">add_decision</span>(<span class="ruby-identifier">decision_name</span>)
+  <span class="ruby-keyword">self</span>.<span class="ruby-identifier">children</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">Decision</span>.<span class="ruby-identifier">create!</span>(<span class="ruby-identifier">name</span><span class="ruby-operator">:</span> <span class="ruby-identifier">decision_name</span>, <span class="ruby-identifier">workflow</span><span class="ruby-operator">:</span> <span class="ruby-keyword">self</span>.<span class="ruby-identifier">workflow</span>, <span class="ruby-identifier">parent</span><span class="ruby-operator">:</span> <span class="ruby-keyword">self</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- add_decision-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- add_decision-method -->
+
+    
+      <div id="method-i-async_jobs" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">async_jobs</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="async_jobs-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 143</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">async_jobs</span>
+  <span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">Async</span><span class="ruby-operator">::</span><span class="ruby-constant">Job</span>.<span class="ruby-identifier">jobs</span>(<span class="ruby-keyword">self</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- async_jobs-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- async_jobs-method -->
+
+    
+      <div id="method-i-blacklisted_fields" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">blacklisted_fields</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>These fields are not included in the hash sent out to the client</p>
+          
+
+          
+          <div class="method-source-code" id="blacklisted_fields-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 129</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">blacklisted_fields</span>
+  [<span class="ruby-string">&quot;_id&quot;</span>, <span class="ruby-string">&quot;_type&quot;</span>, <span class="ruby-string">&quot;locked_at&quot;</span>, <span class="ruby-string">&quot;locked_until&quot;</span>, <span class="ruby-string">&quot;start_signal&quot;</span>, <span class="ruby-string">&quot;status_history&quot;</span>, <span class="ruby-string">&quot;sequence&quot;</span>]
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- blacklisted_fields-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- blacklisted_fields-method -->
+
+    
+      <div id="method-i-blocking-3F" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">blocking?</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="blocking-3F-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 45</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">blocking?</span>
+  <span class="ruby-keyword">false</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- blocking-3F-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- blocking-3F-method -->
+
+    
+      <div id="method-i-child_completed" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">child_completed</span><span
+            class="method-args">(child)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="child_completed-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 78</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">child_completed</span>(<span class="ruby-identifier">child</span>)
+
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- child_completed-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- child_completed-method -->
+
+    
+      <div id="method-i-child_errored" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">child_errored</span><span
+            class="method-args">(child, error)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="child_errored-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 82</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">child_errored</span>(<span class="ruby-identifier">child</span>, <span class="ruby-identifier">error</span>)
+  <span class="ruby-keyword">unless</span> <span class="ruby-identifier">child</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-value">:fire_and_forget?</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">child</span>.<span class="ruby-identifier">fire_and_forget?</span>
+    <span class="ruby-constant">Watchdog</span>.<span class="ruby-identifier">mass_dismiss</span>(<span class="ruby-keyword">self</span>)
+    <span class="ruby-identifier">parent</span>.<span class="ruby-identifier">child_errored</span>(<span class="ruby-identifier">child</span>, <span class="ruby-identifier">error</span>) <span class="ruby-keyword">if</span> <span class="ruby-identifier">parent</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- child_errored-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- child_errored-method -->
+
+    
+      <div id="method-i-child_timeout" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">child_timeout</span><span
+            class="method-args">(child, timeout_name)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="child_timeout-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 89</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">child_timeout</span>(<span class="ruby-identifier">child</span>, <span class="ruby-identifier">timeout_name</span>)
+  <span class="ruby-keyword">unless</span> <span class="ruby-identifier">child</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-value">:fire_and_forget?</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">child</span>.<span class="ruby-identifier">fire_and_forget?</span>
+    <span class="ruby-constant">Watchdog</span>.<span class="ruby-identifier">mass_dismiss</span>(<span class="ruby-keyword">self</span>)
+    <span class="ruby-identifier">parent</span>.<span class="ruby-identifier">child_errored</span>(<span class="ruby-identifier">child</span>, <span class="ruby-identifier">error</span>) <span class="ruby-keyword">if</span> <span class="ruby-identifier">parent</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- child_timeout-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- child_timeout-method -->
+
+    
+      <div id="method-i-cleanup" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">cleanup</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="cleanup-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 147</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">cleanup</span>
+  <span class="ruby-identifier">destroy_jobs</span>
+  <span class="ruby-constant">Watchdog</span>.<span class="ruby-identifier">mass_dismiss</span>(<span class="ruby-keyword">self</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- cleanup-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- cleanup-method -->
+
+    
+      <div id="method-i-completed" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">completed</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="completed-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 57</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">completed</span>
+  <span class="ruby-identifier">update_status!</span>(<span class="ruby-value">:complete</span>)
+  <span class="ruby-identifier">notify_of</span>(<span class="ruby-string">&quot;complete&quot;</span>)
+  <span class="ruby-constant">Watchdog</span>.<span class="ruby-identifier">mass_dismiss</span>(<span class="ruby-keyword">self</span>)
+  <span class="ruby-identifier">parent</span>.<span class="ruby-identifier">child_completed</span>(<span class="ruby-keyword">self</span>) <span class="ruby-keyword">if</span> <span class="ruby-identifier">parent</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- completed-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- completed-method -->
+
+    
+      <div id="method-i-destroy_jobs" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">destroy_jobs</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="destroy_jobs-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 152</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">destroy_jobs</span>
+  <span class="ruby-keyword">self</span>.<span class="ruby-identifier">async_jobs</span>.<span class="ruby-identifier">destroy</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- destroy_jobs-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- destroy_jobs-method -->
+
+    
+      <div id="method-i-errored" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">errored</span><span
+            class="method-args">(error)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="errored-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 64</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">errored</span>(<span class="ruby-identifier">error</span>)
+  <span class="ruby-identifier">update_status!</span>(<span class="ruby-value">:error</span>, <span class="ruby-identifier">error</span>)
+  <span class="ruby-identifier">notify_of</span>(<span class="ruby-string">&quot;error&quot;</span>, <span class="ruby-identifier">error</span>)
+  <span class="ruby-constant">Watchdog</span>.<span class="ruby-identifier">mass_dismiss</span>(<span class="ruby-keyword">self</span>)
+  <span class="ruby-identifier">parent</span>.<span class="ruby-identifier">child_errored</span>(<span class="ruby-keyword">self</span>, <span class="ruby-identifier">error</span>) <span class="ruby-keyword">if</span> <span class="ruby-identifier">parent</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- errored-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- errored-method -->
+
+    
+      <div id="method-i-event_type" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">event_type</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="event_type-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 139</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">event_type</span>
+  <span class="ruby-constant">TYPE_TO_STRING_HASH</span>[<span class="ruby-keyword">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">to_s</span>]
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- event_type-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- event_type-method -->
+
+    
+      <div id="method-i-my_user" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">my_user</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="my_user-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 156</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">my_user</span>
+  <span class="ruby-identifier">workflow</span>.<span class="ruby-identifier">user</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- my_user-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- my_user-method -->
+
+    
+      <div id="method-i-notify_client" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">notify_client</span><span
+            class="method-args">(notification, error_data)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="notify_client-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 110</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">notify_client</span>(<span class="ruby-identifier">notification</span>, <span class="ruby-identifier">error_data</span>)
+  <span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">Client</span>.<span class="ruby-identifier">notify_of</span>(<span class="ruby-keyword">self</span>, <span class="ruby-identifier">notification</span>, <span class="ruby-identifier">error_data</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- notify_client-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- notify_client-method -->
+
+    
+      <div id="method-i-notify_of" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">notify_of</span><span
+            class="method-args">(notification, error = nil)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="notify_of-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 100</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">notify_of</span>(<span class="ruby-identifier">notification</span>, <span class="ruby-identifier">error</span> = <span class="ruby-keyword">nil</span>)
+  <span class="ruby-identifier">error_data</span> = <span class="ruby-identifier">error_hash</span>(<span class="ruby-identifier">error</span>)
+  <span class="ruby-keyword">if</span> <span class="ruby-identifier">error_data</span>
+    <span class="ruby-identifier">error</span>(<span class="ruby-identifier">notification</span><span class="ruby-operator">:</span> <span class="ruby-identifier">notification</span>, <span class="ruby-identifier">error</span><span class="ruby-operator">:</span> <span class="ruby-identifier">error_data</span>)
+  <span class="ruby-keyword">else</span>
+    <span class="ruby-identifier">info</span>(<span class="ruby-identifier">notification</span><span class="ruby-operator">:</span> <span class="ruby-identifier">notification</span>, <span class="ruby-identifier">error</span><span class="ruby-operator">:</span> <span class="ruby-identifier">error_data</span>)
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">Async</span><span class="ruby-operator">::</span><span class="ruby-constant">Job</span>.<span class="ruby-identifier">schedule</span>(<span class="ruby-identifier">event</span><span class="ruby-operator">:</span> <span class="ruby-keyword">self</span>, <span class="ruby-identifier">method</span><span class="ruby-operator">:</span> <span class="ruby-value">:notify_client</span>, <span class="ruby-identifier">args</span><span class="ruby-operator">:</span> [<span class="ruby-identifier">notification</span>, <span class="ruby-identifier">error_data</span>], <span class="ruby-identifier">max_attempts</span><span class="ruby-operator">:</span> <span class="ruby-value">2</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- notify_of-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- notify_of-method -->
+
+    
+      <div id="method-i-past_flags" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">past_flags</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="past_flags-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 96</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">past_flags</span>
+  <span class="ruby-identifier">workflow</span>.<span class="ruby-identifier">past_flags</span>(<span class="ruby-keyword">self</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- past_flags-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- past_flags-method -->
+
+    
+      <div id="method-i-restart" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">restart</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="restart-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 53</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">restart</span>
+  <span class="ruby-identifier">raise</span> <span class="ruby-string">'This event does not support restarting'</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- restart-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- restart-method -->
+
+    
+      <div id="method-i-serializable_hash" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">serializable_hash</span><span
+            class="method-args">(options = {})</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="serializable_hash-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 133</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">serializable_hash</span>(<span class="ruby-identifier">options</span> = {})
+  <span class="ruby-identifier">hash</span> = <span class="ruby-keyword">super</span>
+  <span class="ruby-identifier">blacklisted_fields</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">field</span><span class="ruby-operator">|</span> <span class="ruby-identifier">hash</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">field</span>) }
+  <span class="ruby-identifier">hash</span>.<span class="ruby-identifier">merge</span>({ <span class="ruby-identifier">id</span><span class="ruby-operator">:</span> <span class="ruby-identifier">id</span>, <span class="ruby-identifier">type</span><span class="ruby-operator">:</span> <span class="ruby-identifier">event_type</span>})
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- serializable_hash-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- serializable_hash-method -->
+
+    
+      <div id="method-i-start" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">start</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="start-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 49</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">start</span>
+  <span class="ruby-identifier">notify_of</span>(<span class="ruby-string">&quot;start&quot;</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- start-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- start-method -->
+
+    
+      <div id="method-i-timeout" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">timeout</span><span
+            class="method-args">(timeout)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="timeout-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 71</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">timeout</span>(<span class="ruby-identifier">timeout</span>)
+  <span class="ruby-identifier">update_status!</span>(<span class="ruby-value">:timeout</span>, <span class="ruby-identifier">timeout</span>)
+  <span class="ruby-identifier">notify_of</span>(<span class="ruby-string">&quot;timeout&quot;</span>, <span class="ruby-identifier">timeout</span>)
+  <span class="ruby-constant">Watchdog</span>.<span class="ruby-identifier">mass_dismiss</span>(<span class="ruby-keyword">self</span>)
+  <span class="ruby-identifier">parent</span>.<span class="ruby-identifier">child_timeout</span>(<span class="ruby-keyword">self</span>, <span class="ruby-identifier">timeout</span>) <span class="ruby-keyword">if</span> <span class="ruby-identifier">parent</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- timeout-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- timeout-method -->
+
+    
+      <div id="method-i-update_status-21" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">update_status!</span><span
+            class="method-args">(new_status, error = nil)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="update_status-21-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 35</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">update_status!</span>(<span class="ruby-identifier">new_status</span>, <span class="ruby-identifier">error</span> = <span class="ruby-keyword">nil</span>)
+  <span class="ruby-keyword">unless</span> <span class="ruby-identifier">new_status</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">self</span>.<span class="ruby-identifier">status</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">new_status</span> <span class="ruby-operator">!=</span> <span class="ruby-value">:retrying</span>
+    <span class="ruby-identifier">status_hash</span> = {<span class="ruby-identifier">from</span><span class="ruby-operator">:</span> <span class="ruby-keyword">self</span>.<span class="ruby-identifier">status</span>, <span class="ruby-identifier">to</span><span class="ruby-operator">:</span> <span class="ruby-identifier">new_status</span>, <span class="ruby-identifier">at</span><span class="ruby-operator">:</span> <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">to_datetime</span>.<span class="ruby-identifier">to_s</span>}
+    <span class="ruby-identifier">status_hash</span>[<span class="ruby-value">:error</span>] = <span class="ruby-identifier">error_hash</span>(<span class="ruby-identifier">error</span>) <span class="ruby-keyword">if</span> <span class="ruby-identifier">error</span>
+    <span class="ruby-keyword">self</span>.<span class="ruby-identifier">status_history</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">status_hash</span>
+    <span class="ruby-keyword">self</span>.<span class="ruby-identifier">status</span> = <span class="ruby-identifier">new_status</span>
+    <span class="ruby-keyword">self</span>.<span class="ruby-identifier">save!</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- update_status-21-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- update_status-21-method -->
+
+    
+      <div id="method-i-with_lock" class="method-detail method-alias">
+        
+        <div class="method-heading">
+          <span class="method-name">with_lock</span><span
+            class="method-args">(options = {}, &block)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+        </div>
+
+        
+        <div class="aliases">
+          Also aliased as: <a href="Event.html#method-i-with_lock_without_defaults">with_lock_without_defaults</a>
+        </div>
+        
+
+        
+        <div class="aliases">
+          Alias for: <a href="Event.html#method-i-with_lock_with_defaults">with_lock_with_defaults</a>
+        </div>
+        
+      </div><!-- with_lock-method -->
+
+    
+      <div id="method-i-with_lock_with_defaults" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">with_lock_with_defaults</span><span
+            class="method-args">(options = {}, &block)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="with_lock_with_defaults-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/models/events/event.rb, line 160</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">with_lock_with_defaults</span>(<span class="ruby-identifier">options</span> = {}, &amp;<span class="ruby-identifier">block</span>)
+  {<span class="ruby-identifier">retry_sleep</span><span class="ruby-operator">:</span> <span class="ruby-value">0.5</span>, <span class="ruby-identifier">retries</span><span class="ruby-operator">:</span> <span class="ruby-value">10</span>, <span class="ruby-identifier">timeout</span><span class="ruby-operator">:</span> <span class="ruby-value">2</span>}.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">options</span>)
+  <span class="ruby-identifier">with_lock_without_defaults</span>(<span class="ruby-identifier">options</span>, &amp;<span class="ruby-identifier">block</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- with_lock_with_defaults-source -->
+          
+        </div>
+
+        
+        <div class="aliases">
+          Also aliased as: <a href="Event.html#method-i-with_lock">with_lock</a>
+        </div>
+        
+
+        
+      </div><!-- with_lock_with_defaults-method -->
+
+    
+      <div id="method-i-with_lock_without_defaults" class="method-detail method-alias">
+        
+        <div class="method-heading">
+          <span class="method-name">with_lock_without_defaults</span><span
+            class="method-args">(options = {}, &block)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+        </div>
+
+        
+
+        
+        <div class="aliases">
+          Alias for: <a href="Event.html#method-i-with_lock">with_lock</a>
+        </div>
+        
+      </div><!-- with_lock_without_defaults-method -->
+
+    
+    </section><!-- public-instance-method-details -->
+  
+  </section><!-- 5Buntitled-5D -->
+
+</div><!-- documentation -->
+
+
+<footer id="validator-badges">
+  <p><a href="http://validator.w3.org/check/referer">[Validate]</a>
+  <p>Generated by <a href="https://github.com/rdoc/rdoc">RDoc</a> 3.12.
+  <p>Generated with the <a href="http://deveiate.org/projects/Darkfish-Rdoc/">Darkfish Rdoc Generator</a> 3.
+</footer>
+

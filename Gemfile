@@ -20,6 +20,7 @@ group :development do
   gem 'capistrano'
   gem 'capistrano-ext'
   gem 'capistrano-campfire'
+  gem 'rdoc'
 end
 
 group :test do

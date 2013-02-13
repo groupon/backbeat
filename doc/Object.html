@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+
+<title>class Object - RDoc Documentation</title>
+
+<link type="text/css" media="screen" href="./rdoc.css" rel="stylesheet">
+
+<script type="text/javascript">
+  var rdoc_rel_prefix = "./";
+</script>
+
+<script type="text/javascript" charset="utf-8" src="./js/jquery.js"></script>
+<script type="text/javascript" charset="utf-8" src="./js/navigation.js"></script>
+<script type="text/javascript" charset="utf-8" src="./js/search_index.js"></script>
+<script type="text/javascript" charset="utf-8" src="./js/search.js"></script>
+<script type="text/javascript" charset="utf-8" src="./js/searcher.js"></script>
+<script type="text/javascript" charset="utf-8" src="./js/darkfish.js"></script>
+
+
+<body id="top" class="class">
+<nav id="metadata">
+  <nav id="home-section" class="section">
+  <h3 class="section-header">
+    <a href="./index.html">Home</a>
+    <a href="./table_of_contents.html#classes">Classes</a>
+    <a href="./table_of_contents.html#methods">Methods</a>
+  </h3>
+</nav>
+
+
+  <nav id="search-section" class="section project-section" class="initially-hidden">
+  <form action="#" method="get" accept-charset="utf-8">
+    <h3 class="section-header">
+      <input type="text" name="search" placeholder="Search" id="search-field"
+             title="Type to search, Up and Down to navigate, Enter to load">
+    </h3>
+  </form>
+
+  <ul id="search-results" class="initially-hidden"></ul>
+</nav>
+
+
+  <div id="file-metadata">
+    <nav id="file-list-section" class="section">
+  <h3 class="section-header">Defined In</h3>
+  <ul>
+    <li>config/deploy.rb
+    <li>config/roller/accounting_mongo_backup/bin/mongo_backup
+    <li>script/delayed_job_backbeat
+    <li>spec/integration/api/activity_spec.rb
+    <li>spec/integration/api/branch_spec.rb
+    <li>spec/integration/api/decision_spec.rb
+    <li>spec/integration/api/event_spec.rb
+    <li>spec/integration/api/health_spec.rb
+    <li>spec/integration/api/log_spec.rb
+    <li>spec/integration/api/workflow_spec.rb
+    <li>spec/spec_helper.rb
+  </ul>
+</nav>
+
+    
+  </div>
+
+  <div id="class-metadata">
+    
+    <nav id="parent-class-section" class="section">
+  <h3 class="section-header">Parent</h3>
+  
+  <p class="link">BasicObject
+  
+</nav>
+
+    <!-- Included Modules -->
+<nav id="includes-section" class="section">
+  <h3 class="section-header">Included Modules</h3>
+
+  <ul class="link-list">
+  
+  
+    <li><span class="include">Rack::Test::Methods</span>
+  
+  
+  </ul>
+</nav>
+
+    <!-- Method Quickref -->
+<nav id="method-list-section" class="section">
+  <h3 class="section-header">Methods</h3>
+
+  <ul class="link-list">
+    
+    <li><a href="#method-i-app">#app</a>
+    
+    <li><a href="#method-i-campfire_speak">#campfire_speak</a>
+    
+    <li><a href="#method-i-capture">#capture</a>
+    
+    <li><a href="#method-i-commit_and_push">#commit_and_push</a>
+    
+    <li><a href="#method-i-commit_and_push_sox_artifact">#commit_and_push_sox_artifact</a>
+    
+    <li><a href="#method-i-create_sox_artifact">#create_sox_artifact</a>
+    
+    <li><a href="#method-i-deploy_already_tagged-3F">#deploy_already_tagged?</a>
+    
+    <li><a href="#method-i-find_deploy_tags_from_today">#find_deploy_tags_from_today</a>
+    
+    <li><a href="#method-i-find_deployed_revisions">#find_deployed_revisions</a>
+    
+    <li><a href="#method-i-get_app_dir_name">#get_app_dir_name</a>
+    
+    <li><a href="#method-i-parse_args">#parse_args</a>
+    
+    <li><a href="#method-i-remove_tmp_deploy_repo">#remove_tmp_deploy_repo</a>
+    
+    <li><a href="#method-i-restart">#restart</a>
+    
+    <li><a href="#method-i-running-3F">#running?</a>
+    
+    <li><a href="#method-i-set_and_push_deploy_tag">#set_and_push_deploy_tag</a>
+    
+    <li><a href="#method-i-setup_and_go_to_deploy_repo">#setup_and_go_to_deploy_repo</a>
+    
+    <li><a href="#method-i-sha_from_branch">#sha_from_branch</a>
+    
+    <li><a href="#method-i-signal">#signal</a>
+    
+    <li><a href="#method-i-start">#start</a>
+    
+    <li><a href="#method-i-stop">#stop</a>
+    
+    <li><a href="#method-i-uri">#uri</a>
+    
+  </ul>
+</nav>
+
+  </div>
+
+  <div id="project-metadata">
+    <nav id="fileindex-section" class="section project-section">
+  <h3 class="section-header">Pages</h3>
+
+  <ul>
+  
+    <li class="file"><a href="./Capfile.html">Capfile</a>
+  
+    <li class="file"><a href="./Gemfile.html">Gemfile</a>
+  
+    <li class="file"><a href="./Rakefile.html">Rakefile</a>
+  
+    <li class="file"><a href="./config/roller/accounting_backbeat_delayed_job_init/etc/init_d/delayed_job_backbeat.html">delayed_job_backbeat</a>
+  
+    <li class="file"><a href="./config/roller/accounting_backbeat_delayed_job_init/etc/rc_d/K61delayed_job_backbeat.html">K61delayed_job_backbeat</a>
+  
+    <li class="file"><a href="./config/roller/accounting_backbeat_delayed_job_init/etc/rc_d/S61delayed_job_backbeat.html">S61delayed_job_backbeat</a>
+  
+    <li class="file"><a href="./config/roller/accounting_backbeat_logrotate_config/etc/logrotate_d/backbeat.html">backbeat</a>
+  
+    <li class="file"><a href="./config/roller/accounting_backbeat_unicorn_init/etc/init_d/unicorn_backbeat.html">unicorn_backbeat</a>
+  
+    <li class="file"><a href="./config/roller/accounting_backbeat_unicorn_init/etc/rc_d/K61unicorn_backbeat.html">K61unicorn_backbeat</a>
+  
+    <li class="file"><a href="./config/roller/accounting_backbeat_unicorn_init/etc/rc_d/S61unicorn_backbeat.html">S61unicorn_backbeat</a>
+  
+    <li class="file"><a href="./config/roller/accounting_mongo_backup/config/C50mongo_backup.html">C50mongo_backup</a>
+  
+  </ul>
+</nav>
+
+    <nav id="classindex-section" class="section project-section">
+  <h3 class="section-header">Class and Module Index</h3>
+
+  <ul class="link-list">
+  
+    <li><a href="./WorkflowServer.html">WorkflowServer</a>
+  
+    <li><a href="./WorkflowServer/Async.html">WorkflowServer::Async</a>
+  
+    <li><a href="./WorkflowServer/Async/Job.html">WorkflowServer::Async::Job</a>
+  
+    <li><a href="./WorkflowServer/BackbeatMongo.html">WorkflowServer::BackbeatMongo</a>
+  
+    <li><a href="./WorkflowServer/ClassMethods.html">WorkflowServer::ClassMethods</a>
+  
+    <li><a href="./WorkflowServer/Client.html">WorkflowServer::Client</a>
+  
+    <li><a href="./WorkflowServer/Config.html">WorkflowServer::Config</a>
+  
+    <li><a href="./WorkflowServer/DelayedJobLogger.html">WorkflowServer::DelayedJobLogger</a>
+  
+    <li><a href="./WorkflowServer/EventComplete.html">WorkflowServer::EventComplete</a>
+  
+    <li><a href="./WorkflowServer/EventNotFound.html">WorkflowServer::EventNotFound</a>
+  
+    <li><a href="./WorkflowServer/Helper.html">WorkflowServer::Helper</a>
+  
+    <li><a href="./WorkflowServer/Helper/HashKeyTransformations.html">WorkflowServer::Helper::HashKeyTransformations</a>
+  
+    <li><a href="./WorkflowServer/HttpError.html">WorkflowServer::HttpError</a>
+  
+    <li><a href="./WorkflowServer/InvalidDecisionSelection.html">WorkflowServer::InvalidDecisionSelection</a>
+  
+    <li><a href="./WorkflowServer/InvalidEventStatus.html">WorkflowServer::InvalidEventStatus</a>
+  
+    <li><a href="./WorkflowServer/InvalidParameters.html">WorkflowServer::InvalidParameters</a>
+  
+    <li><a href="./WorkflowServer/Logger.html">WorkflowServer::Logger</a>
+  
+    <li><a href="./WorkflowServer/Models.html">WorkflowServer::Models</a>
+  
+    <li><a href="./WorkflowServer/Models/Activity.html">WorkflowServer::Models::Activity</a>
+  
+    <li><a href="./WorkflowServer/Models/Branch.html">WorkflowServer::Models::Branch</a>
+  
+    <li><a href="./WorkflowServer/Models/Decision.html">WorkflowServer::Models::Decision</a>
+  
+    <li><a href="./WorkflowServer/Models/Event.html">WorkflowServer::Models::Event</a>
+  
+    <li><a href="./WorkflowServer/Models/Flag.html">WorkflowServer::Models::Flag</a>
+  
+    <li><a href="./WorkflowServer/Models/Signal.html">WorkflowServer::Models::Signal</a>
+  
+    <li><a href="./WorkflowServer/Models/SubActivity.html">WorkflowServer::Models::SubActivity</a>
+  
+    <li><a href="./WorkflowServer/Models/Timer.html">WorkflowServer::Models::Timer</a>
+  
+    <li><a href="./WorkflowServer/Models/User.html">WorkflowServer::Models::User</a>
+  
+    <li><a href="./WorkflowServer/Models/Watchdog.html">WorkflowServer::Models::Watchdog</a>
+  
+    <li><a href="./WorkflowServer/Models/Workflow.html">WorkflowServer::Models::Workflow</a>
+  
+    <li><a href="./WorkflowServer/Models/WorkflowCompleteFlag.html">WorkflowServer::Models::WorkflowCompleteFlag</a>
+  
+    <li><a href="./WorkflowServer/OutputFormatter.html">WorkflowServer::OutputFormatter</a>
+  
+    <li><a href="./WorkflowServer/TimeOut.html">WorkflowServer::TimeOut</a>
+  
+    <li><a href="./WorkflowServer/WaitForSubActivity.html">WorkflowServer::WaitForSubActivity</a>
+  
+    <li><a href="./Api.html">Api</a>
+  
+    <li><a href="./Api/Authenticate.html">Api::Authenticate</a>
+  
+    <li><a href="./Api/CamelCase.html">Api::CamelCase</a>
+  
+    <li><a href="./Api/CamelJsonFormatter.html">Api::CamelJsonFormatter</a>
+  
+    <li><a href="./Api/Health.html">Api::Health</a>
+  
+    <li><a href="./Api/Log.html">Api::Log</a>
+  
+    <li><a href="./Api/Workflow.html">Api::Workflow</a>
+  
+    <li><a href="./Delayed.html">Delayed</a>
+  
+    <li><a href="./Delayed/Backend.html">Delayed::Backend</a>
+  
+    <li><a href="./Delayed/Backend/Mongoid.html">Delayed::Backend::Mongoid</a>
+  
+    <li><a href="./Delayed/Backend/Mongoid/Job.html">Delayed::Backend::Mongoid::Job</a>
+  
+    <li><a href="./Groupon.html">Groupon</a>
+  
+    <li><a href="./Groupon/FinancialEngineering.html">Groupon::FinancialEngineering</a>
+  
+    <li><a href="./Groupon/FinancialEngineering/Capistrano.html">Groupon::FinancialEngineering::Capistrano</a>
+  
+    <li><a href="./Helper.html">Helper</a>
+  
+    <li><a href="./Helper/Mongo.html">Helper::Mongo</a>
+  
+    <li><a href="./Tree.html">Tree</a>
+  
+    <li><a href="./Tree/Node.html">Tree::Node</a>
+  
+    <li><a href="./Color.html">Color</a>
+  
+    <li><a href="./Colorize.html">Colorize</a>
+  
+    <li><a href="./Object.html">Object</a>
+  
+  </ul>
+</nav>
+
+  </div>
+</nav>
+
+<div id="documentation">
+  <h1 class="class">class Object</h1>
+
+  <div id="description" class="description">
+    
+  </div><!-- description -->
+
+  
+  
+  
+  <section id="5Buntitled-5D" class="documentation-section">
+    
+
+    
+
+    
+    <!-- Constants -->
+    <section id="constants-list" class="section">
+      <h3 class="section-header">Constants</h3>
+      <dl>
+      
+        <dt id="FullRackApp">FullRackApp
+        
+        <dd class="description">
+        
+      
+        <dt id="RSPEC_CONSTANT_USER_CLIENT_ID">RSPEC_CONSTANT_USER_CLIENT_ID
+        
+        <dd class="description">
+        
+      
+      </dl>
+    </section>
+    
+
+    
+
+    <!-- Methods -->
+    
+     <section id="public-instance-5Buntitled-5D-method-details" class="method-section section">
+      <h3 class="section-header">Public Instance Methods</h3>
+
+    
+      <div id="method-i-app" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">app</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="app-source">
+            <pre><span class="ruby-comment"># File spec/integration/api/activity_spec.rb, line 6</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">app</span>
+  <span class="ruby-constant">FullRackApp</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- app-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- app-method -->
+
+    
+      <div id="method-i-campfire_speak" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">campfire_speak</span><span
+            class="method-args">(msg)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="campfire_speak-source">
+            <pre><span class="ruby-comment"># File config/deploy.rb, line 46</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">campfire_speak</span> <span class="ruby-identifier">msg</span>
+  <span class="ruby-keyword">begin</span>
+    <span class="ruby-comment">#puts &quot;Deploying #{msg}&quot;</span>
+    <span class="ruby-identifier">campfire_room</span>.<span class="ruby-identifier">speak</span> <span class="ruby-identifier">msg</span>
+  <span class="ruby-keyword">rescue</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">err</span>
+    <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;unable to speak: #{msg}&quot;</span>
+    <span class="ruby-identifier">puts</span> <span class="ruby-identifier">err</span>.<span class="ruby-identifier">inspect</span>
+    <span class="ruby-identifier">puts</span> <span class="ruby-identifier">err</span>.<span class="ruby-identifier">backtrace</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- campfire_speak-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- campfire_speak-method -->
+
+    
+      <div id="method-i-capture" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">capture</span><span
+            class="method-args">(*args)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="capture-source">
+            <pre><span class="ruby-comment"># File config/deploy.rb, line 58</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">capture</span>(*<span class="ruby-identifier">args</span>)
+  <span class="ruby-identifier">parent</span>.<span class="ruby-identifier">capture</span> *<span class="ruby-identifier">args</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- capture-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- capture-method -->
+
+    
+      <div id="method-i-commit_and_push" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">commit_and_push</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="commit_and_push-source">
+            <pre><span class="ruby-comment"># File config/deploy.rb, line 114</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">commit_and_push</span>
+  <span class="ruby-node">%xcd #{@tmp_deploy_repo_dir} &amp;&amp; git add . &amp;&amp; git commit -m &quot;Logging deploy for application:#{@app_dir_in_deploy_repo} revision:#{@deploy_sha}&quot; &amp;&amp; git pull --rebase &amp;&amp; git push origin master`</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- commit_and_push-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- commit_and_push-method -->
+
+    
+      <div id="method-i-commit_and_push_sox_artifact" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">commit_and_push_sox_artifact</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="commit_and_push_sox_artifact-source">
+            <pre><span class="ruby-comment"># File config/deploy.rb, line 103</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">commit_and_push_sox_artifact</span>
+  <span class="ruby-identifier">create_sox_artifact</span>
+  <span class="ruby-identifier">commit_and_push</span>
+  <span class="ruby-identifier">set_and_push_deploy_tag</span> 
+  <span class="ruby-identifier">remove_tmp_deploy_repo</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- commit_and_push_sox_artifact-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- commit_and_push_sox_artifact-method -->
+
+    
+      <div id="method-i-create_sox_artifact" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">create_sox_artifact</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="create_sox_artifact-source">
+            <pre><span class="ruby-comment"># File config/deploy.rb, line 110</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">create_sox_artifact</span>
+  <span class="ruby-node">%xcd #{@tmp_deploy_repo_dir} &amp;&amp; echo '#{@sox_artifact}' &gt; #{@app_dir_in_deploy_repo}/#{@deploy_timestamp}.txt`</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- create_sox_artifact-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- create_sox_artifact-method -->
+
+    
+      <div id="method-i-deploy_already_tagged-3F" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">deploy_already_tagged?</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="deploy_already_tagged-3F-source">
+            <pre><span class="ruby-comment"># File config/deploy.rb, line 122</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">deploy_already_tagged?</span>
+  <span class="ruby-identifier">deploy_tags_from_today</span> = <span class="ruby-identifier">find_deploy_tags_from_today</span>
+  <span class="ruby-keyword">return</span> <span class="ruby-keyword">false</span> <span class="ruby-keyword">if</span> <span class="ruby-identifier">deploy_tags_from_today</span>.<span class="ruby-identifier">empty?</span>
+  <span class="ruby-identifier">deployed_revisions</span> = <span class="ruby-identifier">find_deployed_revisions</span>
+  <span class="ruby-identifier">deployed_revisions</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-ivar">@deploy_sha</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- deploy_already_tagged-3F-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- deploy_already_tagged-3F-method -->
+
+    
+      <div id="method-i-find_deploy_tags_from_today" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">find_deploy_tags_from_today</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="find_deploy_tags_from_today-source">
+            <pre><span class="ruby-comment"># File config/deploy.rb, line 129</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">find_deploy_tags_from_today</span>
+  <span class="ruby-node">%xcd #{@tmp_deploy_repo_dir} &amp;&amp; git ls-remote #{@deploy_repo} refs/tags/#{@deploy_tag_day}* | awk '{print $1}'`</span>.<span class="ruby-identifier">split</span>(<span class="ruby-string">&quot;\n&quot;</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- find_deploy_tags_from_today-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- find_deploy_tags_from_today-method -->
+
+    
+      <div id="method-i-find_deployed_revisions" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">find_deployed_revisions</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="find_deployed_revisions-source">
+            <pre><span class="ruby-comment"># File config/deploy.rb, line 133</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">find_deployed_revisions</span>
+  <span class="ruby-node">%xcd #{@tmp_deploy_repo_dir} &amp;&amp; git fetch --tags &amp;&amp; git tag | grep #{@deploy_tag_day} | xargs -ITAG git log -n 1 $TAG | grep &quot;Logging deploy for&quot; | grep #{@app_dir_in_deploy_repo} | awk -F 'revision:' '{print $2}'`</span>.<span class="ruby-identifier">split</span>(<span class="ruby-string">&quot;\n&quot;</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- find_deployed_revisions-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- find_deployed_revisions-method -->
+
+    
+      <div id="method-i-get_app_dir_name" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">get_app_dir_name</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="get_app_dir_name-source">
+            <pre><span class="ruby-comment"># File config/deploy.rb, line 90</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">get_app_dir_name</span>
+  <span class="ruby-identifier">app_dir</span> = <span class="ruby-node">&quot;#{repository.split(':').last.gsub('.git','')}&quot;</span>
+  <span class="ruby-keyword">if</span> <span class="ruby-identifier">app_dir</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-string">&quot;/&quot;</span>)
+    <span class="ruby-identifier">app_dir</span> = <span class="ruby-identifier">app_dir</span>.<span class="ruby-identifier">split</span>(<span class="ruby-string">&quot;/&quot;</span>).<span class="ruby-identifier">last</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-identifier">app_dir</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- get_app_dir_name-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- get_app_dir_name-method -->
+
+    
+      <div id="method-i-parse_args" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">parse_args</span><span
+            class="method-args">(args)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="parse_args-source">
+            <pre><span class="ruby-comment"># File config/roller/accounting_mongo_backup/bin/mongo_backup, line 117</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">parse_args</span>(<span class="ruby-identifier">args</span>)
+  <span class="ruby-identifier">options</span> = {
+    <span class="ruby-identifier">host</span><span class="ruby-operator">:</span> <span class="ruby-string">'localhost'</span>,
+    <span class="ruby-identifier">port</span><span class="ruby-operator">:</span> <span class="ruby-value">27017</span>,
+    <span class="ruby-identifier">mongo_id</span><span class="ruby-operator">:</span> <span class="ruby-value">1</span>
+  }
+
+  <span class="ruby-identifier">opts</span> = <span class="ruby-constant">OptionParser</span>.<span class="ruby-identifier">new</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">opts</span><span class="ruby-operator">|</span>
+    <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">banner</span> = <span class="ruby-node">&quot;Usage: #{File.basename($0)} -h host -p port -i mongo_id&quot;</span>
+    <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-string">&quot;-h host&quot;</span>, <span class="ruby-string">&quot;--host host&quot;</span>, <span class="ruby-constant">String</span>, <span class="ruby-string">&quot;mongo host&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">h</span><span class="ruby-operator">|</span> <span class="ruby-identifier">options</span>[<span class="ruby-value">:host</span>] = <span class="ruby-identifier">h</span>}
+    <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-string">&quot;-p port&quot;</span>, <span class="ruby-string">&quot;--port port&quot;</span>, <span class="ruby-constant">String</span>, <span class="ruby-string">&quot;mongo port&quot;</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">p</span><span class="ruby-operator">|</span> <span class="ruby-identifier">options</span>[<span class="ruby-value">:port</span>] = <span class="ruby-identifier">p</span>}
+    <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-string">&quot;-i id&quot;</span>, <span class="ruby-string">&quot;--mongoid id&quot;</span>, <span class="ruby-constant">String</span>, <span class="ruby-string">&quot;mongo instance id&quot;</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span> <span class="ruby-identifier">options</span>[<span class="ruby-value">:mongo_id</span>] = <span class="ruby-identifier">i</span>}
+    <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on_tail</span>(<span class="ruby-string">&quot;-h&quot;</span>, <span class="ruby-string">&quot;--help&quot;</span>, <span class="ruby-string">&quot;show this message&quot;</span>) <span class="ruby-keyword">do</span>
+      <span class="ruby-identifier">puts</span> <span class="ruby-identifier">opts</span>
+      <span class="ruby-identifier">exit</span>
+    <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">args</span>)
+  <span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">BackbeatMongo</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">options</span>).<span class="ruby-identifier">perform</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- parse_args-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- parse_args-method -->
+
+    
+      <div id="method-i-remove_tmp_deploy_repo" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">remove_tmp_deploy_repo</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="remove_tmp_deploy_repo-source">
+            <pre><span class="ruby-comment"># File config/deploy.rb, line 137</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">remove_tmp_deploy_repo</span>
+  <span class="ruby-node">%xrm -rf #{@tmp_deploy_repo_dir}`</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- remove_tmp_deploy_repo-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- remove_tmp_deploy_repo-method -->
+
+    
+      <div id="method-i-restart" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">restart</span><span
+            class="method-args">(pidfile)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="restart-source">
+            <pre><span class="ruby-comment"># File script/delayed_job_backbeat, line 30</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">restart</span>(<span class="ruby-identifier">pidfile</span>)
+  <span class="ruby-identifier">stop</span>(<span class="ruby-identifier">pidfile</span>)
+  <span class="ruby-identifier">killed_it</span> = <span class="ruby-keyword">false</span>
+  <span class="ruby-value">10</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword">do</span>
+    <span class="ruby-keyword">unless</span> <span class="ruby-identifier">running?</span>(<span class="ruby-identifier">pidfile</span>)
+      <span class="ruby-identifier">killed_it</span> = <span class="ruby-keyword">true</span>
+      <span class="ruby-keyword">break</span>
+    <span class="ruby-keyword">end</span>
+    <span class="ruby-identifier">sleep</span> <span class="ruby-value">1</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">if</span> <span class="ruby-identifier">killed_it</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">false</span>
+    <span class="ruby-identifier">raise</span> <span class="ruby-node">&quot;unable to kill #{File.read(pidfile).chomp rescue pidfile}. giving up.&quot;</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-identifier">start</span>(<span class="ruby-identifier">pidfile</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- restart-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- restart-method -->
+
+    
+      <div id="method-i-running-3F" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">running?</span><span
+            class="method-args">(pidfile)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="running-3F-source">
+            <pre><span class="ruby-comment"># File script/delayed_job_backbeat, line 46</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">running?</span>(<span class="ruby-identifier">pidfile</span>)
+  <span class="ruby-identifier">signal</span>(<span class="ruby-value">0</span>, <span class="ruby-identifier">pidfile</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- running-3F-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- running-3F-method -->
+
+    
+      <div id="method-i-set_and_push_deploy_tag" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">set_and_push_deploy_tag</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="set_and_push_deploy_tag-source">
+            <pre><span class="ruby-comment"># File config/deploy.rb, line 118</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">set_and_push_deploy_tag</span>
+  <span class="ruby-node">%xcd #{@tmp_deploy_repo_dir} &amp;&amp; git fetch origin &amp;&amp; git fetch --tags &amp;&amp; git tag #{@deploy_tag} HEAD &amp;&amp; git push --tags`</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- set_and_push_deploy_tag-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- set_and_push_deploy_tag-method -->
+
+    
+      <div id="method-i-setup_and_go_to_deploy_repo" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">setup_and_go_to_deploy_repo</span><span
+            class="method-args">()</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="setup_and_go_to_deploy_repo-source">
+            <pre><span class="ruby-comment"># File config/deploy.rb, line 98</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">setup_and_go_to_deploy_repo</span>
+  <span class="ruby-identifier">remove_tmp_deploy_repo</span>
+  <span class="ruby-node">%xmkdir -p #{@tmp_dir} &amp;&amp; cd #{@tmp_dir} &amp;&amp; git clone #{@deploy_repo} &amp;&amp; cd #{@deploy_repo_dir} &amp;&amp; mkdir -p #{@app_dir_in_deploy_repo}`</span>  
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- setup_and_go_to_deploy_repo-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- setup_and_go_to_deploy_repo-method -->
+
+    
+      <div id="method-i-sha_from_branch" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">sha_from_branch</span><span
+            class="method-args">(arg)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="sha_from_branch-source">
+            <pre><span class="ruby-comment"># File config/deploy.rb, line 386</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">sha_from_branch</span>(<span class="ruby-identifier">arg</span>)
+  <span class="ruby-identifier">branch_to_sha</span> = {}
+  <span class="ruby-value">%xgit ls-remote`</span>.<span class="ruby-identifier">split</span>(<span class="ruby-string">&quot;\n&quot;</span>).<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">line</span><span class="ruby-operator">|</span>
+    <span class="ruby-identifier">sha</span>, <span class="ruby-identifier">branch</span> = <span class="ruby-identifier">line</span>.<span class="ruby-identifier">split</span>(<span class="ruby-string">&quot;\t&quot;</span>)
+    <span class="ruby-identifier">branch</span> = <span class="ruby-string">'master'</span> <span class="ruby-keyword">if</span> <span class="ruby-identifier">branch</span> <span class="ruby-operator">==</span> <span class="ruby-string">'HEAD'</span>
+    <span class="ruby-identifier">branch</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp">%r^refs\/heads\//</span>, <span class="ruby-string">''</span>)
+    <span class="ruby-identifier">branch_to_sha</span>[<span class="ruby-identifier">branch</span>] = <span class="ruby-identifier">sha</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-identifier">branch_to_sha</span>[<span class="ruby-identifier">arg</span>]
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- sha_from_branch-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- sha_from_branch-method -->
+
+    
+      <div id="method-i-signal" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">signal</span><span
+            class="method-args">(signal, pidfile)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Signal a process.</p>
+          
+
+          
+          <div class="method-source-code" id="signal-source">
+            <pre><span class="ruby-comment"># File script/delayed_job_backbeat, line 51</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">signal</span>(<span class="ruby-identifier">signal</span>, <span class="ruby-identifier">pidfile</span>)
+  <span class="ruby-identifier">process_id</span> = <span class="ruby-identifier">pid</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">pidfile</span>).<span class="ruby-identifier">chomp</span>
+  <span class="ruby-keyword">begin</span>
+    <span class="ruby-identifier">process_id</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-operator">?</span> <span class="ruby-keyword">false</span> <span class="ruby-operator">:</span> <span class="ruby-constant">Process</span>.<span class="ruby-identifier">kill</span>(<span class="ruby-identifier">signal</span>, <span class="ruby-identifier">process_id</span>.<span class="ruby-identifier">to_i</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-keyword">true</span>
+  <span class="ruby-keyword">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ESRCH</span>
+    <span class="ruby-constant">File</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">pidfile</span>)
+    <span class="ruby-keyword">false</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- signal-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- signal-method -->
+
+    
+      <div id="method-i-start" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">start</span><span
+            class="method-args">(pidfile)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="start-source">
+            <pre><span class="ruby-comment"># File script/delayed_job_backbeat, line 7</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">start</span>(<span class="ruby-identifier">pidfile</span>)
+  <span class="ruby-identifier">fork</span> <span class="ruby-keyword">do</span>
+    <span class="ruby-identifier">hostname</span> = <span class="ruby-value">%xhostname`</span>.<span class="ruby-identifier">chomp</span>
+    <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">pidfile</span>, <span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">CREAT</span><span class="ruby-operator">|</span><span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">TRUNC</span><span class="ruby-operator">|</span><span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">RDWR</span>) <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+      <span class="ruby-identifier">f</span>.<span class="ruby-identifier">write</span>(<span class="ruby-constant">Process</span>.<span class="ruby-identifier">pid</span>)
+    <span class="ruby-keyword">end</span>
+
+    <span class="ruby-identifier">mongo_path</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">expand_path</span>(<span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">Config</span>.<span class="ruby-identifier">root</span>, <span class="ruby-string">&quot;config&quot;</span>, <span class="ruby-string">&quot;mongoid.yml&quot;</span>))
+    <span class="ruby-constant">Mongoid</span>.<span class="ruby-identifier">load!</span>(<span class="ruby-identifier">mongo_path</span>, <span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">Config</span>.<span class="ruby-identifier">environment</span>)
+
+    <span class="ruby-constant">Delayed</span><span class="ruby-operator">::</span><span class="ruby-constant">Worker</span>.<span class="ruby-identifier">destroy_failed_jobs</span> = <span class="ruby-keyword">false</span>
+    <span class="ruby-constant">Delayed</span><span class="ruby-operator">::</span><span class="ruby-constant">Worker</span>.<span class="ruby-identifier">max_attempts</span> = <span class="ruby-value">3</span>
+    <span class="ruby-constant">Delayed</span><span class="ruby-operator">::</span><span class="ruby-constant">Worker</span>.<span class="ruby-identifier">logger</span> = <span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">DelayedJobLogger</span>
+    <span class="ruby-constant">Delayed</span><span class="ruby-operator">::</span><span class="ruby-constant">Worker</span>.<span class="ruby-identifier">lifecycle</span>.<span class="ruby-identifier">before</span>(<span class="ruby-value">:perform</span>) { <span class="ruby-operator">|</span>*<span class="ruby-identifier">args</span><span class="ruby-operator">|</span> <span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">Logger</span>.<span class="ruby-identifier">tid</span>(<span class="ruby-value">:set</span>) }
+    <span class="ruby-constant">Delayed</span><span class="ruby-operator">::</span><span class="ruby-constant">Worker</span>.<span class="ruby-identifier">lifecycle</span>.<span class="ruby-identifier">after</span>(<span class="ruby-value">:perform</span>) { <span class="ruby-operator">|</span>*<span class="ruby-identifier">args</span><span class="ruby-operator">|</span> <span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">Logger</span>.<span class="ruby-identifier">tid</span>(<span class="ruby-value">:clear</span>) }
+    <span class="ruby-constant">Delayed</span><span class="ruby-operator">::</span><span class="ruby-constant">Worker</span>.<span class="ruby-identifier">new</span>.<span class="ruby-identifier">start</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- start-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- start-method -->
+
+    
+      <div id="method-i-stop" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">stop</span><span
+            class="method-args">(pidfile)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="stop-source">
+            <pre><span class="ruby-comment"># File script/delayed_job_backbeat, line 26</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">stop</span>(<span class="ruby-identifier">pidfile</span>)
+  <span class="ruby-identifier">signal</span>(<span class="ruby-string">&quot;TERM&quot;</span>, <span class="ruby-identifier">pidfile</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- stop-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- stop-method -->
+
+    
+      <div id="method-i-uri" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">uri</span><span
+            class="method-args">(template, event)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="uri-source">
+            <pre><span class="ruby-comment"># File spec/integration/api/event_spec.rb, line 20</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">uri</span>(<span class="ruby-identifier">template</span>, <span class="ruby-identifier">event</span>)
+  <span class="ruby-identifier">event_id</span> = <span class="ruby-identifier">event</span>.<span class="ruby-identifier">id</span>
+  <span class="ruby-identifier">workflow_id</span> = <span class="ruby-identifier">event</span>.<span class="ruby-identifier">workflow</span>.<span class="ruby-identifier">id</span>
+  <span class="ruby-identifier">message</span> = <span class="ruby-constant">ERB</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">template</span>)
+  <span class="ruby-identifier">message</span>.<span class="ruby-identifier">result</span>(<span class="ruby-identifier">binding</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- uri-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- uri-method -->
+
+    
+    </section><!-- public-instance-method-details -->
+  
+  </section><!-- 5Buntitled-5D -->
+
+</div><!-- documentation -->
+
+
+<footer id="validator-badges">
+  <p><a href="http://validator.w3.org/check/referer">[Validate]</a>
+  <p>Generated by <a href="https://github.com/rdoc/rdoc">RDoc</a> 3.12.
+  <p>Generated with the <a href="http://deveiate.org/projects/Darkfish-Rdoc/">Darkfish Rdoc Generator</a> 3.
+</footer>
+

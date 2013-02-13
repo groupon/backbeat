@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+
+<title>module WorkflowServer::Client - RDoc Documentation</title>
+
+<link type="text/css" media="screen" href="../rdoc.css" rel="stylesheet">
+
+<script type="text/javascript">
+  var rdoc_rel_prefix = "../";
+</script>
+
+<script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+<script type="text/javascript" charset="utf-8" src="../js/navigation.js"></script>
+<script type="text/javascript" charset="utf-8" src="../js/search_index.js"></script>
+<script type="text/javascript" charset="utf-8" src="../js/search.js"></script>
+<script type="text/javascript" charset="utf-8" src="../js/searcher.js"></script>
+<script type="text/javascript" charset="utf-8" src="../js/darkfish.js"></script>
+
+
+<body id="top" class="module">
+<nav id="metadata">
+  <nav id="home-section" class="section">
+  <h3 class="section-header">
+    <a href="../index.html">Home</a>
+    <a href="../table_of_contents.html#classes">Classes</a>
+    <a href="../table_of_contents.html#methods">Methods</a>
+  </h3>
+</nav>
+
+
+  <nav id="search-section" class="section project-section" class="initially-hidden">
+  <form action="#" method="get" accept-charset="utf-8">
+    <h3 class="section-header">
+      <input type="text" name="search" placeholder="Search" id="search-field"
+             title="Type to search, Up and Down to navigate, Enter to load">
+    </h3>
+  </form>
+
+  <ul id="search-results" class="initially-hidden"></ul>
+</nav>
+
+
+  <div id="file-metadata">
+    <nav id="file-list-section" class="section">
+  <h3 class="section-header">Defined In</h3>
+  <ul>
+    <li>lib/workflow_server/client.rb
+  </ul>
+</nav>
+
+    
+  </div>
+
+  <div id="class-metadata">
+    
+    
+    
+    <!-- Method Quickref -->
+<nav id="method-list-section" class="section">
+  <h3 class="section-header">Methods</h3>
+
+  <ul class="link-list">
+    
+    <li><a href="#method-c-make_decision">::make_decision</a>
+    
+    <li><a href="#method-c-notify_of">::notify_of</a>
+    
+    <li><a href="#method-c-perform_activity">::perform_activity</a>
+    
+    <li><a href="#method-c-post">::post</a>
+    
+  </ul>
+</nav>
+
+  </div>
+
+  <div id="project-metadata">
+    <nav id="fileindex-section" class="section project-section">
+  <h3 class="section-header">Pages</h3>
+
+  <ul>
+  
+    <li class="file"><a href="../Capfile.html">Capfile</a>
+  
+    <li class="file"><a href="../Gemfile.html">Gemfile</a>
+  
+    <li class="file"><a href="../Rakefile.html">Rakefile</a>
+  
+    <li class="file"><a href="../config/roller/accounting_backbeat_delayed_job_init/etc/init_d/delayed_job_backbeat.html">delayed_job_backbeat</a>
+  
+    <li class="file"><a href="../config/roller/accounting_backbeat_delayed_job_init/etc/rc_d/K61delayed_job_backbeat.html">K61delayed_job_backbeat</a>
+  
+    <li class="file"><a href="../config/roller/accounting_backbeat_delayed_job_init/etc/rc_d/S61delayed_job_backbeat.html">S61delayed_job_backbeat</a>
+  
+    <li class="file"><a href="../config/roller/accounting_backbeat_logrotate_config/etc/logrotate_d/backbeat.html">backbeat</a>
+  
+    <li class="file"><a href="../config/roller/accounting_backbeat_unicorn_init/etc/init_d/unicorn_backbeat.html">unicorn_backbeat</a>
+  
+    <li class="file"><a href="../config/roller/accounting_backbeat_unicorn_init/etc/rc_d/K61unicorn_backbeat.html">K61unicorn_backbeat</a>
+  
+    <li class="file"><a href="../config/roller/accounting_backbeat_unicorn_init/etc/rc_d/S61unicorn_backbeat.html">S61unicorn_backbeat</a>
+  
+    <li class="file"><a href="../config/roller/accounting_mongo_backup/config/C50mongo_backup.html">C50mongo_backup</a>
+  
+  </ul>
+</nav>
+
+    <nav id="classindex-section" class="section project-section">
+  <h3 class="section-header">Class and Module Index</h3>
+
+  <ul class="link-list">
+  
+    <li><a href="../WorkflowServer.html">WorkflowServer</a>
+  
+    <li><a href="../WorkflowServer/Async.html">WorkflowServer::Async</a>
+  
+    <li><a href="../WorkflowServer/Async/Job.html">WorkflowServer::Async::Job</a>
+  
+    <li><a href="../WorkflowServer/BackbeatMongo.html">WorkflowServer::BackbeatMongo</a>
+  
+    <li><a href="../WorkflowServer/ClassMethods.html">WorkflowServer::ClassMethods</a>
+  
+    <li><a href="../WorkflowServer/Client.html">WorkflowServer::Client</a>
+  
+    <li><a href="../WorkflowServer/Config.html">WorkflowServer::Config</a>
+  
+    <li><a href="../WorkflowServer/DelayedJobLogger.html">WorkflowServer::DelayedJobLogger</a>
+  
+    <li><a href="../WorkflowServer/EventComplete.html">WorkflowServer::EventComplete</a>
+  
+    <li><a href="../WorkflowServer/EventNotFound.html">WorkflowServer::EventNotFound</a>
+  
+    <li><a href="../WorkflowServer/Helper.html">WorkflowServer::Helper</a>
+  
+    <li><a href="../WorkflowServer/Helper/HashKeyTransformations.html">WorkflowServer::Helper::HashKeyTransformations</a>
+  
+    <li><a href="../WorkflowServer/HttpError.html">WorkflowServer::HttpError</a>
+  
+    <li><a href="../WorkflowServer/InvalidDecisionSelection.html">WorkflowServer::InvalidDecisionSelection</a>
+  
+    <li><a href="../WorkflowServer/InvalidEventStatus.html">WorkflowServer::InvalidEventStatus</a>
+  
+    <li><a href="../WorkflowServer/InvalidParameters.html">WorkflowServer::InvalidParameters</a>
+  
+    <li><a href="../WorkflowServer/Logger.html">WorkflowServer::Logger</a>
+  
+    <li><a href="../WorkflowServer/Models.html">WorkflowServer::Models</a>
+  
+    <li><a href="../WorkflowServer/Models/Activity.html">WorkflowServer::Models::Activity</a>
+  
+    <li><a href="../WorkflowServer/Models/Branch.html">WorkflowServer::Models::Branch</a>
+  
+    <li><a href="../WorkflowServer/Models/Decision.html">WorkflowServer::Models::Decision</a>
+  
+    <li><a href="../WorkflowServer/Models/Event.html">WorkflowServer::Models::Event</a>
+  
+    <li><a href="../WorkflowServer/Models/Flag.html">WorkflowServer::Models::Flag</a>
+  
+    <li><a href="../WorkflowServer/Models/Signal.html">WorkflowServer::Models::Signal</a>
+  
+    <li><a href="../WorkflowServer/Models/SubActivity.html">WorkflowServer::Models::SubActivity</a>
+  
+    <li><a href="../WorkflowServer/Models/Timer.html">WorkflowServer::Models::Timer</a>
+  
+    <li><a href="../WorkflowServer/Models/User.html">WorkflowServer::Models::User</a>
+  
+    <li><a href="../WorkflowServer/Models/Watchdog.html">WorkflowServer::Models::Watchdog</a>
+  
+    <li><a href="../WorkflowServer/Models/Workflow.html">WorkflowServer::Models::Workflow</a>
+  
+    <li><a href="../WorkflowServer/Models/WorkflowCompleteFlag.html">WorkflowServer::Models::WorkflowCompleteFlag</a>
+  
+    <li><a href="../WorkflowServer/OutputFormatter.html">WorkflowServer::OutputFormatter</a>
+  
+    <li><a href="../WorkflowServer/TimeOut.html">WorkflowServer::TimeOut</a>
+  
+    <li><a href="../WorkflowServer/WaitForSubActivity.html">WorkflowServer::WaitForSubActivity</a>
+  
+    <li><a href="../Api.html">Api</a>
+  
+    <li><a href="../Api/Authenticate.html">Api::Authenticate</a>
+  
+    <li><a href="../Api/CamelCase.html">Api::CamelCase</a>
+  
+    <li><a href="../Api/CamelJsonFormatter.html">Api::CamelJsonFormatter</a>
+  
+    <li><a href="../Api/Health.html">Api::Health</a>
+  
+    <li><a href="../Api/Log.html">Api::Log</a>
+  
+    <li><a href="../Api/Workflow.html">Api::Workflow</a>
+  
+    <li><a href="../Delayed.html">Delayed</a>
+  
+    <li><a href="../Delayed/Backend.html">Delayed::Backend</a>
+  
+    <li><a href="../Delayed/Backend/Mongoid.html">Delayed::Backend::Mongoid</a>
+  
+    <li><a href="../Delayed/Backend/Mongoid/Job.html">Delayed::Backend::Mongoid::Job</a>
+  
+    <li><a href="../Groupon.html">Groupon</a>
+  
+    <li><a href="../Groupon/FinancialEngineering.html">Groupon::FinancialEngineering</a>
+  
+    <li><a href="../Groupon/FinancialEngineering/Capistrano.html">Groupon::FinancialEngineering::Capistrano</a>
+  
+    <li><a href="../Helper.html">Helper</a>
+  
+    <li><a href="../Helper/Mongo.html">Helper::Mongo</a>
+  
+    <li><a href="../Tree.html">Tree</a>
+  
+    <li><a href="../Tree/Node.html">Tree::Node</a>
+  
+    <li><a href="../Color.html">Color</a>
+  
+    <li><a href="../Colorize.html">Colorize</a>
+  
+    <li><a href="../Object.html">Object</a>
+  
+  </ul>
+</nav>
+
+  </div>
+</nav>
+
+<div id="documentation">
+  <h1 class="module">module WorkflowServer::Client</h1>
+
+  <div id="description" class="description">
+    
+  </div><!-- description -->
+
+  
+  
+  
+  <section id="5Buntitled-5D" class="documentation-section">
+    
+
+    
+
+    
+
+    
+
+    <!-- Methods -->
+    
+     <section id="public-class-5Buntitled-5D-method-details" class="method-section section">
+      <h3 class="section-header">Public Class Methods</h3>
+
+    
+      <div id="method-c-make_decision" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">make_decision</span><span
+            class="method-args">(decision)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="make_decision-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/client.rb, line 14</span>
+<span class="ruby-keyword">def</span> <span class="ruby-keyword">self</span>.<span class="ruby-identifier">make_decision</span>(<span class="ruby-identifier">decision</span>)
+  <span class="ruby-keyword">if</span> (<span class="ruby-identifier">url</span> = <span class="ruby-identifier">decision</span>.<span class="ruby-identifier">my_user</span>.<span class="ruby-identifier">try</span>(<span class="ruby-value">:decision_endpoint</span>))
+    <span class="ruby-identifier">response</span> = <span class="ruby-identifier">post</span>(<span class="ruby-identifier">url</span>, <span class="ruby-identifier">decision</span><span class="ruby-operator">:</span> <span class="ruby-identifier">decision</span>.<span class="ruby-identifier">serializable_hash</span>)
+    <span class="ruby-identifier">raise</span> <span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">HttpError</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;http request to make_decision failed&quot;</span>, <span class="ruby-identifier">response</span>) <span class="ruby-keyword">unless</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">code</span>.<span class="ruby-identifier">between?</span>(<span class="ruby-value">200</span>, <span class="ruby-value">299</span>)
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- make_decision-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- make_decision-method -->
+
+    
+      <div id="method-c-notify_of" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">notify_of</span><span
+            class="method-args">(event, notification, error = nil)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="notify_of-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/client.rb, line 21</span>
+<span class="ruby-keyword">def</span> <span class="ruby-keyword">self</span>.<span class="ruby-identifier">notify_of</span>(<span class="ruby-identifier">event</span>, <span class="ruby-identifier">notification</span>, <span class="ruby-identifier">error</span> = <span class="ruby-keyword">nil</span>)
+  <span class="ruby-identifier">workflow</span> = <span class="ruby-identifier">event</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">Models</span><span class="ruby-operator">::</span><span class="ruby-constant">Workflow</span>) <span class="ruby-operator">?</span> <span class="ruby-identifier">event</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">event</span>.<span class="ruby-identifier">workflow</span>
+  <span class="ruby-identifier">notification</span> = <span class="ruby-node">&quot;#{workflow.try(:subject_klass)}(#{workflow.try(:subject_id)}):#{event.event_type}(#{event.name}):#{notification}&quot;</span>
+
+  <span class="ruby-keyword">if</span> (<span class="ruby-identifier">url</span> = <span class="ruby-identifier">event</span>.<span class="ruby-identifier">my_user</span>.<span class="ruby-identifier">try</span>(<span class="ruby-value">:notification_endpoint</span>))
+    <span class="ruby-identifier">params</span> = {<span class="ruby-identifier">notification</span><span class="ruby-operator">:</span> <span class="ruby-identifier">notification</span>}
+    <span class="ruby-identifier">params</span>.<span class="ruby-identifier">merge!</span>(<span class="ruby-identifier">error</span><span class="ruby-operator">:</span> <span class="ruby-identifier">error</span>) <span class="ruby-keyword">if</span> <span class="ruby-identifier">error</span>
+    <span class="ruby-identifier">response</span> = <span class="ruby-identifier">post</span>(<span class="ruby-identifier">url</span>, <span class="ruby-identifier">params</span>)
+    <span class="ruby-identifier">raise</span> <span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">HttpError</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;http request to notify_of failed&quot;</span>, <span class="ruby-identifier">response</span>) <span class="ruby-keyword">unless</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">code</span>.<span class="ruby-identifier">between?</span>(<span class="ruby-value">200</span>, <span class="ruby-value">299</span>)
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- notify_of-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- notify_of-method -->
+
+    
+      <div id="method-c-perform_activity" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">perform_activity</span><span
+            class="method-args">(activity)</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="perform_activity-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/client.rb, line 7</span>
+<span class="ruby-keyword">def</span> <span class="ruby-keyword">self</span>.<span class="ruby-identifier">perform_activity</span>(<span class="ruby-identifier">activity</span>)
+  <span class="ruby-keyword">if</span> (<span class="ruby-identifier">url</span> = <span class="ruby-identifier">activity</span>.<span class="ruby-identifier">my_user</span>.<span class="ruby-identifier">try</span>(<span class="ruby-value">:activity_endpoint</span>))
+    <span class="ruby-identifier">response</span> = <span class="ruby-identifier">post</span>(<span class="ruby-identifier">url</span>, <span class="ruby-identifier">activity</span><span class="ruby-operator">:</span> <span class="ruby-identifier">activity</span>.<span class="ruby-identifier">serializable_hash</span>)
+    <span class="ruby-identifier">raise</span> <span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">HttpError</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;http request to perform_activity failed&quot;</span>, <span class="ruby-identifier">response</span>) <span class="ruby-keyword">unless</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">code</span>.<span class="ruby-identifier">between?</span>(<span class="ruby-value">200</span>, <span class="ruby-value">299</span>)
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- perform_activity-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- perform_activity-method -->
+
+    
+      <div id="method-c-post" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">post</span><span
+            class="method-args">(url, params = {})</span>
+          <span class="method-click-advice">click to toggle source</span>
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+
+          
+          <div class="method-source-code" id="post-source">
+            <pre><span class="ruby-comment"># File lib/workflow_server/client.rb, line 33</span>
+<span class="ruby-keyword">def</span> <span class="ruby-keyword">self</span>.<span class="ruby-identifier">post</span>(<span class="ruby-identifier">url</span>, <span class="ruby-identifier">params</span> = {})
+  <span class="ruby-identifier">body</span> = <span class="ruby-constant">WorkflowServer</span><span class="ruby-operator">::</span><span class="ruby-constant">Helper</span><span class="ruby-operator">::</span><span class="ruby-constant">HashKeyTransformations</span>.<span class="ruby-identifier">camelize_keys</span>(<span class="ruby-identifier">params</span>).<span class="ruby-identifier">to_json</span>
+  <span class="ruby-operator">::</span><span class="ruby-constant">HTTParty</span>.<span class="ruby-identifier">post</span>(<span class="ruby-identifier">url</span>, <span class="ruby-identifier">body</span><span class="ruby-operator">:</span> <span class="ruby-identifier">body</span>, <span class="ruby-identifier">headers</span><span class="ruby-operator">:</span> {<span class="ruby-string">&quot;Content-Type&quot;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-string">&quot;application/json&quot;</span>, <span class="ruby-string">&quot;Content-Length&quot;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">body</span>.<span class="ruby-identifier">size</span>.<span class="ruby-identifier">to_s</span>})
+<span class="ruby-keyword">end</span></pre>
+          </div><!-- post-source -->
+          
+        </div>
+
+        
+
+        
+      </div><!-- post-method -->
+
+    
+    </section><!-- public-class-method-details -->
+  
+  </section><!-- 5Buntitled-5D -->
+
+</div><!-- documentation -->
+
+
+<footer id="validator-badges">
+  <p><a href="http://validator.w3.org/check/referer">[Validate]</a>
+  <p>Generated by <a href="https://github.com/rdoc/rdoc">RDoc</a> 3.12.
+  <p>Generated with the <a href="http://deveiate.org/projects/Darkfish-Rdoc/">Darkfish Rdoc Generator</a> 3.
+</footer>
+
