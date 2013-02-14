@@ -12,6 +12,9 @@ module WorkflowServer
       field :status_history, type: Array, default: []
       field :name,           type: Symbol
 
+      field :client_data,     type: Hash, default: {}
+      field :client_metadata, type: Hash, default: {}
+
       auto_increment :sequence
 
       belongs_to :workflow, inverse_of: :events, class_name: "WorkflowServer::Models::Workflow", index: true
@@ -127,7 +130,7 @@ module WorkflowServer
 
       # These fields are not included in the hash sent out to the client
       def blacklisted_fields
-        ["locked_at", "locked_until", "start_signal", "status_history", "sequence"]
+        ["locked_at", "locked_until", "start_signal", "status_history", "sequence", "client_metadata"]
       end
 
       def serializable_hash(options = {})
