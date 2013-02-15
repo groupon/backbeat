@@ -84,10 +84,6 @@ module WorkflowServer
         mode == :blocking
       end
 
-      def method?
-        method
-      end
-
       def fire_and_forget?
         mode == :fire_and_forget
       end
