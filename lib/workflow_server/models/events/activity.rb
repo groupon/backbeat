@@ -75,6 +75,8 @@ module WorkflowServer
 
       def child_completed(child)
         super
+        return unless child.is_a?(SubActivity)
+
         if child.blocking?
           continue
         elsif child.mode != :fire_and_forget
