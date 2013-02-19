@@ -7,14 +7,12 @@ module WorkflowServer
       field :retry, type: Integer, default: 3
       field :retry_interval, type: Integer, default: 15.minutes
       field :time_out, type: Integer, default: 0
-      field :method, type: Boolean, default: false
       field :valid_next_decisions, type: Array, default: []
 
       # indicates whether the client has called completed endpoint on this activity
       field :_client_done_with_activity, type: Boolean, default: false
 
       # These fields come from client
-      field :arguments
       field :result
       field :next_decision, type: String
 
@@ -61,7 +59,7 @@ module WorkflowServer
       def run_sub_activity(options = {})
         raise WorkflowServer::InvalidEventStatus, "Cannot run subactivity while in status(#{status})" unless status == :executing
         unless options[:always]
-          return if subactivity_handled?(options[:name], options[:arguments])
+          return if subactivity_handled?(options[:name], options[:client_data] || {})
         end
 
         sub_activity = create_sub_activity!(options)
@@ -86,10 +84,6 @@ module WorkflowServer
 
       def blocking?
         mode == :blocking
-      end
-
-      def method?
-        method
       end
 
       def fire_and_forget?
@@ -160,8 +154,8 @@ module WorkflowServer
         children.where(:mode.ne => :fire_and_forget, :status.ne => :complete).type(SubActivity).any?
       end
 
-      def subactivity_handled?(name, arguments)
-        children.type(SubActivity).where(name: name, arguments: arguments).any?
+      def subactivity_handled?(name, client_data)
+        children.type(SubActivity).where(name: name, client_data: client_data).any?
       end
 
       def send_to_client
