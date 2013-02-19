@@ -1,4 +1,11 @@
 FactoryGirl.define do
+  factory :event, class: WorkflowServer::Models::Event do
+    name "WFDecision"
+    workflow
+  end
+end
+
+FactoryGirl.define do
   factory :decision, class: WorkflowServer::Models::Decision do
     name "WFDecision"
     workflow

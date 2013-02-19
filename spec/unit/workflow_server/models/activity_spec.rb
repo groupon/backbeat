@@ -324,15 +324,55 @@ describe WorkflowServer::Models::Activity do
       async_job.method_to_call.should eq :start
     end
 
-    it "goes into error state" do
+    it "goes into error state and calls handle_error" do
       @a1.update_attributes!(parent: FactoryGirl.create(:decision, workflow: @wf))
       @a1.update_attributes!(retry: 2, retry_interval: 40.minutes)
       2.times do
         @a1.errored(:some_error)
         @a1.reload.status.should == :retrying
       end
+      @a1.should_receive(:handle_error)
       @a1.errored(:some_error)
       @a1.reload.status.should == :error
+    end
+  end
+
+  context "#handle_error" do
+    before do
+      @mock_decision = mock('parent_decision', name: :test)
+      @a1.stub(parent_decision: @mock_decision)
+    end
+    it "doesn't schedule an error event if mode is fire_and_forget" do
+      @a1.update_attributes!(mode: :fire_and_forget)
+      @a1.should_not_receive(:parent_decision)
+      @a1.__send__(:handle_error, :some_error)
+    end
+    it "doesn't blow up when no parent decision" do
+      @a1.stub(parent_decision: nil)
+      @a1.should_not_receive(:add_interrupt)
+      @a1.__send__(:handle_error, :some_error)
+    end
+    it "adds an interrupt with the parent_decision_name_error" do
+      @a1.should_receive(:add_interrupt).with(:test_error.to_s)
+      @a1.__send__(:handle_error, :some_error)
+    end
+  end
+
+  context '#parent_decision' do
+    it "nil when no parent" do
+      @a1.update_attributes!(parent: nil)
+      @a1.__send__(:parent_decision).should == nil
+    end
+    it "returns the parent if it is decision" do
+      parent = FactoryGirl.create(:decision, workflow: @wf)
+      @a1.update_attributes!(parent: parent)
+      @a1.__send__(:parent_decision).should == parent
+    end
+    it "looks up in hierarchy to find the parent decision" do
+      parent = FactoryGirl.create(:decision, workflow: @wf)
+      @a1.update_attributes!(parent: parent)
+      a2 = FactoryGirl.create(:sub_activity, parent: @a1, workflow: @wf)
+      a2.__send__(:parent_decision).should == parent
     end
   end
 
