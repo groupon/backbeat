@@ -32,7 +32,19 @@ module WorkflowServer
       validates_presence_of :name
 
       def add_decision(decision_name)
-        self.children << Decision.create!(name: decision_name, workflow: self.workflow, parent: self)
+        decision = Decision.create!(name: decision_name, workflow: self.workflow, parent: self)
+        self.children << decision
+        decision
+      end
+
+      def add_interrupt(decision_name)
+        decision = add_decision(decision_name)
+        # adding a decision would immediately trigger schedule_next_decision on the workflow. If the workflow ignores the interrupt, start it here.
+        workflow.with_lock do
+          if decision.reload.status == :open
+            decision.start
+          end
+        end
       end
 
       def update_status!(new_status, error = nil)
@@ -166,6 +178,14 @@ module WorkflowServer
       end
       alias_method :with_lock_without_defaults, :with_lock
       alias_method :with_lock, :with_lock_with_defaults
+
+      def parent_decision
+        p = self.parent
+        @parent_decision ||= loop do
+          break p if p.nil? || p.is_a?(Decision)
+          p = p.parent
+        end
+      end
 
       private
 

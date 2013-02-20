@@ -111,6 +111,7 @@ module WorkflowServer
           do_retry(error)
         else
           super
+          handle_error(error)
         end
       end
 
@@ -162,6 +163,12 @@ module WorkflowServer
         WorkflowServer::Client.perform_activity(self)
         Watchdog.start(self, :timeout, time_out) if time_out > 0
       end
+
+      def handle_error(error)
+        return if mode == :fire_and_forget
+        add_interrupt("#{parent_decision.name}_error") if parent_decision
+      end
+
     end
   end
 end
