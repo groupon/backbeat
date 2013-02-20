@@ -8,6 +8,7 @@ module WorkflowServer
       field :retry_interval, type: Integer, default: 15.minutes
       field :time_out, type: Integer, default: 0
       field :valid_next_decisions, type: Array, default: []
+      field :orphan_decision, type: Boolean, default: false
 
       # indicates whether the client has called completed endpoint on this activity
       field :_client_done_with_activity, type: Boolean, default: false
@@ -42,14 +43,22 @@ module WorkflowServer
       def completed
         if parent.is_a?(Decision) && next_decision && next_decision != 'none'
           #only top level activities are allowed to schedule the next decision
-          add_decision(next_decision)
+          make_decision(next_decision)
         end
         super
       end
 
+      def make_decision(decision_name, orphan = false)
+        if orphan_decision
+          add_decision(decision_name, true)
+        else
+          add_interrupt(decision_name, orphan)
+        end
+      end
+
       def complete_if_done
         Watchdog.feed(self) if time_out > 0
-        if self._client_done_with_activity && status != :complete && !subactivities_running?
+        if self._client_done_with_activity && status != :complete && !children_running?
           with_lock do
             completed if status != :complete
           end
@@ -73,11 +82,14 @@ module WorkflowServer
 
       def child_completed(child)
         super
-        return unless child.is_a?(SubActivity)
 
-        if child.blocking?
-          continue
-        elsif child.mode != :fire_and_forget
+        if child.is_a?(Activity)
+          if child.blocking?
+            continue
+          elsif child.mode != :fire_and_forget
+            complete_if_done
+          end
+        else
           complete_if_done
         end
       end
@@ -151,8 +163,8 @@ module WorkflowServer
         sub_activity
       end
 
-      def subactivities_running?
-        children.where(:mode.ne => :fire_and_forget, :status.ne => :complete).type(SubActivity).any?
+      def children_running?
+        children.where(:mode.ne => :fire_and_forget, :status.ne => :complete).any?
       end
 
       def subactivity_handled?(name, client_data)

@@ -20,7 +20,7 @@ module Tree
   end
 
   def depth
-    @depth ||= self.parent.nil? ? 0 : self.parent.depth + 1
+    @depth ||= self.parent.nil? ? 1 : self.parent.depth + 1
   end
 
   private

@@ -31,14 +31,14 @@ module WorkflowServer
 
       validates_presence_of :name
 
-      def add_decision(decision_name)
-        decision = Decision.create!(name: decision_name, workflow: self.workflow, parent: self)
-        self.children << decision
-        decision
+      def add_decision(decision_name, orphan = false)
+        options = { name: decision_name, workflow: self.workflow }
+        options[:parent] = self unless orphan
+        Decision.create!(options)
       end
 
-      def add_interrupt(decision_name)
-        decision = add_decision(decision_name)
+      def add_interrupt(decision_name, orphan = false)
+        decision = add_decision(decision_name, orphan)
         # adding a decision would immediately trigger schedule_next_decision on the workflow. If the workflow ignores the interrupt, start it here.
         workflow.with_lock do
           if decision.reload.status == :open
@@ -142,7 +142,7 @@ module WorkflowServer
 
       # These fields are not included in the hash sent out to the client
       def blacklisted_fields
-        ["locked_at", "locked_until", "start_signal", "status_history", "sequence", "client_metadata"]
+        ["locked_at", "locked_until", "start_signal", "status_history", "sequence", "client_metadata", "orphan_decision"]
       end
 
       def serializable_hash(options = {})
