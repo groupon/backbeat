@@ -34,7 +34,9 @@ module WorkflowServer
       def add_decision(decision_name, orphan = false)
         options = { name: decision_name, workflow: self.workflow }
         options[:parent] = self unless orphan
-        Decision.create!(options)
+        decision = Decision.create!(options)
+        self.children << decision unless orphan
+        decision
       end
 
       def add_interrupt(decision_name, orphan = false)
