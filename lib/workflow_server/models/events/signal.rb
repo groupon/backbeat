@@ -10,10 +10,6 @@ module WorkflowServer
         completed
       end
 
-      def depth
-        1
-      end
-
     end
   end
 end
