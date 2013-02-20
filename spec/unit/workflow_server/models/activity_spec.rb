@@ -358,24 +358,6 @@ describe WorkflowServer::Models::Activity do
     end
   end
 
-  context '#parent_decision' do
-    it "nil when no parent" do
-      @a1.update_attributes!(parent: nil)
-      @a1.__send__(:parent_decision).should == nil
-    end
-    it "returns the parent if it is decision" do
-      parent = FactoryGirl.create(:decision, workflow: @wf)
-      @a1.update_attributes!(parent: parent)
-      @a1.__send__(:parent_decision).should == parent
-    end
-    it "looks up in hierarchy to find the parent decision" do
-      parent = FactoryGirl.create(:decision, workflow: @wf)
-      @a1.update_attributes!(parent: parent)
-      a2 = FactoryGirl.create(:sub_activity, parent: @a1, workflow: @wf)
-      a2.__send__(:parent_decision).should == parent
-    end
-  end
-
   context "#subactivities_running?" do
     it "true when any non fire_and_forget is not in complete state" do
       child = FactoryGirl.create(:sub_activity, parent: @a1, workflow: @wf)

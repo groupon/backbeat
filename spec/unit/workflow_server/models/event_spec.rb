@@ -1,9 +1,10 @@
 require 'spec_helper'
 
-describe WorkflowServer::Models::Activity do
+describe WorkflowServer::Models::Event do
   let(:user) { FactoryGirl.create(:user) }
   let(:workflow) { FactoryGirl.create(:workflow, user: user) }
   let(:event) { FactoryGirl.create(:event, workflow: workflow) }
+  let(:parent) { FactoryGirl.create(:decision, workflow: workflow) }
 
   context '#add_interrupt' do
     it "adds decision" do
@@ -19,6 +20,22 @@ describe WorkflowServer::Models::Activity do
       event.add_interrupt(:test)
       interrupt = event.children.first
       interrupt.reload.status.should == :enqueued
+    end
+  end
+
+  context '#parent_decision' do
+    it "nil when no parent" do
+      event.update_attributes!(parent: nil)
+      event.__send__(:parent_decision).should == nil
+    end
+    it "returns the parent if it is decision" do
+      event.update_attributes!(parent: parent)
+      event.__send__(:parent_decision).should == parent
+    end
+    it "looks up in hierarchy to find the parent decision" do
+      event.update_attributes!(parent: parent)
+      a2 = FactoryGirl.create(:sub_activity, parent: event, workflow: @wf)
+      a2.__send__(:parent_decision).should == parent
     end
   end
 end

@@ -166,17 +166,8 @@ module WorkflowServer
 
       def handle_error(error)
         return if mode == :fire_and_forget
-        decision = parent_decision
-        if decision
-          add_interrupt("#{decision.name}_error")
-        end
-      end
-
-      def parent_decision
-        p = self.parent
-        while p
-          return p if p.is_a?(Decision)
-          p = p.parent
+        if parent_decision
+          add_interrupt("#{parent_decision.name}_error")
         end
       end
 

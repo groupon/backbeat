@@ -179,6 +179,14 @@ module WorkflowServer
       alias_method :with_lock_without_defaults, :with_lock
       alias_method :with_lock, :with_lock_with_defaults
 
+      def parent_decision
+        p = self.parent
+        @parent_decision ||= loop do
+          break p if p.nil? || p.is_a?(Decision)
+          p = p.parent
+        end
+      end
+
       private
 
       def error_hash(error)
