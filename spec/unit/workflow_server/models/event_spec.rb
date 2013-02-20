@@ -6,6 +6,23 @@ describe WorkflowServer::Models::Event do
   let(:event) { FactoryGirl.create(:event, workflow: workflow) }
   let(:parent) { FactoryGirl.create(:decision, workflow: workflow) }
 
+  context '#add_decision' do
+    it 'creates a decision' do
+      event.add_decision(:test)
+      event.children.count.should == 1
+      decision = event.children.first
+      decision.name.should == :test
+    end
+    it 'doesnt create parent-child relationship when orphan is true' do
+      decisions = workflow.decisions.count
+      event.add_decision(:test, true)
+      event.children.count.should == 0
+      workflow.decisions.count.should == (decisions + 1)
+      decision = workflow.decisions.last
+      decision.name.should == :test
+    end
+  end
+
   context '#add_interrupt' do
     it "adds decision" do
       event.add_interrupt(:test)

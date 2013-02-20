@@ -179,6 +179,36 @@ describe WorkflowServer::Models::Activity do
     end
   end
 
+  context '#make_decision' do
+    context 'orphan decisions = true' do
+      before do
+        @a1.update_attributes!(orphan_decision: true)
+      end
+      it "adds a decision but doesn't create the parent child relationship" do
+        decisions = @wf.decisions.count
+        @a1.make_decision(:test_decision, false)
+        @wf.decisions.count.should == (decisions + 1)
+        decision = @wf.decisions.last
+        decision.parent.should be_nil
+        decision.name.should == :test_decision
+      end
+    end
+
+    context 'orphan decisions = false' do
+      before do
+        @a1.update_attributes!(orphan_decision: false)
+      end
+      it "calls adds an interrupt and maintains the parent child relationship" do
+        decisions = @wf.decisions.count
+        @a1.make_decision(:test_decision, false)
+        @wf.decisions.count.should == (decisions + 1)
+        decision = @wf.decisions.last
+        decision.parent.should == @a1
+        decision.name.should == :test_decision
+      end
+    end
+  end
+
   context "#child_completed" do
     context "child was blocking" do
       it "goes back into executing state" do
@@ -361,18 +391,18 @@ describe WorkflowServer::Models::Activity do
   context "#subactivities_running?" do
     it "true when any non fire_and_forget is not in complete state" do
       child = FactoryGirl.create(:sub_activity, parent: @a1, workflow: @wf)
-      @a1.__send__(:subactivities_running?).should == true
+      @a1.__send__(:children_running?).should == true
 
       child.update_status!(:complete)
-      @a1.__send__(:subactivities_running?).should == false
+      @a1.__send__(:children_running?).should == false
     end
 
     it "false when the running subactivity is in fire_and_forget" do
       child = FactoryGirl.create(:sub_activity, parent: @a1, mode: :fire_and_forget, workflow: @wf)
-      @a1.__send__(:subactivities_running?).should == false
+      @a1.__send__(:children_running?).should == false
 
       child.update_attributes!(mode: :blocking)
-      @a1.__send__(:subactivities_running?).should == true
+      @a1.__send__(:children_running?).should == true
     end
   end
 end
