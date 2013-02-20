@@ -20,7 +20,7 @@ module WorkflowServer
 
     def self.notify_of(event, notification, error = nil)
       workflow = event.is_a?(WorkflowServer::Models::Workflow) ? event : event.workflow
-      notification = "#{workflow.try(:subject_klass)}(#{workflow.try(:subject_id)}):#{event.event_type}(#{event.name}):#{notification}"
+      notification = "#{workflow.try(:subject)}:#{event.event_type}(#{event.name}):#{notification}"
 
       if (url = event.my_user.try(:notification_endpoint))
         params = {notification: notification}
@@ -31,6 +31,7 @@ module WorkflowServer
     end
 
     def self.post(url, params = {})
+      params = Marshal.load(Marshal.dump(params))
       body = WorkflowServer::Helper::HashKeyTransformations.camelize_keys(params).to_json
       ::HTTParty.post(url, body: body, headers: {"Content-Type" => "application/json", "Content-Length" => body.size.to_s})
     end

@@ -3,22 +3,27 @@ module WorkflowServer
     class Workflow < Event
 
       field :workflow_type, type: Symbol
-      field :subject_id, type: Integer
-      field :subject_klass, type: String
+      field :subject, type: Hash
       field :decider, type: String
       field :mode, type: Symbol, default: :blocking
-      field :error_workflow, type: Boolean, default: false # whether this workflow should retry the parent decision on complete
       field :start_signal, type: Symbol
 
       has_many :events, inverse_of: :workflow, order: {sequence: 1}, dependent: :destroy
 
       belongs_to :user, index: true
 
-      validates_presence_of :workflow_type, :subject_id, :subject_klass, :decider, :user
+      validates_presence_of :workflow_type, :subject, :decider, :user
 
-      index({ workflow_type: 1, subject_klass: 1, subject_id: 1 }, { unique: true, sparse: true })
-      index({ subject_klass: 1, subject_id: 1 }, { sparse: true })
+      index({ workflow_type: 1, subject: 1 }, { unique: true, sparse: true })
+      index({ subject: 1 }, { sparse: true })
       index({ workflow_type: 1 }, { sparse: true })
+
+      def serializable_hash(options = {})
+        hash = super
+        # DELETE THIS BY 2012/02/27 or face the wrath of Matt
+        hash.merge!(subject)
+        Marshal.load(Marshal.dump(hash))
+      end
 
       def signal(name)
         raise WorkflowServer::EventComplete, "Workflow with id(#{id}) is already complete" if status == :complete

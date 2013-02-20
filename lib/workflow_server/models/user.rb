@@ -36,6 +36,7 @@ module WorkflowServer
         hash = super
         hash.delete("_id")
         hash.merge({ id: id })
+        Marshal.load(Marshal.dump(hash))
       end
     end
   end

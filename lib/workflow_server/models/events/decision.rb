@@ -60,7 +60,8 @@ module WorkflowServer
 
       def serializable_hash(options = {})
         hash = super
-        hash.merge({ history_decisions: past_decisions.map {|decision| {name: decision.name, status: decision.status} }, decider: workflow.decider, subject_klass: workflow.subject_klass, subject_id: workflow.subject_id })
+        hash.merge!({ history_decisions: past_decisions.map {|decision| {name: decision.name, status: decision.status} }, decider: workflow.decider, subject: workflow.subject})
+        Marshal.load(Marshal.dump(hash))
       end
 
       private
@@ -122,8 +123,8 @@ module WorkflowServer
         decisions_to_add << [Branch, {name: name, workflow: workflow, parent: self}.merge(options)]
       end
 
-      def add_workflow(name, workflow_type, subject_klass, subject_id, decider, options = {})
-        decisions_to_add << [Workflow, {name: name, workflow_type: workflow_type, subject_klass: subject_klass, subject_id: subject_id, decider: decider.to_s, workflow: workflow, parent: self, user: workflow.user}.merge(options)]
+      def add_workflow(name, workflow_type, subject, decider, options = {})
+        decisions_to_add << [Workflow, {name: name, workflow_type: workflow_type, subject: subject, decider: decider.to_s, workflow: workflow, parent: self, user: workflow.user}.merge(options)]
       end
 
       def complete_workflow
@@ -141,7 +142,7 @@ module WorkflowServer
         when 'branch'
           add_branch(options.delete(:name), options)
         when 'workflow'
-          add_workflow(options.delete(:name), options.delete(:workflow_type), options.delete(:subject_klass), options.delete(:subject_id), options.delete(:decider), options)
+          add_workflow(options.delete(:name), options.delete(:workflow_type), options.delete(:subject), options.delete(:decider), options)
         when 'complete_workflow'
           complete_workflow
         end

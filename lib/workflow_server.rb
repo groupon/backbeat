@@ -25,19 +25,23 @@ module WorkflowServer
       Models::Event.find(id)
     end
 
-    # options include workflow_type: workflow_type, subject_klass: subject_klass, subject_id: subject_id, decider: decider, name: workflow_type, user: user
+    # options include workflow_type: workflow_type, subject: subject, decider: decider, name: workflow_type, user: user
+    WORKFLOW_ATTRIBUTES = [:subject, :workflow_type, :decider, :name, :user].freeze
     def find_or_create_workflow(options = {})
-      method_options = options.dup
-      method_options[:name] ||= method_options[:workflow_type]
-      workflow = Models::Workflow.find_or_create_by(workflow_type: method_options.delete(:workflow_type),
-                                                    subject_klass: method_options.delete(:subject_klass),
-                                                    subject_id: method_options.delete(:subject_id),
-                                                    decider: method_options.delete(:decider),
-                                                    name: method_options.delete(:name),
-                                                    user: method_options.delete(:user))
+      attributes = {}
+      WORKFLOW_ATTRIBUTES.each { |k| attributes[k] = options[k] }
+      attributes[:name] ||= attributes[:workflow_type]
+
+      # delete this code by 2012/02/27 or you are an asshole
+      unless attributes[:subject]
+        if options[:subject_id] && options[:subject_klass]
+          attributes[:subject] = { subject_id: options[:subject_id], subject_klass: options[:subject_klass] }
+        end
+      end
+
+      workflow = Models::Workflow.find_or_create_by(attributes)
       workflow.save
       workflow
     end
-
   end
 end
