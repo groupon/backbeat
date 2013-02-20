@@ -83,9 +83,13 @@ module WorkflowServer
       def child_completed(child)
         super
 
-        if child.blocking?
-          continue
-        elsif child.try(:mode) != :fire_and_forget
+        if child.is_a?(Activity)
+          if child.blocking?
+            continue
+          elsif child.mode != :fire_and_forget
+            complete_if_done
+          end
+        else
           complete_if_done
         end
       end
