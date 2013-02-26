@@ -41,8 +41,17 @@ module WorkflowServer
       end
 
       def completed
-        super
-        schedule_next_decision
+        responsible_for_complete = false
+        with_lock do
+          # check complete again inside the lock
+          if status != :complete
+            super
+            responsible_for_complete = true
+          end
+        end
+        if responsible_for_complete
+          schedule_next_decision
+        end
       end
 
       def child_completed(child)
@@ -100,10 +109,7 @@ module WorkflowServer
 
       def complete_if_done
         if status != :complete && all_children_done?
-          with_lock do
-            # check complete again inside the lock
-            completed if status != :complete
-          end
+          completed
         end
       end
 
