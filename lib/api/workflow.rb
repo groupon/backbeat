@@ -70,6 +70,22 @@ module Api
         end
       end
 
+      params do
+        requires :run_at, type: String, :desc => 'Timers need a run_at parameter'
+      end
+      put "/:id/backfill/timer/:name" do
+        workflow = find_workflow(params[:id])
+        WorkflowServer::Models::Timer.create!(name: params[:name], workflow: workflow, fires_at: params[:run_at]).start
+        { success: true }
+      end
+
+      put "/:id/backfill/decision/:name" do
+        workflow = find_workflow(params[:id])
+        signal = WorkflowServer::Models::Signal.create!(name: params[:name], workflow: workflow, status: :complete)
+        decision = WorkflowServer::Models::Decision.create!(name: params[:name], workflow: workflow, status: :complete, parent: signal)
+        { success: true }
+      end
+
       get "/" do
         query = {}
         [:workflow_type, :decider, :subject].each do |query_param|

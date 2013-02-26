@@ -27,7 +27,9 @@ module WorkflowServer
 
       def signal(name)
         raise WorkflowServer::EventComplete, "Workflow with id(#{id}) is already complete" if status == :complete
-        WorkflowServer::Models::Signal.create!(name: name, workflow: self)
+        signal = WorkflowServer::Models::Signal.create!(name: name, workflow: self)
+        signal.start
+        signal
       end
 
       def blocking?
