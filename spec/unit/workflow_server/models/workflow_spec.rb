@@ -7,14 +7,14 @@ describe WorkflowServer::Models::Workflow do
 
   before do
     @event_klass = WorkflowServer::Models::Workflow
-    @event_data = {name: :test_flag, workflow_type: :wf_type, subject_klass: "PaymentTerm", subject_id: 100, decider: "A::B::C", user: user }
+    @event_data = {name: :test_flag, workflow_type: :wf_type, subject: {subject_klass: "PaymentTerm", subject_id: 100}, decider: "A::B::C", user: user }
     @wf = FactoryGirl.create(:workflow, user: user)
     @event = @wf
   end
 
   it_should_behave_like 'events'
 
-  [:workflow_type, :subject_klass, :subject_id, :decider, :user].each do |field|
+  [:workflow_type, :subject, :decider, :user].each do |field|
     it "validates presence of #{field}" do
       @event_data.delete(field)
       wf = WorkflowServer::Models::Workflow.new(@event_data)

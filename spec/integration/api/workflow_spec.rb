@@ -30,11 +30,11 @@ describe Api::Workflow do
     it "returns 400 when one of the required params is missing" do
       post '/workflows'
       last_response.status.should == 400
-      JSON.parse(last_response.body).should == {"error" => {"name"=>["can't be blank"], "workflowType"=>["can't be blank"], "subjectId"=>["can't be blank"], "subjectKlass"=>["can't be blank"], "decider"=>["can't be blank"]}}
+      JSON.parse(last_response.body).should == {"error" => {"name"=>["can't be blank"], "workflowType"=>["can't be blank"], "subject"=>["can't be blank"], "decider"=>["can't be blank"]}}
     end
 
     it "returns 201 and creates a new workflow when all parameters present" do
-      post '/workflows', {workflow_type: "WFType", subject_klass: "PaymentTerm", subject_id: 100, decider: "PaymentDecider"}
+      post '/workflows', {workflow_type: "WFType", subject: {subject_klass: "PaymentTerm", subject_id: 100}, decider: "PaymentDecider"}
       last_response.status.should == 201
       json_response = JSON.parse(last_response.body)
       new_wf = json_response
@@ -43,7 +43,7 @@ describe Api::Workflow do
     end
 
     it "returns workflow from database if it already exists" do
-      post '/workflows', {workflow_type: @wf.workflow_type, subject_klass: @wf.subject_klass, subject_id: @wf.subject_id, decider: @wf.decider}
+      post '/workflows', {'workflow_type'=>@wf.workflow_type, 'subject'=>@wf.subject, 'decider'=>@wf.decider}
       last_response.status.should == 201
       json_response = JSON.parse(last_response.body)
       new_wf = json_response
@@ -53,7 +53,7 @@ describe Api::Workflow do
 
   context "GET /workflows" do
     it "returns an empty array when no workflow matches" do
-      get '/workflows', workflow_type: "WT1", subject_klass: "PT1", subject_id: 1, decider: "D1"
+      get '/workflows', workflow_type: "WT1", subject: {subject_klass: "PT1", subject_id: 1}, decider: "D1"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       json_response.should be_empty
@@ -67,7 +67,7 @@ describe Api::Workflow do
       json_response = JSON.parse(last_response.body)
       json_response.map{|wf| wf['id'] }.should == [@wf1.id, @wf2.id]
     end
-    [:workflow_type, :subject_klass, :subject_id, :decider].each do |filter_field|
+    [:workflow_type, :decider].each do |filter_field|
       it "filters search by the #{filter_field}" do
         @wf1 = FactoryGirl.create(:workflow, filter_field => "123", user: user)
         @wf2 = FactoryGirl.create(:workflow, filter_field => "789", user: user)
@@ -84,10 +84,25 @@ describe Api::Workflow do
         json_response.first['id'].should == @wf2.id
       end
     end
+    it "filters search by the subject" do
+      @wf1 = FactoryGirl.create(:workflow, subject: {"subject_klass"=>"Klass", "subject_id"=>"123"}, user: user)
+      @wf2 = FactoryGirl.create(:workflow, subject: {"subject_klass"=>"Klass", "subject_id"=>"789"}, user: user)
+      get '/workflows', subject: {subject_klass: "Klass", subject_id: 123}
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response.size.should == 1
+      json_response.first['id'].should == @wf1.id
+
+      get '/workflows', subject: {subject_klass: "Klass", subject_id: 789}
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response.size.should == 1
+      json_response.first['id'].should == @wf2.id
+    end
     it "works across combination of search parameters" do
-      @wf1 = FactoryGirl.create(:workflow, workflow_type: "WT1", subject_klass: "PT1", subject_id: 1, decider: "D1", user: user)
-      @wf2 = FactoryGirl.create(:workflow, workflow_type: "WT2", subject_klass: "PT2", subject_id: 2, decider: "D2", user: user)
-      get '/workflows', workflow_type: "WT1", subject_klass: "PT1", subject_id: 1, decider: "D1"
+      @wf1 = FactoryGirl.create(:workflow, workflow_type: "WT1", subject: {subject_klass: "PT1", subject_id: "1"}, decider: "D1", user: user)
+      @wf2 = FactoryGirl.create(:workflow, workflow_type: "WT2", subject: {subject_klass: "PT2", subject_id: "2"}, decider: "D2", user: user)
+      get '/workflows', workflow_type: "WT1", subject: {subject_klass: "PT1", subject_id: "1"}, decider: "D1"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       json_response.size.should == 1
@@ -137,7 +152,7 @@ describe Api::Workflow do
       get "/workflows/#{@wf.id}"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "decider"=>"PaymentDecider", "errorWorkflow"=>false, "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "status"=>"open", "subjectId"=>@wf.subject_id, "subjectKlass"=>@wf.subject_klass, "updatedAt"=>Time.now.to_datetime.to_s, "userId"=>@wf.user.id, "workflowId"=>nil, "workflowType"=>"WFType", "id"=>@wf.id, "type"=>"workflow"}
+      json_response.should == {"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "decider"=>"PaymentDecider", "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "status"=>"open", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}, "updatedAt"=>Time.now.to_datetime.to_s, "userId"=>@wf.user.id, "workflowId"=>nil, "workflowType"=>"WFType", "id"=>@wf.id, "type"=>"workflow"}.merge({"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"})
       json_response['id'].should == @wf.id.to_s
     end
 
@@ -162,8 +177,8 @@ describe Api::Workflow do
       get "/workflows/#{@wf.id}/events"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response.should == [{"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "name"=>"WFDecision", "parentId"=>nil, "status"=>"enqueued", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@wf.id, "id"=>@d1.id, "type"=>"decision", "historyDecisions"=>[], "decider"=>"PaymentDecider", "subjectKlass"=>"PaymentTerm", "subjectId"=>100},
-                               {"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@wf.id, "id"=>@d2.id, "type"=>"decision", "historyDecisions"=>[{'name' => @d1.name.to_s, 'status' => @d1.reload.status.to_s}], "decider"=>"PaymentDecider", "subjectKlass"=>"PaymentTerm", "subjectId"=>100}]
+      json_response.should == [{"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "name"=>"WFDecision", "parentId"=>nil, "status"=>"enqueued", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@wf.id, "id"=>@d1.id, "type"=>"decision", "historyDecisions"=>[], "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}},
+                               {"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@wf.id, "id"=>@d2.id, "type"=>"decision", "historyDecisions"=>[{'name' => @d1.name.to_s, 'status' => @d1.reload.status.to_s}], "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}]
       json_response.count.should == 2
       json_response.map {|obj| obj["id"] }.should == [@d1, @d2].map(&:id).map(&:to_s)
     end

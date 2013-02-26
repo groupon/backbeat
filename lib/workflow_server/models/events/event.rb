@@ -148,7 +148,8 @@ module WorkflowServer
       def serializable_hash(options = {})
         hash = super
         hash.delete_if { |key, value| key.to_s.start_with?("_") || blacklisted_fields.include?(key.to_s) }
-        hash.merge({ id: id, type: event_type})
+        hash.merge!({ id: id, type: event_type})
+        Marshal.load(Marshal.dump(hash))
       end
 
       def event_type
