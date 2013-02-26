@@ -32,13 +32,6 @@ module WorkflowServer
       WORKFLOW_ATTRIBUTES.each { |k| attributes[k] = options[k] }
       attributes[:name] ||= attributes[:workflow_type]
 
-      # delete this code by 2012/02/27 or you are an asshole
-      unless attributes[:subject]
-        if options[:subject_id] && options[:subject_klass]
-          attributes[:subject] = { subject_id: options[:subject_id], subject_klass: options[:subject_klass] }
-        end
-      end
-
       workflow = Models::Workflow.find_or_create_by(attributes)
       workflow.save
       workflow

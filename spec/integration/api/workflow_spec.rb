@@ -152,7 +152,7 @@ describe Api::Workflow do
       get "/workflows/#{@wf.id}"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "decider"=>"PaymentDecider", "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "status"=>"open", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}, "updatedAt"=>Time.now.to_datetime.to_s, "userId"=>@wf.user.id, "workflowId"=>nil, "workflowType"=>"WFType", "id"=>@wf.id, "type"=>"workflow"}.merge({"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"})
+      json_response.should == {"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "decider"=>"PaymentDecider", "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "status"=>"open", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}, "updatedAt"=>Time.now.to_datetime.to_s, "userId"=>@wf.user.id, "workflowId"=>nil, "workflowType"=>"WFType", "id"=>@wf.id, "type"=>"workflow"}
       json_response['id'].should == @wf.id.to_s
     end
 

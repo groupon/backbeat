@@ -20,8 +20,6 @@ module WorkflowServer
 
       def serializable_hash(options = {})
         hash = super
-        # DELETE THIS BY 2012/02/27 or face the wrath of Matt
-        hash.merge!(subject)
         Marshal.load(Marshal.dump(hash))
       end
 
