@@ -14,17 +14,12 @@ describe WorkflowServer::Models::Signal do
 
   it_should_behave_like 'events'
 
-  it "calls start on create" do
-    signal = WorkflowServer::Models::Signal.new(@event_data)
-    signal.should_receive(:start)
-    signal.save!
-  end
-
   context "#start" do
     before do
       @signal = FactoryGirl.create(:signal, status: :open, workflow: workflow)
     end
     it "handles start - puts a decision task and goes into completed state" do
+      @signal.start
       @signal.reload
       @signal.status.should == :complete
       @signal.children.count.should == 1
