@@ -98,6 +98,27 @@ describe Api::Workflow do
       decision.status.should == :executing
     end
 
+    it 'continue_as_new_workflow decision marks the old events as inactive and resets the past of the workflow' do
+      decision = FactoryGirl.create(:decision, status: :enqueued)
+      wf = decision.workflow
+      user = wf.user
+      args = [
+        {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
+      ]
+      header "Content-Type", "application/json"
+      put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete", {args: {decisions: args}}.to_json
+      last_response.status.should == 200
+      decision.reload
+      decision.children.count.should == 1
+      timer = decision.children.first
+      timer.async_jobs.count.should == 2
+      flag = FactoryGirl.create(:continue_as_new_workflow_flag, workflow: wf)
+      flag.start
+      wf.reload
+      wf.events.each { |e| e.reload.async_jobs.count.should == 0 unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
+      wf.events.each { |e| e.inactive.should == true unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
+    end
+
     context "decision errored" do
       it "returns 400 if the decision is not in enqueued/deciding state" do
         decision = FactoryGirl.create(:decision, status: :open)

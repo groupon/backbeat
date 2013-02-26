@@ -69,7 +69,7 @@ module WorkflowServer
 
       def serializable_hash(options = {})
         hash = super
-        hash.merge!({ history_decisions: past_decisions.map {|decision| {name: decision.name, status: decision.status} }, decider: workflow.decider, subject: workflow.subject})
+        hash.merge!({ history_decisions: past_decisions.where(:inactive.ne => true).map {|decision| {name: decision.name, status: decision.status} }, decider: workflow.decider, subject: workflow.subject})
         Marshal.load(Marshal.dump(hash))
       end
 
@@ -134,7 +134,11 @@ module WorkflowServer
       end
 
       def complete_workflow
-        decisions_to_add << [WorkflowCompleteFlag, {name: workflow.name, parent: self, workflow: workflow}]
+        decisions_to_add << [WorkflowCompleteFlag, {name: "#{workflow.name}:complete", parent: self, workflow: workflow}]
+      end
+
+      def continue_as_new_workflow
+        decisions_to_add << [ContinueAsNewWorkflowFlag, {name: "#{workflow.name}:continue_as_new_workflow", parent: self, workflow: workflow}]
       end
 
       def add_new_decision(options = {})
@@ -151,6 +155,8 @@ module WorkflowServer
           add_workflow(options.delete(:name), options.delete(:workflow_type), options.delete(:subject), options.delete(:decider), options)
         when 'complete_workflow'
           complete_workflow
+        when 'continue_as_new_workflow'
+          continue_as_new_workflow
         end
       end
 

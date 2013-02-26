@@ -12,6 +12,7 @@ module WorkflowServer
       end
 
       def fire
+        return if status == :complete
         add_decision(name)
         completed
       end

@@ -15,11 +15,14 @@ module WorkflowServer
       field :client_data,     type: Hash, default: {}
       field :client_metadata, type: Hash, default: {}
 
+      field :inactive,       type: Boolean, default: false
+
       auto_increment :sequence
 
       belongs_to :workflow, inverse_of: :events, class_name: "WorkflowServer::Models::Workflow", index: true
       belongs_to :parent, inverse_of: :children, class_name: "WorkflowServer::Models::Event", index: true
       has_many :children, inverse_of: :parent, class_name: "WorkflowServer::Models::Event", order: {sequence: 1}, dependent: :destroy
+
       has_many :watchdogs, inverse_of: :subject, class_name: "WorkflowServer::Models::Watchdog", dependent: :destroy
 
       index({ status: 1 })
@@ -135,6 +138,7 @@ module WorkflowServer
         'WorkflowServer::Models::Decision'                    => 'decision',
         'WorkflowServer::Models::Flag'                        => 'flag',
         'WorkflowServer::Models::WorkflowCompleteFlag'        => 'flag',
+        'WorkflowServer::Models::ContinueAsNewWorkflowFlag'   => 'flag',
         'WorkflowServer::Models::Signal'                      => 'signal',
         'WorkflowServer::Models::Timer'                       => 'timer',
         'WorkflowServer::Models::Workflow'                    => 'workflow'
@@ -142,7 +146,7 @@ module WorkflowServer
 
       # These fields are not included in the hash sent out to the client
       def blacklisted_fields
-        ["locked_at", "locked_until", "start_signal", "status_history", "sequence", "client_metadata", "orphan_decision"]
+        ["locked_at", "locked_until", "start_signal", "status_history", "sequence", "client_metadata", "orphan_decision", "inactive"]
       end
 
       def serializable_hash(options = {})
