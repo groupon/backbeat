@@ -26,13 +26,11 @@ module WorkflowServer
     def self.logger
       if !class_variable_defined?(:@@logger)
         @@logger = ::Log4r::Logger.new("backbeat_logger")
-        @@logger.outputters = Log4r::RollingFileOutputter.new("backbeat_formatter",
-                                                              level: Log4r::LNAMES.index(WorkflowServer::Config.options[:log_level]) || 0,
-                                                              formatter: WorkflowServer::OutputFormatter,
-                                                              filename: WorkflowServer::Config.log_file,
-                                                              maxtime: (24 * 3600), # 1 DAY
-                                                              maxsize: (2*1024*1024*1024) # 2 GB
-                                                              )
+        @@logger.outputters = Log4r::FileOutputter.new("backbeat_formatter",
+                                                        level: Log4r::LNAMES.index(WorkflowServer::Config.options[:log_level]) || 0,
+                                                        formatter: WorkflowServer::OutputFormatter,
+                                                        filename: WorkflowServer::Config.log_file
+                                                       )
       end
       @@logger
     end
