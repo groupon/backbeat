@@ -51,9 +51,9 @@ describe Api::Workflow do
     end
   end
 
-  context "GET /workflows" do
+  context "PUT /workflows" do
     it "returns an empty array when no workflow matches" do
-      get '/workflows', workflow_type: "WT1", subject: {subject_klass: "PT1", subject_id: 1}, decider: "D1"
+      put '/workflows', workflow_type: "WT1", subject: {subject_klass: "PT1", subject_id: 1}, decider: "D1"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       json_response.should be_empty
@@ -62,7 +62,7 @@ describe Api::Workflow do
       @wf1 = FactoryGirl.create(:workflow, user: @user)
       @wf2 = FactoryGirl.create(:workflow, user: @user)
       header 'CLIENT_ID', @user.id
-      get '/workflows'
+      put '/workflows'
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       json_response.map{|wf| wf['id'] }.should == [@wf1.id, @wf2.id]
@@ -71,13 +71,13 @@ describe Api::Workflow do
       it "filters search by the #{filter_field}" do
         @wf1 = FactoryGirl.create(:workflow, filter_field => "123", user: user)
         @wf2 = FactoryGirl.create(:workflow, filter_field => "789", user: user)
-        get '/workflows', filter_field => "123"
+        put '/workflows', filter_field => "123"
         last_response.status.should == 200
         json_response = JSON.parse(last_response.body)
         json_response.size.should == 1
         json_response.first['id'].should == @wf1.id
 
-        get '/workflows', filter_field => "789"
+        put '/workflows', filter_field => "789"
         last_response.status.should == 200
         json_response = JSON.parse(last_response.body)
         json_response.size.should == 1
@@ -87,13 +87,13 @@ describe Api::Workflow do
     it "filters search by the subject" do
       @wf1 = FactoryGirl.create(:workflow, subject: {"subject_klass"=>"Klass", "subject_id"=>"123"}, user: user)
       @wf2 = FactoryGirl.create(:workflow, subject: {"subject_klass"=>"Klass", "subject_id"=>"789"}, user: user)
-      get '/workflows', subject: {subject_klass: "Klass", subject_id: 123}
+      put '/workflows', subject: {subject_klass: "Klass", subject_id: 123}
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       json_response.size.should == 1
       json_response.first['id'].should == @wf1.id
 
-      get '/workflows', subject: {subject_klass: "Klass", subject_id: 789}
+      put '/workflows', subject: {subject_klass: "Klass", subject_id: 789}
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       json_response.size.should == 1
@@ -102,7 +102,7 @@ describe Api::Workflow do
     it "works across combination of search parameters" do
       @wf1 = FactoryGirl.create(:workflow, workflow_type: "WT1", subject: {subject_klass: "PT1", subject_id: "1"}, decider: "D1", user: user)
       @wf2 = FactoryGirl.create(:workflow, workflow_type: "WT2", subject: {subject_klass: "PT2", subject_id: "2"}, decider: "D2", user: user)
-      get '/workflows', workflow_type: "WT1", subject: {subject_klass: "PT1", subject_id: "1"}, decider: "D1"
+      put '/workflows', workflow_type: "WT1", subject: {subject_klass: "PT1", subject_id: "1"}, decider: "D1"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       json_response.size.should == 1
