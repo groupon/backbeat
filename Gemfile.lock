@@ -67,6 +67,10 @@ GEM
     json (1.7.6)
     kgio (2.8.0)
     log4r (1.1.10)
+    mail (2.5.3)
+      i18n (>= 0.4.0)
+      mime-types (~> 1.16)
+      treetop (~> 1.4.8)
     method_source (0.8.1)
     mime-types (1.19)
     mongoid (3.0.19)
@@ -93,6 +97,7 @@ GEM
     net-ssh-gateway (1.1.0)
       net-ssh (>= 1.99.1)
     origin (1.0.11)
+    polyglot (0.3.3)
     pry (0.9.11.4)
       coderay (~> 1.0.5)
       method_source (~> 0.8)
@@ -132,6 +137,9 @@ GEM
       mime-types (~> 1.19)
       multi_json (~> 1.5)
       twitter-stream (~> 0.1)
+    treetop (1.4.12)
+      polyglot
+      polyglot (>= 0.3.1)
     twitter-stream (0.1.16)
       eventmachine (>= 0.12.8)
       http_parser.rb (~> 0.5.1)
@@ -163,6 +171,7 @@ DEPENDENCIES
   grape
   httparty
   log4r
+  mail
   mongoid
   mongoid-indifferent-access
   mongoid-locker
