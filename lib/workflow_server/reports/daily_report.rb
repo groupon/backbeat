@@ -17,23 +17,23 @@ module Reports
     def mail_report(report_body)
       Mail.deliver do
         from    'financial-engineering+backbeat@groupon.com'
-        #to      'financial-engineering-alerts@groupon.com'
-        to      'mmoore@groupon.com'
+        to      'financial-engineering-alerts@groupon.com'
         subject 'Backbeat Workflow Error Report'
         body    "#{report_body}"
       end
     end
 
     def generate_body(report_results)
-      body = "Report was run at: #{Time.now}"
-      body += "#{report_results.count} workflows contain errors."
-      body += "\n--------------------------------------------------------------------------------"
+      body = "Report was run at: #{Time.now}\n"
+      body += "#{report_results.count} workflows contain errors.\n"
+      body += "--------------------------------------------------------------------------------"
       report_results.each_pair do |workflow, errored_events|
         body += "\nWorkflow -- ID: #{workflow.id}, Subject: #{workflow.subject}, Error Count: #{errored_events.count}\n"
         errored_events.each do |errored_event|
           body += "\t\t#{errored_event.event_type.capitalize} -- Name: #{errored_event.name}, ID: #{errored_event.id}, Status: #{errored_event.status}\n"
         end
       end
+      body
     end
 
   end
