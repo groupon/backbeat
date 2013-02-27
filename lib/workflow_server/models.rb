@@ -7,6 +7,7 @@ module WorkflowServer
     require_relative  'models/events/decision'
     require_relative  'models/events/flag'
     require_relative  'models/events/workflow_complete_flag'
+    require_relative  'models/events/continue_as_new_workflow_flag'
     require_relative  'models/events/signal'
     require_relative  'models/events/timer'
     require_relative  'models/watchdog'
