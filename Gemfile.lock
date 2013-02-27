@@ -22,6 +22,7 @@ GEM
       tinder
     capistrano-ext (1.2.1)
       capistrano (>= 1.0.0)
+    chronic (0.9.1)
     coderay (1.0.8)
     cookiejar (0.3.0)
     crack (0.3.2)
@@ -156,6 +157,9 @@ GEM
     webmock (1.9.0)
       addressable (>= 2.2.7)
       crack (>= 0.1.7)
+    whenever (0.8.2)
+      activesupport (>= 2.3.4)
+      chronic (>= 0.6.3)
 
 PLATFORMS
   ruby
@@ -186,3 +190,4 @@ DEPENDENCIES
   unicorn
   uuidtools
   webmock
+  whenever

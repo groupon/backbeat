@@ -13,11 +13,11 @@ gem 'mongoid-locker'
 gem 'delayed_job_mongoid'
 gem 'mongoid_auto_increment'
 gem 'mongoid-indifferent-access'
-
 gem 'uuidtools'
 
 gem 'awesome_print'
 gem 'mail'
+gem 'whenever'
 
 group :development do
   # deployment
