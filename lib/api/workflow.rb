@@ -70,7 +70,7 @@ module Api
         end
       end
 
-      get "/" do
+      put "/" do
         query = {}
         [:workflow_type, :decider, :subject].each do |query_param|
           if params.include?(query_param)
