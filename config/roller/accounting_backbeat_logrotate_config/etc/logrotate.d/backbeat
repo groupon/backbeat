@@ -37,7 +37,7 @@
    sharedscripts
    lastaction
      upid=/var/groupon/backbeat/shared/pids/unicorn.pid
-     test -s $upid && kill -usr1 "$(cat $upid)" || true
+     test -s $upid && kill -usr2 "$(cat $upid)" || true
      test -x /usr/local/etc/init.d/delayed_job_backbeat && /usr/local/etc/init.d/delayed_job_backbeat restart || true
    endscript
 }
