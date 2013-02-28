@@ -1,4 +1,4 @@
-set :output, "/data/accounting_service/shared/log/cron_log.log"
+set :output, "/var/groupon/backbeat/shared/log/cron.log"
 env 'PATH', '/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin'
 
 every 1.day, :at => '12:00' do

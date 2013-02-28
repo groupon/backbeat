@@ -15,6 +15,11 @@ require 'capistrano/campfire'
 #set :newrelic_rails_env, defer { stage }
 #require 'new_relic/recipes'
 
+set :whenever_roles, :cronjobs
+set :whenever_command, "bundle exec whenever"
+set :whenever_environment, defer { stage }
+require 'whenever/capistrano'
+
 # campfire options came from groupon/capistrano/config/notification_helper.yml
 set :campfire_options, { :account => 'thepoint',
                          :room => 'Accounting-fu',
@@ -34,7 +39,7 @@ set :deploy_env, "production"
 set :keep_releases, 10
 set :normalize_asset_timestamps, false
 # QUICK TIP (useful for debugging) - If bundle is failing, uncomment the line below. It executes bundle without the quiet flag.
-set :bundle_flags, "--deployment"
+#set :bundle_flags, "--deployment"
 
 set :unicorn_binary, "bundle exec unicorn"
 set :unicorn_config, "#{current_path}/config/unicorn.conf.rb"
@@ -60,12 +65,6 @@ Capistrano::Configuration::Namespaces::Namespace.class_eval do
   end
 end
 
-namespace :t do
-  task :a do
-    puts current_path
-  end
-end
-
 # Only used by Release Engineering for production deploys
 namespace :git do
   desc "tag the deployed revision as a deploy"
@@ -82,11 +81,11 @@ namespace :git do
     @sox_artifact = "#{@deploy_timestamp}:#{@deploy_sha}"
     @deploy_tag_day = @deploy_tag_prefix + "#{@app_dir_in_deploy_repo}_" + @deploy_day
     @deploy_tag =  @deploy_tag_prefix + "#{@app_dir_in_deploy_repo}_" + @deploy_timestamp
-    
+
     setup_and_go_to_deploy_repo
     commit_and_push_sox_artifact unless deploy_already_tagged?
   end
-  
+
   def get_app_dir_name
     app_dir = "#{repository.split(':').last.gsub('.git','')}"
     if app_dir.include?("/")
@@ -94,50 +93,51 @@ namespace :git do
     end
     app_dir
   end
-  
+
   def setup_and_go_to_deploy_repo
     remove_tmp_deploy_repo
     `mkdir -p #{@tmp_dir} && cd #{@tmp_dir} && git clone #{@deploy_repo} && cd #{@deploy_repo_dir} && mkdir -p #{@app_dir_in_deploy_repo}`  
   end
-  
+
   def commit_and_push_sox_artifact
     create_sox_artifact
     commit_and_push
     set_and_push_deploy_tag 
     remove_tmp_deploy_repo
   end
-  
+
   def create_sox_artifact
     `cd #{@tmp_deploy_repo_dir} && echo '#{@sox_artifact}' > #{@app_dir_in_deploy_repo}/#{@deploy_timestamp}.txt`
   end
-  
+
   def commit_and_push
     `cd #{@tmp_deploy_repo_dir} && git add . && git commit -m "Logging deploy for application:#{@app_dir_in_deploy_repo} revision:#{@deploy_sha}" && git pull --rebase && git push origin master`
   end
-    
+
   def set_and_push_deploy_tag
     `cd #{@tmp_deploy_repo_dir} && git fetch origin && git fetch --tags && git tag #{@deploy_tag} HEAD && git push --tags`
   end
-  
+
   def deploy_already_tagged?
     deploy_tags_from_today = find_deploy_tags_from_today
     return false if deploy_tags_from_today.empty?
     deployed_revisions = find_deployed_revisions
     deployed_revisions.include?(@deploy_sha)
   end
-  
+
   def find_deploy_tags_from_today
     `cd #{@tmp_deploy_repo_dir} && git ls-remote #{@deploy_repo} refs/tags/#{@deploy_tag_day}* | awk '{print $1}'`.split("\n")
   end
-  
+
   def find_deployed_revisions
     `cd #{@tmp_deploy_repo_dir} && git fetch --tags && git tag | grep #{@deploy_tag_day} | xargs -ITAG git log -n 1 $TAG | grep "Logging deploy for" | grep #{@app_dir_in_deploy_repo} | awk -F 'revision:' '{print $2}'`.split("\n")
   end
-  
+
   def remove_tmp_deploy_repo
     `rm -rf #{@tmp_deploy_repo_dir}`
   end
 end
+
 namespace :setup do
   desc "configure deploy directories"
   task :deploy_dirs, :roles => :utility do
@@ -376,7 +376,7 @@ namespace :deploy do
 
   task :confirm do
     if stage == :production
-      Groupon::FinancialEngineering::Capistrano.get_confirmation( "let's do this!", "deploy to production")
+      Groupon::FinancialEngineering::Capistrano.get_confirmation( "let's march!", "deploy to production")
     else
       puts "skipping confirmation, you are deploying to #{stage}"
     end
