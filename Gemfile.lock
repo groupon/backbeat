@@ -22,6 +22,7 @@ GEM
       tinder
     capistrano-ext (1.2.1)
       capistrano (>= 1.0.0)
+    chronic (0.9.1)
     coderay (1.0.8)
     cookiejar (0.3.0)
     crack (0.3.2)
@@ -67,6 +68,10 @@ GEM
     json (1.7.6)
     kgio (2.8.0)
     log4r (1.1.10)
+    mail (2.5.3)
+      i18n (>= 0.4.0)
+      mime-types (~> 1.16)
+      treetop (~> 1.4.8)
     method_source (0.8.1)
     mime-types (1.19)
     mongoid (3.0.19)
@@ -93,6 +98,7 @@ GEM
     net-ssh-gateway (1.1.0)
       net-ssh (>= 1.99.1)
     origin (1.0.11)
+    polyglot (0.3.3)
     pry (0.9.11.4)
       coderay (~> 1.0.5)
       method_source (~> 0.8)
@@ -132,6 +138,9 @@ GEM
       mime-types (~> 1.19)
       multi_json (~> 1.5)
       twitter-stream (~> 0.1)
+    treetop (1.4.12)
+      polyglot
+      polyglot (>= 0.3.1)
     twitter-stream (0.1.16)
       eventmachine (>= 0.12.8)
       http_parser.rb (~> 0.5.1)
@@ -148,6 +157,9 @@ GEM
     webmock (1.9.0)
       addressable (>= 2.2.7)
       crack (>= 0.1.7)
+    whenever (0.8.2)
+      activesupport (>= 2.3.4)
+      chronic (>= 0.6.3)
 
 PLATFORMS
   ruby
@@ -163,6 +175,7 @@ DEPENDENCIES
   grape
   httparty
   log4r
+  mail
   mongoid
   mongoid-indifferent-access
   mongoid-locker
@@ -177,3 +190,4 @@ DEPENDENCIES
   unicorn
   uuidtools
   webmock
+  whenever

@@ -1,19 +1,23 @@
 source 'http://rubygems.org'
 
+gem 'rake'
+
 gem 'unicorn'
+gem 'grape'
+gem 'httparty'
+gem 'em-http-request'
+gem 'log4r'
 
 gem 'mongoid'
 gem 'mongoid-locker'
 gem 'delayed_job_mongoid'
-gem 'mongoid-indifferent-access'
-gem 'awesome_print'
-gem 'grape'
-gem 'em-http-request'
-gem 'uuidtools'
-gem 'httparty'
-gem 'log4r'
-gem 'rake'
 gem 'mongoid_auto_increment'
+gem 'mongoid-indifferent-access'
+gem 'uuidtools'
+
+gem 'awesome_print'
+gem 'mail'
+gem 'whenever'
 
 group :development do
   # deployment
