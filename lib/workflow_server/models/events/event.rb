@@ -192,6 +192,26 @@ module WorkflowServer
         end
       end
 
+      def method_missing_with_enqueue(name, *args)
+        if name.to_s =~ /^(enqueue)_(.*)$/
+          method_name = $2.to_sym
+          WorkflowServer::Async::Job.schedule(event: self, method: method_name, args: args)
+        else
+          method_missing_without_enqueue(name, *args)
+        end
+      end
+      alias_method_chain :method_missing, :enqueue
+
+      def respond_to_missing_with_enqueue?(method_name, include_private = false)
+        if method_name.to_s =~ /^(enqueue)_(.*)$/
+          method_name = $2.to_sym
+          respond_to?(method_name, include_private)
+        else
+          respond_to_missing_without_enqueue?(method_name, include_private)
+        end
+      end
+      alias_method_chain :respond_to_missing?, :enqueue
+
       private
 
       def error_hash(error)

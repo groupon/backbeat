@@ -28,7 +28,7 @@ describe WorkflowServer::Models::Timer do
       timer = FactoryGirl.create(:timer, fires_at: Date.tomorrow, workflow: workflow)
       timer.status.should == :open
       timer.start
-      timer.status.should == :executing
+      timer.status.should == :scheduled
       job = Delayed::Job.last
       job.run_at.should == Date.tomorrow.to_time
       async_job = job.payload_object

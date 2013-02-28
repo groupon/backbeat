@@ -7,7 +7,7 @@ module WorkflowServer
 
       def start
         super
-        update_status!(:executing)
+        update_status!(:scheduled)
         WorkflowServer::Async::Job.schedule({event: self, method: :fire, max_attempts: 5}, fires_at)
       end
 

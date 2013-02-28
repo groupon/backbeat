@@ -16,7 +16,7 @@ describe WorkflowServer::Models::Decision do
 
   it "calls schedule next decision on create" do
     decision = WorkflowServer::Models::Decision.new(@event_data)
-    decision.should_receive(:schedule_next_decision)
+    decision.should_receive(:enqueue_schedule_next_decision)
     decision.save!
   end
 
@@ -79,15 +79,9 @@ describe WorkflowServer::Models::Decision do
   end
 
   context "#completed" do
-    it "checks with workflow manager to schedule the next decision" do
-      @d2 = FactoryGirl.create(:decision, workflow: @wf, name: "WF_Decision-2")
-      @d1.reload
-      @d2.reload
-      @d1.status.should == :enqueued
-      @d2.status.should == :open
+    it "calls enqueue_schedule_next_decision to schedule the next decision" do
+      @d1.should_receive(:enqueue_schedule_next_decision)
       @d1.completed
-      @d2.reload
-      @d2.status.should == :enqueued
     end
   end
 
@@ -127,6 +121,7 @@ describe WorkflowServer::Models::Decision do
         }.to raise_error(WorkflowServer::InvalidEventStatus, "Decision WF_Decision-1 can't transition from open to deciding")
       end
       it "puts the decision in deciding state" do
+        @d1.update_status!(:enqueued)
         @d1.reload
         @d1.change_status(:deciding)
         @d1.status.should == :deciding

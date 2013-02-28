@@ -30,7 +30,7 @@ describe Api::Workflow do
         get uri(template, @d1)
         last_response.status.should == 200
         json_response = JSON.parse(last_response.body)
-        json_response.should == {"clientData"=>{}, "createdAt"=>Time.now.to_datetime.to_s, "decider" => "PaymentDecider", "name"=>"WFDecision", "parentId"=>nil, "status"=>"enqueued", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@d1.workflow.id, "id"=>@d1.id, "type"=>"decision", "historyDecisions"=>[], "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}
+        json_response.should == {"clientData"=>{}, "createdAt"=>Time.now.to_datetime.to_s, "decider" => "PaymentDecider", "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@d1.workflow.id, "id"=>@d1.id, "type"=>"decision", "historyDecisions"=>[], "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}
         json_response['id'].should == @d1.id.to_s
       end
 
@@ -68,7 +68,7 @@ describe Api::Workflow do
         get "#{uri(template, @d1)}/tree"
         last_response.status.should == 200
         json_response = JSON.parse(last_response.body)
-        json_response.should == {"id"=>@d1.id, "type"=>"decision", "name"=>"WFDecision", "status"=>"enqueued"}
+        json_response.should == {"id"=>@d1.id, "type"=>"decision", "name"=>"WFDecision", "status"=>"open"}
       end
 
       it "returns a 404 if the event is not found" do
