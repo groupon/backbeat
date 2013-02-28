@@ -17,7 +17,7 @@ module WorkflowServer
         # a bad hack, and i might change this to work based off
         # priority. anyways, should work for now)
         unless method_to_call.to_s == 'notify_client'
-          event.update_status!(error, :async_job_error)
+          event.update_status!(:error, :async_job_error)
         end
       end
 
