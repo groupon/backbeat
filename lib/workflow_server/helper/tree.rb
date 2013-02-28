@@ -57,7 +57,7 @@ module Tree
 
     def color_code(text)
       case self[:status]
-      when :executing, :running_sub_activity, :waiting_for_sub_activities
+      when :executing, :running_sub_activity, :waiting_for_sub_activities, :scheduled
         yellow(text)
       when :complete
         green(text)
