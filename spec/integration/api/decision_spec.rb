@@ -131,7 +131,7 @@ describe Api::Workflow do
         json_response['error'].should == "Decision #{decision.name} can't transition from open to errored"
       end
       it "returns 200 and records the error message" do
-        decision = FactoryGirl.create(:decision, status: :open)
+        decision = FactoryGirl.create(:decision, status: :enqueued)
         wf = decision.workflow
         user = wf.user
         header "Content-Type", "application/json"
@@ -163,7 +163,7 @@ describe Api::Workflow do
       put "/workflows/#{wf.id}/events/#{decision.id}/restart"
       last_response.status.should == 400
       json_response = JSON.parse(last_response.body)
-      json_response['error'].should == "Decision #{decision.name} can't transition from enqueued to restarting"
+      json_response['error'].should == "Decision #{decision.name} can't transition from open to restarting"
     end
 
     it "returns 200 and restarts the decisions" do

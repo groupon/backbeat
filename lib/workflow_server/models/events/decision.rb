@@ -2,7 +2,7 @@ module WorkflowServer
   module Models
     class Decision < Event
 
-      after_create :schedule_next_decision
+      after_create :enqueue_schedule_next_decision
 
       attr_accessor :decisions_to_add
 
@@ -50,7 +50,7 @@ module WorkflowServer
           end
         end
         if responsible_for_complete
-          schedule_next_decision
+          enqueue_schedule_next_decision
         end
       end
 
