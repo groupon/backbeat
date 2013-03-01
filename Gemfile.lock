@@ -1,3 +1,10 @@
+GIT
+  remote: git://github.com/mooremo/mongoid-locker.git
+  revision: 50158725657c21d7f7acb4fb22e7f98a5c39b88d
+  specs:
+    mongoid-locker (0.2.1)
+      mongoid (>= 2.4, < 3.2)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -81,8 +88,6 @@ GEM
       tzinfo (~> 0.3.22)
     mongoid-indifferent-access (1.0.0)
       mongoid
-    mongoid-locker (0.2.1)
-      mongoid (>= 2.4, <= 3.1)
     mongoid_auto_increment (0.1.0)
       mongoid
       mongoid_auto_increment
@@ -178,7 +183,7 @@ DEPENDENCIES
   mail
   mongoid
   mongoid-indifferent-access
-  mongoid-locker
+  mongoid-locker!
   mongoid_auto_increment
   pry
   rack-test

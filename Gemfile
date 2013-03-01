@@ -9,7 +9,7 @@ gem 'em-http-request'
 gem 'log4r'
 
 gem 'mongoid'
-gem 'mongoid-locker'
+gem 'mongoid-locker', :git => 'git://github.com/mooremo/mongoid-locker.git'
 gem 'delayed_job_mongoid'
 gem 'mongoid_auto_increment'
 gem 'mongoid-indifferent-access'
