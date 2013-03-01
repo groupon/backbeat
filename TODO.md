@@ -1,6 +1,5 @@
 ###Go-back TODO's###
 - file organization
-- document
 - look for cruft, bad method/variable names, anything excessivley confusing or complicated, etc..
 
 ###Go-forward TODO's###
@@ -16,10 +15,3 @@
   -change log on version bump
 - Clients
   -Contract for compatibility with server? (see versioning)
-- Contribution Policy - this should be very open but spelled out
-  -Contributor, Committer, Reviewer, Core
-- Mailing List
-- Domain
-  -backbeat.groupon.com?
-  -backbeat.com?
-  -backbeat.co.nz?
