@@ -9,9 +9,5 @@
   - tag versions bumps in git
   - update change_log.md on version bump
 
-###TODOs###
-- [ ] Hide DB behind ORM
-- [ ] Hide DelayedJob/Resque/Redis behind an AsyncClient
-
 ###Open Questions###
 -Contract for client compatibility with server? (see versioning)
