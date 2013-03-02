@@ -1,17 +1,17 @@
-###Go-back TODO's###
-- file organization
+###Thing You Should Be Doing###
 - look for cruft, bad method/variable names, anything excessivley confusing or complicated, etc..
-
-###Go-forward TODO's###
 - document as you go
 - blog as you go - take enough notes that you could right a real blog post later
 - story pain-points/needs/wants/dreams/anything that warrants discussion 
 - tag anything that seems crufty with a TODO in addition to creating a story
+- when versioning:
+  - Use sane version numbering
+  - tag versions bumps in git
+  - update change_log.md on version bump
+
+###TODOs###
+- [ ] Hide DB behind ORM
+- [ ] Hide DelayedJob/Resque/Redis behind an AsyncClient
 
 ###Open Questions###
-- Versioning?
-  -Sane Version Numbering
-  -tag versions bumps in git
-  -change log on version bump
-- Clients
-  -Contract for compatibility with server? (see versioning)
+-Contract for client compatibility with server? (see versioning)
