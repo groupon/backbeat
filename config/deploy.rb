@@ -5,11 +5,6 @@ require "#{File.dirname(__FILE__)}/useful_capistrano_functions"
 set :stages, %w(production staging uat)
 set :default_stage, "uat"
 require 'capistrano/ext/multistage'  # this must appear after you set up the stages
-
-
-require 'bundler/capistrano'
-require "#{File.dirname(__FILE__)}/useful_capistrano_functions"
-
 require 'capistrano/campfire'
 
 #set :newrelic_rails_env, defer { stage }
@@ -18,7 +13,6 @@ require 'capistrano/campfire'
 set :whenever_roles, :cronjobs
 set :whenever_command, "bundle exec whenever"
 set :whenever_environment, defer { stage }
-require 'whenever/capistrano'
 
 # campfire options came from groupon/capistrano/config/notification_helper.yml
 set :campfire_options, { :account => 'thepoint',
@@ -399,10 +393,13 @@ before :deploy do
 end
 
 before "deploy:update_code", "deploy:confirm", "deploy:campfire_notify", "workers:stop"
-#after "deploy:update_code"#, "deploy:copy_settings"
+before "deploy:finalize_update", "bundle:install"
 
 before "deploy:restart", "deploy:find_existing_unicorn_processes"
 after "deploy:restart", "deploy:check_for_new_unicorn_processes", "deploy:create_indexes", "deploy:cleanup"
 after "deploy:cleanup", "deploy:check_processes", "workers:start", "deploy:campfire_notify_complete"
 
 #after "deploy:create_symlink", "newrelic:notice_deployment"
+
+# This ensures bundle install happens before bundle exec whenever tries to update the crontab
+require 'whenever/capistrano'
