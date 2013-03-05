@@ -23,7 +23,7 @@ module Api
       Rack::Response.new({error: e.message }.to_json, 404, { "Content-type" => "application/json" }).finish
     end
 
-    rescue_from WorkflowServer::EventComplete, WorkflowServer::InvalidParameters, WorkflowServer::InvalidEventStatus, WorkflowServer::InvalidDecisionSelection, Grape::Exceptions::ValidationError do |e|
+    rescue_from WorkflowServer::EventComplete, WorkflowServer::InvalidParameters, WorkflowServer::InvalidEventStatus, WorkflowServer::InvalidDecisionSelection, Grape::Exceptions::Validation do |e|
       Api::Workflow.error(e)
       Rack::Response.new({error: e.message }.to_json, 400, { "Content-type" => "application/json" }).finish
     end
