@@ -122,50 +122,50 @@ module Api
         signal = wf.signal(params[:name])
         signal
       end
+    end
 
-      # Events can be reached using two url's
-      # 1) as a subresource /workflows/<workflow_id>/events/<id>
-      # 2) or as a top level resource /events/<id>
-      # This proc here is the general declaration that is at the end consumed by both the above endpoints.
-      EventSpecification = Proc.new do
-        get "/:id" do
-          find_event(params)
-        end
+    # Events can be reached using two url's
+    # 1) as a subresource /workflows/<workflow_id>/events/<id>
+    # 2) or as a top level resource /events/<id>
+    # This proc here is the general declaration that is at the end consumed by both the above endpoints.
+    EventSpecification = Proc.new do
+      get "/:id" do
+        find_event(params)
+      end
 
-        put "/:id/restart" do
-          e = find_event(params)
-          e.restart
-          {success: true}
-        end
+      put "/:id/restart" do
+        e = find_event(params)
+        e.restart
+        {success: true}
+      end
 
-        get "/:id/tree" do
-          e = find_event(params)
-          e.tree
-        end
+      get "/:id/tree" do
+        e = find_event(params)
+        e.tree
+      end
 
-        get "/:id/tree/print" do
-          e = find_event(params)
-          {print: e.tree_to_s}
-        end
+      get "/:id/tree/print" do
+        e = find_event(params)
+        {print: e.tree_to_s}
+      end
 
-        put "/:id/status/:new_status" do
-          event = find_event(params)
-          raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
-          event.change_status(params[:new_status], params[:args] || {})
-          {success: true}
-        end
+      put "/:id/status/:new_status" do
+        event = find_event(params)
+        raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
+        event.change_status(params[:new_status], params[:args] || {})
+        {success: true}
+      end
 
-        params do
-          requires :sub_activity, type: Hash, :desc => 'sub activity param cannot be empty'
+      params do
+        requires :sub_activity, type: Hash, :desc => 'sub activity param cannot be empty'
+      end
+      put "/:id/run_sub_activity" do
+        event = find_event(params, :activities)
+        sub_activity = event.run_sub_activity(params[:sub_activity] || {})
+        if sub_activity.try(:blocking?)
+          header("WAIT_FOR_SUB_ACTIVITY", "true")
         end
-        put "/:id/run_sub_activity" do
-          event = find_event(params, :activities)
-          sub_activity = event.run_sub_activity(params[:sub_activity] || {})
-          if sub_activity.try(:blocking?)
-            header("WAIT_FOR_SUB_ACTIVITY", "true")
-          end
-          sub_activity
-        end
+        sub_activity
       end
     end
 
@@ -178,6 +178,50 @@ module Api
     end
     resource "events" do
       EventSpecification.call
+    end
+
+    namespace 'debug' do
+
+      GROUP_MAP = Proc.new { |group_field|
+        %Q{
+          function() {
+            emit(this.#{group_field}, 1);
+          }
+        }
+      }
+      REDUCE_BY_COUNT = %Q{
+        function(key, values) {
+          return Array.sum(values);
+        }
+      }
+
+      desc 'returns workflows that have something in error/timeout state'
+      get '/error_workflows' do
+        ids = current_user.workflows.map(&:id)
+        WorkflowServer::Models::Event.where(:status.in => [:error, :timeout], :workflow_id.in => ids).map(&:workflow).uniq
+      end
+
+      desc 'returns workflows that have > 0 open decisions and 0 executing decisions'
+      get '/stuck_workflows' do
+        WorkflowServer::Models::Decision.where(status: :open, :workflow_id.in => current_user.workflows.map(&:id)).find_all {|decision| decision.workflow.decisions.where(status: :executing).none? }.map(&:workflow).uniq
+      end
+
+      desc 'returns workflows that have more than one decision executing simultaneously'
+      get '/multiple_executing_decisions' do
+        ids = current_user.workflows.map(&:id)
+        workflow_ids = WorkflowServer::Models::Decision.where(:status.nin => [:open, :complete], :workflow_id.in => ids ).map_reduce(GROUP_MAP.call('workflow_id'), REDUCE_BY_COUNT).out(inline: true).find_all {|hash| hash['value'] > 1 }.map {|hash| hash['_id'] }
+
+        current_user.workflows.where(:id.in => workflow_ids)
+      end
+
+      desc 'returns workflows that are in an inconsistent state'
+      get '/inconsistent_workflows' do
+        workflows = current_user.workflows.map(&:id)
+        objects = WorkflowServer::Models::Event.where(:workflow_id.in => workflows, :_type.in => [ WorkflowServer::Models::Timer.to_s, WorkflowServer::Models::Signal.to_s ]).map(&:id)
+        duplicate_objects = WorkflowServer::Models::Decision.where(:parent_id.in => objects).map_reduce(GROUP_MAP.call('parent_id'), REDUCE_BY_COUNT).out(inline: true).find_all {|hash| hash['value'] > 1 }.map {|hash| hash['_id'] }
+        WorkflowServer::Models::Event.where(:id.in => duplicate_objects).map(&:workflow).uniq
+      end
+
     end
   end
 end

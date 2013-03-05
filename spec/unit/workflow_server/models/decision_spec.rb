@@ -177,7 +177,7 @@ describe WorkflowServer::Models::Decision do
           @d1.change_status(:errored, error: {something: :bad_happened})
           @d1.reload
           @d1.status.should == :error
-          @d1.status_history.last.should == {"from"=>base_state, "to"=>:error, "at"=>Time.now.to_datetime.to_s, "error"=>{"something"=>:bad_happened}}
+          @d1.status_history.last.should == {"from"=>base_state, "to"=>:error, "tid" => nil, "at"=>Time.now.to_datetime.to_s, "error"=>{"something"=>:bad_happened}}
         end
       end
     end
