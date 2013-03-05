@@ -21,6 +21,12 @@ describe Api::Workflow do
     workflow
   end
 
+  def create_duplicate_decisions_on_event(p_workflow, event = :timer)
+    event = FactoryGirl.create(event, workflow: p_workflow)
+    2.times { event.children << FactoryGirl.create(:decision, workflow: p_workflow, parent: event) }
+    event
+  end
+
   before do
     header 'CLIENT_ID', RSPEC_CONSTANT_USER_CLIENT_ID
   end
@@ -78,6 +84,58 @@ describe Api::Workflow do
       ids = json_response.map { |r| r['id'] }
       ids.should include(wf1.id)
       ids.should include(wf2.id)
+    end
+  end
+
+  context '/debug/timers_with_multiple_decisions' do
+    it 'returns empty when no matching timer' do
+      workflow
+      get "/debug/timers_with_multiple_decisions"
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response.should be_instance_of(Array)
+      json_response.should be_empty
+    end
+    it 'returns the matching timers' do
+      t1 = create_duplicate_decisions_on_event(workflow)
+      t2 = create_duplicate_decisions_on_event(workflow)
+      t3 = create_duplicate_decisions_on_event(workflow)
+      t3.children.first.destroy
+      t4 = create_duplicate_decisions_on_event(FactoryGirl.create(:workflow, user: FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s)))
+      get "/debug/timers_with_multiple_decisions"
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response.should be_instance_of(Array)
+      json_response.count.should == 2
+      ids = json_response.map { |r| r['id'] }
+      ids.should include(t1.id)
+      ids.should include(t2.id)
+    end
+  end
+
+  context '/debug/signals_with_multiple_decisions' do
+    it 'returns empty when no matching signal' do
+      workflow
+      get "/debug/signals_with_multiple_decisions"
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response.should be_instance_of(Array)
+      json_response.should be_empty
+    end
+    it 'returns the matching timers' do
+      s1 = create_duplicate_decisions_on_event(workflow, :signal)
+      s2 = create_duplicate_decisions_on_event(workflow, :signal)
+      s3 = create_duplicate_decisions_on_event(workflow, :signal)
+      s3.children.first.destroy
+      s4 = create_duplicate_decisions_on_event(FactoryGirl.create(:workflow, user: FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s)), :signal)
+      get "/debug/signals_with_multiple_decisions"
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response.should be_instance_of(Array)
+      json_response.count.should == 2
+      ids = json_response.map { |r| r['id'] }
+      ids.should include(s1.id)
+      ids.should include(s2.id)
     end
   end
 end

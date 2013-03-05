@@ -202,9 +202,23 @@ module Api
       desc 'returns workflows that have more than one decision executing simultaneously'
       get '/multiple_executing_decisions' do
         ids = current_user.workflows.map(&:id)
-        workflow_ids = WorkflowServer::Models::Decision.where(:status.nin => [:open, :complete], :workflow_id.in => ids ).map_reduce(GROUP_MAP.call('workflow_id'), REDUCE_BY_COUNT).out(inline: true).find_all {|hash| ap hash; hash['value'] > 1 }.map {|hash| hash['_id'] }
-        workflow_ids.empty? ? [] : current_user.workflows.where(:id.in => workflow_ids)
+        workflow_ids = WorkflowServer::Models::Decision.where(:status.nin => [:open, :complete], :workflow_id.in => ids ).map_reduce(GROUP_MAP.call('workflow_id'), REDUCE_BY_COUNT).out(inline: true).find_all {|hash| hash['value'] > 1 }.map {|hash| hash['_id'] }
 
+        current_user.workflows.where(:id.in => workflow_ids)
+      end
+
+      {
+        'timers' => WorkflowServer::Models::Timer,
+        'signals' => WorkflowServer::Models::Signal
+      }.each_pair do |type, klass|
+        desc "#{type} that have multiple decisions"
+        get "/#{type}_with_multiple_decisions" do
+          workflows = current_user.workflows.map(&:id)
+          objects = klass.where(:workflow_id.in => workflows).map(&:id)
+          duplicate_objects = WorkflowServer::Models::Decision.where(:parent_id.in => objects).map_reduce(GROUP_MAP.call('parent_id'), REDUCE_BY_COUNT).out(inline: true).find_all {|hash| hash['value'] > 1 }.map {|hash| hash['_id'] }
+
+          klass.where(:id.in => duplicate_objects)
+        end
       end
 
     end
