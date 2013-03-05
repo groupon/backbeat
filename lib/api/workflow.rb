@@ -194,9 +194,15 @@ module Api
     end
 
     namespace 'debug' do
+      desc 'returns workflows that have something in error/timeout state'
+      get '/error_workflows' do
+        ids = current_user.workflows.map(&:id)
+        WorkflowServer::Models::Event.where(:status.in => [:error, :timeout], :workflow_id.in => ids).map(&:workflow).uniq
+      end
+
       desc 'returns workflows that have > 0 open decisions and 0 executing decisions'
       get '/stuck_workflows' do
-        WorkflowServer::Models::Decision.where(status: :open, :workflow_id.in => current_user.workflows.map(&:id)).find_all {|decision| decision.workflow.decisions.where(status: :executing).none? }.map(&:workflow)
+        WorkflowServer::Models::Decision.where(status: :open, :workflow_id.in => current_user.workflows.map(&:id)).find_all {|decision| decision.workflow.decisions.where(status: :executing).none? }.map(&:workflow).uniq
       end
 
       desc 'returns workflows that have more than one decision executing simultaneously'
