@@ -7,6 +7,19 @@ module Api
     # content_type :camel_json, 'application/json'
     # format :camel_json
 
+    GROUP_MAP = Proc.new { |group_field|
+      %Q{
+        function() {
+          emit(this.#{group_field}, 1);
+        }
+      }
+    }
+    REDUCE_BY_COUNT = %Q{
+      function(key, values) {
+        return Array.sum(values);
+      }
+    }
+
     format :json
 
     before do
@@ -178,6 +191,22 @@ module Api
     end
     resource "events" do
       EventSpecification.call
+    end
+
+    namespace 'debug' do
+      desc 'returns workflows that have > 0 open decisions and 0 executing decisions'
+      get '/stuck_workflows' do
+        WorkflowServer::Models::Decision.where(status: :open, :workflow_id.in => current_user.workflows.map(&:id)).find_all {|decision| decision.workflow.decisions.where(status: :executing).none? }.map(&:workflow)
+      end
+
+      desc 'returns workflows that have more than one decision executing simultaneously'
+      get '/multiple_executing_decisions' do
+        ids = current_user.workflows.map(&:id)
+        workflow_ids = WorkflowServer::Models::Decision.where(:status.nin => [:open, :complete], :workflow_id.in => ids ).map_reduce(GROUP_MAP.call('workflow_id'), REDUCE_BY_COUNT).out(inline: true).find_all {|hash| ap hash; hash['value'] > 1 }.map {|hash| hash['_id'] }
+        workflow_ids.empty? ? [] : current_user.workflows.where(:id.in => workflow_ids)
+
+      end
+
     end
   end
 end
