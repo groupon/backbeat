@@ -7,19 +7,6 @@ module Api
     # content_type :camel_json, 'application/json'
     # format :camel_json
 
-    GROUP_MAP = Proc.new { |group_field|
-      %Q{
-        function() {
-          emit(this.#{group_field}, 1);
-        }
-      }
-    }
-    REDUCE_BY_COUNT = %Q{
-      function(key, values) {
-        return Array.sum(values);
-      }
-    }
-
     format :json
 
     before do
@@ -194,6 +181,20 @@ module Api
     end
 
     namespace 'debug' do
+
+      GROUP_MAP = Proc.new { |group_field|
+        %Q{
+          function() {
+            emit(this.#{group_field}, 1);
+          }
+        }
+      }
+      REDUCE_BY_COUNT = %Q{
+        function(key, values) {
+          return Array.sum(values);
+        }
+      }
+
       desc 'returns workflows that have something in error/timeout state'
       get '/error_workflows' do
         ids = current_user.workflows.map(&:id)
@@ -213,18 +214,12 @@ module Api
         current_user.workflows.where(:id.in => workflow_ids)
       end
 
-      {
-        'timers' => WorkflowServer::Models::Timer,
-        'signals' => WorkflowServer::Models::Signal
-      }.each_pair do |type, klass|
-        desc "#{type} that have multiple decisions"
-        get "/#{type}_with_multiple_decisions" do
-          workflows = current_user.workflows.map(&:id)
-          objects = klass.where(:workflow_id.in => workflows).map(&:id)
-          duplicate_objects = WorkflowServer::Models::Decision.where(:parent_id.in => objects).map_reduce(GROUP_MAP.call('parent_id'), REDUCE_BY_COUNT).out(inline: true).find_all {|hash| hash['value'] > 1 }.map {|hash| hash['_id'] }
-
-          klass.where(:id.in => duplicate_objects)
-        end
+      desc 'returns workflows that are in an inconsistent state'
+      get '/inconsistent_workflows' do
+        workflows = current_user.workflows.map(&:id)
+        objects = WorkflowServer::Models::Event.where(:workflow_id.in => workflows, :_type.in => [ WorkflowServer::Models::Timer.to_s, WorkflowServer::Models::Signal.to_s ]).map(&:id)
+        duplicate_objects = WorkflowServer::Models::Decision.where(:parent_id.in => objects).map_reduce(GROUP_MAP.call('parent_id'), REDUCE_BY_COUNT).out(inline: true).find_all {|hash| hash['value'] > 1 }.map {|hash| hash['_id'] }
+        WorkflowServer::Models::Event.where(:id.in => duplicate_objects).map(&:workflow).uniq
       end
 
     end

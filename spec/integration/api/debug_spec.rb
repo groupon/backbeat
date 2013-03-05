@@ -120,55 +120,44 @@ describe Api::Workflow do
     end
   end
 
-  context '/debug/timers_with_multiple_decisions' do
-    it 'returns empty when no matching timer' do
+  context '/debug/inconsistent_workflows' do
+    it "returns empty when nothing of interest" do
       workflow
-      get "/debug/timers_with_multiple_decisions"
+      get "/debug/inconsistent_workflows"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       json_response.should be_instance_of(Array)
       json_response.should be_empty
     end
-    it 'returns the matching timers' do
+    it 'returns workflows that have timers with multiple decisions' do
       t1 = create_duplicate_decisions_on_event(workflow)
-      t2 = create_duplicate_decisions_on_event(workflow)
+      t2 = create_duplicate_decisions_on_event(FactoryGirl.create(:workflow, user: user))
       t3 = create_duplicate_decisions_on_event(workflow)
       t3.children.first.destroy
       t4 = create_duplicate_decisions_on_event(FactoryGirl.create(:workflow, user: FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s)))
-      get "/debug/timers_with_multiple_decisions"
+      get "/debug/inconsistent_workflows"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       json_response.should be_instance_of(Array)
       json_response.count.should == 2
       ids = json_response.map { |r| r['id'] }
-      ids.should include(t1.id)
-      ids.should include(t2.id)
+      ids.should include(t1.workflow.id)
+      ids.should include(t2.workflow.id)
     end
-  end
-
-  context '/debug/signals_with_multiple_decisions' do
-    it 'returns empty when no matching signal' do
-      workflow
-      get "/debug/signals_with_multiple_decisions"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
-      json_response.should be_instance_of(Array)
-      json_response.should be_empty
-    end
-    it 'returns the matching timers' do
+    it "returns workflows that have signals with multiple decisions" do
       s1 = create_duplicate_decisions_on_event(workflow, :signal)
-      s2 = create_duplicate_decisions_on_event(workflow, :signal)
+      s2 = create_duplicate_decisions_on_event(FactoryGirl.create(:workflow, user: user), :signal)
       s3 = create_duplicate_decisions_on_event(workflow, :signal)
       s3.children.first.destroy
       s4 = create_duplicate_decisions_on_event(FactoryGirl.create(:workflow, user: FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s)), :signal)
-      get "/debug/signals_with_multiple_decisions"
+      get "/debug/inconsistent_workflows"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       json_response.should be_instance_of(Array)
       json_response.count.should == 2
       ids = json_response.map { |r| r['id'] }
-      ids.should include(s1.id)
-      ids.should include(s2.id)
+      ids.should include(s1.workflow.id)
+      ids.should include(s2.workflow.id)
     end
   end
 end
