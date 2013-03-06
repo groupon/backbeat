@@ -6,6 +6,7 @@ set :stages, %w(production staging uat)
 set :default_stage, "uat"
 require 'capistrano/ext/multistage'  # this must appear after you set up the stages
 require 'capistrano/campfire'
+require 'crack' #we have to require this to make the capistrano/campfire tasks work
 
 #set :newrelic_rails_env, defer { stage }
 #require 'new_relic/recipes'
