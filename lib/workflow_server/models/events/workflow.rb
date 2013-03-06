@@ -52,10 +52,6 @@ module WorkflowServer
         super
       end
 
-      def depth
-        parent.nil? ? 0 : super
-      end
-
       def start
         super
         update_status!(:executing)
