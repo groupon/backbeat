@@ -197,18 +197,19 @@ module Api
 
       desc 'returns workflows that have something in error/timeout state'
       get '/error_workflows' do
-        ids = current_user.workflows.map(&:id)
+        ids = current_user.workflows.pluck(:_id)
         WorkflowServer::Models::Event.where(:status.in => [:error, :timeout], :workflow_id.in => ids).map(&:workflow).uniq
       end
 
       desc 'returns workflows that have > 0 open decisions and 0 executing decisions'
       get '/stuck_workflows' do
-        WorkflowServer::Models::Decision.where(status: :open, :workflow_id.in => current_user.workflows.map(&:id)).find_all {|decision| decision.workflow.decisions.where(status: :executing).none? }.map(&:workflow).uniq
+        ids = current_user.workflows.pluck(:_id)
+        WorkflowServer::Models::Decision.where(status: :open, :workflow_id.in => ids).find_all {|decision| decision.workflow.decisions.where(status: :executing).none? }.map(&:workflow).uniq
       end
 
       desc 'returns workflows that have more than one decision executing simultaneously'
       get '/multiple_executing_decisions' do
-        ids = current_user.workflows.map(&:id)
+        ids = current_user.workflows.pluck(:_id)
         workflow_ids = WorkflowServer::Models::Decision.where(:status.nin => [:open, :complete], :workflow_id.in => ids ).map_reduce(GROUP_MAP.call('workflow_id'), REDUCE_BY_COUNT).out(inline: true).find_all {|hash| hash['value'] > 1 }.map {|hash| hash['_id'] }
 
         current_user.workflows.where(:id.in => workflow_ids)
@@ -216,8 +217,8 @@ module Api
 
       desc 'returns workflows that are in an inconsistent state'
       get '/inconsistent_workflows' do
-        workflows = current_user.workflows.map(&:id)
-        objects = WorkflowServer::Models::Event.where(:workflow_id.in => workflows, :_type.in => [ WorkflowServer::Models::Timer.to_s, WorkflowServer::Models::Signal.to_s ]).map(&:id)
+        ids = current_user.workflows.pluck(:_id)
+        objects = WorkflowServer::Models::Event.where(:workflow_id.in => ids, :_type.in => [ WorkflowServer::Models::Timer.to_s, WorkflowServer::Models::Signal.to_s ]).pluck(:_id)
         duplicate_objects = WorkflowServer::Models::Decision.where(:parent_id.in => objects).map_reduce(GROUP_MAP.call('parent_id'), REDUCE_BY_COUNT).out(inline: true).find_all {|hash| hash['value'] > 1 }.map {|hash| hash['_id'] }
         WorkflowServer::Models::Event.where(:id.in => duplicate_objects).map(&:workflow).uniq
       end
