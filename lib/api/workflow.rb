@@ -56,6 +56,17 @@ module Api
         end
         event
       end
+
+      # This takes a leaf out of http://docs.mongodb.org/manual/reference/sql-aggregation-comparison/
+      # We do not have an api to express this query in Mongoid. This goes out directly through the moped api's
+      def group_by_and_having(selector, field, count, greater = true)
+        result = WorkflowServer::Models::Event.collection.aggregate(
+         { '$match' => selector },
+         { '$group' => { '_id' =>  "$#{field}", 'count' => { '$sum' => 1 } } },
+         { '$match' => { 'count' => { greater ? '$gt' : '$lt' => count } } })
+
+        result.map { |hash| hash['_id'] }
+      end
     end
 
     resource 'workflows' do
@@ -182,19 +193,6 @@ module Api
 
     namespace 'debug' do
 
-      GROUP_MAP = Proc.new { |group_field|
-        %Q{
-          function() {
-            emit(this.#{group_field}, 1);
-          }
-        }
-      }
-      REDUCE_BY_COUNT = %Q{
-        function(key, values) {
-          return Array.sum(values);
-        }
-      }
-
       desc 'returns workflows that have something in error/timeout state'
       get '/error_workflows' do
         ids = current_user.workflows.pluck(:_id)
@@ -210,7 +208,7 @@ module Api
       desc 'returns workflows that have more than one decision executing simultaneously'
       get '/multiple_executing_decisions' do
         ids = current_user.workflows.pluck(:_id)
-        workflow_ids = WorkflowServer::Models::Decision.where(:status.nin => [:open, :complete], :workflow_id.in => ids ).map_reduce(GROUP_MAP.call('workflow_id'), REDUCE_BY_COUNT).out(inline: true).find_all {|hash| hash['value'] > 1 }.map {|hash| hash['_id'] }
+        workflow_ids = group_by_and_having(WorkflowServer::Models::Event.where(:status.nin => [:open, :complete], :workflow_id.in => ids ).type(WorkflowServer::Models::Decision).selector, 'workflow_id', 1)
 
         current_user.workflows.where(:id.in => workflow_ids)
       end
@@ -219,7 +217,7 @@ module Api
       get '/inconsistent_workflows' do
         ids = current_user.workflows.pluck(:_id)
         objects = WorkflowServer::Models::Event.where(:workflow_id.in => ids, :_type.in => [ WorkflowServer::Models::Timer.to_s, WorkflowServer::Models::Signal.to_s ]).pluck(:_id)
-        duplicate_objects = WorkflowServer::Models::Decision.where(:parent_id.in => objects).map_reduce(GROUP_MAP.call('parent_id'), REDUCE_BY_COUNT).out(inline: true).find_all {|hash| hash['value'] > 1 }.map {|hash| hash['_id'] }
+        duplicate_objects = group_by_and_having(WorkflowServer::Models::Event.where(:parent_id.in => objects).type(WorkflowServer::Models::Decision).selector, 'parent_id', 1)
         WorkflowServer::Models::Event.where(:id.in => duplicate_objects).map(&:workflow).uniq
       end
 
