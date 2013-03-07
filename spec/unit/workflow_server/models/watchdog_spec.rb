@@ -33,10 +33,10 @@ describe WorkflowServer::Models::Watchdog do
 
         wd.name.should eq :timeout
       end
-      it 'defaults starves_in to 15 minutes' do
+      it 'defaults starves_in to 30 minutes' do
         wd = subject.start(@a1)
 
-        wd.starves_in.should eq 15.minutes
+        wd.starves_in.should eq 30.minutes
       end
       it 'has its timer' do
         wd = subject.start(@a1)
@@ -111,7 +111,7 @@ describe WorkflowServer::Models::Watchdog do
       context "#{method}" do
         it 'extends the Watchdogs timer by the starves_in time' do
           wd = subject.start(@a1, :my_timeout)
-          Delayed::Job.any_instance.should_receive(:update_attributes!).with(run_at: (Time.now + 15.minutes))
+          Delayed::Job.any_instance.should_receive(:update_attributes!).with(run_at: (Time.now + 30.minutes))
 
           subject.send(method, @a1, :my_timeout)
 
