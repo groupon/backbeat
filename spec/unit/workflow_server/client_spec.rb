@@ -57,13 +57,13 @@ describe WorkflowServer::Client do
       activity = FactoryGirl.create(:activity, workflow: FactoryGirl.create(:workflow, user: user))
       WorkflowServer::Client.unstub!(:notify_of)
       WebMock.stub_request(:post, "http://notifications.com/api/v1/workflows/notify_of").
-        with(:body => "{\"notification\":\"{\\\"subject_klass\\\"=>\\\"PaymentTerm\\\", \\\"subject_id\\\"=>\\\"100\\\"}:activity(make_initial_payment):start\"}",
+        with(:body => "{\"notification\":\"{\\\"subject_klass\\\"=>\\\"PaymentTerm\\\", \\\"subject_id\\\"=>\\\"100\\\"}:#{activity.id}:activity(make_initial_payment):start\"}",
              :headers => {'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json'}).
              to_return(:status => 200, :body => "", :headers => {})
       WorkflowServer::Client.notify_of(activity, :start)
 
       WebMock.should have_requested(:post, "http://notifications.com/api/v1/workflows/notify_of").
-        with(:body => "{\"notification\":\"{\\\"subject_klass\\\"=>\\\"PaymentTerm\\\", \\\"subject_id\\\"=>\\\"100\\\"}:activity(make_initial_payment):start\"}",
+        with(:body => "{\"notification\":\"{\\\"subject_klass\\\"=>\\\"PaymentTerm\\\", \\\"subject_id\\\"=>\\\"100\\\"}:#{activity.id}:activity(make_initial_payment):start\"}",
              :headers => {'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json'})
     end
 

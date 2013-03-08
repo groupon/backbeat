@@ -20,7 +20,7 @@ module WorkflowServer
 
     def self.notify_of(event, notification, error = nil)
       workflow = event.is_a?(WorkflowServer::Models::Workflow) ? event : event.workflow
-      notification = "#{workflow.try(:subject)}:#{event.event_type}(#{event.name}):#{notification}"
+      notification = "#{workflow.try(:subject)}:#{event.id}:#{event.event_type}(#{event.name}):#{notification}"
 
       if (url = event.my_user.try(:notification_endpoint))
         params = {notification: notification}
