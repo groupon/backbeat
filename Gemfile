@@ -5,7 +5,6 @@ gem 'rake'
 gem 'unicorn'
 gem 'grape'
 gem 'httparty'
-gem 'em-http-request'
 gem 'log4r'
 
 gem 'mongoid'

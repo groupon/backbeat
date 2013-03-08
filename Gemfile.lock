@@ -31,7 +31,6 @@ GEM
       capistrano (>= 1.0.0)
     chronic (0.9.1)
     coderay (1.0.9)
-    cookiejar (0.3.0)
     crack (0.3.2)
     delayed_job (3.0.5)
       activesupport (~> 3.0)
@@ -40,14 +39,6 @@ GEM
       mongoid (~> 3.0)
     descendants_tracker (0.0.1)
     diff-lcs (1.2.1)
-    em-http-request (1.0.3)
-      addressable (>= 2.2.3)
-      cookiejar
-      em-socksify
-      eventmachine (>= 1.0.0.beta.4)
-      http_parser.rb (>= 0.5.3)
-    em-socksify (0.2.1)
-      eventmachine (>= 1.0.0.beta.4)
     eventmachine (1.0.1)
     factory_girl (4.2.0)
       activesupport (>= 3.0.0)
@@ -165,7 +156,6 @@ DEPENDENCIES
   capistrano-campfire
   capistrano-ext
   delayed_job_mongoid
-  em-http-request
   factory_girl
   grape
   httparty

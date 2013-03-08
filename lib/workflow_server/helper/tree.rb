@@ -5,10 +5,10 @@ module Tree
     child_trees.empty? ? Node.new(self) : Node.new(self).merge(children: child_trees)
   end
 
-  def tree_to_s(first_call = true , nodes = [])
-    nodes << Node.new(self)
+  def tree_to_s(first_call = true , nodes = [], depth = 0)
+    nodes << Node.new(self, depth)
     get_children.each do |child|
-      nodes << child.tree_to_s(false, nodes)
+      nodes << child.tree_to_s(false, nodes, depth + 1)
     end
     if first_call
       "\n" + nodes.compact.map{|node| node.to_s}.join("\n") + "\n\n"
@@ -17,10 +17,6 @@ module Tree
 
   def print_tree
     puts tree_to_s
-  end
-
-  def depth
-    @depth ||= self.parent.nil? ? 1 : self.parent.depth + 1
   end
 
   private
@@ -40,9 +36,9 @@ module Tree
   class Node < Hash
     include Colorize
 
-    def initialize(model)
+    def initialize(model, depth = 0)
       merge!({id: model.id, type: model.event_type, name: model.name, status: model.status})
-      @depth = model.depth
+      @depth = depth
     end
 
     def to_s
