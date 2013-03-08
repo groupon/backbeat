@@ -7,9 +7,9 @@ module Reports
       end
 
       def run_report
-        errored_workflows = Hash.new([])
+        errored_workflows = Hash.new {|h,k| h[k] = []}
         WorkflowServer::Models::Event.where(:status.in => [:error, :timeout]).each do |event|
-          errored_workflows[event.workflow] = errored_workflows[event.workflow] << event
+          errored_workflows[event.workflow] << event
         end
         errored_workflows
       end
