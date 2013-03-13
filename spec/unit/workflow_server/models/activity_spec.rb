@@ -19,7 +19,7 @@ describe WorkflowServer::Models::Activity do
   end
 
   context "#start" do
-    it "schedules a job to perform_activity and goes into executing state" do
+    it "schedules a job to perform_activity and goes into enqueued state" do
       Delayed::Job.destroy_all
       @a1.start
       Delayed::Job.where(handler: /send_to_client/).count.should == 1
@@ -29,7 +29,7 @@ describe WorkflowServer::Models::Activity do
       handler.event_id.should == @a1.id
       handler.method_to_call.should == :send_to_client
       handler.max_attempts.should == 25
-      @a1.status.should == :executing
+      @a1.status.should == :enqueued
     end
   end
 
@@ -150,7 +150,7 @@ describe WorkflowServer::Models::Activity do
         child = @a1.children.first
         child.class.should == WorkflowServer::Models::SubActivity
         child.name.should == :import_payment
-        child.status.should == :executing
+        child.status.should == :enqueued
       end
 
       it "doesn't run the same sub_activity twice" do
@@ -174,7 +174,7 @@ describe WorkflowServer::Models::Activity do
         child = @a1.children.first
         child.class.should == WorkflowServer::Models::SubActivity
         child.name.should == :import_payment
-        child.status.should == :executing
+        child.status.should == :enqueued
       end
     end
   end

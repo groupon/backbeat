@@ -8,7 +8,7 @@ module WorkflowServer
       def start
         super
         update_status!(:scheduled)
-        WorkflowServer::Async::Job.schedule({event: self, method: :fire, max_attempts: 5}, fires_at)
+        enqueue_fire(max_attempts: 5, fires_at: fires_at)
       end
 
       def fire

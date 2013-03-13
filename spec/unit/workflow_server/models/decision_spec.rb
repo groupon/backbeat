@@ -156,7 +156,7 @@ describe WorkflowServer::Models::Decision do
           @d1.change_status(:deciding_complete, decisions: decisions)
           @d1.reload
           @d1.children.type(WorkflowServer::Models::Flag).first.status.should == :complete
-          @d1.children.type(WorkflowServer::Models::Activity).first.status.should == :executing
+          @d1.children.type(WorkflowServer::Models::Activity).first.status.should == :enqueued
           @d1.children.type([WorkflowServer::Models::Branch, WorkflowServer::Models::Workflow, WorkflowServer::Models::WorkflowCompleteFlag, WorkflowServer::Models::Timer]).each do |child|
             child.status.should == :open
           end
@@ -205,12 +205,12 @@ describe WorkflowServer::Models::Decision do
     it "keeps starting the next actions till it hits a blocking action" do
       a1 = FactoryGirl.create(:activity, parent: @d1, workflow: @wf)
       a2 = FactoryGirl.create(:branch, mode: :non_blocking, parent: @d1, workflow: @wf)
-      a3 = FactoryGirl.create(:workflow, parent: @d1, workflow: @wf, user: user)
+      a3 = FactoryGirl.create(:activity, parent: @d1, workflow: @wf)
       a4 = FactoryGirl.create(:flag, parent: @d1, workflow: @wf)
       @d1.reload
       @d1.__send__ :start_next_action
 
-      a1.reload.status.should == :executing
+      a1.reload.status.should == :enqueued
       a2.reload.status.should == :open
       a3.reload.status.should == :open
       a4.reload.status.should == :open
@@ -218,8 +218,8 @@ describe WorkflowServer::Models::Decision do
       # simulate a1 is done
       a1.completed
       a1.reload.status.should == :complete
-      a2.reload.status.should == :executing
-      a3.reload.status.should == :executing
+      a2.reload.status.should == :enqueued
+      a3.reload.status.should == :enqueued
       a4.reload.status.should == :open
     end
   end

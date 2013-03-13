@@ -29,8 +29,8 @@ module WorkflowServer
 
       def start
         super
-        WorkflowServer::Async::Job.schedule(event: self, method: :send_to_client, max_attempts: 25)
-        update_status!(:executing)
+        update_status!(:enqueued)
+        enqueue_send_to_client(max_attempts: 25)
       end
       alias_method :continue, :start
 
@@ -66,7 +66,7 @@ module WorkflowServer
       end
 
       def run_sub_activity(options = {})
-        raise WorkflowServer::InvalidEventStatus, "Cannot run subactivity while in status(#{status})" unless status == :executing
+        raise WorkflowServer::InvalidEventStatus, "Cannot run subactivity while in status(#{status})" unless [:executing, :enqueued].include?(status)
         unless options[:always]
           return if subactivity_handled?(options[:name], options[:client_data] || {})
         end
@@ -106,11 +106,11 @@ module WorkflowServer
         return if status == new_status.to_sym
         case new_status.to_sym
         when :completed
-          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)
+          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:enqueued, :executing, :timeout].include?(status)
           update_attributes!(result: args[:result], next_decision: verify_and_get_next_decision(args[:next_decision]), _client_done_with_activity: true)
           complete_if_done
         when :errored
-          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)
+          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:enqueued, :executing, :timeout].include?(status)
           errored(args[:error])
         else
           raise WorkflowServer::InvalidEventStatus, "Invalid status #{new_status}"
@@ -149,7 +149,7 @@ module WorkflowServer
       def do_retry(error)
         update_status!(:failed, error)
         if retry_interval > 0
-          WorkflowServer::Async::Job.schedule({event: self, method: :start, max_attempts: 5}, retry_interval.from_now)
+          enqueue_start(max_attempts: 5, fires_at: retry_interval.from_now)
         else
           start
         end
@@ -173,6 +173,7 @@ module WorkflowServer
 
       def send_to_client
         WorkflowServer::Client.perform_activity(self)
+        update_status!(:executing)
         Watchdog.start(self, :timeout, time_out) if time_out > 0
       end
 
