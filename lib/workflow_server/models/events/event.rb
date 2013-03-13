@@ -191,7 +191,7 @@ module WorkflowServer
       def method_missing_with_enqueue(name, *args)
         if name.to_s =~ /^(enqueue)_(.*)$/
           method_name = $2.to_sym
-          options = args.first.is_a?(Hash) ? args.first.dup : {}
+          options = args.first.is_a?(Hash) ? args.first : {}
           max_attempts = options[:max_attempts]
           method_args = options[:args]
           fires_at = options[:fires_at] || Time.now
