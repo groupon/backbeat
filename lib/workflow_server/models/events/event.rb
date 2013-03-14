@@ -144,6 +144,7 @@ module WorkflowServer
       end
 
       def notify_client(notification, error_data)
+        return if workflow.paused?
         WorkflowServer::Client.notify_of(self, notification, error_data)
       end
 
