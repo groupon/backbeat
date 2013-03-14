@@ -29,7 +29,7 @@ module WorkflowServer
 
       def start
         super
-        update_status!(:enqueued)
+        update_status!(:executing)
         enqueue_send_to_client(max_attempts: 25)
       end
       alias_method :continue, :start
@@ -66,7 +66,7 @@ module WorkflowServer
       end
 
       def run_sub_activity(options = {})
-        raise WorkflowServer::InvalidEventStatus, "Cannot run subactivity while in status(#{status})" unless [:executing, :enqueued].include?(status)
+        raise WorkflowServer::InvalidEventStatus, "Cannot run subactivity while in status(#{status})" unless status == :executing
         unless options[:always]
           return if subactivity_handled?(options[:name], options[:client_data] || {})
         end
@@ -106,11 +106,11 @@ module WorkflowServer
         return if status == new_status.to_sym
         case new_status.to_sym
         when :completed
-          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:enqueued, :executing, :timeout].include?(status)
+          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)
           update_attributes!(result: args[:result], next_decision: verify_and_get_next_decision(args[:next_decision]), _client_done_with_activity: true)
           complete_if_done
         when :errored
-          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:enqueued, :executing, :timeout].include?(status)
+          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)
           errored(args[:error])
         else
           raise WorkflowServer::InvalidEventStatus, "Invalid status #{new_status}"
@@ -138,6 +138,16 @@ module WorkflowServer
             raise WorkflowServer::InvalidDecisionSelection.new("Activity:#{name} tried to make #{next_decision_arg} the next decision but is not allowed to.")
           end
         end
+      end
+
+      def resumed
+        send_to_client
+        super
+      end
+
+      def child_resumed(child)
+        Watchdog.start(self, :timeout, time_out) if time_out > 0
+        super
       end
 
       private
@@ -172,9 +182,19 @@ module WorkflowServer
       end
 
       def send_to_client
-        WorkflowServer::Client.perform_activity(self)
-        update_status!(:executing)
-        Watchdog.start(self, :timeout, time_out) if time_out > 0
+        unless workflow.paused?
+          WorkflowServer::Client.perform_activity(self)
+          update_status!(:executing)
+          Watchdog.start(self, :timeout, time_out) if time_out > 0
+        else
+          workflow.with_lock do
+            if workflow.paused?
+              paused
+            else
+              send_to_client
+            end
+          end
+        end
       end
 
       def handle_error(error)

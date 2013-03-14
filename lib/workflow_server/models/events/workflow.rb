@@ -61,6 +61,25 @@ module WorkflowServer
         end
       end
 
+      def pause
+        raise WorkflowServer::InvalidEventStatus, "A workflow cannot be paused while in #{status} state" unless [:open, :pause].include?(status)
+        update_status!(:pause)
+      end
+
+      def paused?
+        status == :pause
+      end
+
+      def resume
+        raise WorkflowServer::InvalidEventStatus, "A workflow cannot be resumed unless it is paused" unless status == :pause
+        with_lock do
+          update_status!(:open)
+        end
+        paused_events = events.where(status: :pause)
+        debug("Total paused events #{paused_events.count}")
+        paused_events.map(&:resumed)
+      end
+
       alias_method :my_user, :user
 
       {

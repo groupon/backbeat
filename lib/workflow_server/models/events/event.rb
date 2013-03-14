@@ -79,6 +79,16 @@ module WorkflowServer
         parent.child_completed(self) if parent
       end
 
+      def paused
+        update_status!(:pause)
+        Watchdog.mass_dismiss(self)
+        parent.child_paused(self) if parent
+      end
+
+      def resumed
+        parent.child_resumed(self) if parent
+      end
+
       def errored(error)
         update_status!(:error, error)
         notify_of("error", error)
@@ -94,7 +104,19 @@ module WorkflowServer
       end
 
       def child_completed(child)
+      end
 
+      def child_paused(child)
+        unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
+          Watchdog.mass_dismiss(self)
+          parent.child_paused(child, error) if parent
+        end
+      end
+
+      def child_resumed(child)
+        unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
+          parent.child_resumed(child) if parent
+        end
       end
 
       def child_errored(child, error)

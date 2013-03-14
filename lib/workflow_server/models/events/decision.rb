@@ -8,7 +8,7 @@ module WorkflowServer
 
       def start
         super
-        update_status!(:enqueued)
+        update_status!(:sent_to_client)
         enqueue_send_to_client(max_attempts: 25)
       end
 
@@ -23,17 +23,17 @@ module WorkflowServer
         return if status == new_status.try(:to_sym)
         case new_status.to_sym
         when :deciding
-          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:deciding, :enqueued, :timeout].include?(status)
+          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:sent_to_client, :timeout].include?(status)
           deciding
         when :deciding_complete
-          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:enqueued, :deciding, :timeout].include?(status)
+          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:sent_to_client, :deciding, :timeout].include?(status)
           self.decisions_to_add = []
           (args[:decisions] || []).each do |decision|
             add_new_decision(HashWithIndifferentAccess.new(decision))
           end
           close
         when :errored
-          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:enqueued, :deciding, :timeout].include?(status)
+          raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:sent_to_client, :deciding, :timeout].include?(status)
           errored(args[:error])
         else
           raise WorkflowServer::InvalidEventStatus, "Invalid status #{new_status}"
@@ -71,6 +71,11 @@ module WorkflowServer
         hash = super
         hash.merge!({ history_decisions: past_decisions.where(:inactive.ne => true).map {|decision| {name: decision.name, status: decision.status} }, decider: workflow.decider, subject: workflow.subject})
         Marshal.load(Marshal.dump(hash))
+      end
+
+      def resumed
+        send_to_client
+        super
       end
 
       private
@@ -187,9 +192,19 @@ module WorkflowServer
       end
 
       def send_to_client
-        WorkflowServer::Client.make_decision(self)
-        update_status!(:executing)
-        Watchdog.start(self, :decision_deciding_time_out)
+        unless workflow.paused?
+          WorkflowServer::Client.make_decision(self)
+          update_status!(:sent_to_client)
+          Watchdog.start(self, :decision_deciding_time_out)
+        else
+          workflow.with_lock do
+            if workflow.paused?
+              paused
+            else
+              send_to_client
+            end
+          end
+        end
       end
 
     end
