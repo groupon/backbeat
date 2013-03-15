@@ -25,5 +25,14 @@ describe WorkflowServer::Async::Job do
       @dec.should_receive(:some_method).with(1, 2, 3, 4)
       @job.invoke_job
     end
+    context '#error' do
+      it 'records exceptions and raises the error' do
+        @dec.should_receive(:some_method).and_raise('some error')
+        @job.payload_object.should_receive(:error).with(id: 10, name: :make_payment, message: "some_method_errored", error: anything)
+        expect {
+          @job.invoke_job
+        }.to raise_error
+      end
+    end
   end
 end
