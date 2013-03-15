@@ -10,12 +10,29 @@ describe WorkflowServer::Async::Job do
     end
   end
   context "#perform" do
+    before do
+      @job = WorkflowServer::Async::Job.schedule({event: decision, method: :some_method, args: [1,2,3,4], max_attempts: 100}, Time.now + 2.days)
+      @dec = mock('decision', some_method: nil, id: 10, name: :make_payment)
+      WorkflowServer::Models::Event.stub(find: @dec)
+    end
+    it "logs start and succeeded messages" do
+      @job.payload_object.should_receive(:info).with(id: 10, name: :make_payment, message: "some_method_started")
+      @job.payload_object.should_receive(:info).with(id: 10, name: :make_payment, message: "some_method_succeeded")
+      @job.invoke_job
+    end
     it "calls the method on the given event" do
-      job = WorkflowServer::Async::Job.schedule({event: decision, method: :some_method, args: [1,2,3,4], max_attempts: 100}, Time.now + 2.days)
-      dec = mock('decision', some_method: nil)
-      WorkflowServer::Models::Event.should_receive(:find).with(decision.id).and_return(dec)
-      dec.should_receive(:some_method).with(1, 2, 3, 4)
-      job.invoke_job
+      WorkflowServer::Models::Event.should_receive(:find).with(decision.id)
+      @dec.should_receive(:some_method).with(1, 2, 3, 4)
+      @job.invoke_job
+    end
+    context '#error' do
+      it 'records exceptions and raises the error' do
+        @dec.should_receive(:some_method).and_raise('some error')
+        @job.payload_object.should_receive(:error).with(id: 10, name: :make_payment, message: "some_method_errored", error: anything)
+        expect {
+          @job.invoke_job
+        }.to raise_error
+      end
     end
   end
 end

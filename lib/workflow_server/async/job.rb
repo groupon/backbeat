@@ -1,9 +1,18 @@
+require 'workflow_server/logger'
+
 module WorkflowServer
   module Async
     JobStruct ||= Struct.new(:event_id, :method_to_call, :args, :max_attempts)
     class Job < JobStruct
+      include WorkflowServer::Logger
+
       def perform
+        info(id: event.id, name: event.name, message: "#{method_to_call}_started")
         event.__send__(method_to_call, *args)
+        info(id: event.id, name: event.name, message: "#{method_to_call}_succeeded")
+      rescue Exception => error
+        error(id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error)
+        raise
       end
 
       def self.schedule(options = {}, run_at = Time.now)
