@@ -187,10 +187,8 @@ module WorkflowServer
       end
 
       def send_to_client
-        info(id: self.id, name: self.name, messsage: :send_to_client_started)
         WorkflowServer::Client.make_decision(self)
         Watchdog.start(self, :decision_deciding_time_out)
-        info(id: self.id, name: self.name, messsage: :send_to_client_success)
       end
 
     end

@@ -172,10 +172,8 @@ module WorkflowServer
       end
 
       def send_to_client
-        info(id: self.id, name: self.name, messsage: :send_to_client_started)
         WorkflowServer::Client.perform_activity(self)
         Watchdog.start(self, :timeout, time_out) if time_out > 0
-        info(id: self.id, name: self.name, messsage: :send_to_client_success)
       end
 
       def handle_error(error)
