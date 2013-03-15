@@ -48,7 +48,7 @@ module WorkflowServer
     LOG_FORMAT = "%s | %s | %s | %s | %s | %s\n"
     def format(event)
       sprintf(LOG_FORMAT,
-              Time.now,
+              Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L"),
               Process.pid,
               WorkflowServer::Logger.tid || "none",
               Log4r::LNAMES[event.level],
