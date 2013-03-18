@@ -102,7 +102,7 @@ module WorkflowServer
         unless decisions.empty?
           update_status!(:executing)
         end
-        work_on_decisions
+        enqueue_work_on_decisions
       end
 
       def work_on_decisions

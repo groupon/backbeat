@@ -159,6 +159,7 @@ describe WorkflowServer::Models::Decision do
         it "puts the decision in completed state when no decisions" do
           @d1.update_status!(base_state)
           @d1.change_status(:deciding_complete)
+          @d1.async_jobs.map(&:payload_object).map(&:perform)
           @d1.reload
           @d1.status.should == :complete
         end
@@ -174,6 +175,7 @@ describe WorkflowServer::Models::Decision do
             {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds}
           ]
           @d1.change_status(:deciding_complete, decisions: decisions)
+          @d1.async_jobs.map(&:payload_object).map(&:perform)
           @d1.reload
           @d1.children.type(WorkflowServer::Models::Flag).first.status.should == :complete
           @d1.children.type(WorkflowServer::Models::Activity).first.status.should == :executing
