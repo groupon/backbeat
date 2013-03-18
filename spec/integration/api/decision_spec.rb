@@ -110,6 +110,9 @@ describe Api::Workflow do
       last_response.status.should == 200
       decision.reload
       decision.children.count.should == 1
+      Delayed::Job.where(handler: /work_on_decisions/).count.should == 1
+      payload = Delayed::Job.where(handler: /work_on_decisions/).first.payload_object
+      payload.perform
       timer = decision.children.first
       timer.async_jobs.count.should == 2
       flag = FactoryGirl.create(:continue_as_new_workflow_flag, workflow: wf)
