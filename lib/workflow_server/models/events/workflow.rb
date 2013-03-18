@@ -79,10 +79,13 @@ module WorkflowServer
         with_lock do
           update_status!(:open)
         end
-        paused_events = events.where(status: :pause)
         debug("Total paused events #{paused_events.count}")
         paused_events.map(&:resumed)
         super
+      end
+
+      def paused_events
+        events.where(status: :pause)
       end
 
       alias_method :my_user, :user

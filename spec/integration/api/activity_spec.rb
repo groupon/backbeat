@@ -154,12 +154,10 @@ describe Api::Workflow do
       put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 200
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
-      activity.reload.children.last.update_status!(:executing)
 
       put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
       last_response.status.should == 200
 
-      activity.reload.update_status!(:executing)
       put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 200
       last_response.headers.should_not include("WAIT_FOR_SUB_ACTIVITY")
@@ -170,12 +168,10 @@ describe Api::Workflow do
       last_response.status.should == 200
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
       sa = JSON.parse(last_response.body)
-      activity.reload.children.last.update_status!(:executing)
 
       put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
       last_response.status.should == 200
 
-      activity.reload.update_status!(:executing)
       # change the arguments this time
       sub_activity[:client_data][:arguments] = [1,2,3,4]
       put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
