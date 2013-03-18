@@ -1,0 +1,5 @@
+language: ruby
+ruby_version:
+  - "ruby-1.9.3-p194"
+script:
+  - rspec: $HOME/ci-build/jenkins/bin/Backbeat.sh
