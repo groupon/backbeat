@@ -109,7 +109,7 @@ module WorkflowServer
       def child_paused(child)
         unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
           Watchdog.mass_dismiss(self)
-          parent.child_paused(child, error) if parent
+          parent.child_paused(child) if parent
         end
       end
 

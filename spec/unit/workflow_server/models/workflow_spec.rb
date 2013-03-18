@@ -78,4 +78,54 @@ describe WorkflowServer::Models::Workflow do
       signal.name.should == :some_signal
     end
   end
+
+  context '#pause' do
+    [:complete, :anything_else].each do |new_status|
+      it "raises error when paused in #{new_status} state" do
+        @wf.update_status!(new_status)
+        expect {
+          @wf.pause
+        }.to raise_error(WorkflowServer::InvalidEventStatus, "A workflow cannot be paused while in #{new_status} state")
+      end
+    end
+    [:open, :pause].each do |new_status|
+      it 'updates status to paused' do
+        @wf.update_status!(new_status)
+        @wf.pause
+        @wf.status.should == :pause
+      end
+    end
+  end
+
+  context '#resume' do
+    it 'raises error if status is not paused' do
+      @wf.update_status!(:open)
+      expect {
+        @wf.resume
+      }.to raise_error(WorkflowServer::InvalidEventStatus, "A workflow cannot be resumed unless it is paused")
+    end
+    it 'calls resumed' do
+      @wf.update_status!(:pause)
+      @wf.should_receive(:resumed)
+      @wf.resume
+    end
+  end
+
+  context '#resumed' do
+    before do
+      @wf.update_status!(:pause)
+      @wf.stub(:with_lock).and_yield
+    end
+    it 'updates status to open' do
+      @wf.resumed
+      @wf.status.should == :open
+    end
+    it 'calls resumed on the paused events' do
+      @wf.should_receive(:update_status!).with(:open)
+      events = [mock('1', resumed: nil), mock('2', resumed: nil)]
+      @wf.stub_chain(:events, :where => events)
+      events.each { |e| e.should_receive(:resumed) }
+      @wf.resumed
+    end
+  end
 end

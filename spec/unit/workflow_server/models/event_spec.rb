@@ -6,6 +6,60 @@ describe WorkflowServer::Models::Event do
   let(:event) { FactoryGirl.create(:event, workflow: workflow) }
   let(:parent) { FactoryGirl.create(:decision, workflow: workflow) }
 
+
+  context '#paused' do
+    it 'updates status, dismisses watchdogs and notifies parent' do
+      event.update_attributes!(parent: parent)
+      WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(event)
+      event.parent.should_receive(:child_paused).with(event)
+      event.paused
+      event.status.should == :pause
+    end
+  end
+
+  context 'notifies parent of resumed' do
+    it 'notifies parent' do
+      event.update_attributes!(parent: parent)
+      event.parent.should_receive(:child_resumed).with(event)
+      event.resumed
+    end
+  end
+
+  context '#child_paused' do
+    before do
+      @parent = FactoryGirl.create(:event, workflow: workflow, parent: parent)
+      event.update_attributes!(parent: @parent)
+    end
+    context 'child is not fire and forget' do
+      it 'dismisses watchdogs and notifies parent' do
+        WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(@parent)
+        parent.should_receive(:child_paused).with(event)
+        @parent.child_paused(event)
+      end
+    end
+    context 'child is fire and forget' do
+      it 'is a no op' do
+        event.stub(fire_and_forget?: true)
+        WorkflowServer::Models::Watchdog.should_not_receive(:mass_dismiss)
+        parent.should_not_receive(:child_paused)
+        @parent.child_paused(event)
+      end
+    end
+  end
+
+  context '#child_resumed' do
+    before do
+      @parent = FactoryGirl.create(:event, workflow: workflow, parent: parent)
+      event.update_attributes!(parent: @parent)
+    end
+    context 'child is not fire and forget' do
+      it 'notifies parent' do
+        parent.should_receive(:child_resumed).with(event)
+        @parent.child_resumed(event)
+      end
+    end
+  end
+
   context '#add_decision' do
     it 'creates a decision' do
       event.add_decision(:test)

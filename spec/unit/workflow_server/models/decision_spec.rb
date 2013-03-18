@@ -71,10 +71,30 @@ describe WorkflowServer::Models::Decision do
     end
   end
 
+  context '#resumed' do
+    it 'calls send_to_client' do
+      @d1.should_receive(:send_to_client)
+      @d1.resumed
+    end
+  end
+
   context "#send_to_client" do
-    it "calls out to workflow async client to make decision" do
-      WorkflowServer::Client.should_receive(:make_decision).with(@d1)
-      @d1.send(:send_to_client)
+    context 'workflow is paused' do
+      before do
+        @wf.update_status!(:pause)
+      end
+      it 'puts itself in paused state and doesn\'t go to client' do
+        WorkflowServer::Client.should_not_receive(:make_decision)
+        @d1.send(:send_to_client)
+        @d1.status.should == :pause
+      end
+    end
+    context 'workflow is not paused' do
+      it "calls out to workflow async client to perform activity" do
+        WorkflowServer::Client.should_receive(:make_decision).with(@d1)
+        @d1.send(:send_to_client)
+        @d1.status.should == :sent_to_client
+      end
     end
   end
 

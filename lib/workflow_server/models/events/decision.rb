@@ -192,19 +192,17 @@ module WorkflowServer
       end
 
       def send_to_client
-        unless workflow.paused?
-          WorkflowServer::Client.make_decision(self)
-          update_status!(:sent_to_client)
-          Watchdog.start(self, :decision_deciding_time_out)
-        else
+        if workflow.paused?
           workflow.with_lock do
             if workflow.paused?
               paused
-            else
-              send_to_client
+              return
             end
           end
         end
+        WorkflowServer::Client.make_decision(self)
+        update_status!(:sent_to_client)
+        Watchdog.start(self, :decision_deciding_time_out)
       end
 
     end

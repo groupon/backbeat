@@ -262,11 +262,10 @@ describe Api::Workflow do
       before do
         WorkflowServer::Client.stub(:notify_of)
         @a1 = FactoryGirl.create(:activity, workflow: @wf)
-      end
-      it 'pauses the workflow' do
         @d1.async_jobs.map(&:payload_object).map(&:perform) # this runs the schedule_next_event job
         @a1.start
-
+      end
+      it 'pauses the workflow' do
         @wf.events.where(status: :pause).count.should == 0
         put "/workflows/#{@wf.id}/pause"
         last_response.status.should == 200
@@ -308,8 +307,6 @@ describe Api::Workflow do
         @wf.reload
         @wf.status.should == :open
         @wf.events.where(status: :pause).count.should == 0
-        @a1.async_jobs.map(&:payload_object).map(&:perform) # this runs send_to_client on the activity
-        @d1.async_jobs.map(&:payload_object).map(&:perform) # this runs send_to_client on the decision
       end
     end
   end

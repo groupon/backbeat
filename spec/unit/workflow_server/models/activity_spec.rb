@@ -67,10 +67,54 @@ describe WorkflowServer::Models::Activity do
     end
   end
 
+  context '#resumed' do
+    it 'calls send_to_client' do
+      @a1.should_receive(:send_to_client)
+      @a1.resumed
+    end
+  end
+
+  context '#child_resumed' do
+    context 'child is fire_and_forget' do
+      it 'no-op' do
+        @a1.update_attributes!(time_out: 10)
+        a2 = FactoryGirl.create(:activity, mode: :fire_and_forget, parent: @a1, workflow: @wf)
+        WorkflowServer::Models::Watchdog.should_not_receive(:start)
+        @a1.child_resumed(a2)
+      end
+    end
+    context 'child is not fire_and_forget' do
+      it 'no-op' do
+        @a1.update_attributes!(time_out: 10)
+        a2 = FactoryGirl.create(:activity, mode: :non_blocking, parent: @a1, workflow: @wf)
+        WorkflowServer::Models::Watchdog.should_receive(:start).with(@a1, :timeout, 10)
+        @a1.child_resumed(a2)
+      end
+    end
+  end
+
   context "#send_to_client" do
-    it "calls out to workflow async client to perform activity" do
-      WorkflowServer::Client.should_receive(:perform_activity).with(@a1)
-      @a1.send(:send_to_client)
+    before do
+      @a1.update_attributes!(time_out: 10)
+    end
+    context 'workflow is paused' do
+      before do
+        @wf.update_status!(:pause)
+      end
+      it 'puts itself in paused state and doesn\'t go to client' do
+        WorkflowServer::Client.should_not_receive(:perform_activity)
+        WorkflowServer::Models::Watchdog.should_not_receive(:start)
+        @a1.send(:send_to_client)
+        @a1.status.should == :pause
+      end
+    end
+    context 'workflow is not paused' do
+      it "calls out to workflow async client to perform activity" do
+        WorkflowServer::Client.should_receive(:perform_activity).with(@a1)
+        WorkflowServer::Models::Watchdog.should_receive(:start).with(@a1, :timeout, 10)
+        @a1.send(:send_to_client)
+        @a1.status.should == :executing
+      end
     end
   end
 
