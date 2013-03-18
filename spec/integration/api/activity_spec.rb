@@ -140,7 +140,7 @@ describe Api::Workflow do
       activity.reload
       activity.children.count.should == 1
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "clientData" => {"arguments"=>[1, 2, 3]}, "createdAt"=>Time.now.to_datetime.to_s, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"enqueued", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
+      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "clientData" => {"arguments"=>[1, 2, 3]}, "createdAt"=>Time.now.to_datetime.to_s, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
 
@@ -194,7 +194,7 @@ describe Api::Workflow do
       activity.reload
       activity.children.count.should == 1
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "clientData" => {"arguments"=>[1, 2, 3]}, "createdAt"=>Time.now.to_datetime.to_s, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"enqueued", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
+      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "clientData" => {"arguments"=>[1, 2, 3]}, "createdAt"=>Time.now.to_datetime.to_s, "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>Time.now.to_datetime.to_s, "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
       sub = activity.children.first
       sub.actor_id.should == 100
       sub.actor_klass.should == "LineItem"
@@ -244,7 +244,7 @@ describe Api::Workflow do
       last_response.status.should == 200
       activity.reload
       activity.status_history.first['to'].should == :restarting
-      activity.status_history.last['to'].should == :enqueued
+      activity.status_history.last['to'].should == :executing
     end
   end
 end

@@ -24,7 +24,7 @@ describe WorkflowServer::Models::Decision do
     it "schedules a job to call out to the client and changes status to enqueued" do
       Delayed::Job.destroy_all # remove any jobs created while creating the decisino
       @d1.start
-      @d1.status.should == :enqueued
+      @d1.status.should == :sent_to_client
       Delayed::Job.where(handler: /send_to_client/).count.should == 1
       Delayed::Job.where(handler: /notify_client/).count.should == 1
       job = Delayed::Job.where(handler: /send_to_client/).first
@@ -121,7 +121,7 @@ describe WorkflowServer::Models::Decision do
         }.to raise_error(WorkflowServer::InvalidEventStatus, "Decision WF_Decision-1 can't transition from open to deciding")
       end
       it "puts the decision in deciding state" do
-        @d1.update_status!(:enqueued)
+        @d1.update_status!(:sent_to_client)
         @d1.reload
         @d1.change_status(:deciding)
         @d1.status.should == :deciding
@@ -135,7 +135,7 @@ describe WorkflowServer::Models::Decision do
         }.to raise_error(WorkflowServer::InvalidEventStatus, "Decision WF_Decision-1 can't transition from open to deciding_complete")
       end
 
-      [:enqueued, :deciding].each do |base_state|
+      [:sent_to_client, :deciding].each do |base_state|
         it "puts the decision in completed state when no decisions" do
           @d1.update_status!(base_state)
           @d1.change_status(:deciding_complete)
@@ -156,7 +156,7 @@ describe WorkflowServer::Models::Decision do
           @d1.change_status(:deciding_complete, decisions: decisions)
           @d1.reload
           @d1.children.type(WorkflowServer::Models::Flag).first.status.should == :complete
-          @d1.children.type(WorkflowServer::Models::Activity).first.status.should == :enqueued
+          @d1.children.type(WorkflowServer::Models::Activity).first.status.should == :executing
           @d1.children.type([WorkflowServer::Models::Branch, WorkflowServer::Models::Workflow, WorkflowServer::Models::WorkflowCompleteFlag, WorkflowServer::Models::Timer]).each do |child|
             child.status.should == :open
           end
@@ -171,7 +171,7 @@ describe WorkflowServer::Models::Decision do
           @d1.change_status(:errored)
         }.to raise_error(WorkflowServer::InvalidEventStatus, "Decision WF_Decision-1 can't transition from open to errored")
       end
-      [:enqueued, :deciding].each do |base_state|
+      [:sent_to_client, :deciding].each do |base_state|
         it "puts the decision in error state and records the error - #{base_state}" do
           @d1.update_status!(base_state)
           @d1.change_status(:errored, error: {something: :bad_happened})
@@ -210,7 +210,7 @@ describe WorkflowServer::Models::Decision do
       @d1.reload
       @d1.__send__ :start_next_action
 
-      a1.reload.status.should == :enqueued
+      a1.reload.status.should == :executing
       a2.reload.status.should == :open
       a3.reload.status.should == :open
       a4.reload.status.should == :open
@@ -218,8 +218,8 @@ describe WorkflowServer::Models::Decision do
       # simulate a1 is done
       a1.completed
       a1.reload.status.should == :complete
-      a2.reload.status.should == :enqueued
-      a3.reload.status.should == :enqueued
+      a2.reload.status.should == :executing
+      a3.reload.status.should == :executing
       a4.reload.status.should == :open
     end
   end

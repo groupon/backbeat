@@ -29,7 +29,7 @@ describe WorkflowServer::Models::Activity do
       handler.event_id.should == @a1.id
       handler.method_to_call.should == :send_to_client
       handler.max_attempts.should == 25
-      @a1.status.should == :enqueued
+      @a1.status.should == :executing
     end
   end
 
@@ -150,7 +150,7 @@ describe WorkflowServer::Models::Activity do
         child = @a1.children.first
         child.class.should == WorkflowServer::Models::SubActivity
         child.name.should == :import_payment
-        child.status.should == :enqueued
+        child.status.should == :executing
       end
 
       it "doesn't run the same sub_activity twice" do
@@ -174,7 +174,7 @@ describe WorkflowServer::Models::Activity do
         child = @a1.children.first
         child.class.should == WorkflowServer::Models::SubActivity
         child.name.should == :import_payment
-        child.status.should == :enqueued
+        child.status.should == :executing
       end
     end
   end

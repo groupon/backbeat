@@ -29,14 +29,14 @@ describe WorkflowServer::Models::Event do
       event.children.count.should == 1
       decision = event.children.first
       decision.name.should == :test
-      decision.status.should == :enqueued
+      decision.status.should == :sent_to_client
     end
 
     it "starts the interrupt if the server doesn't schedule it" do
       decision = FactoryGirl.create(:decision, workflow: workflow, status: :enqueued)
       event.add_interrupt(:test)
       interrupt = event.children.first
-      interrupt.reload.status.should == :enqueued
+      interrupt.reload.status.should == :sent_to_client
     end
   end
 

@@ -146,7 +146,9 @@ module WorkflowServer
       end
 
       def child_resumed(child)
-        Watchdog.start(self, :timeout, time_out) if time_out > 0
+        unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
+          Watchdog.start(self, :timeout, time_out) if time_out > 0
+        end
         super
       end
 
