@@ -3,12 +3,14 @@ module Reports
     class << self
 
       def perform
-        mail_report(generate_body(run_report))
+        errored_workflows = run_report
+        mail_report(generate_body(errored_workflows)) unless errored_workflows.empty?
       end
 
       def run_report
         errored_workflows = Hash.new {|h,k| h[k] = []}
         WorkflowServer::Models::Event.where(:status.in => [:error, :timeout]).each do |event|
+          next if event.workflow.paused?
           errored_workflows[event.workflow] << event
         end
         errored_workflows
