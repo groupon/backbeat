@@ -79,6 +79,16 @@ module WorkflowServer
         parent.child_completed(self) if parent
       end
 
+      def paused
+        update_status!(:pause)
+        Watchdog.mass_dismiss(self)
+        parent.child_paused(self) if parent
+      end
+
+      def resumed
+        parent.child_resumed(self) if parent
+      end
+
       def errored(error)
         update_status!(:error, error)
         notify_of("error", error)
@@ -94,7 +104,19 @@ module WorkflowServer
       end
 
       def child_completed(child)
+      end
 
+      def child_paused(child)
+        unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
+          Watchdog.mass_dismiss(self)
+          parent.child_paused(child) if parent
+        end
+      end
+
+      def child_resumed(child)
+        unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
+          parent.child_resumed(child) if parent
+        end
       end
 
       def child_errored(child, error)
@@ -118,7 +140,7 @@ module WorkflowServer
       def notify_of(notification, error = nil)
         error_data = error_hash(error)
         info(id: self.id, name: self.name, type: self.event_type, notification: notification, error: error_data)
-        WorkflowServer::Async::Job.schedule(event: self, method: :notify_client, args: [notification, error_data], max_attempts: 2)
+        enqueue_notify_client(args: [notification, error_data], max_attempts: 2)
       end
 
       def notify_client(notification, error_data)
@@ -191,7 +213,11 @@ module WorkflowServer
       def method_missing_with_enqueue(name, *args)
         if name.to_s =~ /^(enqueue)_(.*)$/
           method_name = $2.to_sym
-          WorkflowServer::Async::Job.schedule(event: self, method: method_name, args: args)
+          options = args.first.is_a?(Hash) ? args.first : {}
+          max_attempts = options[:max_attempts]
+          method_args = options[:args]
+          fires_at = options[:fires_at] || Time.now
+          WorkflowServer::Async::Job.schedule({event: self, method: method_name, args: method_args, max_attempts: max_attempts}, fires_at)
         else
           method_missing_without_enqueue(name, *args)
         end

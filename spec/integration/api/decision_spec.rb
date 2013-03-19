@@ -27,7 +27,7 @@ describe Api::Workflow do
         json_response['error'].should == "Decision #{decision.name} can't transition from open to deciding"
       end
 
-      [:enqueued, :timeout, :deciding].each do |new_status|
+      [:sent_to_client, :timeout, :deciding].each do |new_status|
         it "goes to deciding state from #{new_status} state" do
           decision = FactoryGirl.create(:decision, status: new_status)
           wf = decision.workflow
@@ -56,7 +56,7 @@ describe Api::Workflow do
     end
 
     it "returns 400 if some of the decisions are incorrectly formed" do
-      decision = FactoryGirl.create(:decision, status: :enqueued)
+      decision = FactoryGirl.create(:decision, status: :sent_to_client)
       wf = decision.workflow
       user = wf.user
       decisions = [
@@ -78,7 +78,7 @@ describe Api::Workflow do
     end
 
     it "puts a decision in deciding_complete state and registers the decision" do
-      decision = FactoryGirl.create(:decision, status: :enqueued)
+      decision = FactoryGirl.create(:decision, status: :sent_to_client)
       wf = decision.workflow
       user = wf.user
       args = [
@@ -99,7 +99,7 @@ describe Api::Workflow do
     end
 
     it 'continue_as_new_workflow decision marks the old events as inactive and resets the past of the workflow' do
-      decision = FactoryGirl.create(:decision, status: :enqueued)
+      decision = FactoryGirl.create(:decision, status: :sent_to_client)
       wf = decision.workflow
       user = wf.user
       args = [
@@ -110,6 +110,9 @@ describe Api::Workflow do
       last_response.status.should == 200
       decision.reload
       decision.children.count.should == 1
+      Delayed::Job.where(handler: /work_on_decisions/).count.should == 1
+      payload = Delayed::Job.where(handler: /work_on_decisions/).first.payload_object
+      payload.perform
       timer = decision.children.first
       timer.async_jobs.count.should == 2
       flag = FactoryGirl.create(:continue_as_new_workflow_flag, workflow: wf)
@@ -131,7 +134,7 @@ describe Api::Workflow do
         json_response['error'].should == "Decision #{decision.name} can't transition from open to errored"
       end
       it "returns 200 and records the error message" do
-        decision = FactoryGirl.create(:decision, status: :enqueued)
+        decision = FactoryGirl.create(:decision, status: :sent_to_client)
         wf = decision.workflow
         user = wf.user
         header "Content-Type", "application/json"
@@ -175,7 +178,7 @@ describe Api::Workflow do
       last_response.status.should == 200
       decision.reload
       decision.status_history.first['to'].should == :restarting
-      decision.status_history.last['to'].should == :enqueued
+      decision.status_history.last['to'].should == :sent_to_client
     end
   end
 end

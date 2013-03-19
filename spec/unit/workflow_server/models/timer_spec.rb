@@ -34,6 +34,7 @@ describe WorkflowServer::Models::Timer do
       async_job = job.payload_object
       async_job.event.should eq timer
       async_job.method_to_call.should eq :fire
+      async_job.max_attempts.should == 5
     end
   end
 

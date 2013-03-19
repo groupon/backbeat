@@ -133,6 +133,18 @@ module Api
         signal = wf.signal(params[:name])
         signal
       end
+
+      put "/:id/pause" do
+        wf = find_workflow(params[:id])
+        wf.pause
+        {success: true}
+      end
+
+      put "/:id/resume" do
+        wf = find_workflow(params[:id])
+        wf.resume
+        {success: true}
+      end
     end
 
     # Events can be reached using two url's

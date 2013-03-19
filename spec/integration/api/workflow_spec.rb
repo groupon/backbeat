@@ -248,4 +248,66 @@ describe Api::Workflow do
     end
   end
 
+  context "PUT /workflows/:id/pause" do
+    context 'errors' do
+      it 'returns 400 when trying to pause a closed workflow' do
+        @wf.update_status!(:complete)
+        put "/workflows/#{@wf.id}/pause"
+        last_response.status.should == 400
+        json_response = JSON.parse(last_response.body)
+        json_response.should == {"error" => "A workflow cannot be paused while in complete state"}
+      end
+    end
+    context 'pause' do
+      before do
+        WorkflowServer::Client.stub(:notify_of)
+        @a1 = FactoryGirl.create(:activity, workflow: @wf)
+        @d1.async_jobs.map(&:payload_object).map(&:perform) # this runs the schedule_next_event job
+        @a1.start
+      end
+      it 'pauses the workflow' do
+        @wf.events.where(status: :pause).count.should == 0
+        put "/workflows/#{@wf.id}/pause"
+        last_response.status.should == 200
+        @wf.reload
+        @wf.paused?.should == true
+        @a1.async_jobs.map(&:payload_object).map(&:perform) # this runs send_to_client on the activity
+        @d1.async_jobs.map(&:payload_object).map(&:perform) # this runs send_to_client on the decision
+        @wf.events.where(status: :pause).count.should == 2
+        @wf.events.where(status: :pause).map(&:id).should include(@d1.id)
+        @wf.events.where(status: :pause).map(&:id).should include(@a1.id)
+        @wf.status.should == :pause
+      end
+    end
+  end
+
+  context "PUT /workflows/:id/resume" do
+    context 'errors' do
+      it 'returns 400 when trying to resume an unpaused workflow' do
+        put "/workflows/#{@wf.id}/resume"
+        last_response.status.should == 400
+        json_response = JSON.parse(last_response.body)
+        json_response.should == {"error" => "A workflow cannot be resumed unless it is paused"}
+      end
+    end
+    context 'resume' do
+      before do
+        WorkflowServer::Client.stub(:notify_of)
+        @a1 = FactoryGirl.create(:activity, workflow: @wf, status: :pause)
+        @d1.update_status!(:pause)
+        @wf.update_status!(:pause)
+      end
+      it 'resumes the workflow and the paused events' do
+        @wf.events.where(status: :pause).count.should == 2
+        WorkflowServer::Client.should_receive(:make_decision).with(@d1)
+        WorkflowServer::Client.should_receive(:perform_activity).with(@a1)
+
+        put "/workflows/#{@wf.id}/resume"
+        last_response.status.should == 200
+        @wf.reload
+        @wf.status.should == :open
+        @wf.events.where(status: :pause).count.should == 0
+      end
+    end
+  end
 end

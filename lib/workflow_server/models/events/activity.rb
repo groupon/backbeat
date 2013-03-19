@@ -29,7 +29,7 @@ module WorkflowServer
 
       def start
         super
-        WorkflowServer::Async::Job.schedule(event: self, method: :send_to_client, max_attempts: 25)
+        enqueue_send_to_client(max_attempts: 25)
         update_status!(:executing)
       end
       alias_method :continue, :start
@@ -140,6 +140,18 @@ module WorkflowServer
         end
       end
 
+      def resumed
+        send_to_client
+        super
+      end
+
+      def child_resumed(child)
+        unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
+          Watchdog.start(self, :timeout, time_out) if time_out > 0
+        end
+        super
+      end
+
       private
 
       def retry?
@@ -149,7 +161,7 @@ module WorkflowServer
       def do_retry(error)
         update_status!(:failed, error)
         if retry_interval > 0
-          WorkflowServer::Async::Job.schedule({event: self, method: :start, max_attempts: 5}, retry_interval.from_now)
+          enqueue_start(max_attempts: 5, fires_at: retry_interval.from_now)
         else
           start
         end
@@ -172,7 +184,16 @@ module WorkflowServer
       end
 
       def send_to_client
+        if workflow.paused?
+          workflow.with_lock do
+            if workflow.paused?
+              paused
+              return
+            end
+          end
+        end
         WorkflowServer::Client.perform_activity(self)
+        update_status!(:executing)
         Watchdog.start(self, :timeout, time_out) if time_out > 0
       end
 
