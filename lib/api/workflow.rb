@@ -208,7 +208,7 @@ module Api
       desc 'returns workflows that have something in error/timeout state'
       get '/error_workflows' do
         ids = current_user.workflows.pluck(:_id)
-        WorkflowServer::Models::Event.where(:status.in => [:error, :timeout], :workflow_id.in => ids).map(&:workflow).uniq
+        WorkflowServer::Models::Event.where(:status.in => [:error, :timeout], :workflow_id.in => ids).map(&:workflow).uniq.reject {|workflow| workflow.paused?}
       end
 
       desc 'returns workflows that have > 0 open decisions and 0 executing decisions'

@@ -65,6 +65,21 @@ describe Api::Workflow do
       ids.should include(wf1.id)
       ids.should include(wf2.id)
     end
+    it "filters paused workflows with activities / decisions in error state" do
+      wf1 = create_error_workflow(user, workflow)
+      wf2 = create_error_workflow(user).pause
+      wf3 = create_error_workflow(user)
+      wf3.decisions.first.update_status!(:enqueued)
+      wf4 = create_error_workflow(FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s))
+
+      get "/debug/error_workflows"
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response.should be_instance_of(Array)
+      json_response.count.should == 1
+      ids = json_response.map { |r| r['id'] }
+      ids.should include(wf1.id)
+    end
   end
 
   context '/debug/stuck_workflows' do
