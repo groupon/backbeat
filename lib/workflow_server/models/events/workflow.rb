@@ -2,7 +2,7 @@ module WorkflowServer
   module Models
     class Workflow < Event
 
-      field :workflow_type, type: Symbol
+      field :workflow_type, type: Symbol, label: "this is the workflow type"
       field :subject, type: Hash
       field :decider, type: String
       field :mode, type: Symbol, default: :blocking

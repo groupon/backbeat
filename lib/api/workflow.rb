@@ -3,6 +3,9 @@ require 'grape'
 module Api
   class Workflow < Grape::API
     include WorkflowServer::Logger
+    extend ServiceDiscovery::Description::Dsl
+    ServiceDiscovery::ActionDescriptions::ActionDescriptor.disable! if WorkflowServer::Config.environment == :production
+
     # formatter :camel_json, Api::CamelJsonFormatter
     # content_type :camel_json, 'application/json'
     # format :camel_json
@@ -69,7 +72,50 @@ module Api
       end
     end
 
+    def self.namespace_desc(description)
+      @namespace_description = { namespace_description: description }
+    end
+
+    SERVICE_DISCOVERY_RESPONSE_CREATOR = Proc.new { |model, response_object, specific_fields = nil|
+      raise "model doesn't respond to field_hash" unless model.respond_to?(:field_hash)
+      field_hash = model.field_hash
+
+      field_hash.each_pair do |field, data|
+        next if specific_fields.is_a?(Array) && !specific_fields.include?(field.to_sym)
+        options = {}
+        options[:description] = data[:label] if data[:label]
+        case data[:type].to_s
+        when "Integer"
+          response_object.integer field, options
+        when "Float", "BigDecimal"
+          response_object.number field, options
+        when "Array"
+          response_object.array(field, options) {}
+        when "Hash"
+          response_object.object(field, options) {}
+        when "Symbol", "Time", "Object"
+          response_object.string field, options
+        else
+          response_object.string field, options
+        end
+      end
+    }
+
     resource 'workflows' do
+      desc "Creates a new workflow. If the workflow with the given parameter already exists, returns the existing workflow.", {
+        action_descriptor: action_description(:create) do |create|
+          create.parameters do |parameters|
+            parameters.string :workflow_type, :description => "The type of workflow e.g. approval_workflow, payment_workflow", :required => true, :location => 'body'
+            parameters.object :subject, :description => "Subject is the entity on which this workflow is defined. It can be a model, date or a combination of things that uniquely define the workflow entity", :required => true, :location => 'body' do
+            end
+            parameters.string :decider, :description => "The entity on the client side that will handle decision tasks for this workflow", :required => true, :location => 'body'
+            parameters.string :name, :description => "Name of the workflow", :required => true, :location => 'body'
+          end
+          create.response do |workflow|
+            SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+          end
+        end
+      }
       post "/" do
         params[:user] = current_user
         wf = WorkflowServer.find_or_create_workflow(params)
@@ -81,6 +127,13 @@ module Api
         end
       end
 
+      desc "Use this endpoint to backfill existing workflows to backbeat. Schedule timers for things that are supposed to go off in future.", {
+        action_descriptor: action_description(:backfill_timer) do |backfill|
+          backfill.parameters do |parameters|
+            parameters.string :run_at, :description => 'The time when this timer should go off. If in past, the timer will fire immediately.', :required => true, :location => 'body'
+          end
+        end
+      }
       params do
         requires :run_at, type: String, :desc => 'Timers need a run_at parameter'
       end
@@ -90,6 +143,10 @@ module Api
         { success: true }
       end
 
+      desc "Use this endpoint to backfill existing workflows to backbeat. Add historical decisions that were completed successfully in the past.", {
+        action_descriptor: action_description(:backfill_decision) do
+        end
+      }
       put "/:id/backfill/decision/:name" do
         workflow = find_workflow(params[:id])
         signal = WorkflowServer::Models::Signal.create!(name: params[:name], workflow: workflow, status: :complete)
@@ -97,6 +154,24 @@ module Api
         { success: true }
       end
 
+      desc "Get workflows filtered by workflow_type, decider, subject and the workflow name.", {
+        action_descriptor: action_description(:get_workflows) do |get_workflows|
+          get_workflows.parameters do |parameters|
+            parameters.string :workflow_type, :description => "The type of workflow e.g. approval_workflow, payment_workflow", :required => false, :location => 'body'
+            parameters.object :subject, :description => "Subject is the entity on which this workflow is defined. It can be a model, date or a combination of things that uniquely define the workflow entity", :required => false, :location => 'body' do
+            end
+            parameters.string :decider, :description => "The entity on the client side that handles such workflows", :required => false, :location => 'body'
+            parameters.string :name, :description => "Name for the workflow", :required => false, :location => 'body'
+          end
+          get_workflows.response do |response|
+            response.array(:workflows) do |workflows|
+              workflows.object do |workflow|
+                SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+              end
+            end
+          end
+        end
+      }
       put "/" do
         query = {}
         [:workflow_type, :decider, :subject].each do |query_param|
@@ -107,39 +182,98 @@ module Api
         current_user.workflows.where(query).map {|wf| wf }
       end
 
+      desc "Get workflow identified by the id.", {
+        action_descriptor: action_description(:get_workflow) do |get_workflow|
+          get_workflow.response do |workflow|
+            SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+          end
+        end
+      }
       get "/:id" do
         find_workflow(params[:id])
       end
 
-      [:flags, :signals, :activities, :timers, :events].each do |event_type|
+      {
+        flags: WorkflowServer::Models::Flag,
+        signals: WorkflowServer::Models::Signal,
+        activities: WorkflowServer::Models::Activity,
+        timers: WorkflowServer::Models::Timer,
+        events: WorkflowServer::Models::Event
+      }.each_pair do |event_type, model|
+        desc "Get all the #{event_type} on a workflow.", {
+          action_descriptor: action_description("get_#{event_type}".to_sym) do |event|
+            event.response do |response|
+              response.array(event_type) do |event_object|
+                event_object.object do |object|
+                  SERVICE_DISCOVERY_RESPONSE_CREATOR.call(model, object)
+                end
+              end
+            end
+          end
+        }
         get "/:id/#{event_type}" do
           wf = find_workflow(params[:id])
           wf.__send__(event_type)
         end
       end
 
+      desc "Get the workflow tree as a hash.", {
+        # TODO - figure out how this can be made more generic
+        action_descriptor: action_description(:get_workflow_tree) do |tree|
+          tree.response do |response|
+            SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Event, response, [:id, :type, :name, :status])
+            response.array :children do |children|
+              children.object do |child|
+                SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Event, child, [:id, :type, :name, :status])
+              end
+            end
+          end
+        end
+      }
       get "/:id/tree" do
         wf = find_workflow(params[:id])
         wf.tree
       end
 
+      desc "Get the workflow tree in a pretty print color encoded string format.", {
+        action_descriptor: action_description(:print_workflow_tree) do |tree|
+          tree.response do |response|
+            response.string :print, description: "the workflow tree in a color coded string format."
+          end
+        end
+      }
       get "/:id/tree/print" do
         wf = find_workflow(params[:id])
         {print: wf.tree_to_s}
       end
 
+      desc "Send a signal to the workflow.", {
+        action_descriptor: action_description(:signal_workflow) do |signal|
+          signal.response do |response|
+            SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Signal, response)
+          end
+        end
+      }
       post "/:id/signal/:name" do
         wf = find_workflow(params[:id])
         signal = wf.signal(params[:name])
         signal
       end
 
+      desc "Pause an open workflow.", {
+        action_descriptor: action_description(:pause_workflow) do
+        end
+      }
       put "/:id/pause" do
         wf = find_workflow(params[:id])
         wf.pause
         {success: true}
       end
 
+      desc "Resume a paused workflow.", {
+        action_descriptor: action_description(:resume_workflow) do
+        end
+      }
       put "/:id/resume" do
         wf = find_workflow(params[:id])
         wf.resume
@@ -152,26 +286,60 @@ module Api
     # 2) or as a top level resource /events/<id>
     # This proc here is the general declaration that is at the end consumed by both the above endpoints.
     EventSpecification = Proc.new do
+      desc "Get the event identified by the id.", {
+        action_descriptor: action_description(:get_event) do |get_event|
+          get_event.response do |event|
+            SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Event, event)
+          end
+        end
+      }
       get "/:id" do
         find_event(params)
       end
 
+      desc "Restart a failed activity or decision.", {
+        action_descriptor: action_description(:restart_event) do
+        end
+      }
       put "/:id/restart" do
         e = find_event(params)
         e.restart
         {success: true}
       end
 
+      desc "Get the event tree as a hash.", {
+        action_descriptor: action_description(:get_event_tree) do |tree|
+          tree.response do |response|
+            SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Event, response, [:id, :type, :name, :status])
+            response.array :children do |children|
+              children.object do |child|
+                SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Event, child, [:id, :type, :name, :status])
+              end
+            end
+          end
+        end
+      }
       get "/:id/tree" do
         e = find_event(params)
         e.tree
       end
 
+      desc "Get the event tree in a pretty print color encoded string format.", {
+        action_descriptor: action_description(:print_event_tree) do |tree|
+          tree.response do |response|
+            response.string :print, description: "the event tree in a color coded string format."
+          end
+        end
+      }
       get "/:id/tree/print" do
         e = find_event(params)
         {print: e.tree_to_s}
       end
 
+      desc "Update the status on an event (use this endpoint for deciding, deciding_complete, completed, errored).", {
+        action_descriptor: action_description(:change_status) do
+        end
+      }
       put "/:id/status/:new_status" do
         event = find_event(params)
         raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
@@ -179,6 +347,15 @@ module Api
         {success: true}
       end
 
+      desc "Run a nested activity from inside an activity.", {
+        action_descriptor: action_description(:run_activity) do |activity|
+          activity.parameters do |parameters|
+            parameters.object(:sub_activity, description: "Define the nested activity.", location: 'body') do |sub_activity|
+              SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Activity, sub_activity, [:name, :client_data, :mode, :always, :retry, :retry_interval, :time_out])
+            end
+          end
+        end
+      }
       params do
         requires :sub_activity, type: Hash, :desc => 'sub activity param cannot be empty'
       end
@@ -205,23 +382,64 @@ module Api
 
     namespace 'debug' do
 
-      desc 'returns workflows that have something in error/timeout state'
+      desc 'returns workflows that have something in error or timeout state', {
+        action_descriptor: action_description(:get_error_workflows, deprecated: true) do |error_workflows|
+          error_workflows.response do |response|
+            response.array(:error_workflows) do |error_workflow|
+              error_workflow.object do |workflow|
+                SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+              end
+            end
+          end
+        end
+      }
       get '/error_workflows' do
         ids = current_user.workflows.where(:status.ne => :pause).pluck(:_id)
         WorkflowServer::Models::Event.where(:status.in => [:error, :timeout], :workflow_id.in => ids).map(&:workflow).uniq
       end
 
+      desc 'returns paused workflows', {
+        action_descriptor: action_description(:get_paused_workflows, deprecated: true) do |paused_workflows|
+          paused_workflows.response do |response|
+            response.array(:paused_workflows) do |paused_workflow|
+              paused_workflow.object do |workflow|
+                SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+              end
+            end
+          end
+        end
+      }
       get '/paused_workflows' do
         current_user.workflows.where(status: :pause)
       end
 
-      desc 'returns workflows that have > 0 open decisions and 0 executing decisions'
+      desc 'returns workflows that have > 0 open decisions and 0 executing decisions', {
+        action_descriptor: action_description(:get_stuck_workflows, deprecated: true) do |stuck_workflows|
+          stuck_workflows.response do |response|
+            response.array(:paused_workflows) do |stuck_workflow|
+              stuck_workflow.object do |workflow|
+                SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+              end
+            end
+          end
+        end
+      }
       get '/stuck_workflows' do
         ids = current_user.workflows.pluck(:_id)
         WorkflowServer::Models::Decision.where(status: :open, :workflow_id.in => ids).find_all {|decision| decision.workflow.decisions.where(status: :executing).none? }.map(&:workflow).uniq
       end
 
-      desc 'returns workflows that have more than one decision executing simultaneously'
+      desc 'returns workflows that have more than one decision executing simultaneously', {
+        action_descriptor: action_description(:get_workflows_with_multiple_executing_decisions, deprecated: true) do |workflows_with_multiple_executing_decisions|
+          workflows_with_multiple_executing_decisions.response do |response|
+            response.array(:workflow) do |workflow_with_multiple_executing_decision|
+              workflow_with_multiple_executing_decision.object do |workflow|
+                SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+              end
+            end
+          end
+        end
+      }
       get '/multiple_executing_decisions' do
         ids = current_user.workflows.pluck(:_id)
         workflow_ids = group_by_and_having(WorkflowServer::Models::Event.where(:status.nin => [:open, :complete], :workflow_id.in => ids ).type(WorkflowServer::Models::Decision).selector, 'workflow_id', 1)
@@ -229,7 +447,17 @@ module Api
         current_user.workflows.where(:id.in => workflow_ids)
       end
 
-      desc 'returns workflows that are in an inconsistent state'
+      desc 'returns workflows that are in an inconsistent state', {
+        action_descriptor: action_description(:get_inconsistent_workflows, deprecated: true) do |inconsistent_workflows|
+          inconsistent_workflows.response do |response|
+            response.array(:inconsistent_workflow) do |inconsistent_workflow|
+              inconsistent_workflow.object do |workflow|
+                SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+              end
+            end
+          end
+        end
+      }
       get '/inconsistent_workflows' do
         ids = current_user.workflows.pluck(:_id)
         objects = WorkflowServer::Models::Event.where(:workflow_id.in => ids, :_type.in => [ WorkflowServer::Models::Timer.to_s, WorkflowServer::Models::Signal.to_s ]).pluck(:_id)

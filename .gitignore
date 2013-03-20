@@ -3,6 +3,7 @@ shared/log/unicorn.stdout.log
 shared/pids/unicorn.pid
 shared/sockets/unicorn.sock
 coverage
+public/resources.json
 *.gem
 *.rbc
 .bundle

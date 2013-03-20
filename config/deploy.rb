@@ -168,6 +168,30 @@ namespace :roller do
   end
 end
 
+namespace :documentation do
+  desc "update documentation at https://services.groupondev.com"
+  task :update_service_discovery do
+    require "#{File.join(File.expand_path(File.dirname(__FILE__)), '..', 'app')}"
+    require 'service_discovery/generation/generator'
+
+    resource_schema = ServiceDiscovery::Generation::Generator.generate_grape_documentation(WorkflowServer::Config.root + "/doc/service-discovery/resources.json", /.*workflows.*/, File.expand_path("public/resources.json"), Api)
+
+    FileUtils.mkdir_p("public")
+    File.open("public/resources.json", "w") { |f| f.print resource_schema }
+
+    local_port = 8765
+
+    # create a ssh tunnel to go to service-discovery.west host through b.west.groupon.com
+    system("ssh -f -N -L #{local_port}:service-discovery.west:80 b.west.groupon.com > /dev/null 2>&1")
+
+    response = HTTParty.post( "http://localhost:#{local_port}/services/backbeat",
+                              body: {schema: JSON.parse(resource_schema)}.to_json,
+                              headers: {"Content-Type" => "application/json"})
+
+    raise "looks like the http request failed - code(#{response.code}), body(#{response.body})" if response.code != 200 || response.body != " "
+  end
+end
+
 namespace :workers do
   [:start, :stop, :restart, :status].each do |command|
     desc "#{command} worker processes on utility box"
