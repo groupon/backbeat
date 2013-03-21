@@ -11,7 +11,7 @@ module WorkflowServer
         event.__send__(method_to_call, *args)
         info(id: event.id, name: event.name, message: "#{method_to_call}_succeeded")
       rescue Exception => error
-        error(id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error)
+        error(id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error, backtrace: error.backtrace)
         raise
       end
 
