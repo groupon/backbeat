@@ -12,8 +12,8 @@ module WorkflowServer
       field :status_history, type: Array, default: []
       field :name,           type: Symbol
 
-      field :client_data,     type: Hash, default: {}
-      field :client_metadata, type: Hash, default: {}
+      field :client_data,     type: Hash, default: {}, label: "Clients should use this field to store event specific information e.g. arguments for activities, client library specific options etc."
+      field :client_metadata, type: Hash, default: {}, label: "Clients should use this field to store metadata with the events e.g. build version, process pid etc."
 
       field :inactive,       type: Boolean, default: false
 

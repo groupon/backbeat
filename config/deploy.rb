@@ -174,7 +174,7 @@ namespace :documentation do
     require "#{File.join(File.expand_path(File.dirname(__FILE__)), '..', 'app')}"
     require 'service_discovery/generation/generator'
 
-    resource_schema = ServiceDiscovery::Generation::Generator.generate_grape_documentation(WorkflowServer::Config.root + "/doc/service-discovery/resources.json", /.*workflows.*/, File.expand_path("public/resources.json"), Api)
+    resource_schema = ServiceDiscovery::Generation::Generator.generate_grape_documentation(WorkflowServer::Config.root + "/doc/service-discovery/resources.json", /.*/, File.expand_path("public/resources.json"), Api)
 
     FileUtils.mkdir_p("public")
     File.open("public/resources.json", "w") { |f| f.print resource_schema }
