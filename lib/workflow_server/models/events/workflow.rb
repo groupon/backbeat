@@ -2,9 +2,9 @@ module WorkflowServer
   module Models
     class Workflow < Event
 
-      field :workflow_type, type: Symbol
-      field :subject, type: Hash
-      field :decider, type: String
+      field :workflow_type, type: Symbol, label: "The type of workflow e.g. approval_workflow, payment_workflow"
+      field :subject, type: Hash, label: "Subject is the entity on which this workflow is defined. It can be a model, date or a combination of things that uniquely define the workflow entity"
+      field :decider, type: String, label: "The entity on the client side that will handle decision tasks for this workflow"
       field :mode, type: Symbol, default: :blocking
       field :start_signal, type: Symbol
 

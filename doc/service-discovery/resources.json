@@ -1,0 +1,23 @@
+{
+    "kind":"discovery#restDescription",
+    "id":"backbeat api",
+    "name":"api",
+    "version":"",
+    "title":"Backbeat API",
+    "description":"Backbeat is a workflow service that allows for applications to confidently and reliably synchronize and control complicated business processes It makes it easy and quick to both implement new processes and expand existing ones.<br><br>It enables rapid and flexible scaling of any application by coordinating all the parts of your business processes regardless of where the work is performed, across threads, processes, hardware, and even applications. Distributed and asynchronous systems can be difficult to manage, but Backbeat manages concurrency, scheduling, dependencies, and even manual tasks with ease.<br><br>Backbeat also provides extensive logging, error handling, and retry logic all right out of the box. The history of everything that runs through Backbeat is maintained providing an abundance of data for business analytics and easy high level introspection into any problems that may arise.<br><br>All of this is controlled by simple rules in your application logic. Backbeat exposes a simple API that uses HTTP to communicate with its clients. This gives you the flexibility to choose the technology stack that best suits your applications needs. It also makes it convenient to build any custom tooling you need: DSLs, custom UIs, and graphical modeling tools; all in addition to being able to take advantage of the tools built by others in the open source community.",
+    "icons":{},
+    "documentationLink":"https://github.groupondev.com/pages/finance-engineering/backbeat/",
+    "protocol":"rest",
+    "content-type":"application/json",
+    "baseUrl":"http://accounting-utility2.snc1:9000",
+    "parameters":{
+        "client_id":{
+            "type":"string",
+            "description":"The api key that identifies the client. Email fed@groupon.com to create one for you or your team.",
+            "required":true,
+            "location":"header"
+        }
+    },
+    "schemas":{},
+    "resources":{}
+}

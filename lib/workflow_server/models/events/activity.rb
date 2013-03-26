@@ -2,20 +2,20 @@ module WorkflowServer
   module Models
     class Activity < Event
 
-      field :mode, type: Symbol, default: :blocking
+      field :mode, type: Symbol, default: :blocking, label: "Defines the concurrency level. Valid values are blocking, non_blocking and fire_and_forget. 1) blocking implies this activity will execute in isolation 2) non_blocking implies other activities can execute while this one is running. The parent of this activity will wait for this activity to complete before calling complete on itself 3) fire_and_forget is similar to non_blocking except the parent won't wait for this activity to complete. DEFAULT is blocking"
       field :always, type: Boolean, default: false
-      field :retry, type: Integer, default: 3
-      field :retry_interval, type: Integer, default: 15.minutes
-      field :time_out, type: Integer, default: 0
-      field :valid_next_decisions, type: Array, default: []
-      field :orphan_decision, type: Boolean, default: false
+      field :retry, type: Integer, default: 3, label: "The number of times this activity will be retried on error. Default is 3."
+      field :retry_interval, type: Integer, default: 15.minutes, label: "The retry interval. Default is 15 minutes"
+      field :time_out, type: Integer, default: 0, label: "There is no default timeout"
+      field :valid_next_decisions, type: Array, default: [], label: "The range of valid next decision. next_decision can be null, none or one of the values from valid_next_decisions"
+      field :orphan_decision, type: Boolean, default: false, label: "true implies next_decision will be a top-level decision and not a child of this activity. This field is ignored when next_decision is null. Default is false"
 
       # indicates whether the client has called completed endpoint on this activity
       field :_client_done_with_activity, type: Boolean, default: false
 
       # These fields come from client
-      field :result
-      field :next_decision, type: String
+      field :result, label: "Use this field to store the result of an activity"
+      field :next_decision, type: String, label: "Use this field to schedule the next decision when this activity completes"
 
       validate :not_blocking_and_always
 

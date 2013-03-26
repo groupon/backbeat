@@ -12,8 +12,8 @@ module WorkflowServer
       field :status_history, type: Array, default: []
       field :name,           type: Symbol
 
-      field :client_data,     type: Hash, default: {}
-      field :client_metadata, type: Hash, default: {}
+      field :client_data,     type: Hash, default: {}, label: "Clients should use this field to store event specific information e.g. arguments for activities, client library specific options etc."
+      field :client_metadata, type: Hash, default: {}, label: "Clients should use this field to store metadata with the events e.g. build version, process pid etc."
 
       field :inactive,       type: Boolean, default: false
 
@@ -163,13 +163,17 @@ module WorkflowServer
       }
 
       # These fields are not included in the hash sent out to the client
-      def blacklisted_fields
+      def self.blacklisted_fields
         ["locked_at", "locked_until", "start_signal", "status_history", "sequence", "client_metadata", "orphan_decision", "inactive"]
+      end
+
+      def self.hidden_field?(field)
+        blacklisted_fields.include?(field) || field.to_s.start_with?("_")
       end
 
       def serializable_hash(options = {})
         hash = super
-        hash.delete_if { |key, value| key.to_s.start_with?("_") || blacklisted_fields.include?(key.to_s) }
+        hash.delete_if { |key, value| self.class.hidden_field?(key) }
         hash.merge!({ id: id, type: event_type})
         Marshal.load(Marshal.dump(hash))
       end
@@ -233,6 +237,18 @@ module WorkflowServer
         end
       end
       alias_method_chain :respond_to_missing?, :enqueue
+
+      def self.field_hash
+        hash = {
+          id: { type: String, label: "uuid" },
+          type: { type: String, label: "event type" }
+        }
+        self.fields.each_pair do |field, data|
+          next if hidden_field?(field)
+          hash[field] = { type: data.type, label: data.label }
+        end
+        hash
+      end
 
       private
 
