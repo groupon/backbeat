@@ -269,17 +269,31 @@ module Api
 
       desc "Send a signal to the workflow.", {
         action_descriptor: action_description(:signal_workflow) do |signal|
+          fields = WorkflowServer::Models::Signal.fields
           signal.parameters do |parameters|
             parameters.string :id, description: 'the workflow id', required: true, location: 'url'
+            parameters.string :name, description: 'the signal name', required: true, location: 'url'
+            parameters.object :options, description: 'the options for the signal', required: false, location: 'body' do |options|
+              options.object :client_data, description: fields['client_data'].label, required: false, location: 'body' do
+              end
+              options.object :client_metadata, description: fields['client_metadata'].label, required: false, location: 'body' do
+              end
+            end
           end
           signal.response do |response|
             SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Signal, response)
           end
         end
       }
+      params do
+        optional :options, type: Hash
+      end
       post "/:id/signal/:name" do
         wf = find_workflow(params[:id])
-        signal = wf.signal(params[:name])
+        options = params[:options] || {}
+        client_data = options[:client_data] || {}
+        client_metadata = options[:client_metadata] || {}
+        signal = wf.signal(params[:name], client_data: client_data, client_metadata: client_metadata)
         signal
       end
 

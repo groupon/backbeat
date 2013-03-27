@@ -3,7 +3,7 @@ require 'spec_helper'
 describe WorkflowServer::Models::Event do
   let(:user) { FactoryGirl.create(:user) }
   let(:workflow) { FactoryGirl.create(:workflow, user: user) }
-  let(:event) { FactoryGirl.create(:event, workflow: workflow) }
+  let(:event) { FactoryGirl.create(:event, workflow: workflow, client_data: {data: 123}, client_metadata: {git_sha: '12de3sdg'}) }
   let(:parent) { FactoryGirl.create(:decision, workflow: workflow) }
 
 
@@ -61,11 +61,13 @@ describe WorkflowServer::Models::Event do
   end
 
   context '#add_decision' do
-    it 'creates a decision' do
+    it 'creates a decision and stores client data and metadata' do
       event.add_decision(:test)
       event.children.count.should == 1
       decision = event.children.first
       decision.name.should == :test
+      decision.client_data.should == {'data' => 123}
+      decision.client_metadata.should == {"git_sha" => "12de3sdg"}
     end
     it 'doesnt create parent-child relationship when orphan is true' do
       decisions = workflow.decisions.count

@@ -35,7 +35,7 @@ module WorkflowServer
       validates_presence_of :name
 
       def add_decision(decision_name, orphan = false)
-        options = { name: decision_name, workflow: self.workflow }
+        options = { name: decision_name, workflow: self.workflow, client_data: self.client_data, client_metadata: self.client_metadata }
         options[:parent] = self unless orphan
         Decision.create!(options)
       end

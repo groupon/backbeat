@@ -23,9 +23,9 @@ module WorkflowServer
         Marshal.load(Marshal.dump(hash))
       end
 
-      def signal(name)
+      def signal(name, options = {})
         raise WorkflowServer::EventComplete, "Workflow with id(#{id}) is already complete" if status == :complete
-        signal = WorkflowServer::Models::Signal.create!(name: name, workflow: self)
+        signal = WorkflowServer::Models::Signal.create!({name: name, workflow: self}.merge(options))
         signal.start
         signal
       end
