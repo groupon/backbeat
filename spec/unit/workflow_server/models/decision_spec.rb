@@ -92,6 +92,7 @@ describe WorkflowServer::Models::Decision do
     context 'workflow is not paused' do
       it "calls out to workflow async client to perform activity" do
         WorkflowServer::Client.should_receive(:make_decision).with(@d1)
+        WorkflowServer::Models::Watchdog.should_receive(:start).with(@d1, :decision_deciding_time_out, 2.hours)
         @d1.send(:send_to_client)
         @d1.status.should == :sent_to_client
       end
