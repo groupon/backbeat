@@ -122,10 +122,12 @@ describe Api::Workflow do
       @wf = FactoryGirl.create(:workflow, user: user)
       @user = @wf.user
       Delayed::Job.destroy_all
-      post "/workflows/#{@wf.id}/signal/test"
+      post "/workflows/#{@wf.id}/signal/test", options: { client_data: {data: '123'}, client_metadata: {metadata: '456'} }
       last_response.status.should == 201
       signal = JSON.parse(last_response.body)
       @wf.signals.first.id.to_s.should == signal['id']
+      @wf.signals.first.client_data.should == {'data' => '123'}
+      @wf.signals.first.client_metadata.should == {'metadata' => '456'}
       Delayed::Job.where(handler: /schedule_next_decision/).count.should == 1
       Delayed::Job.where(handler: /notify_client/).count.should == 2
     end
@@ -144,6 +146,13 @@ describe Api::Workflow do
       last_response.status.should == 404
       json_response = JSON.parse(last_response.body)
       json_response.should == {"error" => "Workflow with id(#{@wf.id}) not found"}
+    end
+
+    it "returns 400 if the options is not a hash" do
+      post "/workflows/#{@wf.id}/signal/test", {options: "some_string"}
+      last_response.status.should == 400
+      json_response = JSON.parse(last_response.body)
+      json_response["error"].should == "invalid parameter: options"
     end
   end
 

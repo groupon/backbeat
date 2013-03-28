@@ -30,6 +30,12 @@ describe WorkflowServer::Models::Workflow do
         @wf.signal(:something)
       }.to raise_error(WorkflowServer::EventComplete, "Workflow with id(#{@wf.id}) is already complete")
     end
+    it 'creates a signal and stores the options' do
+      @wf.signal(:test, some_option: 1123)
+      s = @wf.signals.last
+      s.name.should == :test
+      s.some_option.should == 1123
+    end
   end
 
   context "#completed" do
