@@ -1,7 +1,7 @@
 require 'httparty'
 
-AUTH_TOKEN = '6dy6L8v8942jrbV622dr'
-DASHBOARD_BASE_URI = 'http://localhost:3030/widgets/'
+AUTH_TOKEN = WorkflowServer::Config.options[:dashboard_auth_token]
+DASHBOARD_BASE_URI = WorkflowServer::Config.options[:dashboard_base_uri]
 
 # NOTE For now these are only accurate if there is single user
 
@@ -41,12 +41,12 @@ module WorkflowServer
       end
 
       def errored_workflow_count
-        count = WorkflowServer::Models::Event.where(status: :error).map(&:workflow_id).uniq.count
+        count = WorkflowServer::Models::Event.where(status: :error).pluck(:workflow_id).uniq.count
         send_to_dashboard('errored_workflow_count', current: count)
       end
 
       def timed_out_workflow_count
-        count = WorkflowServer::Models::Event.where(status: :timeout).map(&:workflow_id).uniq.count
+        count = WorkflowServer::Models::Event.where(status: :timeout).pluck(:workflow_id).uniq.count
         send_to_dashboard('timed_out_workflow_count', current: count)
       end
 
