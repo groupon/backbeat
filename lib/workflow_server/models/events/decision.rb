@@ -202,7 +202,7 @@ module WorkflowServer
         end
         WorkflowServer::Client.make_decision(self)
         update_status!(:sent_to_client)
-        Watchdog.start(self, :decision_deciding_time_out)
+        Watchdog.start(self, :decision_deciding_time_out, 2.hours)
       end
 
     end
