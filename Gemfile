@@ -19,6 +19,7 @@ gem 'uuidtools'
 # Utility
 gem 'awesome_print'
 gem 'mail'
+gem 'rufus-scheduler'
 gem 'whenever'
 
 gem 'service-discovery', :git => 'git@github.groupondev.com:groupon-api/service-discovery.git'
