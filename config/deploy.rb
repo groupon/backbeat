@@ -354,7 +354,7 @@ namespace :deploy do
     end
     roles[:utility].instance_variable_get('@static_servers').each do |host|
       puts "HOST: #{host}"
-      pids = capture("ps -A -o pid,args | grep unicorn | grep -v grep | awk '{print $1}'", :hosts => host )
+      pids = capture("ps -A -o pid,args | grep unicorn | grep '#{application}/current/config/unicorn.conf.rb' | grep -v grep | awk '{print $1}'", :hosts => host )
       unicorn_pids_by_host[host] = pids.split(/\n/)
     end
   end
@@ -368,7 +368,7 @@ namespace :deploy do
 
     roles[:utility].instance_variable_get('@static_servers').each do |host|
       puts "HOST: #{host}"
-      pids = capture("ps -A -o pid,args | grep unicorn | grep -v grep | awk '{print $1}'", :hosts => host )
+      pids = capture("ps -A -o pid,args | grep unicorn | grep '#{application}/current/config/unicorn.conf.rb' | grep -v grep | awk '{print $1}'", :hosts => host )
       new_unicorn_pids_by_host[host] = pids.split(/\n/)
     end
 
@@ -390,7 +390,7 @@ namespace :deploy do
   desc "show runtime of unicorn processes"
   task :check_processes, :roles => :utility do
     puts "pid,uptime,process name"
-    run "echo pid, uptime, process name; ps -A -o pid,etime,args | grep unicorn | grep -v grep | awk '{print $1 \" \" $2 \" \" $3 \" \" $4}'"
+    run "echo pid, uptime, process name; ps -A -o pid,etime,args | grep unicorn | grep '#{application}/current/config/unicorn.conf.rb' | grep -v grep | awk '{print $1 \" \" $2 \" \" $3 \" \" $4}'"
   end
 
   task :confirm do
