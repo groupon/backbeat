@@ -1,8 +1,0 @@
-#!/bin/bash
-#
-gemset="groupon_workflow"
-local=".rvmrc.local"
-if [ -f ".rvmrc.gemset" ]; then
-  gemset="$(cat .rvmrc.gemset)"
-fi
-rvm ruby-1.9.3-p125-perf@$gemset --create
