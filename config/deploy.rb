@@ -291,7 +291,7 @@ namespace :deploy do
 
   desc "start worker to update Backbeat Dashboard"
   task :dashboard_worker, :roles => :utility do
-    run "(cd #{current_path} && ./script/dashboard_worker.sh)"
+    run "(cd #{current_path} && ./script/dashboard_worker.sh) > /dev/null 2>&1 &"
   end
 
   task :create_indexes, :roles => :utility do
