@@ -4,7 +4,7 @@ module Api
   class Workflow < Grape::API
     include WorkflowServer::Logger
     extend ServiceDiscovery::Description::Dsl
-    ServiceDiscovery::ActionDescriptions::ActionDescriptor.disable! if WorkflowServer::Config.environment == :production
+    ServiceDiscovery::Description.disable! if WorkflowServer::Config.environment == :production
 
     # formatter :camel_json, Api::CamelJsonFormatter
     # content_type :camel_json, 'application/json'
