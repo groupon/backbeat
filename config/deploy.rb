@@ -289,6 +289,11 @@ namespace :deploy do
     end
   end
 
+  desc "start worker to update Backbeat Dashboard"
+  task :dashboard_worker, :roles => :utility do
+    run "(cd #{current_path} && ./script/dashboard_worker.sh)"
+  end
+
   task :create_indexes, :roles => :utility do
     run "(cd #{current_path} && RACK_ENV=#{stage} bundle exec rake mongo:create_indexes)"
   end
@@ -421,7 +426,7 @@ before "deploy:update_code", "deploy:confirm", "deploy:campfire_notify", "worker
 before "deploy:finalize_update", "bundle:install"
 
 before "deploy:restart", "deploy:find_existing_unicorn_processes"
-after "deploy:restart", "deploy:check_for_new_unicorn_processes", "deploy:create_indexes", "deploy:cleanup"
+after "deploy:restart", "deploy:dashboard_worker", "deploy:check_for_new_unicorn_processes", "deploy:create_indexes", "deploy:cleanup"
 after "deploy:cleanup", "deploy:check_processes", "workers:start", "deploy:campfire_notify_complete"
 
 #after "deploy:create_symlink", "newrelic:notice_deployment"
