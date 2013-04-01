@@ -21,11 +21,9 @@ module WorkflowServer
     end
 
     def self.get_environment
-      hostname = `hostname`.chomp
+      return ENV['RACK_ENV'] if ENV['RACK_ENV']
 
-      if ENV['RACK_ENV']
-        return ENV['RACK_ENV']
-      end
+      hostname = `hostname`.chomp
       ENV['RACK_ENV'] = if hostname.match /accounting/
         case hostname
         when /uat/, /fed2-tat/
