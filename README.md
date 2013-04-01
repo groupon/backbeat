@@ -23,7 +23,7 @@ bin/console
 ```
 Start the server:  
 ```
-unicorn -c config/unicorn.conf.rb&  
+bin/server
 script/delayed_job_backbeat start /tmp/backbeat_delayedjob_pid_file
 ```
 Immediately regret this decision:
