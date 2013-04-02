@@ -207,6 +207,7 @@ module Api
       {
         flags: WorkflowServer::Models::Flag,
         signals: WorkflowServer::Models::Signal,
+        decisions: WorkflowServer::Models::Decision,
         activities: WorkflowServer::Models::Activity,
         timers: WorkflowServer::Models::Timer,
         events: WorkflowServer::Models::Event
