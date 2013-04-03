@@ -47,13 +47,20 @@ module WorkflowServer
   class OutputFormatter < Log4r::BasicFormatter
     LOG_FORMAT = "%s | %s | %s | %s | %s | %s\n"
     def format(event)
-      sprintf(LOG_FORMAT,
-              Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L"),
-              Process.pid,
-              WorkflowServer::Logger.tid || "none",
-              Log4r::LNAMES[event.level],
-              event.data[:name],
-              event.data[:message])
+      message = {
+        time: Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L"),
+        pid: Process.pid,
+        tid: WorkflowServer::Logger.tid || "none",
+        level: Log4r::LNAMES[event.level],
+        source: event.data[:name],
+        message: event.data[:message]
+      }
+      case WorkflowServer::Config.options[:log_format]
+      when 'json'
+        message.to_json + "\n"
+      else
+        sprintf(LOG_FORMAT, *message.values)
+      end
     end
   end
 
