@@ -33,7 +33,8 @@ module WorkflowServer
         destroy_jobs
       end
 
-      validates_presence_of :name
+      # Turn this validation on once all events have users
+      validates_presence_of :name#, :user
 
       def add_decision(decision_name, orphan = false)
         options = { name: decision_name, workflow: self.workflow, client_data: self.client_data, client_metadata: self.client_metadata, user: workflow.user }

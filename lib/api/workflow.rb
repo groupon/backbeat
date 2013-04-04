@@ -465,8 +465,7 @@ module Api
         end
       }
       get '/error_workflows' do
-        ids = current_user.workflows.where(:status.ne => :pause).pluck(:_id)
-        WorkflowServer::Models::Event.where(:status.in => [:error, :timeout], :workflow_id.in => ids).map(&:workflow).uniq
+        WorkflowServer::Models::Event.where(:status.in => [:error, :timeout], user: current_user).map(&:workflow).uniq.select {|workflow| !workflow.paused? }
       end
 
       desc 'returns paused workflows', {
@@ -502,8 +501,7 @@ module Api
         end
       }
       get '/stuck_workflows' do
-        ids = current_user.workflows.pluck(:_id)
-        WorkflowServer::Models::Decision.where(status: :open, :workflow_id.in => ids).find_all {|decision| decision.workflow.decisions.where(:status.in => [:executing, :error, :timeout]).none? }.map(&:workflow).uniq
+        WorkflowServer::Models::Decision.where(status: :open, user: current_user).find_all {|decision| decision.workflow.decisions.where(status: :executing).none? }.map(&:workflow).uniq
       end
 
       desc 'returns workflows that have more than one decision executing simultaneously', {
@@ -521,9 +519,7 @@ module Api
         end
       }
       get '/multiple_executing_decisions' do
-        ids = current_user.workflows.pluck(:_id)
-        workflow_ids = group_by_and_having(WorkflowServer::Models::Event.where(:status.nin => [:open, :complete], :workflow_id.in => ids ).type(WorkflowServer::Models::Decision).selector, 'workflow_id', 1)
-
+        workflow_ids = group_by_and_having(WorkflowServer::Models::Event.where(:status.nin => [:open, :complete], user: current_user ).type(WorkflowServer::Models::Decision).selector, 'workflow_id', 1)
         current_user.workflows.where(:id.in => workflow_ids)
       end
 
@@ -542,8 +538,7 @@ module Api
         end
       }
       get '/inconsistent_workflows' do
-        ids = current_user.workflows.pluck(:_id)
-        objects = WorkflowServer::Models::Event.where(:workflow_id.in => ids, :_type.in => [ WorkflowServer::Models::Timer.to_s, WorkflowServer::Models::Signal.to_s ]).pluck(:_id)
+        objects = WorkflowServer::Models::Event.where(user: current_user, :_type.in => [ WorkflowServer::Models::Timer.to_s, WorkflowServer::Models::Signal.to_s ]).pluck(:_id)
         duplicate_objects = group_by_and_having(WorkflowServer::Models::Event.where(:parent_id.in => objects).type(WorkflowServer::Models::Decision).selector, 'parent_id', 1)
         WorkflowServer::Models::Event.where(:id.in => duplicate_objects).map(&:workflow).uniq
       end
