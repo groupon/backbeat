@@ -465,7 +465,8 @@ module Api
         end
       }
       get '/error_workflows' do
-        WorkflowServer::Models::Event.where(:status.in => [:error, :timeout], user: current_user).map(&:workflow).uniq.select {|workflow| !workflow.paused? }
+        workflow_ids = WorkflowServer::Models::Event.where(:status.in => [:error, :timeout], user: current_user).pluck(:workflow_id).uniq
+        WorkflowServer::Models::Workflow.where(:_id.in => workflow_ids, :status.ne => :pause)
       end
 
       desc 'returns paused workflows', {
