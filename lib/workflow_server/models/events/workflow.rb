@@ -10,8 +10,6 @@ module WorkflowServer
 
       has_many :events, inverse_of: :workflow, order: {sequence: 1}, dependent: :destroy
 
-      belongs_to :user, index: true
-
       validates_presence_of :workflow_type, :subject, :decider, :user
 
       index({ workflow_type: 1, subject: 1 }, { unique: true, sparse: true })
@@ -25,7 +23,7 @@ module WorkflowServer
 
       def signal(name, options = {})
         raise WorkflowServer::EventComplete, "Workflow with id(#{id}) is already complete" if status == :complete
-        signal = WorkflowServer::Models::Signal.create!({name: name, workflow: self}.merge(options))
+        signal = WorkflowServer::Models::Signal.create!({name: name, workflow: self, user: self.user}.merge(options))
         signal.start
         signal
       end

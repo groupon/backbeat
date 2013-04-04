@@ -119,19 +119,19 @@ module WorkflowServer
       end
 
       def add_flag(name)
-        decisions_to_add << [Flag, {name: name, parent: self, workflow: workflow}]
+        decisions_to_add << [Flag, {name: name, parent: self, workflow: workflow, user: workflow.user}]
       end
 
       def add_timer(name, fires_at = Time.now)
-        decisions_to_add << [Timer, {fires_at: fires_at, name: name, parent: self, workflow: workflow}]
+        decisions_to_add << [Timer, {fires_at: fires_at, name: name, parent: self, workflow: workflow, user: workflow.user}]
       end
 
       def add_activity(name, options = {})
-        decisions_to_add << [Activity, {name: name, workflow: workflow, parent: self}.merge(options)]
+        decisions_to_add << [Activity, {name: name, workflow: workflow, parent: self, user: workflow.user}.merge(options)]
       end
 
       def add_branch(name, options = {})
-        decisions_to_add << [Branch, {name: name, workflow: workflow, parent: self}.merge(options)]
+        decisions_to_add << [Branch, {name: name, workflow: workflow, parent: self, user: workflow.user}.merge(options)]
       end
 
       def add_workflow(name, workflow_type, subject, decider, options = {})
@@ -139,11 +139,11 @@ module WorkflowServer
       end
 
       def complete_workflow
-        decisions_to_add << [WorkflowCompleteFlag, {name: "#{workflow.name}:complete", parent: self, workflow: workflow}]
+        decisions_to_add << [WorkflowCompleteFlag, {name: "#{workflow.name}:complete", parent: self, workflow: workflow, user: workflow.user}]
       end
 
       def continue_as_new_workflow
-        decisions_to_add << [ContinueAsNewWorkflowFlag, {name: "#{workflow.name}:continue_as_new_workflow", parent: self, workflow: workflow}]
+        decisions_to_add << [ContinueAsNewWorkflowFlag, {name: "#{workflow.name}:continue_as_new_workflow", parent: self, workflow: workflow, user: workflow.user}]
       end
 
       def add_new_decision(options = {})

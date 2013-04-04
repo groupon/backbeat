@@ -142,7 +142,7 @@ module Api
       end
       put "/:id/backfill/timer/:name" do
         workflow = find_workflow(params[:id])
-        WorkflowServer::Models::Timer.create!(name: params[:name], workflow: workflow, fires_at: params[:run_at]).start
+        WorkflowServer::Models::Timer.create!(name: params[:name], workflow: workflow, fires_at: params[:run_at], user: current_user).start
         { success: true }
       end
 
@@ -156,8 +156,8 @@ module Api
       }
       put "/:id/backfill/decision/:name" do
         workflow = find_workflow(params[:id])
-        signal = WorkflowServer::Models::Signal.create!(name: params[:name], workflow: workflow, status: :complete)
-        decision = WorkflowServer::Models::Decision.create!(name: params[:name], workflow: workflow, status: :complete, parent: signal)
+        signal = WorkflowServer::Models::Signal.create!(name: params[:name], workflow: workflow, status: :complete, user: current_user)
+        decision = WorkflowServer::Models::Decision.create!(name: params[:name], workflow: workflow, status: :complete, parent: signal, user: current_user)
         { success: true }
       end
 

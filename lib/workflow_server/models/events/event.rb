@@ -19,6 +19,7 @@ module WorkflowServer
 
       auto_increment :sequence
 
+      belongs_to :user, index: true
       belongs_to :workflow, inverse_of: :events, class_name: "WorkflowServer::Models::Workflow", index: true
       belongs_to :parent, inverse_of: :children, class_name: "WorkflowServer::Models::Event", index: true
       has_many :children, inverse_of: :parent, class_name: "WorkflowServer::Models::Event", order: {sequence: 1}, dependent: :destroy
@@ -35,7 +36,7 @@ module WorkflowServer
       validates_presence_of :name
 
       def add_decision(decision_name, orphan = false)
-        options = { name: decision_name, workflow: self.workflow, client_data: self.client_data, client_metadata: self.client_metadata }
+        options = { name: decision_name, workflow: self.workflow, client_data: self.client_data, client_metadata: self.client_metadata, user: workflow.user }
         options[:parent] = self unless orphan
         Decision.create!(options)
       end
@@ -164,7 +165,7 @@ module WorkflowServer
 
       # These fields are not included in the hash sent out to the client
       def self.blacklisted_fields
-        ["locked_at", "locked_until", "start_signal", "status_history", "sequence", "client_metadata", "orphan_decision", "inactive"]
+        ["locked_at", "locked_until", "start_signal", "status_history", "sequence", "client_metadata", "orphan_decision", "inactive", "user_id"]
       end
 
       def self.hidden_field?(field)
