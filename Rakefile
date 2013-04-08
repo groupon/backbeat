@@ -15,6 +15,7 @@ namespace :mongo do
       begin
         constant = model.constantize
         if constant.respond_to? :create_indexes
+          constant.add_indexes
           constant.create_indexes
           $stdout.puts "I, [#{Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L")} \##{$$}] INFO -- : created indexes for class #{constant}"
         else

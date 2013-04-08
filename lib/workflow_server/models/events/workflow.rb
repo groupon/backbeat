@@ -23,7 +23,7 @@ module WorkflowServer
 
       def signal(name, options = {})
         raise WorkflowServer::EventComplete, "Workflow with id(#{id}) is already complete" if status == :complete
-        signal = WorkflowServer::Models::Signal.create!({name: name, workflow: self, user: self.user}.merge(options))
+        signal = WorkflowServer::Models::Signal.create!({name: name, workflow: self, user: user}.merge(options))
         signal.start
         signal
       end
