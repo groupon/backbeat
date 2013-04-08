@@ -25,7 +25,8 @@ module WorkflowServer
       ##
       # A user has a relation to all workflows created by that user.
       # A user can only see workflows that belong to them.
-      has_many :workflows
+      has_many :workflows, order: {sequence: 1}
+      has_many :events, order: {sequence: 1}
 
       validates_presence_of :decision_endpoint, :activity_endpoint, :notification_endpoint
 
