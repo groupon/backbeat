@@ -503,7 +503,7 @@ module Api
       }
       get '/stuck_workflows' do
         ids = current_user.workflows.pluck(:_id)
-        WorkflowServer::Models::Decision.where(status: :open, :workflow_id.in => ids).find_all {|decision| decision.workflow.decisions.where(status: :executing).none? }.map(&:workflow).uniq
+        WorkflowServer::Models::Decision.where(status: :open, :workflow_id.in => ids).find_all {|decision| decision.workflow.decisions.where(:status.in => [:executing, :error, :timeout]).none? }.map(&:workflow).uniq
       end
 
       desc 'returns workflows that have more than one decision executing simultaneously', {
