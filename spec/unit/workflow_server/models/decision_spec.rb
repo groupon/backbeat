@@ -6,7 +6,7 @@ describe WorkflowServer::Models::Decision do
 
   before do
     @event_klass = WorkflowServer::Models::Decision
-    @event_data = {name: :test_decision}
+    @event_data = {name: :test_decision, user: user}
     @wf = FactoryGirl.create(:workflow, user: user)
     @d1 = FactoryGirl.create(:decision, workflow: @wf, name: "WF_Decision-1").reload
     @event = @d1

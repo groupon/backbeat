@@ -107,7 +107,7 @@ describe WorkflowServer::Models::Event do
     end
     it "looks up in hierarchy to find the parent decision" do
       event.update_attributes!(parent: parent)
-      a2 = FactoryGirl.create(:sub_activity, parent: event, workflow: @wf)
+      a2 = FactoryGirl.create(:sub_activity, parent: event, workflow: workflow)
       a2.__send__(:parent_decision).should == parent
     end
   end
