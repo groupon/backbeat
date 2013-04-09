@@ -10,7 +10,7 @@ module WorkflowServer
 
       has_many :events, inverse_of: :workflow, order: {sequence: 1}, dependent: :destroy
 
-      validates_presence_of :workflow_type, :subject, :decider, :user
+      validates_presence_of :workflow_type, :subject, :decider
 
       index({ workflow_type: 1, subject: 1 }, { unique: true, sparse: true })
       index({ subject: 1 }, { sparse: true })
