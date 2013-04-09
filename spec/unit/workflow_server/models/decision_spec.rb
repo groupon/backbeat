@@ -96,6 +96,16 @@ describe WorkflowServer::Models::Decision do
         @d1.send(:send_to_client)
         @d1.status.should == :sent_to_client
       end
+      context 'on error' do
+        it 'dismisses the watchdog and re-raises the error' do
+          WorkflowServer::Models::Watchdog.should_receive(:start).with(@d1, :decision_deciding_time_out, 2.hours)
+          WorkflowServer::Client.stub(:make_decision).and_raise('some error')
+          WorkflowServer::Models::Watchdog.should_receive(:dismiss).with(@d1, :decision_deciding_time_out)
+          expect {
+            @d1.send(:send_to_client)
+          }.to raise_error("some error")
+        end
+      end
     end
   end
 
