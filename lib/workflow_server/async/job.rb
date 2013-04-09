@@ -4,14 +4,13 @@ module WorkflowServer
   module Async
     JobStruct ||= Struct.new(:event_id, :method_to_call, :args, :max_attempts)
     class Job < JobStruct
-      include WorkflowServer::Logger
 
       def perform
-        info(id: event.id, name: event.name, message: "#{method_to_call}_started")
+        logger.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_started")
         event.__send__(method_to_call, *args)
-        info(id: event.id, name: event.name, message: "#{method_to_call}_succeeded")
+        logger.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_succeeded")
       rescue Exception => error
-        error(id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error, backtrace: error.backtrace)
+        logger.error(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error, backtrace: error.backtrace)
         raise
       end
 
@@ -28,6 +27,10 @@ module WorkflowServer
         unless method_to_call.to_s == 'notify_client'
           event.update_status!(:error, :async_job_error)
         end
+      end
+
+      def logger
+        @logger ||= WorkflowServer::Logger.logger
       end
 
       def event
