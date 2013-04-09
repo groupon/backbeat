@@ -40,7 +40,6 @@ module Dashboard
     update_dashboard.every '1m' do
       parents_with_multiple_decisions = group_by_and_having(WorkflowServer::Models::Event.where(_type: WorkflowServer::Models::Decision).selector, 'parent_id', 1)
       inconsistent_workflow_ids = WorkflowServer::Models::Event.where(:_id.in => parents_with_multiple_decisions, :_type.in => [ WorkflowServer::Models::Timer, WorkflowServer::Models::Signal ]).pluck(:workflow_id)
-
       multiple_executing_decisions_workflow_ids = group_by_and_having(WorkflowServer::Models::Event.where(:status.nin => [:open, :complete]).type(WorkflowServer::Models::Decision).selector, 'workflow_id', 1)
       stuck_workflow_ids = WorkflowServer::Models::Decision.where(status: :open).find_all {|decision| decision.workflow.decisions.where(status: :executing).none? }.map(&:workflow_id)
 
