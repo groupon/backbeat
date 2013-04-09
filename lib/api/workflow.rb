@@ -539,9 +539,9 @@ module Api
         end
       }
       get '/inconsistent_workflows' do
-        objects = WorkflowServer::Models::Event.where(user: current_user, :_type.in => [ WorkflowServer::Models::Timer.to_s, WorkflowServer::Models::Signal.to_s ]).pluck(:_id)
-        duplicate_objects = group_by_and_having(WorkflowServer::Models::Event.where(:parent_id.in => objects).type(WorkflowServer::Models::Decision).selector, 'parent_id', 1)
-        WorkflowServer::Models::Event.where(:id.in => duplicate_objects).map(&:workflow).uniq
+        parents_with_multiple_decisions = group_by_and_having(WorkflowServer::Models::Event.where(_type: WorkflowServer::Models::Decision).selector, 'parent_id', 1)
+        inconsistent_workflow_ids = WorkflowServer::Models::Event.where(user: current_user, :_id.in => parents_with_multiple_decisions, :_type.in => [ WorkflowServer::Models::Timer, WorkflowServer::Models::Signal ]).pluck(:workflow_id).uniq
+        WorkflowServer::Models::Workflow.where(:id.in => inconsistent_workflow_ids)
       end
 
     end
