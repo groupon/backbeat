@@ -213,7 +213,7 @@ module Api
         events: WorkflowServer::Models::Event
       }.each_pair do |event_type, model|
         desc "Get all the #{event_type} on a workflow.", {
-          action_descriptor: action_description("get_#{event_type}".to_sym) do |event|
+          action_descriptor: action_description(("get_" + event_type.to_s).to_sym) do |event|
             event.parameters do |parameters|
               parameters.string :id, description: 'the workflow id', required: true, location: 'url'
             end
