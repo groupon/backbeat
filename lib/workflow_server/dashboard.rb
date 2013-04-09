@@ -21,12 +21,14 @@ module Dashboard
     end
 
     update_dashboard.every '1m' do
-      count = WorkflowServer::Models::Event.where(status: :error).pluck(:workflow_id).uniq.count
+      workflow_ids = WorkflowServer::Models::Event.where(status: :error).pluck(:workflow_id).uniq
+      count = WorkflowServer::Models::Workflow.where(:_id.in => workflow_ids, :status.ne => :pause).count
       send_to_dashboard('errored_workflow_count', current: count)
     end
 
     update_dashboard.every '1m' do
-      count = WorkflowServer::Models::Event.where(status: :timeout).pluck(:workflow_id).uniq.count
+      workflow_ids = WorkflowServer::Models::Event.where(status: :timeout).pluck(:workflow_id).uniq
+      count = WorkflowServer::Models::Workflow.where(:_id.in => workflow_ids, :status.ne => :pause).count
       send_to_dashboard('timed_out_workflow_count', current: count)
     end
 
@@ -37,9 +39,12 @@ module Dashboard
 
     update_dashboard.every '1m' do
       object_ids = WorkflowServer::Models::Event.where(:_type.in => [WorkflowServer::Models::Timer.to_s, WorkflowServer::Models::Signal.to_s]).pluck(:_id)
-      duplicate_objects_count = group_by_and_having(WorkflowServer::Models::Event.where(:parent_id.in => object_ids).type(WorkflowServer::Models::Decision).selector, 'parent_id', 1).map(&:workflow_id).uniq.count
-      multiple_executing_decisions_count = group_by_and_having(WorkflowServer::Models::Event.where(:status.nin => [:open, :complete]).type(WorkflowServer::Models::Decision).selector, 'workflow_id', 1).count
-      send_to_dashboard('inconsistent_workflow_count', current: (duplicate_objects_count + multiple_executing_decisions_count))
+      duplicate_objects_workflow_ids = group_by_and_having(WorkflowServer::Models::Event.where(:parent_id.in => object_ids).type(WorkflowServer::Models::Decision).selector, 'parent_id', 1).map(&:workflow_id)
+      multiple_executing_decisions_workflow_ids = group_by_and_having(WorkflowServer::Models::Event.where(:status.nin => [:open, :complete]).type(WorkflowServer::Models::Decision).selector, 'workflow_id', 1)
+      stuck_workflow_ids = WorkflowServer::Models::Decision.where(status: :open, user: current_user).find_all {|decision| decision.workflow.decisions.where(status: :executing).none? }.map(&:workflow_id)
+
+      count = (duplicate_objects_workflow_ids + multiple_executing_decisions_count + stuck_workflow_ids).uniq.count
+      send_to_dashboard('inconsistent_workflow_count', current: count)
     end
 
     update_dashboard.every '1m' do
