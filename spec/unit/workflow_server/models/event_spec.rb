@@ -117,5 +117,14 @@ describe WorkflowServer::Models::Event do
       WorkflowServer::Async::Job.should_receive(:schedule).with({event: event, method: :test, args: [1,2,3,4], max_attempts:20}, Time.now + 10.minutes)
       event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes})
     end
+    context 'on error' do
+      it 'logs the error and backtrace' do
+        WorkflowServer::Async::Job.stub(:schedule).and_raise('some error')
+        event.should_receive(:error).with({ error: anything, method_name: :enqueue_test, args: [{max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes}], backtrace: anything })
+        expect {
+          event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes})
+        }.to raise_error('some error')
+      end
+    end
   end
 end
