@@ -226,7 +226,7 @@ module WorkflowServer
             fires_at = options[:fires_at] || Time.now
             WorkflowServer::Async::Job.schedule({event: self, method: method_name, args: method_args, max_attempts: max_attempts}, fires_at)
           rescue Exception => e
-            error({ error: e, method_name: name, args: args, backtrace: e.backtrace })
+            error({ id: id, method_name: name, args: args, error: e, backtrace: e.backtrace })
             raise
           end
         else

@@ -120,7 +120,7 @@ describe WorkflowServer::Models::Event do
     context 'on error' do
       it 'logs the error and backtrace' do
         WorkflowServer::Async::Job.stub(:schedule).and_raise('some error')
-        event.should_receive(:error).with({ error: anything, method_name: :enqueue_test, args: [{max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes}], backtrace: anything })
+        event.should_receive(:error).with({ id: event.id, method_name: :enqueue_test, args: [{max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes}], error: anything, backtrace: anything })
         expect {
           event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes})
         }.to raise_error('some error')
