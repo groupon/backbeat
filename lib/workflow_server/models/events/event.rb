@@ -218,12 +218,17 @@ module WorkflowServer
 
       def method_missing_with_enqueue(name, *args)
         if name.to_s =~ /^(enqueue)_(.*)$/
-          method_name = $2.to_sym
-          options = args.first.is_a?(Hash) ? args.first : {}
-          max_attempts = options[:max_attempts]
-          method_args = options[:args]
-          fires_at = options[:fires_at] || Time.now
-          WorkflowServer::Async::Job.schedule({event: self, method: method_name, args: method_args, max_attempts: max_attempts}, fires_at)
+          begin
+            method_name = $2.to_sym
+            options = args.first.is_a?(Hash) ? args.first : {}
+            max_attempts = options[:max_attempts]
+            method_args = options[:args]
+            fires_at = options[:fires_at] || Time.now
+            WorkflowServer::Async::Job.schedule({event: self, method: method_name, args: method_args, max_attempts: max_attempts}, fires_at)
+          rescue Exception => e
+            error({ error: e, method_name: name, args: args, backtrace: e.backtrace })
+            raise
+          end
         else
           method_missing_without_enqueue(name, *args)
         end
