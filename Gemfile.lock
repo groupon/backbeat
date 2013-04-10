@@ -59,12 +59,14 @@ GEM
     diff-lcs (1.2.1)
     erubis (2.7.0)
     eventmachine (1.0.3)
+    eventmachine (1.0.3-java)
     factory_girl (4.2.0)
       activesupport (>= 3.0.0)
     faraday (0.5.7)
       addressable (~> 2.2.4)
       multipart-post (~> 1.1.0)
       rack (>= 1.1.0, < 2)
+    ffi (1.6.0-java)
     grape (0.3.2)
       activesupport
       builder
@@ -79,12 +81,14 @@ GEM
     highline (1.6.16)
     hike (1.2.1)
     http_parser.rb (0.5.3)
+    http_parser.rb (0.5.3-java)
     httparty (0.10.2)
       multi_json (~> 1.0)
       multi_xml (>= 0.5.2)
     i18n (0.6.4)
     journey (1.0.4)
     json (1.7.7)
+    json (1.7.7-java)
     kgio (2.8.0)
     log4r (1.1.10)
     mail (2.5.3)
@@ -120,6 +124,13 @@ GEM
       coderay (~> 1.0.5)
       method_source (~> 0.8)
       slop (~> 3.4)
+    pry (0.9.12-java)
+      coderay (~> 1.0.5)
+      method_source (~> 0.8)
+      slop (~> 3.4)
+      spoon (~> 0.0)
+    puma (1.6.3-java)
+      rack (~> 1.2)
     rack (1.4.5)
     rack-accept (0.4.5)
       rack (>= 0.4)
@@ -149,6 +160,8 @@ GEM
       simplecov-html (~> 0.7.1)
     simplecov-html (0.7.1)
     slop (3.4.4)
+    spoon (0.0.3)
+      ffi
     sprockets (2.2.2)
       hike (~> 1.2)
       multi_json (~> 1.0)
@@ -187,6 +200,7 @@ GEM
       chronic (>= 0.6.3)
 
 PLATFORMS
+  java
   ruby
 
 DEPENDENCIES
@@ -205,6 +219,7 @@ DEPENDENCIES
   mongoid-locker!
   mongoid_auto_increment
   pry
+  puma
   rack-test
   rake
   rdoc
