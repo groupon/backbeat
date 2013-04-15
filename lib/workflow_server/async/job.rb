@@ -44,3 +44,16 @@ module WorkflowServer
     end
   end
 end
+
+module Moped
+  module BSON
+    class ObjectId
+      class Generator
+        def generate(time, counter = 0)
+          process_thread_id = (RUBY_ENGINE == 'jruby' ? "#{Process.pid}#{Thread.current.object_id}".hash % 0xFFFF : Process.pid)
+          [time, @machine_id, process_thread_id, counter << 8].pack("N NX lXX NX")
+        end
+      end
+    end
+  end
+end

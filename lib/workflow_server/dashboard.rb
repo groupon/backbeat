@@ -78,6 +78,12 @@ module Dashboard
       send_to_dashboard('timers_firing_within_24_hours_count', current: count)
     end
 
+    update_dashboard.every '5m' do
+      pause_time = Time.now
+      count = Delayed::Job.where(:failed_at.exists => true).count
+      send_to_dashboard('failed_delayed_jobs', current: count)
+    end
+
     update_dashboard.start
     update_dashboard.join
   end
