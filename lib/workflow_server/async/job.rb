@@ -45,20 +45,14 @@ module WorkflowServer
   end
 end
 
-module Delayed
-  module Backend
-    module Mongoid
-      class Job
-
-        # We do not want to rely on the moped driver to assign us a default id. We have seen in the past
-        # that multiple processes may try to assign the same default id
-        field(
-          :_id,
-          default: ->{ UUIDTools::UUID.random_create.to_s },
-          pre_processed: true,
-          type: Moped::BSON::ObjectId
-        )
-
+module Moped
+  module BSON
+    class ObjectId
+      class Generator
+        def generate(time, counter = 0)
+          process_thread_id = (RUBY_ENGINE == 'jruby' ? "#{Process.pid}#{Thread.current.object_id}".hash % 0xFFFF : Process.pid)
+          [time, @machine_id, process_thread_id, counter << 8].pack("N NX lXX NX")
+        end
       end
     end
   end
