@@ -44,3 +44,15 @@ module WorkflowServer
     end
   end
 end
+
+module Delayed
+  module Backend
+    module Mongoid
+      class Job
+        # We do not want to rely on the moped driver to assign us a default id. We have seen in the past
+        # that multiple processes may try to assign the same default id
+        field :_id, type: String, default: ->{ UUIDTools::UUID.random_create.to_s }
+      end
+    end
+  end
+end

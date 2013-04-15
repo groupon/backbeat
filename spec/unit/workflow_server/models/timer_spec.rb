@@ -29,7 +29,8 @@ describe WorkflowServer::Models::Timer do
       timer.status.should == :open
       timer.start
       timer.status.should == :scheduled
-      job = Delayed::Job.last
+      timer.async_jobs.and(handler: /fire/).count.should == 1
+      job = timer.async_jobs.and(handler: /fire/).first
       job.run_at.should == Date.tomorrow.to_time
       async_job = job.payload_object
       async_job.event.should eq timer

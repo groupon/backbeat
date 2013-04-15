@@ -5,7 +5,8 @@ describe WorkflowServer::Async::Job do
   context "#schedule" do
     it "schedules a delayed job" do
       WorkflowServer::Async::Job.schedule({event: decision, method: :some_method, max_attempts: 100}, Time.now + 2.days)
-      job = Delayed::Job.last
+      Delayed::Job.where(handler: /some_method/).count.should == 1
+      job = Delayed::Job.where(handler: /some_method/).first
       job.run_at.to_s.should == (Time.now + 2.days).to_s
     end
   end
