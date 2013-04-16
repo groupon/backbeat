@@ -17,16 +17,19 @@ module Api
     end
 
     rescue_from :all do |e|
+      Squash::Ruby.notify e
       Api::Workflow.error({ error: e, backtrace: e.backtrace })
       Rack::Response.new({error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
     end
 
     rescue_from WorkflowServer::EventNotFound do |e|
+      Squash::Ruby.notify e
       Api::Workflow.info(e)
       Rack::Response.new({error: e.message }.to_json, 404, { "Content-type" => "application/json" }).finish
     end
 
     rescue_from WorkflowServer::EventComplete, WorkflowServer::InvalidParameters, WorkflowServer::InvalidEventStatus, WorkflowServer::InvalidDecisionSelection, Grape::Exceptions::Validation do |e|
+      Squash::Ruby.notify e
       Api::Workflow.info(e)
       Rack::Response.new({error: e.message }.to_json, 400, { "Content-type" => "application/json" }).finish
     end

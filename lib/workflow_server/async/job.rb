@@ -11,6 +11,7 @@ module WorkflowServer
         event.__send__(method_to_call, *args)
         self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_succeeded")
       rescue Exception => error
+        Squash::Ruby.notify error
         self.class.error(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error, backtrace: error.backtrace)
         raise
       end

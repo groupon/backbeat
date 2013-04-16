@@ -29,6 +29,7 @@ describe WorkflowServer::Async::Job do
     context '#error' do
       it 'records exceptions and raises the error' do
         @dec.should_receive(:some_method).and_raise('some error')
+        Squash::Ruby.should_receive(:notify)
         WorkflowServer::Async::Job.should_receive(:error).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_errored", error: anything, backtrace: anything)
         expect {
           @job.invoke_job

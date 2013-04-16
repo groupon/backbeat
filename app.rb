@@ -15,3 +15,5 @@ require 'service-discovery'
 require 'grape'
 require 'api'
 require 'workflow_server'
+
+Squash::Ruby.configure(WorkflowServer::Config.squash_config)

@@ -13,11 +13,19 @@ module WorkflowServer
     end
 
     def self.options
-      @options ||= HashWithIndifferentAccess.new(YAML.load(File.read(File.join(root, "config", "options.yml"))))[environment]
+      @options ||= options_yml[environment]
+    end
+
+    def self.squash_config
+      @squash_options ||= options_yml[:squash].merge(environment: environment)
     end
 
     def self.option(field)
       options[field]
+    end
+
+    def self.options_yml
+      HashWithIndifferentAccess.new(YAML.load(File.read(File.join(root, "config", "options.yml"))))
     end
 
     def self.get_environment
