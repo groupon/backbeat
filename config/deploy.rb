@@ -407,6 +407,14 @@ namespace :deploy do
   end
 end
 
+namespace :squash do
+  desc "Notifies Squash of a new deploy."
+  task :notify, :except => {:no_release => true} do
+    run "cd #{current_path} && RACK_ENV=#{stage} bundle exec rake squash:notify REVISION=#{real_revision} DEPLOY_ENV=#{stage}"
+  end
+end
+
+
 def sha_from_branch(arg)
   branch_to_sha = {}
   `git ls-remote`.split("\n").each do |line|
@@ -422,14 +430,15 @@ before :deploy do
   deploy.check_lock
 end
 
-before "deploy:update_code", "deploy:confirm", "deploy:campfire_notify", "workers:stop"
-before "deploy:finalize_update", "bundle:install"
+before 'deploy:update_code', 'deploy:confirm', 'deploy:campfire_notify', 'workers:stop'
+before 'deploy:finalize_update', 'bundle:install'
+before 'deploy:restart', 'deploy:find_existing_unicorn_processes'
 
-before "deploy:restart", "deploy:find_existing_unicorn_processes"
-after "deploy:restart", "deploy:dashboard_worker", "deploy:check_for_new_unicorn_processes", "deploy:create_indexes", "deploy:cleanup"
-after "deploy:cleanup", "deploy:check_processes", "workers:start", "deploy:campfire_notify_complete"
+after 'deploy:start', 'squash:notify'
+after 'deploy:restart', 'deploy:dashboard_worker', 'deploy:check_for_new_unicorn_processes', 'deploy:create_indexes', 'deploy:cleanup', 'squash:notify'
+after 'deploy:cleanup', 'deploy:check_processes', 'workers:start', 'deploy:campfire_notify_complete'
 
-#after "deploy:create_symlink", "newrelic:notice_deployment"
+#after 'deploy:create_symlink', 'newrelic:notice_deployment'
 
 # This ensures bundle install happens before bundle exec whenever tries to update the crontab
 require 'whenever/capistrano'

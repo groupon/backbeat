@@ -46,3 +46,13 @@ namespace :mongo do
     end
   end
 end
+
+namespace :squash do
+  desc "Notifies Squash that this server has received a new deploy."
+  task :notify do
+    require 'socket'
+    Squash::Ruby.notify_deploy WorkflowServer::Config.environment,
+                               ENV['REVISION']   || Squash::Ruby.current_revision,
+                               ENV['HOST']       || Socket.gethostname
+  end
+end
