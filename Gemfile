@@ -25,6 +25,7 @@ gem 'rufus-scheduler'
 gem 'whenever'
 
 gem 'service-discovery', git: 'git@github.groupondev.com:groupon-api/service-discovery.git'
+gem 'squash_ruby', :require => 'squash/ruby'
 
 group :development do
   # Deploy

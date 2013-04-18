@@ -32,3 +32,8 @@ production:
   log_format: json
   dashboard_auth_token: '6dy6L8v8942jrbV622dr'
   dashboard_base_uri:   'http://localhost:3030/widgets/'
+
+squash:
+  api_key:        '9af7f0de-ddb0-4db3-9285-6b93d1dcb743'
+  api_host:       'https://squash.groupondev.com'
+  revision_file:  'REVISION'
