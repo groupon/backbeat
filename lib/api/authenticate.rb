@@ -1,3 +1,5 @@
+require 'newrelic_rpm'
+
 module Api
   class Authenticate
     def initialize(app)
@@ -11,5 +13,6 @@ module Api
       @app.call(env)
     end
 
+    include ::NewRelic::Agent::Instrumentation::Rack
   end
 end

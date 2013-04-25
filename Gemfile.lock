@@ -66,7 +66,6 @@ GEM
       addressable (~> 2.2.4)
       multipart-post (~> 1.1.0)
       rack (>= 1.1.0, < 2)
-    ffi (1.6.0)
     ffi (1.6.0-java)
     grape (0.3.2)
       activesupport
@@ -119,6 +118,7 @@ GEM
     net-ssh (2.6.6)
     net-ssh-gateway (1.2.0)
       net-ssh (>= 2.6.5)
+    newrelic_rpm (3.6.1.87)
     origin (1.0.11)
     polyglot (0.3.3)
     pry (0.9.12)
@@ -130,8 +130,6 @@ GEM
       method_source (~> 0.8)
       slop (~> 3.4)
       spoon (~> 0.0)
-    puma (1.6.3)
-      rack (~> 1.2)
     puma (1.6.3-java)
       rack (~> 1.2)
     rack (1.4.5)
@@ -223,6 +221,7 @@ DEPENDENCIES
   mongoid-indifferent-access
   mongoid-locker!
   mongoid_auto_increment
+  newrelic_rpm
   pry
   puma
   rack-test
