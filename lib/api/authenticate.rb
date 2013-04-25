@@ -1,3 +1,5 @@
+require 'newrelic_rpm'
+
 module Api
   class Authenticate
     def initialize(app)
