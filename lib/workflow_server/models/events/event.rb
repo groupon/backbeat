@@ -67,7 +67,7 @@ module WorkflowServer
       end
 
       def start
-        notify_of("start")
+        #notify_of("start")
       end
 
       def restart
@@ -76,7 +76,7 @@ module WorkflowServer
 
       def completed
         update_status!(:complete)
-        notify_of("complete")
+        #notify_of("complete")
         Watchdog.mass_dismiss(self)
         parent.child_completed(self) if parent
       end
@@ -267,6 +267,8 @@ module WorkflowServer
             error_hash[:backtrace] = error.backtrace
           end
           error_hash
+        when String
+          {error_klass: error.class.to_s, message: error}
         else
           error
         end if error

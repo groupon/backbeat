@@ -23,7 +23,6 @@ describe WorkflowServer::Models::Activity do
       Delayed::Job.destroy_all
       @a1.start
       Delayed::Job.where(handler: /send_to_client/).count.should == 1
-      Delayed::Job.where(handler: /notify_client/).count.should == 1
       job = Delayed::Job.where(handler: /send_to_client/).first
       handler = YAML.load(job.handler)
       handler.event_id.should == @a1.id
