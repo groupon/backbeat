@@ -11,5 +11,6 @@ module Api
       @app.call(env)
     end
 
+    include ::NewRelic::Agent::Instrumentation::Rack
   end
 end
