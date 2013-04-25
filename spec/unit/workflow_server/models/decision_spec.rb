@@ -26,7 +26,6 @@ describe WorkflowServer::Models::Decision do
       @d1.start
       @d1.status.should == :sent_to_client
       Delayed::Job.where(handler: /send_to_client/).count.should == 1
-      Delayed::Job.where(handler: /notify_client/).count.should == 1
       job = Delayed::Job.where(handler: /send_to_client/).first
       handler = YAML.load(job.handler)
       handler.event_id.should == @d1.id

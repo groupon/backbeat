@@ -114,7 +114,7 @@ describe Api::Workflow do
       payload = Delayed::Job.where(handler: /work_on_decisions/).first.payload_object
       payload.perform
       timer = decision.children.first
-      timer.async_jobs.count.should == 2
+      timer.async_jobs.count.should == 1
       flag = FactoryGirl.create(:continue_as_new_workflow_flag, workflow: wf)
       flag.start
       wf.reload

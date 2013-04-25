@@ -129,7 +129,6 @@ describe Api::Workflow do
       @wf.signals.first.client_data.should == {'data' => '123'}
       @wf.signals.first.client_metadata.should == {'metadata' => '456'}
       Delayed::Job.where(handler: /schedule_next_decision/).count.should == 1
-      Delayed::Job.where(handler: /notify_client/).count.should == 2
     end
 
     it "returns 400 if the workflow is closed for events" do
