@@ -30,7 +30,7 @@ describe Api::Workflow do
         get uri(template, @d1)
         last_response.status.should == 200
         json_response = JSON.parse(last_response.body)
-        json_response.should == {"clientData"=>{}, "createdAt"=>Time.now.to_datetime.to_s, "decider" => "PaymentDecider", "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@d1.workflow.id, "id"=>@d1.id, "type"=>"decision", "historyDecisions"=>[], "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}
+        json_response.should == {"clientData"=>{}, "createdAt"=>Time.now.to_datetime.to_s, "decider" => "PaymentDecider", "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@d1.workflow.id, "id"=>@d1.id, "type"=>"decision", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}
         json_response['id'].should == @d1.id.to_s
       end
 
@@ -41,7 +41,6 @@ describe Api::Workflow do
         get uri(template, decision)
         last_response.status.should == 200
         json_response = JSON.parse(last_response.body)
-        json_response['historyDecisions'].should == [{'name' => @d1.name.to_s, 'status' => @d1.reload.status.to_s}]
       end
 
       it "returns a 404 if the event is not found" do
@@ -60,6 +59,38 @@ describe Api::Workflow do
         last_response.status.should == 404
         json_response = JSON.parse(last_response.body)
         json_response.should == (template.match(/^\/workflows/) ? {"error" => "Workflow with id(#{decision.workflow.id}) not found"} : {"error" => "Event with id(#{decision.id}) not found"})
+      end
+    end
+
+    context "GET #{template}/history_decisions" do
+      it "returns all the decisions before the given event" do
+        decision1 = FactoryGirl.create(:decision, workflow: workflow, status: :complete)
+        decision2 = FactoryGirl.create(:decision, workflow: workflow, status: :executing)
+        decision3 = FactoryGirl.create(:decision, workflow: workflow, status: :executing)
+        decision4 = FactoryGirl.create(:decision, workflow: workflow, status: :complete)
+        get "#{uri(template, decision3)}/history_decisions"
+        last_response.status.should == 200
+        json_response = JSON.parse(last_response.body)
+        json_response["historyDecisions"].size.should == 3
+        json_response["historyDecisions"].first['id'].should == @d1.id
+        json_response["historyDecisions"][1]['id'].should == decision1.id
+        json_response["historyDecisions"].last['id'].should == decision2.id
+      end
+
+      it "returns a 404 if the event is not found" do
+        event = mock('mock', id: 1000, workflow: @d1.workflow)
+        get "#{uri(template, event)}/history_decisions"
+        last_response.status.should == 404
+        json_response = JSON.parse(last_response.body)
+        json_response.should == {"error" => "Event with id(1000) not found"}
+      end
+
+      it "returns a 404 if a user tries to access a workflow that doesn't belong to them" do
+        header 'CLIENT_ID', @user.id
+        get "#{uri(template, @d1)}/history_decisions"
+        last_response.status.should == 404
+        json_response = JSON.parse(last_response.body)
+        json_response.should == (template.match(/^\/workflows/) ? {"error" => "Workflow with id(#{@d1.workflow.id}) not found"} : {"error" => "Event with id(#{@d1.id}) not found"})
       end
     end
 
