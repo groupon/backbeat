@@ -17,3 +17,5 @@ require 'api'
 require 'workflow_server'
 
 Squash::Ruby.configure(WorkflowServer::Config.squash_config)
+
+require 'newrelic_rpm'
