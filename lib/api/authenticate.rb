@@ -1,4 +1,5 @@
 require 'newrelic_rpm'
+require 'new_relic/agent/instrumentation/rack'
 
 module Api
   class Authenticate
