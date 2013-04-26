@@ -16,7 +16,7 @@ module Dashboard
     end
 
     update_dashboard.every '1m' do
-      count = WorkflowServer::Models::Workflow.where(status: :open).count
+      count = WorkflowServer::Models::Workflow.where(:status.in => [ :open, :executing ]).count
       send_to_dashboard('active_workflow_count', current: count)
     end
 
