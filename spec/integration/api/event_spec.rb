@@ -63,6 +63,12 @@ describe Api::Workflow do
     end
 
     context "GET #{template}/history_decisions" do
+      it "empty array when no history" do
+        get "#{uri(template, @d1)}/history_decisions"
+        last_response.status.should == 200
+        json_response = JSON.parse(last_response.body)
+        json_response["historyDecisions"].should == []
+      end
       it "returns all the decisions before the given event" do
         decision1 = FactoryGirl.create(:decision, workflow: workflow, status: :complete)
         decision2 = FactoryGirl.create(:decision, workflow: workflow, status: :executing)
