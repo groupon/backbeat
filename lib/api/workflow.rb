@@ -370,9 +370,9 @@ module Api
             parameters.string :id, description: 'the event id', required: true, location: 'url'
           end
           history_decisions.response do |response|
-            response.array :history_decisions do |children|
-              children.object do |child|
-                SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Decision, child)
+            response.array(:decisions) do |event_object|
+              event_object.object do |object|
+                SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Decision, object)
               end
             end
           end
@@ -380,7 +380,7 @@ module Api
       }
       get "/:id/history_decisions" do
         event = find_event(params)
-        { history_decisions: event.past_decisions.where(:inactive.ne => true) }
+        event.past_decisions.where(:inactive.ne => true)
       end
 
       desc "Get the event tree as a hash.", {

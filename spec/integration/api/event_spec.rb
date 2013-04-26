@@ -67,7 +67,7 @@ describe Api::Workflow do
         get "#{uri(template, @d1)}/history_decisions"
         last_response.status.should == 200
         json_response = JSON.parse(last_response.body)
-        json_response["historyDecisions"].should == []
+        json_response.should == []
       end
       it "returns all the decisions before the given event" do
         decision1 = FactoryGirl.create(:decision, workflow: workflow, status: :complete)
@@ -77,10 +77,10 @@ describe Api::Workflow do
         get "#{uri(template, decision3)}/history_decisions"
         last_response.status.should == 200
         json_response = JSON.parse(last_response.body)
-        json_response["historyDecisions"].size.should == 3
-        json_response["historyDecisions"].first['id'].should == @d1.id
-        json_response["historyDecisions"][1]['id'].should == decision1.id
-        json_response["historyDecisions"].last['id'].should == decision2.id
+        json_response.size.should == 3
+        json_response.first['id'].should == @d1.id
+        json_response[1]['id'].should == decision1.id
+        json_response.last['id'].should == decision2.id
       end
 
       it "returns a 404 if the event is not found" do
