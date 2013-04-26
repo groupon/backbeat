@@ -336,7 +336,7 @@ describe WorkflowServer::Models::Activity do
 
       it "sets the field _client_done_with_activityd to indicate client is done with this activity" do
         @a1.update_attributes!(status: :executing)
-        @a1.should_receive(:complete_if_done)
+        @a1.should_receive(:enqueue_complete_if_done)
         @a1._client_done_with_activity.should == false
         @a1.change_status(:completed)
         @a1._client_done_with_activity.should == true
@@ -345,6 +345,7 @@ describe WorkflowServer::Models::Activity do
       it "records the next decision and result" do
         @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
         @a1.should_receive(:completed)
+        @a1.should_receive(:enqueue_complete_if_done) { @a1.complete_if_done }
         @a1.change_status(:completed, {next_decision: :more_test, result: {a: :b, c: :d}})
         @a1.reload.result.should == {"a" => :b, "c" => :d}
         @a1.reload.next_decision.should == 'more_test'
@@ -353,6 +354,7 @@ describe WorkflowServer::Models::Activity do
       it "records none as the next decision" do
         @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
         @a1.should_receive(:completed)
+        @a1.should_receive(:enqueue_complete_if_done) { @a1.complete_if_done }
         @a1.change_status(:completed, {next_decision: :none, result: {a: :b, c: :d}})
         @a1.reload.result.should == {"a" => :b, "c" => :d}
         @a1.reload.next_decision.should == 'none'
@@ -375,10 +377,19 @@ describe WorkflowServer::Models::Activity do
         }.to raise_error(WorkflowServer::InvalidEventStatus, "Activity make_initial_payment can't transition from open to errored")
       end
 
-      it "calls errored with the error argument" do
+      it "calls enqueue_errored with the error argument" do
         @a1.update_status!(:executing)
-        @a1.should_receive(:errored).with({message: 100, backtrace: 200})
+        @a1.should_receive(:enqueue_errored).with(args: [{ message: 100, backtrace: 200}])
         @a1.change_status(:errored, {error: {message: 100, backtrace: 200}})
+      end
+
+      it "errored is called with the error" do
+        @a1.update_status!(:executing)
+        @a1.change_status(:errored, {error: {message: 100, backtrace: 200}})
+        @a1.reload
+        @a1.async_jobs.count.should == 1
+        WorkflowServer::Models::Activity.any_instance.should_receive(:errored).with({message: 100, backtrace: 200})
+        @a1.async_jobs.first.invoke_job
       end
     end
   end
