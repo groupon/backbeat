@@ -362,6 +362,27 @@ module Api
         {success: true}
       end
 
+      # TODO - make a more generic endpoint to return the history
+      desc "Get all the decisions that have occurred in the past based off this decision", {
+        action_descriptor: action_description(:history_decisions) do |history_decisions|
+          history_decisions.parameters do |parameters|
+            parameters.string :workflow_id, description: 'the workflow id', required: true, location: 'url' if full_url
+            parameters.string :id, description: 'the event id', required: true, location: 'url'
+          end
+          history_decisions.response do |response|
+            response.array(:decisions) do |event_object|
+              event_object.object do |object|
+                SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Decision, object)
+              end
+            end
+          end
+        end
+      }
+      get "/:id/history_decisions" do
+        event = find_event(params)
+        event.past_decisions.where(:inactive.ne => true)
+      end
+
       desc "Get the event tree as a hash.", {
         action_descriptor: action_description(:get_event_tree) do |tree|
           tree.parameters do |parameters|
