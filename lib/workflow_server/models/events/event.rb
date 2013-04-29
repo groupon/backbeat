@@ -16,6 +16,7 @@ module WorkflowServer
       field :client_metadata, type: Hash, default: {}, label: "Clients should use this field to store metadata with the events e.g. build version, process pid etc."
 
       field :inactive,       type: Boolean, default: false
+      field :_delayed_jobs,  type: Array, default: []
 
       auto_increment :sequence
 
@@ -226,7 +227,9 @@ module WorkflowServer
             max_attempts = options[:max_attempts]
             method_args = options[:args]
             fires_at = options[:fires_at] || Time.now
-            WorkflowServer::Async::Job.schedule({event: self, method: method_name, args: method_args, max_attempts: max_attempts}, fires_at)
+            job = WorkflowServer::Async::Job.schedule({event: self, method: method_name, args: method_args, max_attempts: max_attempts}, fires_at)
+            self._delayed_jobs << job.id
+            save!
           rescue Exception => e
             error({ id: id, method_name: name, args: args, error: e, backtrace: e.backtrace })
             raise
