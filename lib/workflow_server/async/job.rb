@@ -21,6 +21,10 @@ module WorkflowServer
         Delayed::Job.enqueue(job, run_at: run_at)
       end
 
+      def before(job, *args)
+        self.class.info(source: self.class.to_s, job: job.id, id: event.id, name: event.name, message: "#{method_to_call}_start_before_hook")
+      end
+
       # add a failure hook when everything fails
       def failure
         # TODO - notify_client errors can be ignored (this looks like

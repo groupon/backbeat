@@ -67,6 +67,7 @@ module WorkflowServer
       end
 
       def start
+        info(id: self.id, name: self.name, type: self.event_type, notification: :start)
         #notify_of("start")
       end
 
@@ -76,6 +77,7 @@ module WorkflowServer
 
       def completed
         update_status!(:complete)
+        info(id: self.id, name: self.name, type: self.event_type, notification: :complete)
         #notify_of("complete")
         Watchdog.mass_dismiss(self)
         parent.child_completed(self) if parent

@@ -17,6 +17,7 @@ describe WorkflowServer::Async::Job do
       WorkflowServer::Models::Event.stub(find: @dec)
     end
     it "logs start and succeeded messages" do
+      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", job: anything, id: 10, name: :make_payment, message: "some_method_start_before_hook")
       WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_started")
       WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_succeeded")
       @job.invoke_job
