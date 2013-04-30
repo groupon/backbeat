@@ -205,7 +205,7 @@ module WorkflowServer
       end
 
       def with_lock_with_defaults(options = {}, &block)
-        opts = {retry_sleep: 0.5, retries: 10, timeout: 2}.merge(options)
+        opts = {retry_sleep: 0.5, retries: 10, timeout: 10}.merge(options)
         with_lock_without_defaults(opts, &block)
       end
       alias_method :with_lock_without_defaults, :with_lock
