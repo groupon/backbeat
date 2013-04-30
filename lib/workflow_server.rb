@@ -12,15 +12,20 @@ require 'workflow_server/version'
 require 'workflow_server/dashboard'
 
 module WorkflowServer
+  extend WorkflowServer::Logger
+
   class << self
 
     def schedule_next_decision(workflow)
-      workflow.with_lock(timeout: 10) do
+      workflow.with_lock(timeout: 30) do
+        self.info(id: workflow.id, message: :schedule_next_decision_lock_start, source: self.to_s)
         if workflow.decisions.not_in(:status => [:complete, :open]).empty?
           if (next_decision = workflow.decisions.where(status: :open).first)
+            self.info(id: workflow.id, message: :schedule_next_decision_lock_decision, decision: next_decision.id, source: self.to_s)
             next_decision.start
           end
         end
+        self.info(id: workflow.id, message: :schedule_next_decision_lock_complete, source: self.to_s)
       end
     end
 
