@@ -90,7 +90,7 @@ module WorkflowServer
     end
 
     def running?
-      signal(0)
+      signal(0) || system("nc -z localhost #{client.port}")
     end
 
     def signal(signal)
