@@ -9,7 +9,7 @@ shared_examples_for 'events' do
 
   it "delayed jobs are deleted" do
     5.times do
-      WorkflowServer::Async::Job.schedule({event: @event, method: :fire, max_attempts: 5}, Date.tomorrow)
+      @event.enqueue_fire(max_attempts: 5, fires_at: Date.tomorrow)
     end
     @event.async_jobs.and(handler: /fire/).count.should == 5
     WorkflowServer::Async::Job.jobs(@event).and(handler: /fire/).count.should == 5

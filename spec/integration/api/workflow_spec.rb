@@ -279,8 +279,8 @@ describe Api::Workflow do
         last_response.status.should == 200
         @wf.reload
         @wf.paused?.should == true
-        @a1.async_jobs.map(&:payload_object).map(&:perform) # this runs send_to_client on the activity
-        @d1.async_jobs.map(&:payload_object).map(&:perform) # this runs send_to_client on the decision
+        @a1.send :send_to_client
+        @d1.send :send_to_client
         @wf.events.where(status: :pause).count.should == 2
         @wf.events.where(status: :pause).map(&:id).should include(@d1.id)
         @wf.events.where(status: :pause).map(&:id).should include(@a1.id)

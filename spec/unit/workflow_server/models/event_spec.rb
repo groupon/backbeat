@@ -115,8 +115,6 @@ describe WorkflowServer::Models::Event do
   context '#method_missing_with_enqueue' do
     it 'schedules a job if the method name begins with enqueue_' do
       WorkflowServer::Async::Job.should_receive(:schedule).with({event: event, method: :test, args: [1,2,3,4], max_attempts:20}, Time.now + 10.minutes).and_return(mock('job', id: 100))
-      event._delayed_jobs.should_receive(:<<).with(100)
-      event.should_receive(:save!)
       event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes})
     end
     context 'on error' do
