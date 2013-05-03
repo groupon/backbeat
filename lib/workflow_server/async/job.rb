@@ -18,11 +18,19 @@ module WorkflowServer
 
       def self.schedule(options = {}, run_at = Time.now)
         job = new(options[:event].id, options[:method], options[:args], options[:max_attempts])
-        Delayed::Job.enqueue(job, run_at: run_at)
+        job = Delayed::Job.enqueue(job, run_at: run_at)
+        # Maintain a list of outstanding delayed jobs on the event
+        options[:event].push(:_delayed_jobs, job.id)
+        job
       end
 
       def before(job, *args)
         self.class.info(source: self.class.to_s, job: job.id, id: event.id, name: event.name, message: "#{method_to_call}_start_before_hook")
+      end
+
+      def success(job, *args)
+        # Remove this job from the list of outstanding jobs
+        event.pull(:_delayed_jobs, job.id)
       end
 
       # add a failure hook when everything fails
@@ -40,7 +48,7 @@ module WorkflowServer
       end
 
       def self.jobs(event)
-        Delayed::Job.where(handler: /WorkflowServer::Async::Job/).and(handler: /#{event.id}/)
+        Delayed::Job.where(:id.in => event._delayed_jobs)
       end
 
     end
