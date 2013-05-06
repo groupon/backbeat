@@ -7,11 +7,12 @@ module WorkflowServer
       extend WorkflowServer::Logger
 
       def perform
+        t0 = Time.now
         self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_started")
         event.__send__(method_to_call, *args)
-        self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_succeeded")
+        self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_succeeded", duration: Time.now - t0)
       rescue Exception => error
-        self.class.error(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error, backtrace: error.backtrace)
+        self.class.error(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error, backtrace: error.backtrace, duration: Time.now - t0)
         Squash::Ruby.notify error
         raise
       end

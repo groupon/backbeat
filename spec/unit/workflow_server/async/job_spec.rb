@@ -20,7 +20,7 @@ describe WorkflowServer::Async::Job do
     it "logs start and succeeded messages" do
       WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", job: anything, id: 10, name: :make_payment, message: "some_method_start_before_hook")
       WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_started")
-      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_succeeded")
+      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_succeeded", duration: 0.0)
       @job.invoke_job
     end
     it "calls the method on the given event" do
@@ -32,7 +32,7 @@ describe WorkflowServer::Async::Job do
       it 'records exceptions and raises the error' do
         @dec.should_receive(:some_method).and_raise('some error')
         Squash::Ruby.should_receive(:notify)
-        WorkflowServer::Async::Job.should_receive(:error).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_errored", error: anything, backtrace: anything)
+        WorkflowServer::Async::Job.should_receive(:error).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_errored", error: anything, backtrace: anything, duration: 0.0)
         expect {
           @job.invoke_job
         }.to raise_error
