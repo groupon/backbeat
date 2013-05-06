@@ -13,8 +13,15 @@ module Api
       t0 = Time.now
       tid = WorkflowServer::Logger.tid(:set)
       info "START - Endpoint #{env['PATH_INFO']}"
+      envs = env['PATH_INFO'].split("/")
       status, headers, body = @app.call(env)
-      info "END - Response status #{status} - Time taken #{Time.now - t0}s"
+
+      info( response: { status: status,
+                        type: envs[1],
+                        method: envs.last,
+                        env: env['PATH_INFO'],
+                        duration: Time.now - t0})
+
       headers[TRANSACTION_ID_HEADER] = tid
       WorkflowServer::Logger.tid(:clear)
       [status, headers, body]
