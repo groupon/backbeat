@@ -57,9 +57,6 @@ production:
     default:
       database: workflow_production
       hosts:
-        - accounting-mongodb1.snc1:27017
-        - accounting-mongodb2.snc1:27017
-        - accounting-mongodb3.snc1:27017
         - accounting-mongobigdb1.snc1:27017
         - accounting-mongobigdb2.snc1:27017
         - accounting-mongobigdb3.snc1:27017
