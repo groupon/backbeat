@@ -60,6 +60,9 @@ production:
         - accounting-mongodb1.snc1:27017
         - accounting-mongodb2.snc1:27017
         - accounting-mongodb3.snc1:27017
+        - accounting-mongobigdb1.snc1:27017
+        - accounting-mongobigdb2.snc1:27017
+        - accounting-mongobigdb3.snc1:27017
       options:
         consistency: :strong
         max_retries: 5
