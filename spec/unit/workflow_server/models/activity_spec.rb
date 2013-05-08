@@ -316,7 +316,7 @@ describe WorkflowServer::Models::Activity do
     it "raises error if the new status field is invalid" do
       expect {
         @a1.change_status(:some_crap)
-      }.to raise_error(WorkflowServer::InvalidEventStatus, "Invalid status some_crap")
+      }.to raise_error(WorkflowServer::InvalidEventStatus, "Activity make_initial_payment can't transition from open to some_crap")
     end
 
     context "completed" do

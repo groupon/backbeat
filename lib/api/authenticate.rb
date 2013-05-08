@@ -9,8 +9,8 @@ module Api
 
     def call(env)
       client_id = env['HTTP_CLIENT_ID']
-      return [401, {"Content-Type"=>"text/plain"}, ["Unauthorized"]] if client_id.nil? || !WorkflowServer::Models::User.where(id: client_id).exists?
-      env['WORKFLOW_CURRENT_USER'] = WorkflowServer::Models::User.find(client_id)
+      env['WORKFLOW_CURRENT_USER'] = WorkflowServer::Models::User.where(id: client_id).first
+      return [401, {"Content-Type"=>"text/plain"}, ["Unauthorized"]] unless env['WORKFLOW_CURRENT_USER']
       @app.call(env)
     end
 

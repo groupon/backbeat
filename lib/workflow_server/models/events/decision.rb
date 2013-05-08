@@ -110,6 +110,7 @@ module WorkflowServer
         start_next_action
         complete_if_done
       end
+      # TODO discuss the pattern of alias_method'ing to continue
       alias_method :continue, :work_on_decisions
 
       def complete_if_done

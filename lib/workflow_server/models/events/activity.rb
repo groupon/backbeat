@@ -102,18 +102,25 @@ module WorkflowServer
         mode == :fire_and_forget
       end
 
+
+      ALLOWED_TRANSITIONS_TO_FROM = { completed: { executing: true, timeout: true },
+                                      errored:   { executing: true, timeout: true } }
+
       def change_status(new_status, args = {})
+        new_status = new_status.to_sym
+
         return if status == new_status.to_sym
+
+        unless ALLOWED_TRANSITIONS_TO_FROM[new_status].try(:[], status)
+          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}"
+        end
+
         case new_status.to_sym
         when :completed
-          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)
           update_attributes!(result: args[:result], next_decision: verify_and_get_next_decision(args[:next_decision]), _client_done_with_activity: true)
           complete_if_done
         when :errored
-          raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)
           errored(args[:error])
-        else
-          raise WorkflowServer::InvalidEventStatus, "Invalid status #{new_status}"
         end
       end
 
