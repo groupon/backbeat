@@ -4,8 +4,8 @@ module WorkflowServer
 
       field :mode, type: Symbol, default: :blocking, label: "Defines the concurrency level. Valid values are blocking, non_blocking and fire_and_forget. 1) blocking implies this activity will execute in isolation 2) non_blocking implies other activities can execute while this one is running. The parent of this activity will wait for this activity to complete before calling complete on itself 3) fire_and_forget is similar to non_blocking except the parent won't wait for this activity to complete. DEFAULT is blocking"
       field :always, type: Boolean, default: false
-      field :retry, type: Integer, default: 3, label: "The number of times this activity will be retried on error. Default is 3."
-      field :retry_interval, type: Integer, default: 15.minutes, label: "The retry interval. Default is 15 minutes"
+      field :retry, type: Integer, default: 6, label: "The number of times this activity will be retried on error. Default is 6."
+      field :retry_interval, type: Integer, default: 20.minutes, label: "The retry interval. Default is 20 minutes"
       field :time_out, type: Integer, default: 0, label: "There is no default timeout"
       field :valid_next_decisions, type: Array, default: [], label: "The range of valid next decision. next_decision can be null, none or one of the values from valid_next_decisions"
       field :orphan_decision, type: Boolean, default: false, label: "true implies next_decision will be a top-level decision and not a child of this activity. This field is ignored when next_decision is null. Default is false"
