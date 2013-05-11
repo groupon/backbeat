@@ -45,7 +45,7 @@ listen "#{shared_root}/sockets/unicorn.sock", :backlog => 64
 listen 9000, :tcp_nopush => true
 # 
 # # nuke workers after 60 seconds
-timeout 60
+timeout 180
 # 
 # # feel free to point this anywhere accessible on the filesystem
 system("mkdir -p #{shared_root}/pids")
