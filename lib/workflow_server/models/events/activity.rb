@@ -108,10 +108,10 @@ module WorkflowServer
         when :completed
           raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)
           update_attributes!(result: args[:result], next_decision: verify_and_get_next_decision(args[:next_decision]), _client_done_with_activity: true)
-          complete_if_done
+          enqueue_complete_if_done
         when :errored
           raise WorkflowServer::InvalidEventStatus, "Activity #{self.name} can't transition from #{status} to #{new_status}" unless [:executing, :timeout].include?(status)
-          errored(args[:error])
+          enqueue_errored(args: [args[:error]])
         else
           raise WorkflowServer::InvalidEventStatus, "Invalid status #{new_status}"
         end
