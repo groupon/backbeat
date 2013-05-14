@@ -22,7 +22,7 @@ describe Api::Workflow do
         last_response.status.should == 400
         activity.reload
         json_response = JSON.parse(last_response.body)
-        json_response['error'].should == "Invalid status something_invalid"
+        json_response['error'].should == "Activity make_initial_payment can't transition from open to something_invalid"
       end
 
       context "activity completed" do

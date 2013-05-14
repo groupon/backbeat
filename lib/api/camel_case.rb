@@ -21,7 +21,9 @@ module Api
     private
 
     def content_length(body, headers)
-      body.inject(0) {|size, str| size += Rack::Utils.bytesize(str) }.to_s
+      size = 0
+      body.each {|str| size += Rack::Utils.bytesize(str) }
+      size.to_s
     end
 
     def chunked?(headers)

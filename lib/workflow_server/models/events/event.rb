@@ -65,7 +65,7 @@ module WorkflowServer
       end
 
       def blocking?
-        false
+        children.where(:mode.ne => :fire_and_forget, :status.ne => :complete).any?
       end
 
       def start
