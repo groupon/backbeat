@@ -41,6 +41,89 @@ describe Api::Workflow do
     end
   end
 
+  context "adding new decisions" do
+    it "returns 400 if some of the decisions are incorrectly formed" do
+      decision = FactoryGirl.create(:decision, status: :deciding)
+      wf = decision.workflow
+      user = wf.user
+      decisions = [
+        {type: :flag, name: :wFlag},
+        {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
+        {type: :activity, name: :make_initial_payment, actor_id: 100, retry: 100, retry_interval: 5},
+        {type: :branch, name: :make_initial_payment_branch, actor_id: 100, retry: 100, retry_interval: 5},
+        {type: :workflow, name: :some_name, subject: {subject_klass: "PaymentTerm", subject_id: 1000}, decider: "ErrorDecider"},
+        {type: :complete_workflow}
+      ]
+      header "Content-Type", "application/json"
+      post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: decisions}}.to_json
+      last_response.status.should == 400
+      json_response = JSON.parse(last_response.body)
+      json_response.should == {"error"=>[{"workflow"=>{"workflowType"=>["can't be blank"]}}]}
+      decision.reload
+      decision.children.count.should == 0
+      decision.status.should_not == :executing
+    end
+
+    it "adds the new decisions" do
+      decision = FactoryGirl.create(:decision, status: :deciding)
+      wf = decision.workflow
+      user = wf.user
+      args = [
+        {type: :flag, name: :wFlag},
+        {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
+        {type: :activity, name: :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5},
+        {type: :branch, name: :make_initial_payment_branch, actor_id: 100, retry: 100, retry_interval: 5},
+        {type: :workflow, name: :some_name, workflow_type: :error_recovery_workflow, subject: {subject_klass: "PaymentTerm", subject_id: 1000}, decider: "ErrorDecider"},
+        {type: :complete_workflow}
+      ]
+      header "Content-Type", "application/json"
+      post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: args}}.to_json
+      last_response.status.should == 201
+      decision.reload
+      decision.children.count.should == 6
+    end
+
+    it 'continue_as_new_workflow decision marks the old events as inactive and resets the past of the workflow' do
+      decision = FactoryGirl.create(:decision, status: :deciding)
+      wf = decision.workflow
+      user = wf.user
+      args = [
+        {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
+      ]
+      header "Content-Type", "application/json"
+      post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: args}}.to_json
+      last_response.status.should == 201
+      decision.reload
+      decision.children.count.should == 1
+
+      put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
+      Delayed::Job.where(handler: /work_on_decisions/).count.should == 1
+      payload = Delayed::Job.where(handler: /work_on_decisions/).first.payload_object
+      payload.perform
+      timer = decision.children.first
+      timer.async_jobs.count.should == 1
+      flag = FactoryGirl.create(:continue_as_new_workflow_flag, workflow: wf)
+      flag.start
+      wf.reload
+      wf.events.each { |e| e.reload.async_jobs.count.should == 0 unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
+      wf.events.each { |e| e.inactive.should == true unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
+    end
+
+    it "raises 400 if decision is not in deciding state" do
+      decision = FactoryGirl.create(:decision, status: :sent_to_client)
+      wf = decision.workflow
+      user = wf.user
+      args = [
+        {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
+      ]
+      header "Content-Type", "application/json"
+      post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: args}}.to_json
+      last_response.status.should == 400
+      json_response = JSON.parse(last_response.body)
+      json_response.should == {"error"=>"Decisions can only be added to an event in the 'deciding' state"}
+    end
+  end
+
   context "change status to deciding_complete" do
     it "raises 400 if decision is not in deciding/enqueued state" do
       decision = FactoryGirl.create(:decision, status: :open)
@@ -55,97 +138,43 @@ describe Api::Workflow do
       json_response['error'].should == "Decision #{decision.name} can't transition from open to deciding_complete"
     end
 
-    it "returns 400 if some of the decisions are incorrectly formed" do
+    it "puts a decision in complete state" do
       decision = FactoryGirl.create(:decision, status: :sent_to_client)
       wf = decision.workflow
       user = wf.user
-      decisions = [
-        {type: :flag, name: :wFlag},
-        {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
-        {type: :activity, name: :make_initial_payment, actor_id: 100, retry: 100, retry_interval: 5},
-        {type: :branch, name: :make_initial_payment_branch, actor_id: 100, retry: 100, retry_interval: 5},
-        {type: :workflow, name: :some_name, subject: {subject_klass: "PaymentTerm", subject_id: 1000}, decider: "ErrorDecider"},
-        {type: :complete_workflow}
-      ]
       header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete", {args: {decisions: decisions}}.to_json
-      last_response.status.should == 400
-      json_response = JSON.parse(last_response.body)
-      json_response.should == {"error"=>[{"workflow"=>{"workflowType"=>["can't be blank"]}}]}
-      decision.reload
-      decision.children.count.should == 0
-      decision.status.should_not == :executing
-    end
-
-    it "puts a decision in deciding_complete state and registers the decision" do
-      decision = FactoryGirl.create(:decision, status: :sent_to_client)
-      wf = decision.workflow
-      user = wf.user
-      args = [
-        {type: :flag, name: :wFlag},
-        {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
-        {type: :activity, name: :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5},
-        {type: :branch, name: :make_initial_payment_branch, actor_id: 100, retry: 100, retry_interval: 5},
-        {type: :workflow, name: :some_name, workflow_type: :error_recovery_workflow, subject: {subject_klass: "PaymentTerm", subject_id: 1000}, decider: "ErrorDecider"},
-        {type: :complete_workflow}
-      ]
-      header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete", {args: {decisions: args}}.to_json
+      put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
       last_response.status.should == 200
       decision.reload
-      decision.children.count.should == 6
-      # TODO Compare the children
-      decision.status.should == :executing
-    end
-
-    it 'continue_as_new_workflow decision marks the old events as inactive and resets the past of the workflow' do
-      decision = FactoryGirl.create(:decision, status: :sent_to_client)
-      wf = decision.workflow
-      user = wf.user
-      args = [
-        {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
-      ]
-      header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete", {args: {decisions: args}}.to_json
-      last_response.status.should == 200
-      decision.reload
-      decision.children.count.should == 1
-      Delayed::Job.where(handler: /work_on_decisions/).count.should == 1
-      payload = Delayed::Job.where(handler: /work_on_decisions/).first.payload_object
-      payload.perform
-      timer = decision.children.first
-      timer.async_jobs.count.should == 1
-      flag = FactoryGirl.create(:continue_as_new_workflow_flag, workflow: wf)
-      flag.start
-      wf.reload
-      wf.events.each { |e| e.reload.async_jobs.count.should == 0 unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
-      wf.events.each { |e| e.inactive.should == true unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
-    end
-
-    context "decision errored" do
-      it "returns 400 if the decision is not in enqueued/deciding state" do
-        decision = FactoryGirl.create(:decision, status: :open)
-        decision.reload.update_status!(:open)
-        wf = decision.workflow
-        user = wf.user
-        put "/workflows/#{wf.id}/events/#{decision.id}/status/errored"
-        last_response.status.should == 400
-        json_response = JSON.parse(last_response.body)
-        json_response['error'].should == "Decision #{decision.name} can't transition from open to errored"
-      end
-      it "returns 200 and records the error message" do
-        decision = FactoryGirl.create(:decision, status: :sent_to_client)
-        wf = decision.workflow
-        user = wf.user
-        header "Content-Type", "application/json"
-        put "/workflows/#{wf.id}/events/#{decision.id}/status/errored", {args: {error: {a: 1, b: 2}}}.to_json
-        last_response.status.should == 200
-        decision.reload
-        decision.status.should == :error
-        decision.status_history.last["error"].should == {"a"=>1, "b"=>2}
-      end
+      decision.status.should == :complete
     end
   end
+
+  context "decision errored" do
+    it "returns 400 if the decision is not in enqueued/deciding state" do
+      decision = FactoryGirl.create(:decision, status: :open)
+      decision.reload.update_status!(:open)
+      wf = decision.workflow
+      user = wf.user
+      put "/workflows/#{wf.id}/events/#{decision.id}/status/errored"
+      last_response.status.should == 400
+      json_response = JSON.parse(last_response.body)
+      json_response['error'].should == "Decision #{decision.name} can't transition from open to errored"
+    end
+
+    it "returns 200 and records the error message" do
+      decision = FactoryGirl.create(:decision, status: :sent_to_client)
+      wf = decision.workflow
+      user = wf.user
+      header "Content-Type", "application/json"
+      put "/workflows/#{wf.id}/events/#{decision.id}/status/errored", {args: {error: {a: 1, b: 2}}}.to_json
+      last_response.status.should == 200
+      decision.reload
+      decision.status.should == :error
+      decision.status_history.last["error"].should == {"a"=>1, "b"=>2}
+    end
+  end
+
   context "invalid status" do
     it "raises 400 if invalid new status" do
       decision = FactoryGirl.create(:decision)

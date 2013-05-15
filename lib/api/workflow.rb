@@ -28,7 +28,7 @@ module Api
       Rack::Response.new({error: e.message }.to_json, 404, { "Content-type" => "application/json" }).finish
     end
 
-    rescue_from WorkflowServer::EventComplete, WorkflowServer::InvalidParameters, WorkflowServer::InvalidEventStatus, WorkflowServer::InvalidDecisionSelection, Grape::Exceptions::Validation do |e|
+    rescue_from WorkflowServer::EventComplete, WorkflowServer::InvalidParameters, WorkflowServer::InvalidEventStatus, WorkflowServer::InvalidOperation, WorkflowServer::InvalidDecisionSelection, Grape::Exceptions::Validation do |e|
       Api::Workflow.info(e)
       Squash::Ruby.notify e
       Rack::Response.new({error: e.message }.to_json, 400, { "Content-type" => "application/json" }).finish
@@ -418,6 +418,22 @@ module Api
       get "/:id/tree/print" do
         e = find_event(params)
         {print: e.tree_to_s}
+      end
+
+      desc "Add new decisions to an event.", {
+        action_descriptor: action_description(:decisions) do |decisions|
+          decisions.parameters do |parameters|
+            parameters.string :workflow_id, description: 'the workflow id', required: true, location: 'url' if full_url
+            parameters.string :id, description: 'the activity or decision id', required: true, location: 'url'
+          end
+        end
+      }
+      post "/:id/decisions" do
+        raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
+        raise WorkflowServer::InvalidParameters, "args must include a 'decisions' parameter" if params[:args][:decisions].nil? || params[:args][:decisions].empty?
+        event = find_event(params)
+        event.add_decisions(params[:args][:decisions])
+        {success: true}
       end
 
       desc "Update the status on an event (use this endpoint for deciding, deciding_complete, completed, errored).", {
