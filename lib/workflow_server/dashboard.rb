@@ -47,6 +47,12 @@ module Dashboard
       send_to_dashboard('inconsistent_workflow_count', current: count)
     end
 
+    update_dashboard.every '10m' do
+      long_running_events = WorkflowServer::Models::Event.where(:status.nin => [:open, :complete, :scheduled, :resolved, :error, :pause]).and(:_type.nin => [WorkflowServer::Models::Workflow]).and(:updated_at.lt => 24.hours.ago)
+      count = long_running_events.map(&:workflow).find_all {|wf| !wf.paused? && wf.status != :complete && wf.events.where(status: :error).empty? }.uniq.count
+      send_to_dashboard('long_running_events', current: count)
+    end
+
     update_dashboard.every '1m' do
       count = WorkflowServer::Models::Activity.where(:status.in => [:executing, :running_sub_activity]).count
       send_to_dashboard('executing_activity_count', current: count)

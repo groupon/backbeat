@@ -529,6 +529,22 @@ module Api
         WorkflowServer::Models::Decision.where(status: :open, user: current_user).find_all {|decision| decision.workflow.decisions.where(status: :executing).none? }.map(&:workflow).uniq
       end
 
+      desc 'returns workflows with events executing for over 24 hours', {
+        action_descriptor: action_description(:long_running_events, deprecated: true) do |long_running_events|
+          long_running_events.response do |response|
+            response.array(:long_running_events) do |stuck_workflow|
+              stuck_workflow.object do |workflow|
+                SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+              end
+            end
+          end
+        end
+      }
+      get '/long_running_events' do
+        long_running_events = WorkflowServer::Models::Event.where(:status.nin => [:open, :complete, :scheduled, :resolved, :error, :pause], user: current_user).and(:_type.nin => [WorkflowServer::Models::Workflow]).and(:updated_at.lt => 24.hours.ago)
+        long_running_events.map(&:workflow).find_all {|wf| !wf.paused? && wf.status != :complete && wf.events.where(status: :error).empty? }.uniq
+      end
+
       desc 'returns workflows that have more than one decision executing simultaneously', {
         action_descriptor: action_description(:get_workflows_with_multiple_executing_decisions, deprecated: true) do |workflows_with_multiple_executing_decisions|
           workflows_with_multiple_executing_decisions.parameters do |parameters|

@@ -27,6 +27,12 @@ describe Api::Workflow do
     workflow
   end
 
+  def create_long_running_event(for_user, workflow = nil)
+    workflow ||= FactoryGirl.create(:workflow, user: for_user)
+    decision = FactoryGirl.create(:decision, workflow: workflow, status: :executing, updated_at: 2.days.ago)
+    workflow
+  end
+
   def create_multiple_decision_workflow(for_user, workflow = nil)
     workflow ||= FactoryGirl.create(:workflow, user: for_user)
     FactoryGirl.create(:decision, workflow: workflow, status: :executing)
@@ -133,6 +139,31 @@ describe Api::Workflow do
       wf4 = create_stuck_workflow(FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s))
 
       get "/debug/stuck_workflows"
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response.should be_instance_of(Array)
+      json_response.count.should == 2
+      ids = json_response.map { |r| r['id'] }
+      ids.should include(wf1.id)
+      ids.should include(wf2.id)
+    end
+  end
+
+  context '/debug/long_running_events' do
+    it 'returns empty when none stuck' do
+      user
+      get "/debug/long_running_events"
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response.should be_instance_of(Array)
+      json_response.should be_empty
+    end
+    it 'returns an array of workflows with long running events for the user' do
+      wf1 = create_long_running_event(user, workflow)
+      wf2 = create_long_running_event(user)
+      wf3 = create_long_running_event(FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s))
+
+      get "/debug/long_running_events"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       json_response.should be_instance_of(Array)
