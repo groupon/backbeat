@@ -542,7 +542,7 @@ module Api
       }
       get '/long_running_events' do
         long_running_events = WorkflowServer::Models::Event.where(:status.nin => [:open, :complete, :scheduled, :resolved, :error, :pause], user: current_user).and(:_type.nin => [WorkflowServer::Models::Workflow]).and(:updated_at.lt => 24.hours.ago)
-        long_running_events.map(&:workflow).find_all {|wf| !wf.paused? }.uniq
+        long_running_events.map(&:workflow).find_all {|wf| !wf.paused? && wf.status != :complete && wf.events.where(status: :error).empty? }.uniq
       end
 
       desc 'returns workflows that have more than one decision executing simultaneously', {
