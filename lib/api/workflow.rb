@@ -541,7 +541,7 @@ module Api
         end
       }
       get '/long_running_events' do
-        long_running_events = WorkflowServer::Models::Event.where(:status.nin => [:open, :complete, :scheduled, :resolved, :error, :pause], user: current_user).and(:_type.nin => [WorkflowServer::Models::Workflow]).and(:updated_at.lt => 24.hours.ago)
+        long_running_events = WorkflowServer::Models::Event.where(:status.in => [:executing, :restarting, :sent_to_client, :retrying], user: current_user).and(:_type.nin => [WorkflowServer::Models::Workflow]).and(:updated_at.lt => 24.hours.ago)
         long_running_events.map(&:workflow).find_all {|wf| !wf.paused? && wf.status != :complete && wf.events.where(status: :error).empty? }.uniq
       end
 

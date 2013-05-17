@@ -31,7 +31,6 @@ module WorkflowServer
       index({ sequence: 1 })
       index({ _type: 1, status: 1 })
 
-      index({ user: 1, _type: 1, status: 1 }, { background: true })
       index({ workflow: 1, _type: 1, status: 1 }, { background: true })
 
       before_destroy do
