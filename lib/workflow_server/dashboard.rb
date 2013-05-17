@@ -48,7 +48,7 @@ module Dashboard
     end
 
     update_dashboard.every '10m' do
-      long_running_events = WorkflowServer::Models::Event.where(:status.nin => [:open, :complete, :scheduled]).and(:_type.nin => [WorkflowServer::Models::Workflow]).and(:updated_at.lt => 24.hours.ago)
+      long_running_events = WorkflowServer::Models::Event.where(:status.nin => [:open, :complete, :scheduled, :resolved, :error, :pause]).and(:_type.nin => [WorkflowServer::Models::Workflow]).and(:updated_at.lt => 24.hours.ago)
       count = long_running_events.map(&:workflow).find_all {|wf| !wf.paused? }.uniq.count
       send_to_dashboard('long_running_events', current: count)
     end
