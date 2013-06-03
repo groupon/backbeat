@@ -8,12 +8,16 @@ module WorkflowServer
     attr_accessor :client, :db, :init_script, :pid_file, :src_db_path, :dest_db_path
 
     def initialize(options = {})
-      self.client = ::Mongo::MongoClient.new(options[:host], options[:port])
-      self.db = client['admin']
       self.init_script = "/usr/local/etc/init.d/mongodb#{options[:mongo_id]}"
       self.pid_file = "/var/groupon/mongo/mongodb#{options[:mongo_id]}/mongod.lock"
       self.src_db_path = "/var/groupon/mongo/mongodb#{options[:mongo_id]}/"
       self.dest_db_path = "/var/groupon/mongo_backup/mongodb#{options[:mongo_id]}"
+      self.client = ::Mongo::MongoClient.new(options[:host], options[:port])
+      self.db = client['admin']
+    rescue Mongo::ConnectionFailure => e
+      puts "Connection failure caught #{e.message} #{e.backtrace}"
+      # mongo might be down, try to bring it back up
+      system(init_script,"start")
     end
 
     def perform
@@ -35,7 +39,9 @@ module WorkflowServer
       if running?
         system(init_script, "stop")
         done = false
-        20.times do
+        # this was earlier set to 20, but it turned out to be too low during busy sessions
+        # mongo may take up to 50 seconds to shutdown (based on the logs). Bumping this up to 100.
+        100.times do
           done = true unless running?
           break if done
           sleep 1
