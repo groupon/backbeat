@@ -43,7 +43,9 @@ module WorkflowServer
           deciding
         when :deciding_complete
           raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:sent_to_client, :deciding, :timeout].include?(status)
-          deciding_complete
+          decisions = (args[:decisions] || []).map{|d| new_decision(HashWithIndifferentAccess.new(d))}
+          warn("WARNING: Adding decisions in the 'deciding complete' flow is deprecated") unless decisions.empty?
+          deciding_complete(decisions)
         when :errored
           raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:sent_to_client, :deciding, :timeout].include?(status)
           errored(args[:error])
@@ -98,8 +100,17 @@ module WorkflowServer
         self.children.destroy_all
       end
 
-      def deciding_complete
+      def deciding_complete(decisions = [])
         Watchdog.dismiss(self, :decision_deciding_time_out)
+
+        if decisions.any?{|d| !d.valid?}
+          invalid_decisions = decisions.select{|d| !d.valid? }
+          raise WorkflowServer::InvalidParameters, invalid_decisions.map{|d| {d.event_type => d.errors}}
+        else
+          decisions.each{|d| d.save!}
+        end
+        reload
+
         self.children.any? ? update_status!(:executing) : completed
         enqueue_work_on_decisions
       end
