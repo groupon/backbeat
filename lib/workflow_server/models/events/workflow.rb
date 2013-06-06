@@ -60,7 +60,7 @@ module WorkflowServer
       end
 
       def pause
-        raise WorkflowServer::InvalidEventStatus, "A workflow cannot be paused while in #{status} state" unless [:open, :pause].include?(status)
+        raise WorkflowServer::InvalidEventStatus, "A workflow cannot be paused while in #{status} state" unless [:open, :pause, :executing].include?(status)
         paused
       end
 
