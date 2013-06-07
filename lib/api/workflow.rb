@@ -542,7 +542,7 @@ module Api
         end
       }
       get '/stuck_workflows' do
-        WorkflowServer::Models::Decision.where(status: :open, user: current_user).find_all {|decision| decision.workflow.decisions.where(status: :executing).none? }.map(&:workflow).uniq
+        WorkflowServer::Models::Decision.where(status: :open, user: current_user).find_all {|decision| decision.workflow.decisions.where(:status.in => [:error, :executing, :restarting, :sent_to_client]).none? }.map(&:workflow).uniq
       end
 
       desc 'returns workflows with events executing for over 24 hours', {
@@ -576,7 +576,7 @@ module Api
         end
       }
       get '/multiple_executing_decisions' do
-        workflow_ids = group_by_and_having(WorkflowServer::Models::Event.where(:status.nin => [:open, :complete], user: current_user ).type(WorkflowServer::Models::Decision).selector, 'workflow_id', 1)
+        workflow_ids = group_by_and_having(WorkflowServer::Models::Event.where(:status.nin => [:open, :complete, :resolved, :error], user: current_user ).type(WorkflowServer::Models::Decision).selector, 'workflow_id', 1)
         current_user.workflows.where(:id.in => workflow_ids)
       end
 
