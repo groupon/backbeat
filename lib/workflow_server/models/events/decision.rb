@@ -4,8 +4,6 @@ module WorkflowServer
 
       after_create :enqueue_schedule_next_decision
 
-      attr_accessor :decisions_to_add
-
       def start
         super
         enqueue_send_to_client(max_attempts: 25)
@@ -19,6 +17,24 @@ module WorkflowServer
         start
       end
 
+      def add_decisions(decisions = [])
+        raise WorkflowServer::InvalidOperation, "Decisions can only be added to an event in the 'deciding' state" unless status == :deciding
+        Watchdog.feed(self, :decision_deciding_time_out)
+
+        new_decisions = decisions.map do |decision|
+          new_decision(HashWithIndifferentAccess.new(decision))
+        end
+
+        new_decisions.compact!
+
+        if new_decisions.any?{|d| !d.valid?}
+          invalid_decisions = new_decisions.select{|d| !d.valid? }
+          raise WorkflowServer::InvalidParameters, invalid_decisions.map{|d| {d.event_type => d.errors}}
+        else
+          new_decisions.each{|d| d.save!}
+        end
+      end
+
       def change_status(new_status, args = {})
         return if status == new_status.try(:to_sym)
         case new_status.to_sym
@@ -27,11 +43,9 @@ module WorkflowServer
           deciding
         when :deciding_complete
           raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:sent_to_client, :deciding, :timeout].include?(status)
-          self.decisions_to_add = []
-          (args[:decisions] || []).each do |decision|
-            add_new_decision(HashWithIndifferentAccess.new(decision))
-          end
-          close
+          decisions = (args[:decisions] || []).map{|d| new_decision(HashWithIndifferentAccess.new(d))}
+          warn("WARNING: Adding decisions in the 'deciding complete' flow is deprecated") unless decisions.empty?
+          deciding_complete(decisions)
         when :errored
           raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:sent_to_client, :deciding, :timeout].include?(status)
           errored(args[:error])
@@ -81,15 +95,13 @@ module WorkflowServer
       private
 
       def deciding
-        update_status!(:deciding)
         Watchdog.feed(self, :decision_deciding_time_out)
+        update_status!(:deciding)
+        self.children.destroy_all
       end
 
-      def close
+      def deciding_complete(decisions = [])
         Watchdog.dismiss(self, :decision_deciding_time_out)
-        decisions = decisions_to_add.map do |type, args|
-          type.new(args.merge(workflow: workflow, parent: self))
-        end
 
         if decisions.any?{|d| !d.valid?}
           invalid_decisions = decisions.select{|d| !d.valid? }
@@ -99,9 +111,7 @@ module WorkflowServer
         end
         reload
 
-        unless decisions.empty?
-          update_status!(:executing)
-        end
+        self.children.any? ? update_status!(:executing) : completed
         enqueue_work_on_decisions
       end
 
@@ -119,50 +129,50 @@ module WorkflowServer
         end
       end
 
-      def add_flag(name)
-        decisions_to_add << [Flag, {name: name, parent: self, workflow: workflow, user: user}]
+      def new_flag(name)
+        Flag.new(name: name, parent: self, workflow: workflow, user: user)
       end
 
-      def add_timer(name, fires_at = Time.now)
-        decisions_to_add << [Timer, {fires_at: fires_at, name: name, parent: self, workflow: workflow, user: user}]
+      def new_timer(name, fires_at = Time.now)
+        Timer.new(fires_at: fires_at, name: name, parent: self, workflow: workflow, user: user)
       end
 
-      def add_activity(name, options = {})
-        decisions_to_add << [Activity, {name: name, workflow: workflow, parent: self, user: user}.merge(options)]
+      def new_activity(name, options = {})
+        Activity.new({name: name, workflow: workflow, parent: self, user: user}.merge(options))
       end
 
-      def add_branch(name, options = {})
-        decisions_to_add << [Branch, {name: name, workflow: workflow, parent: self, user: user}.merge(options)]
+      def new_branch(name, options = {})
+        Branch.new({name: name, workflow: workflow, parent: self, user: user}.merge(options))
       end
 
-      def add_workflow(name, workflow_type, subject, decider, options = {})
-        decisions_to_add << [Workflow, {name: name, workflow_type: workflow_type, subject: subject, decider: decider.to_s, workflow: workflow, parent: self, user: user}.merge(options)]
+      def new_workflow(name, workflow_type, subject, decider, options = {})
+        Workflow.new({name: name, workflow_type: workflow_type, subject: subject, decider: decider.to_s, workflow: workflow, parent: self, user: user}.merge(options))
       end
 
-      def complete_workflow
-        decisions_to_add << [WorkflowCompleteFlag, {name: "#{workflow.name}:complete", parent: self, workflow: workflow, user: user}]
+      def new_complete_workflow
+        WorkflowCompleteFlag.new(name: "#{workflow.name}:complete", parent: self, workflow: workflow, user: user)
       end
 
-      def continue_as_new_workflow
-        decisions_to_add << [ContinueAsNewWorkflowFlag, {name: "#{workflow.name}:continue_as_new_workflow", parent: self, workflow: workflow, user: user}]
+      def new_continue_as_new_workflow
+        ContinueAsNewWorkflowFlag.new(name: "#{workflow.name}:continue_as_new_workflow", parent: self, workflow: workflow, user: user)
       end
 
-      def add_new_decision(options = {})
+      def new_decision(options = {})
         case options.delete(:type).to_s
         when 'flag'
-          add_flag(options[:name])
+          new_flag(options[:name])
         when 'timer'
-          add_timer(options[:name], options[:fires_at])
+          new_timer(options[:name], options[:fires_at])
         when 'activity'
-          add_activity(options.delete(:name), options)
+          new_activity(options.delete(:name), options)
         when 'branch'
-          add_branch(options.delete(:name), options)
+          new_branch(options.delete(:name), options)
         when 'workflow'
-          add_workflow(options.delete(:name), options.delete(:workflow_type), options.delete(:subject), options.delete(:decider), options)
+          new_workflow(options.delete(:name), options.delete(:workflow_type), options.delete(:subject), options.delete(:decider), options)
         when 'complete_workflow'
-          complete_workflow
+          new_complete_workflow
         when 'continue_as_new_workflow'
-          continue_as_new_workflow
+          new_continue_as_new_workflow
         end
       end
 

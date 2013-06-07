@@ -25,6 +25,9 @@ module WorkflowServer
   class InvalidDecisionSelection < StandardError
   end
 
+  class InvalidOperation < StandardError
+  end
+
   class InvalidEventStatus < StandardError
   end
 
