@@ -173,27 +173,6 @@ describe WorkflowServer::Models::Decision do
           @d1.reload
           @d1.status.should == :complete
         end
-
-        it "accepts new decisions when transitioning to deciding_complete" do
-          @d1.update_status!(base_state)
-          decisions = [
-            {type: :flag, name: :wFlag},
-            {type: :activity, name: :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5},
-            {type: :branch, name: :make_initial_payment_branch, actor_id: 100, retry: 100, retry_interval: 5},
-            {type: :workflow, name: :some_name, workflow_type: :error_recovery_workflow, subject: {subject_klass: "PaymentTerm", subject_id: 1000}, decider: "ErrorDecider"},
-            {type: :complete_workflow},
-            {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds}
-          ]
-          @d1.change_status(:deciding_complete, decisions: decisions)
-          @d1.async_jobs.map(&:payload_object).map(&:perform)
-          @d1.reload
-          @d1.children.type(WorkflowServer::Models::Flag).first.status.should == :complete
-          @d1.children.type(WorkflowServer::Models::Activity).first.status.should == :executing
-          @d1.children.type([WorkflowServer::Models::Branch, WorkflowServer::Models::Workflow, WorkflowServer::Models::WorkflowCompleteFlag, WorkflowServer::Models::Timer]).each do |child|
-            child.status.should == :open
-          end
-          @d1.status.should == :executing
-        end
       end
 
       it "puts the decision in executing state and starts the first action" do
