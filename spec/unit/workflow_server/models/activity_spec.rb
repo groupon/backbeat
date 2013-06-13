@@ -328,7 +328,7 @@ describe WorkflowServer::Models::Activity do
       end
 
       it "raises error if next decision is invalid" do
-        @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
+        @a1.update_attributes!(status: :executing, valid_next_decisions: ['test', 'more_test'])
         expect {
           @a1.change_status(:completed, {next_decision: :something_wrong, result: {a: :b, c: :d}})
         }.to raise_error(WorkflowServer::InvalidDecisionSelection, "Activity:#{@a1.name} tried to make something_wrong the next decision but is not allowed to.")
@@ -343,7 +343,7 @@ describe WorkflowServer::Models::Activity do
       end
 
       it "records the next decision and result" do
-        @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
+        @a1.update_attributes!(status: :executing, valid_next_decisions: ['test', 'more_test'])
         @a1.should_receive(:completed)
         @a1.change_status(:completed, {next_decision: :more_test, result: {a: :b, c: :d}})
         @a1.reload.result.should == {"a" => :b, "c" => :d}
@@ -351,7 +351,7 @@ describe WorkflowServer::Models::Activity do
       end
 
       it "records none as the next decision" do
-        @a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
+        @a1.update_attributes!(status: :executing, valid_next_decisions: ['test', 'more_test'])
         @a1.should_receive(:completed)
         @a1.change_status(:completed, {next_decision: :none, result: {a: :b, c: :d}})
         @a1.reload.result.should == {"a" => :b, "c" => :d}
@@ -360,7 +360,7 @@ describe WorkflowServer::Models::Activity do
 
       it "branches raise an error if no next_decision is given" do
         a1 = FactoryGirl.create(:branch, workflow: @wf)
-        a1.update_attributes!(status: :executing, valid_next_decisions: [:test, :more_test])
+        a1.update_attributes!(status: :executing, valid_next_decisions: ['test', 'more_test'])
         a1.should_not_receive(:completed)
         expect {
           a1.change_status(:completed, {result: {a: :b, c: :d}})
@@ -446,6 +446,20 @@ describe WorkflowServer::Models::Activity do
 
       child.update_attributes!(mode: :blocking)
       @a1.__send__(:children_running?).should == true
+    end
+  end
+
+  context "#validate_next_decision" do
+    it "raises an exception if the next decision is not in the list of valid options and 'any' is not present" do
+      expect{@a1.validate_next_decision('super_bad_decision')}.to raise_error(WorkflowServer::InvalidDecisionSelection, 'Activity:make_initial_payment tried to make super_bad_decision the next decision but is not allowed to.')
+    end
+    it "does not raise an exception if the next decision is not in the list of valid options" do
+      @a1.valid_next_decisions << 'super_bad_decision'
+      expect{@a1.validate_next_decision('super_bad_decision')}.to_not raise_error
+    end
+    it "does not raise an exception if 'any' is present" do
+      @a1.valid_next_decisions << 'any'
+      expect{@a1.validate_next_decision('super_bad_decision')}.to_not raise_error
     end
   end
 end
