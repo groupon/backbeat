@@ -53,7 +53,7 @@ describe Api::Workflow do
 
         it "returns 200 if the next decision is valid and the activity succeeds" do
           decision = FactoryGirl.create(:decision)
-          activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow, valid_next_decisions: [:test_decision])
+          activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow, valid_next_decisions: ['test_decision'])
           wf = activity.workflow
           user = wf.user
           put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
