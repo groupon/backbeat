@@ -40,9 +40,21 @@ module WorkflowServer
       WORKFLOW_ATTRIBUTES.each { |k| attributes[k] = options[k] }
       attributes[:name] ||= attributes[:workflow_type]
 
-      workflow = Models::Workflow.find_or_create_by(attributes)
-      workflow.save
-      workflow
+      retried = false
+      begin
+        # find_or_create_by is not an atomic operation in mongodb. Mongoid instead runs two separate
+        # queries (first to find and second to create when not found). There is a good chance of race
+        # condition here. We catch such exceptions and retry this block of code again.
+        workflow = Models::Workflow.find_or_create_by(attributes)
+        workflow.save
+        workflow
+      rescue Moped::Errors::OperationFailure => error
+        if error.message =~ /duplicate key error index/ && !retried
+          retried = true
+          retry
+        end
+        raise
+      end
     end
   end
 end
