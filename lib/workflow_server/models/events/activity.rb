@@ -118,7 +118,8 @@ module WorkflowServer
         case new_status.to_sym
         when :completed
           update_attributes!(result: args[:result], next_decision: verify_and_get_next_decision(args[:next_decision]), _client_done_with_activity: true)
-          complete_if_done
+          Watchdog.feed(self) if time_out > 0
+          enqueue_complete_if_done
         when :errored
           errored(args[:error])
         end
