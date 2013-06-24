@@ -60,7 +60,10 @@ describe Api::Workflow do
           last_response.status.should == 200
           activity.reload
           activity.result.should == 'i_was_successful'
-          activity.children.count.should == 1
+          activity.children.count.should == 0
+          activity.async_jobs.count.should == 1
+          activity.async_jobs.each { |d| d.invoke_job }
+          activity.reload
           child = activity.children.first
           child.name.should == :test_decision
           activity.status.should == :complete
@@ -73,6 +76,9 @@ describe Api::Workflow do
           user = wf.user
           put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
           last_response.status.should == 200
+          activity.reload
+          activity.async_jobs.count.should == 1
+          activity.async_jobs.each { |d| d.invoke_job }
           activity.reload
           activity.status.should == :complete
         end
@@ -157,6 +163,9 @@ describe Api::Workflow do
 
       put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
       last_response.status.should == 200
+      sa = activity.reload.children.last
+      job = sa.async_jobs.last
+      job.invoke_job
 
       put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 200
@@ -171,6 +180,9 @@ describe Api::Workflow do
 
       put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
       last_response.status.should == 200
+      sa = activity.reload.children.last
+      job = sa.async_jobs.last
+      job.invoke_job
 
       # change the arguments this time
       sub_activity[:client_data][:arguments] = [1,2,3,4]

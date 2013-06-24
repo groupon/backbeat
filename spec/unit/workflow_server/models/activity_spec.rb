@@ -322,6 +322,7 @@ describe WorkflowServer::Models::Activity do
     context "completed" do
       it "raises error if status is not executing" do
         @a1.update_status!(:open)
+        @a1.stub(:enqueue_complete_if_done)
         expect {
           @a1.change_status(:completed)
         }.to raise_error(WorkflowServer::InvalidEventStatus, "Activity make_initial_payment can't transition from open to completed")
@@ -336,7 +337,7 @@ describe WorkflowServer::Models::Activity do
 
       it "sets the field _client_done_with_activityd to indicate client is done with this activity" do
         @a1.update_attributes!(status: :executing)
-        @a1.should_receive(:complete_if_done)
+        @a1.should_receive(:enqueue_complete_if_done)
         @a1._client_done_with_activity.should == false
         @a1.change_status(:completed)
         @a1._client_done_with_activity.should == true
@@ -344,7 +345,7 @@ describe WorkflowServer::Models::Activity do
 
       it "records the next decision and result" do
         @a1.update_attributes!(status: :executing, valid_next_decisions: ['test', 'more_test'])
-        @a1.should_receive(:completed)
+        @a1.should_receive(:enqueue_complete_if_done)
         @a1.change_status(:completed, {next_decision: :more_test, result: {a: :b, c: :d}})
         @a1.reload.result.should == {"a" => :b, "c" => :d}
         @a1.reload.next_decision.should == 'more_test'
@@ -352,10 +353,21 @@ describe WorkflowServer::Models::Activity do
 
       it "records none as the next decision" do
         @a1.update_attributes!(status: :executing, valid_next_decisions: ['test', 'more_test'])
-        @a1.should_receive(:completed)
         @a1.change_status(:completed, {next_decision: :none, result: {a: :b, c: :d}})
         @a1.reload.result.should == {"a" => :b, "c" => :d}
         @a1.reload.next_decision.should == 'none'
+      end
+
+      it "feeds the watchdog enqueues a job to call complete_if_done" do
+        @a1.update_attributes!(status: :executing, time_out: 10)
+        @a1.stub(:update_attributes!)
+        WorkflowServer::Models::Watchdog.should_receive(:feed).with(@a1)
+        @a1.change_status(:completed, {next_decision: :none, result: {a: :b, c: :d}})
+        @a1.reload
+        @a1.async_jobs.count.should == 1
+        job = YAML.load(@a1.async_jobs.first.handler)
+        job.event_id.should == @a1.id
+        job.method_to_call.should == :complete_if_done
       end
 
       it "branches raise an error if no next_decision is given" do
