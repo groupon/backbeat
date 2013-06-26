@@ -41,7 +41,7 @@ module WorkflowServer
       end
 
       def completed
-        if parent.is_a?(Decision) && next_decision && next_decision != 'none'
+        if next_decision && next_decision != 'none'
           #only top level activities are allowed to schedule the next decision
           make_decision(next_decision)
         end

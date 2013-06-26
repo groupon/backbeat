@@ -118,50 +118,36 @@ describe WorkflowServer::Models::Activity do
   end
 
   context "on complete" do
-    context "subactivities running" do
-
-    end
     context "no subactivities running" do
       before do
         @a1.stub(subactivities_running?: false)
+        @activity = FactoryGirl.create(:activity, parent: FactoryGirl.create(:decision, workflow: @wf), workflow: @wf)
       end
-      context "parent is not a decision" do
-        it "goes to complete state - no decision task scheduled" do
-          @a1.update_attributes!(next_decision: :blah)
-          @a1.completed
-          @a1.reload.children.count.should == 0
-          @a1.status.should == :complete
+
+      context "next decision is set" do
+        it "schedules a decision task and goes to complete state" do
+          @activity.update_attributes!(next_decision: :decision_blah_blah)
+          @activity.completed
+          @activity.reload.children.count.should == 1
+          decision = @activity.children.first
+          decision.name.should == :decision_blah_blah
+          @activity.status.should == :complete
         end
       end
-      context "parent is a decision" do
-        before do
-          @activity = FactoryGirl.create(:activity, parent: FactoryGirl.create(:decision, workflow: @wf), workflow: @wf)
+      context "next decision is nil" do
+        it "no decision event scheduled" do
+          @activity.update_attributes!(next_decision: nil)
+          @activity.completed
+          @activity.reload.children.count.should == 0
+          @activity.status.should == :complete
         end
-        context "next decision is set" do
-          it "schedules a decision task and goes to complete state" do
-            @activity.update_attributes!(next_decision: :decision_blah_blah)
-            @activity.completed
-            @activity.reload.children.count.should == 1
-            decision = @activity.children.first
-            decision.name.should == :decision_blah_blah
-            @activity.status.should == :complete
-          end
-        end
-        context "next decision is nil" do
-          it "no decision event scheduled" do
-            @activity.update_attributes!(next_decision: nil)
-            @activity.completed
-            @activity.reload.children.count.should == 0
-            @activity.status.should == :complete
-          end
-        end
-        context "next decision is 'none'" do
-          it "no decision event scheduled" do
-            @activity.update_attributes!(next_decision: 'none')
-            @activity.completed
-            @activity.reload.children.count.should == 0
-            @activity.status.should == :complete
-          end
+      end
+      context "next decision is 'none'" do
+        it "no decision event scheduled" do
+          @activity.update_attributes!(next_decision: 'none')
+          @activity.completed
+          @activity.reload.children.count.should == 0
+          @activity.status.should == :complete
         end
       end
     end
