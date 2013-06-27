@@ -201,7 +201,7 @@ module WorkflowServer
           end
         end
         begin
-          Watchdog.start(self, :decision_deciding_time_out, 2.hours)
+          Watchdog.start(self, :decision_deciding_time_out, 12.hours)
           update_status!(:sent_to_client)
           WorkflowServer::Client.make_decision(self)
         rescue => error
