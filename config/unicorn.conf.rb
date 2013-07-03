@@ -18,7 +18,7 @@ app_root = WorkflowServer::Config.root
 
 # Use at least one worker per core if you're on a dedicated server,
 # more will usually help for _short_ waits on databases/caches.
-worker_processes (WorkflowServer::Config.environment == :production ? 32 : (WorkflowServer::Config.environment == :development ? 1 : 4))
+worker_processes (WorkflowServer::Config.environment == :production ? 64 : (WorkflowServer::Config.environment == :development ? 1 : 4))
 
 shared_root = if WorkflowServer::Config.environment == :development
                 File.expand_path(File.join(app_root, "shared"))
