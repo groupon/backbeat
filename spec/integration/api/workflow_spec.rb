@@ -128,6 +128,11 @@ describe Api::Workflow do
       @wf.signals.first.id.to_s.should == signal['id']
       @wf.signals.first.client_data.should == {'data' => '123'}
       @wf.signals.first.client_metadata.should == {'metadata' => '456'}
+      @wf.signals.first.async_jobs.count.should == 1
+      object = @wf.signals.first.async_jobs.first.payload_object
+      object.event.should == @wf.signals.first
+      object.method_to_call.should == :start
+      object.perform
       Delayed::Job.where(handler: /schedule_next_decision/).count.should == 1
     end
 
