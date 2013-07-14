@@ -14,7 +14,6 @@ module WorkflowServer
 
       index({ workflow_type: 1, subject: 1 }, { unique: true, sparse: true })
       index({ subject: 1 }, { sparse: true })
-      index({ workflow_type: 1 }, { sparse: true })
 
       def serializable_hash(options = {})
         hash = super
