@@ -137,6 +137,7 @@ describe Api::Workflow do
       wf3 = create_stuck_workflow(user)
       wf3.decisions.first.update_status!(:enqueued)
       wf4 = create_stuck_workflow(FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s))
+      wf5 = create_paused_workflow(user)
 
       get "/debug/stuck_workflows"
       last_response.status.should == 200

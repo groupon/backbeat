@@ -542,7 +542,7 @@ module Api
         end
       }
       get '/stuck_workflows' do
-        WorkflowServer::Models::Decision.where(status: :open, user: current_user).find_all {|decision| decision.workflow.decisions.where(:status.in => [:error, :executing, :restarting, :sent_to_client]).none? }.map(&:workflow).uniq
+        WorkflowServer::Models::Decision.where(status: :open, user: current_user).find_all {|decision| decision.workflow.decisions.where(:status.in => [:error, :executing, :restarting, :sent_to_client]).none? }.map(&:workflow).uniq.find_all {|wf| !wf.paused?}
       end
 
       desc 'returns workflows with events executing for over 24 hours', {
