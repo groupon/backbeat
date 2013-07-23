@@ -7,5 +7,6 @@ require 'irb'
 mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, "config", "mongoid.yml"))
 Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 Moped.logger = Logger.new($stdout)
+Moped.logger.level = Logger::DEBUG
 
 IRB.start
