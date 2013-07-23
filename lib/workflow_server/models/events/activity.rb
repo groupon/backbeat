@@ -200,9 +200,14 @@ module WorkflowServer
             end
           end
         end
-        WorkflowServer::Client.perform_activity(self)
-        update_status!(:executing)
-        Watchdog.start(self, :timeout, time_out) if time_out > 0
+        begin
+          Watchdog.start(self, :timeout, time_out) if time_out > 0
+          update_status!(:executing)
+          WorkflowServer::Client.perform_activity(self)
+        rescue => error
+          Watchdog.dismiss(self, :timeout)
+          raise
+        end
       end
 
       def handle_error(error)
