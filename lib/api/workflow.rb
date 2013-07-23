@@ -267,8 +267,16 @@ module Api
         end
       }
       get "/:id/tree/print" do
-        wf = find_workflow(params[:id])
-        {print: wf.tree_to_s}
+        begin
+          identity_map_enabled = Mongoid.identity_map_enabled
+          Mongoid.identity_map_enabled = true
+          wf = find_workflow(params[:id])
+          # load the child relation for each event into memory
+          WorkflowServer::Models::Event.where(workflow_id: wf.id).includes(:children).flatten;1
+          {print: wf.tree_to_s}
+        ensure
+          Mongoid.identity_map_enabled = identity_map_enabled
+        end
       end
 
       desc "Send a signal to the workflow.", {
