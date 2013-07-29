@@ -20,6 +20,7 @@ def start(pidfile)
     Delayed::Worker.lifecycle.before(:perform) { |*args| WorkflowServer::Logger.tid(:set) }
     Delayed::Worker.lifecycle.after(:perform) { |*args| WorkflowServer::Logger.tid(:clear) }
     Delayed::Worker.default_priority = 2
+    Delayed::Worker.max_run_time = 24.hours
     Delayed::Worker.new.start
   end
 end
