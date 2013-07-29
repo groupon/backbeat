@@ -28,11 +28,11 @@ module WorkflowServer
       has_many :watchdogs, inverse_of: :subject, class_name: "WorkflowServer::Models::Watchdog", dependent: :destroy
 
       index({ status: 1 })
-      index({ sequence: 1 })
       index({ _type: 1, status: 1 })
 
       index({ workflow: 1, _type: 1, status: 1 }, { background: true })
-      index({ parent: 1,   _type: 1, status: 1 }, { background: true })
+      index({ parent: 1, status: 1, mode: 1, _type: 1 }, { background: true })
+      index({ parent: 1, _type: 1, name: 1, client_data: 1 }, { background: true })
 
       before_destroy do
         destroy_jobs

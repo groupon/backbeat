@@ -3,8 +3,9 @@ module WorkflowServer
     class Timer < Event
       field :fires_at, type: Time
 
-      index({ fires_at: 1 })
       validates_presence_of :fires_at
+
+      index({ fires_at: 1 })
 
       def start
         super

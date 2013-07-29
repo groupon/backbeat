@@ -19,8 +19,6 @@ module WorkflowServer
 
       validate :not_blocking_and_always
 
-      index({ mode: 1 }, { sparse: true })
-
       def not_blocking_and_always
         if mode == :blocking && always
           errors.add(:base, "#{self.class} cannot be blocking and always")
