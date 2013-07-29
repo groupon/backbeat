@@ -5,6 +5,8 @@ module WorkflowServer
 
       validates_presence_of :fires_at
 
+      index({ fires_at: 1 })
+
       def start
         super
         update_status!(:scheduled)
