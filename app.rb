@@ -25,3 +25,6 @@ Resque.redis = Redis.new(:host => config['host'], :port => config['port'])
 
 
 require 'newrelic_rpm'
+
+
+

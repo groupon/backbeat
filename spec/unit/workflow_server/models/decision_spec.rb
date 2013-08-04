@@ -191,9 +191,9 @@ describe WorkflowServer::Models::Decision do
           @d1.change_status(:deciding_complete)
         end
         @d1.reload
-        @d1.children.type(WorkflowServer::Models::Flag).first.status.should == :complete
-        @d1.children.type(WorkflowServer::Models::Activity).first.status.should == :executing
-        @d1.children.type([WorkflowServer::Models::Branch, WorkflowServer::Models::Workflow, WorkflowServer::Models::WorkflowCompleteFlag, WorkflowServer::Models::Timer]).each do |child|
+        @d1.children.any_in(_type: [WorkflowServer::Models::Flag]).first.status.should == :complete
+        @d1.children.any_in(_type: [WorkflowServer::Models::Activity]).first.status.should == :executing
+        @d1.children.any_in(_type: [WorkflowServer::Models::Branch, WorkflowServer::Models::Workflow, WorkflowServer::Models::WorkflowCompleteFlag, WorkflowServer::Models::Timer]).each do |child|
           child.status.should == :open
         end
         @d1.status.should == :executing

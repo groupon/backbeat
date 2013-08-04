@@ -179,12 +179,12 @@ module WorkflowServer
       end
 
       def any_incomplete_blocking_activities_branches_or_workflows?
-        children.type([Activity, Branch, Workflow]).where(mode: :blocking).not_in(:status => [:complete, :open]).any?
+        children.any_in(_type: [Activity, Branch, Workflow]).where(mode: :blocking).not_in(:status => [:complete, :open]).any?
       end
 
       def all_children_done?
         children.not_in(_type: Timer).where(:mode.ne => :fire_and_forget, :status.ne => :complete).none? &&
-        children.type(Timer).where(:status => :open, :mode.ne => :fire_and_forget).none?
+        children.in(_type: Timer).where(:status => :open, :mode.ne => :fire_and_forget).none?
       end
 
       def schedule_next_decision

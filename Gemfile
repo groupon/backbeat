@@ -1,5 +1,5 @@
 source 'http://rubygems.org'
-ruby '1.9.3'
+ruby '1.9.2'
 
 gem 'rake'
 
@@ -28,6 +28,7 @@ gem 'resque'
 gem 'service-discovery', git: 'git@github.groupondev.com:groupon-api/service-discovery.git'
 gem 'squash_ruby', :require => 'squash/ruby'
 gem 'newrelic_rpm'
+gem 'jruby-openssl'
 
 group :development do
   # Deploy
@@ -35,7 +36,7 @@ group :development do
   gem 'capistrano-ext'
   gem 'capistrano-campfire'
   # Documentation
-  gem 'rdoc'
+  gem 'rdoc', '~> 3.4'
 end
 
 group :test do
