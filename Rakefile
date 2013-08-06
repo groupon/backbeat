@@ -2,6 +2,7 @@
 
 require_relative 'app'
 require 'rake'
+require 'resque/tasks'
 
 MODELS_TO_INDEX = [WorkflowServer::Models.constants.map{|model| "WorkflowServer::Models::#{model}"},
                    Delayed::Backend::Mongoid.constants.map{|model| "Delayed::Backend::Mongoid::#{model}"}].flatten
@@ -56,3 +57,4 @@ namespace :squash do
                                ENV['HOST']       || Socket.gethostname
   end
 end
+
