@@ -6,6 +6,27 @@ module WorkflowServer
     class Job < JobStruct
       extend WorkflowServer::Logger
 
+      def self.queue
+        :accounting_backbeat_server
+      end
+      
+      def self.perform(job_data)
+        job = new(*(job_data[:data]))
+        begin
+          job.perform
+        rescue Exception => error
+          # if the attempt to use Resque to perform this job fails, we will mimic delayed job
+          # behavior and enqueue a reattempt in 5 seconds. DJ implements backoff semantics on future
+          # retries. We end up doing 1 extra attempt in this flow, but we don't care
+          event = WorkflowServer::Models::Event.find(job.event_id)
+          schedule({event: event, method: job.method_to_call, args: job.args, max_attempts: job.max_attempts}, Time.now+5)
+        end
+      end
+
+      def self.enqueue(job_data)
+        Resque.enqueue(self, data: [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]])
+      end
+
       def perform
         t0 = Time.now
         self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_started")
