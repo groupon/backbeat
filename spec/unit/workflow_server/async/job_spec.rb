@@ -28,7 +28,7 @@ describe WorkflowServer::Async::Job do
 
         job.should_receive(:perform)
 
-        WorkflowServer::Async::Job.perform(data: args)
+        WorkflowServer::Async::Job.perform("data" => args)
       end
 
       it "schedules a delayed job on exception" do
@@ -50,7 +50,7 @@ describe WorkflowServer::Async::Job do
             max_attempts: 24
           }, Time.now + 5)
 
-          WorkflowServer::Async::Job.perform(data: args)
+          WorkflowServer::Async::Job.perform("data" => args)
         end
       end
     end

@@ -9,9 +9,9 @@ module WorkflowServer
       def self.queue
         :accounting_backbeat_server
       end
-      
+
       def self.perform(job_data)
-        job = new(*(job_data[:data]))
+        job = new(*(job_data["data"]))
         begin
           job.perform
         rescue Exception => error

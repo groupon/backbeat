@@ -11,8 +11,9 @@ class FakeResque
 
   def initialize
     @async_jobs = []
-    Resque.stub(:enqueue)    { |*args| @async_jobs.push(args) }
-    Resque.stub(:enqueue_to) { |*args| @async_jobs.push(args[1..-1]) }
+    # we map to make sure all the keys that are symbols are converted to strings, since that's what happens in real Resque 
+    Resque.stub(:enqueue)    { |*args| @async_jobs.push(args.map {|m| m.is_a?(Hash) ? HashWithIndifferentAccess.new(m).to_hash : m } ) }
+    Resque.stub(:enqueue_to) { |*args| @async_jobs.push(args[1..-1].map {|m| m.is_a?(Hash) ? HashWithIndifferentAccess.new(m).to_hash : m } ) }
   end
 
   # These are async jobs enqueued during the for block. We expect each job to be array with two members
