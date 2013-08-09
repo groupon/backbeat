@@ -39,7 +39,7 @@ set :normalize_asset_timestamps, false
 set :unicorn_binary, "bundle exec unicorn"
 set :unicorn_config, "#{current_path}/config/unicorn.conf.rb"
 set :unicorn_pid, "#{deploy_to}/shared/pids/unicorn.pid"
-set :worker_init_scripts, [:delayed_job]
+set :worker_init_scripts, [:delayed_job_backbeat, :resque_backbeat_server]
 
 ssh_options[:forward_agent] = true
 
