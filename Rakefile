@@ -58,3 +58,17 @@ namespace :squash do
   end
 end
 
+namespace :resque do
+  desc "configures logging for our resque workers"
+  task :logging_setup do
+    mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, "config", "mongoid.yml"))
+    Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
+
+    config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[ENV['RACK_ENV']]
+    Resque.redis = Redis.new(:host => config['host'], :port => config['port'])
+
+    Resque.logger = WorkflowServer::ResqueLogger
+  end
+end
+
+task "resque:setup" => "resque:logging_setup"

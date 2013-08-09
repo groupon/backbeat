@@ -19,7 +19,4 @@ require 'resque'
 
 Squash::Ruby.configure(WorkflowServer::Config.squash_config)
 
-config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[ENV['RACK_ENV']]
-Resque.redis = Redis.new(:host => config['host'], :port => config['port'])
-
 require 'newrelic_rpm'
