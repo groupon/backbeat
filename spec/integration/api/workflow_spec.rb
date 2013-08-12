@@ -119,21 +119,22 @@ describe Api::Workflow do
     end
 
     it "returns 201 and the signal json if workflow exists" do
-      @wf = FactoryGirl.create(:workflow, user: user)
-      @user = @wf.user
-      Delayed::Job.destroy_all
-      post "/workflows/#{@wf.id}/signal/test", options: { client_data: {data: '123'}, client_metadata: {metadata: '456'} }
+      wf = FactoryGirl.create(:workflow, user: user)
+
+      FakeResque.for do
+        post "/workflows/#{wf.id}/signal/test", options: { client_data: {data: '123'}, client_metadata: {metadata: '456'} }
+      end
+
       last_response.status.should == 201
       signal = JSON.parse(last_response.body)
-      @wf.signals.first.id.to_s.should == signal['id']
-      @wf.signals.first.client_data.should == {'data' => '123'}
-      @wf.signals.first.client_metadata.should == {'metadata' => '456'}
-      @wf.signals.first.async_jobs.count.should == 1
-      object = @wf.signals.first.async_jobs.first.payload_object
-      object.event.should == @wf.signals.first
-      object.method_to_call.should == :start
-      object.perform
-      Delayed::Job.where(handler: /schedule_next_decision/).count.should == 1
+
+      wf.reload
+      wf.signals.first.id.to_s.should == signal['id']
+      wf.signals.first.client_data.should == {'data' => '123'}
+      wf.signals.first.client_metadata.should == {'metadata' => '456'}
+      decision = wf.signals.first.children.first
+      decision.name.should == :test 
+      decision.status.should == :sent_to_client
     end
 
     it "returns 400 if the workflow is closed for events" do

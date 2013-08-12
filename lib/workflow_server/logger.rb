@@ -65,8 +65,13 @@ module WorkflowServer
   end
 
   class DelayedJobLogger
+    include WorkflowServer::Logger
+
     def self.add(level, text)
       WorkflowServer::Logger.logger.__send__(Log4r::LNAMES[level + 1].to_s.downcase, {:name => self.to_s, :message => text})
     end
+  end
+
+  class ResqueLogger < DelayedJobLogger
   end
 end

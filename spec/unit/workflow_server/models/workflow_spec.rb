@@ -46,11 +46,10 @@ describe WorkflowServer::Models::Workflow do
     it "drops a signal / decision task to notify the workflow" do
       workflow = FactoryGirl.create(:workflow, user: user)
       @wf.update_attributes!(workflow: workflow)
-      @wf.completed
+      FakeResque.for do
+        @wf.completed
+      end
       workflow.signals.count.should == 1
-      signal = workflow.signals.first
-      signal.async_jobs.count.should == 1
-      signal.async_jobs.first.payload_object.perform
       workflow.decisions.count.should == 1
       decision = workflow.decisions.first
       decision.name.should == "#{@wf.name}_succeeded".to_sym
@@ -65,11 +64,10 @@ describe WorkflowServer::Models::Workflow do
     it "drops a signal / decision task to notify the workflow" do
       workflow = FactoryGirl.create(:workflow, user: user)
       @wf.update_attributes!(workflow: workflow)
-      @wf.errored(:some_error)
+      FakeResque.for do
+        @wf.errored(:some_error)
+      end
       workflow.signals.count.should == 1
-      signal = workflow.signals.first
-      signal.async_jobs.count.should == 1
-      signal.async_jobs.first.payload_object.perform
       workflow.decisions.count.should == 1
       decision = workflow.decisions.first
       decision.name.should == "#{@wf.name}_errored".to_sym

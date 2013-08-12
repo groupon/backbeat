@@ -18,19 +18,18 @@ describe WorkflowServer::Models::Decision do
     decision = WorkflowServer::Models::Decision.new(@event_data)
     decision.should_receive(:enqueue_schedule_next_decision)
     decision.save!
-  end
+  end  
 
   context "#start" do
-    it "schedules a job to call out to the client and changes status to enqueued" do
-      Delayed::Job.destroy_all # remove any jobs created while creating the decisino
-      @d1.start
-      @d1.status.should == :sent_to_client
-      Delayed::Job.where(handler: /send_to_client/).count.should == 1
-      job = Delayed::Job.where(handler: /send_to_client/).first
-      handler = YAML.load(job.handler)
-      handler.event_id.should == @d1.id
-      handler.method_to_call.should == :send_to_client
-      handler.max_attempts.should == 25
+    it "schedules an async job to call out to the client and changes status to enqueued" do
+      WebMock.stub_request(:post, "http://localhost:9000/decision").
+               to_return(:status => 200, :body => "", :headers => {})
+
+      FakeResque.for do       
+        @d1.start
+        @d1.status.should == :sent_to_client
+      end
+      @d1.status.should == :sent_to_client      
     end
   end
 
@@ -185,9 +184,12 @@ describe WorkflowServer::Models::Decision do
           {type: :complete_workflow},
           {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds}
         ]
-        @d1.add_decisions(decisions)
-        @d1.change_status(:deciding_complete)
-        @d1.async_jobs.map(&:payload_object).map(&:perform)
+        WebMock.stub_request(:post, "http://localhost:9000/activity").
+         to_return(:status => 200, :body => "", :headers => {})
+        FakeResque.for do
+          @d1.add_decisions(decisions)
+          @d1.change_status(:deciding_complete)
+        end
         @d1.reload
         @d1.children.type(WorkflowServer::Models::Flag).first.status.should == :complete
         @d1.children.type(WorkflowServer::Models::Activity).first.status.should == :executing

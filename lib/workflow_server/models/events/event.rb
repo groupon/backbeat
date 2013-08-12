@@ -229,8 +229,14 @@ module WorkflowServer
             options = args.first.is_a?(Hash) ? args.first : {}
             max_attempts = options[:max_attempts]
             method_args = options[:args]
-            fires_at = options[:fires_at] || Time.now
-            WorkflowServer::Async::Job.schedule({event: self, method: method_name, args: method_args, max_attempts: max_attempts}, fires_at)
+            now_time = Time.now
+            fires_at = options[:fires_at] || now_time
+            job = {event: self, method: method_name, args: method_args, max_attempts: max_attempts}
+            if fires_at.to_time <= now_time
+              WorkflowServer::Async::Job.enqueue(job)
+            else
+              WorkflowServer::Async::Job.schedule(job, fires_at)
+            end
           rescue Exception => e
             error({ id: id, method_name: name, args: args, error: e, backtrace: e.backtrace })
             raise

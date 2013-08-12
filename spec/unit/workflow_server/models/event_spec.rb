@@ -113,10 +113,33 @@ describe WorkflowServer::Models::Event do
   end
 
   context '#method_missing_with_enqueue' do
+    it "send to resqueue if run time is nil" do
+      WorkflowServer::Async::Job.should_receive(:enqueue).with({
+        event: subject,
+        method: :testing_method_missing,
+        args: [:arg1, :arg2],
+        max_attempts: anything()
+      })
+
+      subject.enqueue_testing_method_missing(args: [:arg1, :arg2])
+    end
+
+    it "sends to resqueue if run time is now" do
+      WorkflowServer::Async::Job.should_receive(:enqueue).with({
+        event: subject,
+        method: :testing_method_missing,
+        args: [:arg1, :arg2],
+        max_attempts: anything()
+      })
+
+      subject.enqueue_testing_method_missing(args: [:arg1, :arg2], fires_at: Time.now)
+    end
+
     it 'schedules a job if the method name begins with enqueue_' do
       WorkflowServer::Async::Job.should_receive(:schedule).with({event: event, method: :test, args: [1,2,3,4], max_attempts:20}, Time.now + 10.minutes).and_return(mock('job', id: 100))
       event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes})
     end
+    
     context 'on error' do
       it 'logs the error and backtrace' do
         WorkflowServer::Async::Job.stub(:schedule).and_raise('some error')

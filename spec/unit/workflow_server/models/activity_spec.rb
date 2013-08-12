@@ -20,14 +20,8 @@ describe WorkflowServer::Models::Activity do
 
   context "#start" do
     it "schedules a job to perform_activity and goes into enqueued state" do
-      Delayed::Job.destroy_all
+      Resque.should_receive(:enqueue).with(WorkflowServer::Async::Job, {:data=>[@a1.id, :send_to_client, nil, 25]})
       @a1.start
-      Delayed::Job.where(handler: /send_to_client/).count.should == 1
-      job = Delayed::Job.where(handler: /send_to_client/).first
-      handler = YAML.load(job.handler)
-      handler.event_id.should == @a1.id
-      handler.method_to_call.should == :send_to_client
-      handler.max_attempts.should == 25
       @a1.status.should == :executing
     end
   end
@@ -344,16 +338,14 @@ describe WorkflowServer::Models::Activity do
         @a1.reload.next_decision.should == 'none'
       end
 
-      it "feeds the watchdog enqueues a job to call complete_if_done" do
+      it "feeding the watchdog enqueues an async job to call complete_if_done" do
         @a1.update_attributes!(status: :executing, time_out: 10)
         @a1.stub(:update_attributes!)
+
         WorkflowServer::Models::Watchdog.should_receive(:feed).with(@a1)
+        Resque.should_receive(:enqueue).with(WorkflowServer::Async::Job, {:data=>[@a1.id, :complete_if_done, nil, nil]})
+
         @a1.change_status(:completed, {next_decision: :none, result: {a: :b, c: :d}})
-        @a1.reload
-        @a1.async_jobs.count.should == 1
-        job = YAML.load(@a1.async_jobs.first.handler)
-        job.event_id.should == @a1.id
-        job.method_to_call.should == :complete_if_done
       end
 
       it "branches raise an error if no next_decision is given" do

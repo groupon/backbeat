@@ -96,10 +96,10 @@ describe Api::Workflow do
       decision.reload
       decision.children.count.should == 1
 
-      put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
-      Delayed::Job.where(handler: /work_on_decisions/).count.should == 1
-      payload = Delayed::Job.where(handler: /work_on_decisions/).first.payload_object
-      payload.perform
+      FakeResque.for do 
+        put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
+      end
+
       timer = decision.children.first
       timer.async_jobs.count.should == 1
       flag = FactoryGirl.create(:continue_as_new_workflow_flag, workflow: wf)

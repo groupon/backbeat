@@ -15,7 +15,13 @@ require 'service-discovery'
 require 'grape'
 require 'api'
 require 'workflow_server'
+require 'resque'
 
 Squash::Ruby.configure(WorkflowServer::Config.squash_config)
+
+# Resque workers use this to pick up jobs, unicorn and delayed job workers need to be able to put stuff into redis
+config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[ENV['RACK_ENV']]
+Resque.redis = Redis.new(:host => config['host'], :port => config['port'])
+
 
 require 'newrelic_rpm'
