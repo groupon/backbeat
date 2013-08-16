@@ -32,7 +32,6 @@ module WorkflowServer
 
       index({ workflow: 1, _type: 1, status: 1 }, { background: true })
       index({ parent: 1, status: 1, mode: 1, _type: 1 }, { background: true })
-      index({ parent: 1, _type: 1, name: 1, client_data: 1 }, { background: true })
 
       before_destroy do
         destroy_jobs
