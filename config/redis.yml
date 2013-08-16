@@ -9,7 +9,7 @@ test:
   <<: *defaults
 
 uat:
-  host: uat-redis-vip
+  host: newuat-redis-vip
   port: 6379
   
 staging:
