@@ -63,6 +63,7 @@ module WorkflowServer
         unless method_to_call.to_s == 'notify_client'
           event.update_status!(:error, :async_job_error)
         end
+      rescue
       end
 
       def event

@@ -101,11 +101,30 @@ describe WorkflowServer::Async::Job do
   end
 
   context 'success hook' do
-    it "removes the delayed job id from the list of outstanding jobs" do
+    it 'removes the delayed job id from the list of outstanding jobs' do
       job = WorkflowServer::Async::Job.schedule({event: decision, method: :some_method, max_attempts: 100}, Time.now + 2.days)
       decision.reload._delayed_jobs.should include(job.id)
       job.payload_object.success(job)
       decision.reload._delayed_jobs.should_not include(job.id)
+    end
+  end
+
+  context 'failure hook' do
+    it 'updates the events status to async_job_error when method to call is NOT "notify_client"' do
+      job = WorkflowServer::Async::Job.schedule({event: decision, method: :some_method, max_attempts: 100}, Time.now + 2.days)
+      job.payload_object.failure
+      decision.reload.status.should == :error
+      decision.status_history.last['error'].should == :async_job_error
+    end
+    it 'does NOT update the events status to async_job_error when method to call is "notify_client"' do
+      job = WorkflowServer::Async::Job.schedule({event: decision, method: :notify_client, max_attempts: 100}, Time.now + 2.days)
+      job.payload_object.failure
+      decision.reload.status.should_not == :error
+    end
+    it 'rescues from and does not reaise any Exception' do
+      job = WorkflowServer::Async::Job.schedule({event: decision, method: :some_method, max_attempts: 100}, Time.now + 2.days)
+      decision.destroy
+      expect{job.payload_object.failure}.to_not raise_error
     end
   end
 end
