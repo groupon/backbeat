@@ -63,7 +63,8 @@ module WorkflowServer
         unless method_to_call.to_s == 'notify_client'
           event.update_status!(:error, :async_job_error)
         end
-      rescue
+      rescue Exception => error
+        self.class.error(source: self.class.to_s, message: 'encountered error in AsyncJob failure hook', error: error, backtrace: error.backtrace)
       end
 
       def event

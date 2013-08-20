@@ -126,5 +126,11 @@ describe WorkflowServer::Async::Job do
       decision.destroy
       expect{job.payload_object.failure}.to_not raise_error
     end
+    it 'rescues any Exception and logs it' do
+      job = WorkflowServer::Async::Job.schedule({event: decision, method: :some_method, max_attempts: 100}, Time.now + 2.days)
+      decision.destroy
+      WorkflowServer::Async::Job.should_receive(:error).with(source: WorkflowServer::Async::Job.to_s, message: 'encountered error in AsyncJob failure hook', error: anything, backtrace: anything)
+      job.payload_object.failure
+    end
   end
 end
