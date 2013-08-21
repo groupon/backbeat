@@ -34,6 +34,7 @@ require 'active_support/core_ext/time/marshal' # add crappy marshalling first an
 
 class Time
   class << self
+    alias_method :_load_without_zone, :_load unless method_defined?(:_load_without_zone)
     def _load(marshaled_time)
       time = _load_without_zone(marshaled_time)
       time.instance_eval do
@@ -49,6 +50,7 @@ class Time
     end
   end
 
+  alias_method :_dump_without_zone, :_dump unless method_defined?(:_dump_without_zone)
   def _dump(*args)
     obj = dup
     obj.instance_variable_set('@_isdst_and_zone', [dst?, zone])
