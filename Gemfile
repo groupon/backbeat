@@ -3,8 +3,6 @@ source 'http://rubygems.org'
 gem 'rake'
 
 # Server/API
-gem 'unicorn', platform: :ruby
-gem 'puma',    platform: :jruby
 gem 'grape'
 gem 'httparty'
 gem 'log4r'
@@ -28,6 +26,11 @@ gem 'service-discovery', git: 'git@github.groupondev.com:groupon-api/service-dis
 gem 'squash_ruby', :require => 'squash/ruby'
 gem 'newrelic_rpm'
 gem 'jruby-openssl'
+
+#Torquebox
+gem 'torquebox'
+gem 'torquebox-messaging'
+#gem 'torquebox-console'
 
 group :development do
   # Deploy

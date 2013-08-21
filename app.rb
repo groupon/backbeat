@@ -26,7 +26,8 @@ Resque.redis = Redis.new(:host => config['host'], :port => config['port'])
 
 require 'newrelic_rpm'
 
-
+mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, "config", "mongoid.yml"))
+Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 
 ############################################## MONKEY-PATCH ################################################
 ## FIX JRUBY TIME MARSHALLING - SEE https://github.com/rails/rails/issues/10900 ############################

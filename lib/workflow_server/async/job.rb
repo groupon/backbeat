@@ -24,7 +24,9 @@ module WorkflowServer
       end
 
       def self.enqueue(job_data)
-        Resque.enqueue(self, data: [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]])
+        #Resque.enqueue(self, data: [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]])
+        @queue ||= TorqueBox::Messaging::Queue.new("/queues/accounting_backbeat_internal")
+        @queue.publish(data: [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]])
       end
 
       def perform
