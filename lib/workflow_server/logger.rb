@@ -1,3 +1,6 @@
+require 'log4r'
+
+
 module WorkflowServer
   module Logger
 
