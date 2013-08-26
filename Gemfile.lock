@@ -216,6 +216,7 @@ GEM
       torquebox-transactions (= 3.0.0.beta2)
     torquebox-configure (3.0.0.beta2-java)
       blankslate (= 2.1.2.4)
+    torquebox-console (0.3.0)
     torquebox-core (3.0.0.beta2-java)
       edn (= 1.0.0)
     torquebox-messaging (3.0.0.beta2-java)
@@ -233,6 +234,9 @@ GEM
     torquebox-transactions (3.0.0.beta2)
       torquebox-core (= 3.0.0.beta2)
     torquebox-web (3.0.0.beta2-java)
+    torquespec (0.6.0)
+      json
+      rspec
     treetop (1.4.12)
       polyglot
       polyglot (>= 0.3.1)
@@ -287,7 +291,9 @@ DEPENDENCIES
   squash_ruby
   timecop
   torquebox
+  torquebox-console
   torquebox-messaging
+  torquespec
   uuidtools
   webmock
   whenever

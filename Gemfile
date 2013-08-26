@@ -49,4 +49,6 @@ group :test do
   gem 'timecop'
   gem 'webmock'
   gem 'simplecov'
+  gem 'torquespec'
+  gem 'torquebox-console'
 end

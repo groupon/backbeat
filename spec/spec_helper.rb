@@ -16,7 +16,8 @@ require 'helper/mongo'
 Bundler.setup
 Bundler.require(:default, :test)
 
-require 'mongoid'
+require 'app'
+
 mongo_path = File.expand_path(File.join(__FILE__, "..", "..", "config", "mongoid.yml"))
 Mongoid.load!(mongo_path, :test)
 
@@ -29,7 +30,26 @@ module Resque
   end
 end
 
+#['JBOSS_HOME', 'JRUBY_HOME', 'TORQUEBOX_HOME'].each {|var| ENV[var] = nil }
+RACK_ROOT = File.expand_path(File.join(__FILE__,'..'))
+ENV['RACK_ROOT'] = RACK_ROOT
+
+require 'torquespec'
+
+TorqueSpec.configure do |config|
+  config.jboss_home = '/Users/milinostroza/.immutant/current/jboss'
+end
+
+  WebMock.disable_net_connect!(:allow_localhost => true)
+
+BACKBEAT_APP = <<-DD_END.gsub(/^ {4}/,'')
+     application:
+       root: #{WorkflowServer::Config.root}
+       env: test
+   DD_END
+
 FullRackApp = Rack::Builder.parse_file(File.expand_path(File.join(__FILE__,'..','..','config.ru'))).first
+
 
 RSPEC_CONSTANT_USER_CLIENT_ID = UUIDTools::UUID.random_create.to_s
 
@@ -46,7 +66,6 @@ end
 
 RSpec.configuration.before(:suite) do
   Helper::Mongo.start(27018)
-  binding.pry
 end
 
 RSpec.configuration.after(:suite) do

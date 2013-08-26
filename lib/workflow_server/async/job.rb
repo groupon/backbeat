@@ -9,8 +9,9 @@ module WorkflowServer
       extend WorkflowServer::Logger
 
       def self.enqueue(job_data)
-        @queue = TorqueBox.fetch('/queues/accounting_backbeat_internal')
-        @queue.publish(data: [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]])
+        #queue = TorqueBox.fetch('/queues/accounting_backbeat_internal')
+        queue = TorqueBox::Messaging::Queue.new('/queues/accounting_backbeat_internal')
+        queue.publish(data: [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]])
       end
 
       def perform
