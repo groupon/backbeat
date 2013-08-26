@@ -46,6 +46,7 @@ end
 
 RSpec.configuration.before(:suite) do
   Helper::Mongo.start(27018)
+  binding.pry
 end
 
 RSpec.configuration.after(:suite) do

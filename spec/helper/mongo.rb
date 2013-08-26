@@ -3,6 +3,7 @@ module Helper
     def self.start(port)
       mongo = self.new(port)
       mongo.start
+      binding.pry
     end
 
     def self.stop(port)
