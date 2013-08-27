@@ -30,6 +30,8 @@ module Resque
   end
 end
 
+FileUtils.rm_rf("#{WorkflowServer::Config.root}/.torquespec")
+
 #['JBOSS_HOME', 'JRUBY_HOME', 'TORQUEBOX_HOME'].each {|var| ENV[var] = nil }
 RACK_ROOT = File.expand_path(File.join(__FILE__,'..'))
 ENV['RACK_ROOT'] = RACK_ROOT
@@ -42,11 +44,22 @@ end
 
   WebMock.disable_net_connect!(:allow_localhost => true)
 
+puts WorkflowServer::Config.root
+
 BACKBEAT_APP = <<-DD_END.gsub(/^ {4}/,'')
-     application:
-       root: #{WorkflowServer::Config.root}
-       env: test
-   DD_END
+    application:
+        root: #{WorkflowServer::Config.root}
+    environment:
+      RACK_ENV: test
+    DD_END
+
+module TorqueBox
+  module Messaging
+    class Queue < Destination
+      alias_method :publish, :publish_and_receive
+    end
+  end
+end
 
 FullRackApp = Rack::Builder.parse_file(File.expand_path(File.join(__FILE__,'..','..','config.ru'))).first
 
@@ -56,11 +69,11 @@ RSPEC_CONSTANT_USER_CLIENT_ID = UUIDTools::UUID.random_create.to_s
 FactoryGirl.find_definitions
 
 RSpec.configuration.before(:each) do
-  Timecop.freeze(Time.now)
+  #Timecop.freeze(Time.now)
 end
 
 RSpec.configuration.after(:each) do
-  Timecop.return
+  #Timecop.return
   Mongoid::Sessions.default.collections.select {|c| c.name !~ /system/ }.each(&:drop)
 end
 

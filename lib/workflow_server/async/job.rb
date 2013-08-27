@@ -15,11 +15,14 @@ module WorkflowServer
       end
 
       def perform
+        File.open("/Users/milinostroza/test.txt", "a") {|a| a.write("perform #{event_id} #{event} #{Mongoid.sessions}"); a.write("\n"); a.flush }
         t0 = Time.now
         self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_started")
         event.__send__(method_to_call, *args)
         self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_succeeded", duration: Time.now - t0)
+        File.open("/Users/milinostroza/test.txt", "a") {|a| a.write('success'); a.write("\n"); a.flush }
       rescue Exception => error
+        File.open("/Users/milinostroza/test.txt", "a") {|a| a.write(error.error + error.backtrace.join("")); a.write("\n"); a.flush }
         self.class.error(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error, backtrace: error.backtrace, duration: Time.now - t0)
         Squash::Ruby.notify error
         raise

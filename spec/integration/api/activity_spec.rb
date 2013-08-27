@@ -1,44 +1,10 @@
 require 'spec_helper'
-
-remote_describe  "test" do
-  deploy BACKBEAT_APP
-  def app
-    FullRackApp
-  end
-
-  before do
-    header 'CLIENT_ID', RSPEC_CONSTANT_USER_CLIENT_ID
-    WorkflowServer::Client.stub(:make_decision)
-  end
-
-  it "returns 200 if the next decision is valid and the activity succeeds" do
-          decision = FactoryGirl.create(:decision)
-          activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow, valid_next_decisions: ['test_decision'])
-          wf = activity.workflow
-          user = wf.user
-
-          FakeResque.for do
-            put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
-            last_response.status.should == 200
-            activity.reload
-            activity.result.should == 'i_was_successful'
-            activity.children.count.should == 0
-          end
-
-          queue = TorqueBox::Messaging::Queue.new('/queues/foo')
-          binding.pry
-          activity.reload
-          
-          child = activity.children.first
-          child.name.should == :test_decision
-          activity.status.should == :complete
-        end
-
-end
+require 'torquebox'
 
 describe Api::Workflow do
   include Rack::Test::Methods
-  
+
+  deploy BACKBEAT_APP
 
   def app
     FullRackApp
@@ -75,7 +41,6 @@ describe Api::Workflow do
         end
 
         it "returns 400 if the next decision is invalid" do
-          #TorqueBox.stub(:fetch).with('/queues/accounting_backbeat_internal').and_return(queue)
           decision = FactoryGirl.create(:decision)
           activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow)
           wf = activity.workflow
@@ -95,19 +60,15 @@ describe Api::Workflow do
           wf = activity.workflow
           user = wf.user
 
-          FakeResque.for do
-            put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
-            last_response.status.should == 200
-            activity.reload
-            activity.result.should == 'i_was_successful'
-            activity.children.count.should == 0
-          end
-
-          queue = TorqueBox::Messaging::Queue.new('/queues/foo')
-          binding.pry
+          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
+          last_response.status.should == 200
           activity.reload
-          
+          activity.result.should == 'i_was_successful'
+          # activity.children.count.should == 0
+
+          activity.reload
           child = activity.children.first
+          binding.pry
           child.name.should == :test_decision
           activity.status.should == :complete
         end
@@ -118,11 +79,12 @@ describe Api::Workflow do
           wf = activity.workflow
           user = wf.user
 
-          FakeResque.for do
-            put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
-            last_response.status.should == 200
-          end
-          
+          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
+          last_response.status.should == 200
+
+          queue = TorqueBox::Messaging::Queue.new('/queues/test')
+          ap queue.receive
+
           activity.reload
           activity.status.should == :complete
         end
