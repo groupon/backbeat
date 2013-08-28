@@ -7,6 +7,9 @@ describe Api::Workflow do
     FullRackApp
   end
 
+  deploy BACKBEAT_APP
+
+
   let(:user) { FactoryGirl.create(:user) }
   let(:workflow) { FactoryGirl.create(:workflow, user: user) }
 

@@ -4,6 +4,7 @@ test:
   log_format: json
   dashboard_auth_token: '6dy6L8v8942jrbV622dr'
   dashboard_base_uri:   'http://localhost:3030/widgets/'
+  queue: '/queues/accounting_backbeat_internal'
 
 development:
   log: /tmp/backbeat.log

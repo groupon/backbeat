@@ -7,6 +7,8 @@ describe Api::Workflow do
     FullRackApp
   end
 
+  deploy BACKBEAT_APP
+
   before do
     header 'CLIENT_ID', RSPEC_CONSTANT_USER_CLIENT_ID
     WorkflowServer::Client.stub(:make_decision)

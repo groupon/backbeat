@@ -7,6 +7,9 @@ describe Api::Health do
     FullRackApp
   end
 
+  deploy BACKBEAT_APP
+
+
   context "/health" do
     it "catches the request and return 200" do
       get '/health'

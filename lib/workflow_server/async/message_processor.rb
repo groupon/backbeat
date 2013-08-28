@@ -8,6 +8,7 @@ module WorkflowServer
       def on_message(body)
         @job = Job.new(*body[:data])
         @job.perform
+        body
       end
 
       def on_error(error)

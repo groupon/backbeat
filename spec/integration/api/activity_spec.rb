@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'torquebox'
 
 describe Api::Workflow do
   include Rack::Test::Methods
@@ -10,9 +9,23 @@ describe Api::Workflow do
     FullRackApp
   end
 
+  before :each do 
+    
+  end
+
+  after :each do
+    
+  end
+
   before do
     header 'CLIENT_ID', RSPEC_CONSTANT_USER_CLIENT_ID
     WorkflowServer::Client.stub(:make_decision)
+  end
+
+  def track_time(statement)
+    start = Time.now
+    yield
+    ap "Time taken for #{statement} is #{Time.now - start}"
   end
 
   context "PUT /workflows/:id/events/:event_id/status/:new_status" do
@@ -54,9 +67,14 @@ describe Api::Workflow do
           activity.status.should_not == :complete
         end
 
+context "specifi" do
         it "returns 200 if the next decision is valid and the activity succeeds" do
+          start = Time.now
           decision = FactoryGirl.create(:decision)
           activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow, valid_next_decisions: ['test_decision'])
+          # track_time("create decision") { decision = FactoryGirl.create(:decision) }
+          # track_time("create decision") { decision = FactoryGirl.create(:decision, workflow: decision.workflow, user: decision.user) }
+          # track_time("create activity") { activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow, valid_next_decisions: ['test_decision']) }
           wf = activity.workflow
           user = wf.user
 
@@ -73,6 +91,7 @@ describe Api::Workflow do
         end
 
         it "returns 200 if no next decision is present" do
+          start = Time.now
           decision = FactoryGirl.create(:decision)
           activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow)
           wf = activity.workflow
@@ -83,7 +102,9 @@ describe Api::Workflow do
 
           activity.reload
           activity.status.should == :complete
+
         end
+      end
       end
 
       context "activity errored" do
@@ -159,33 +180,33 @@ describe Api::Workflow do
       sub_activity = { :name => :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, client_data: {arguments: [1,2,3]}}
       header "Content-Type", "application/json"
 
-      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      track_time("first call") { put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json }
       last_response.status.should == 200
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
 
-      put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
+      track_time("2 call") { put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed" }
       last_response.status.should == 200
 
-      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      track_time("3 call") { put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json }
       last_response.status.should == 200
       last_response.headers.should_not include("WAIT_FOR_SUB_ACTIVITY")
 
       # change the name
       sub_activity[:name] = :make_initial_payment_SOMETHING_ELSE
-      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      track_time("4 call") { put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json }
       last_response.status.should == 200
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
       sa = JSON.parse(last_response.body)
 
-      put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
+      track_time("5 call") { put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed" }
       last_response.status.should == 200
 
       # change the arguments this time
       sub_activity[:client_data][:arguments] = [1,2,3,4]
-      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      track_time("6 call") { put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json }
       last_response.status.should == 200
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
-    end
+  end
 
     it "runs the sub-activity with camel-case input" do
       activity = FactoryGirl.create(:activity, status: :executing)

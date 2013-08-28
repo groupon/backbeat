@@ -1,5 +1,5 @@
 # require 'spec_helper'
-# require 'torquespec'
+#require 'torquespec'
 # require 'open-uri'
 # require 'torquebox-core'
 
@@ -74,21 +74,21 @@
 #   end
 
 # end
-require 'torquespec'
-require 'open-uri'
-require 'torquebox-messaging'
+#require 'torquespec'
+#require 'open-uri'
+#require 'torquebox-messaging'
 require 'spec_helper'
 
 
 describe "simple backgrounding test" do
 
-  deploy <<-DD_END.gsub(/^ {4}/,'')
-    application:
-      root: #{WorkflowServer::Config.root}/spec
-  DD_END
-  TorqueSpec.remote {
-   ENV['RACK_ENV'] = "test"
- }
+ #  deploy <<-DD_END.gsub(/^ {4}/,'')
+ #    application:
+ #      root: #{WorkflowServer::Config.root}/spec
+ #  DD_END
+ #  TorqueSpec.remote {
+ #   ENV['RACK_ENV'] = "test"
+ # }
 
   it "should respond by spawning a background task" do
     #response = open("http://localhost:8080") {|f| f.read}
@@ -98,11 +98,11 @@ describe "simple backgrounding test" do
     # start = Time.now.to_i
     # output = queue.publish('release')
     # p "Time taken #{Time.now.to_i - start}"
-    FactoryGirl.create(:decision)
-    queue = TorqueBox::Messaging::Queue.new('/queues/test')
-    ap queue.receive(:timeout => 5000)
-    ap "after inserting"
-    binding.pry
+    # FactoryGirl.create(:decision)
+    # queue = TorqueBox::Messaging::Queue.new('/queues/test')
+    # ap queue.receive(:timeout => 5000)
+    puts "after inserting"
+    #binding.pry
     #TorqueBox::Messaging::Queue.new('/queue/abc').receive(:timeout => 5000).should == 'finished'
   end
 

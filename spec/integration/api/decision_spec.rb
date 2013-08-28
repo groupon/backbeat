@@ -3,6 +3,8 @@ require 'spec_helper'
 describe Api::Workflow do
   include Rack::Test::Methods
 
+  deploy BACKBEAT_APP
+
   def app
     FullRackApp
   end
