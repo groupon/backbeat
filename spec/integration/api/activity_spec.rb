@@ -68,7 +68,6 @@ describe Api::Workflow do
 
           activity.reload
           child = activity.children.first
-          binding.pry
           child.name.should == :test_decision
           activity.status.should == :complete
         end
@@ -81,9 +80,6 @@ describe Api::Workflow do
 
           put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
           last_response.status.should == 200
-
-          queue = TorqueBox::Messaging::Queue.new('/queues/test')
-          ap queue.receive
 
           activity.reload
           activity.status.should == :complete
@@ -167,11 +163,9 @@ describe Api::Workflow do
       last_response.status.should == 200
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
 
-      FakeResque.for do
-        put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
-        last_response.status.should == 200
-      end
-      
+      put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
+      last_response.status.should == 200
+
       put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 200
       last_response.headers.should_not include("WAIT_FOR_SUB_ACTIVITY")
@@ -183,10 +177,8 @@ describe Api::Workflow do
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
       sa = JSON.parse(last_response.body)
 
-      FakeResque.for do
-        put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
-        last_response.status.should == 200
-      end
+      put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
+      last_response.status.should == 200
 
       # change the arguments this time
       sub_activity[:client_data][:arguments] = [1,2,3,4]

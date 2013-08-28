@@ -30,21 +30,18 @@ module Resque
   end
 end
 
-FileUtils.rm_rf("#{WorkflowServer::Config.root}/.torquespec")
-
-#['JBOSS_HOME', 'JRUBY_HOME', 'TORQUEBOX_HOME'].each {|var| ENV[var] = nil }
 RACK_ROOT = File.expand_path(File.join(__FILE__,'..'))
 ENV['RACK_ROOT'] = RACK_ROOT
 
+
+FileUtils.rm_rf("#{WorkflowServer::Config.root}/.torquespec")
 require 'torquespec'
 
 TorqueSpec.configure do |config|
-  config.jboss_home = '/Users/milinostroza/.immutant/current/jboss'
+  config.jboss_home = "#{ENV['HOME']}/.immutant/current/jboss"
 end
 
-  WebMock.disable_net_connect!(:allow_localhost => true)
-
-puts WorkflowServer::Config.root
+WebMock.disable_net_connect!(:allow_localhost => true)
 
 BACKBEAT_APP = <<-DD_END.gsub(/^ {4}/,'')
     application:
@@ -69,11 +66,11 @@ RSPEC_CONSTANT_USER_CLIENT_ID = UUIDTools::UUID.random_create.to_s
 FactoryGirl.find_definitions
 
 RSpec.configuration.before(:each) do
-  #Timecop.freeze(Time.now)
+  Timecop.freeze(Time.now)
 end
 
 RSpec.configuration.after(:each) do
-  #Timecop.return
+  Timecop.return
   Mongoid::Sessions.default.collections.select {|c| c.name !~ /system/ }.each(&:drop)
 end
 
