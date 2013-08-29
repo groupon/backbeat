@@ -9,14 +9,6 @@ describe Api::Workflow do
     FullRackApp
   end
 
-  before :each do 
-    
-  end
-
-  after :each do
-    
-  end
-
   before do
     header 'CLIENT_ID', RSPEC_CONSTANT_USER_CLIENT_ID
     WorkflowServer::Client.stub(:make_decision)
@@ -67,14 +59,10 @@ describe Api::Workflow do
           activity.status.should_not == :complete
         end
 
-context "specifi" do
         it "returns 200 if the next decision is valid and the activity succeeds" do
           start = Time.now
           decision = FactoryGirl.create(:decision)
           activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow, valid_next_decisions: ['test_decision'])
-          # track_time("create decision") { decision = FactoryGirl.create(:decision) }
-          # track_time("create decision") { decision = FactoryGirl.create(:decision, workflow: decision.workflow, user: decision.user) }
-          # track_time("create activity") { activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow, valid_next_decisions: ['test_decision']) }
           wf = activity.workflow
           user = wf.user
 
@@ -82,7 +70,9 @@ context "specifi" do
           last_response.status.should == 200
           activity.reload
           activity.result.should == 'i_was_successful'
-          # activity.children.count.should == 0
+          #TODO: @naren, please check this change
+          #activity.children.count.should == 0
+          activity.children.count.should == 1
 
           activity.reload
           child = activity.children.first
@@ -104,7 +94,6 @@ context "specifi" do
           activity.status.should == :complete
 
         end
-      end
       end
 
       context "activity errored" do
@@ -180,30 +169,30 @@ context "specifi" do
       sub_activity = { :name => :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, client_data: {arguments: [1,2,3]}}
       header "Content-Type", "application/json"
 
-      track_time("first call") { put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json }
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 200
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
 
-      track_time("2 call") { put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed" }
+      put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
       last_response.status.should == 200
 
-      track_time("3 call") { put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json }
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 200
       last_response.headers.should_not include("WAIT_FOR_SUB_ACTIVITY")
 
       # change the name
       sub_activity[:name] = :make_initial_payment_SOMETHING_ELSE
-      track_time("4 call") { put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json }
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 200
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
       sa = JSON.parse(last_response.body)
 
-      track_time("5 call") { put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed" }
+      put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
       last_response.status.should == 200
 
       # change the arguments this time
       sub_activity[:client_data][:arguments] = [1,2,3,4]
-      track_time("6 call") { put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json }
+      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
       last_response.status.should == 200
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
   end

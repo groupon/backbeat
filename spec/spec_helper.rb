@@ -71,21 +71,16 @@ RSPEC_CONSTANT_USER_CLIENT_ID = UUIDTools::UUID.random_create.to_s
 FactoryGirl.find_definitions
 
 RSpec.configuration.before(:each) do
-  #Timecop.freeze(Time.now)
-  @start = Time.now
+  Timecop.freeze(Time.now)
 end
 
 RSpec.configuration.after(:each) do
-  #Timecop.return
+  Timecop.return
   Mongoid::Sessions.default.collections.select {|c| c.name !~ /system/ }.each(&:drop)
-  p "Time taken #{Time.now - @start}"
 end
 
 RSpec.configuration.before(:suite) do
   Helper::Mongo.start(27018)
-  # WebMock.stub_request(:post, "http://backbeat_client:9000/decision")
-  # WebMock.stub_request(:post, "http://backbeat_client:9000/activity")
-  # WebMock.stub_request(:post, "http://backbeat_client:9000/notifications")
 end
 
 RSpec.configuration.after(:suite) do
