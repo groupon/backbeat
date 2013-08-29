@@ -13,8 +13,9 @@ describe WorkflowServer::Async::Job do
   end
   
   context "resque" do
+
     it "defines a queue" do
-      WorkflowServer::Async::Job.queue.should == :accounting_backbeat_server
+      WorkflowServer::Async::Job.queue.should == '/queues/accounting_backbeat_internal'
     end
 
     context "Job.perform" do
@@ -28,7 +29,12 @@ describe WorkflowServer::Async::Job do
 
         job.should_receive(:perform)
 
-        WorkflowServer::Async::Job.perform("data" => args)
+        processor = WorkflowServer::Async::MessageProcessor.new
+        processor.should_receive(:synchronous?).and_return(false)
+
+        message = mock(TorqueBox::Messaging::Message)
+        message.stub(:decode).and_return(data: args)
+        processor.process!(message)
       end
 
       it "schedules a delayed job on exception" do
@@ -50,7 +56,11 @@ describe WorkflowServer::Async::Job do
             max_attempts: 24
           }, Time.now + 5)
 
-          WorkflowServer::Async::Job.perform("data" => args)
+          processor = WorkflowServer::Async::MessageProcessor.new
+
+          message = mock(TorqueBox::Messaging::Message)
+          message.stub(:decode).and_return(data: args)
+          processor.process!(message)
         end
       end
     end
@@ -61,8 +71,8 @@ describe WorkflowServer::Async::Job do
       job_data = {event: event, method: :a_method_name, args:[:arg1, :arg2], max_attempts: 24}
 
 
-      Resque.should_receive(:enqueue)
-        .with(WorkflowServer::Async::Job, data: ["12", :a_method_name, [:arg1, :arg2], 24])
+      TorqueBox::Messaging::Queue.any_instance.should_receive(:publish)
+        .with(data: ["12", :a_method_name, [:arg1, :arg2], 24])
 
       WorkflowServer::Async::Job.enqueue(job_data)
     end

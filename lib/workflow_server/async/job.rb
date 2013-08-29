@@ -8,8 +8,12 @@ module WorkflowServer
     class Job < JobStruct
       extend WorkflowServer::Logger
 
+      def self.queue
+        '/queues/accounting_backbeat_internal'
+      end
+
       def self.enqueue(job_data)
-        queue = TorqueBox::Messaging::Queue.new('/queues/accounting_backbeat_internal')
+        queue = TorqueBox::Messaging::Queue.new(self.queue)
         queue.publish(data: [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]])
       end
 
