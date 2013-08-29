@@ -4,6 +4,8 @@ require_relative 'event_se'
 describe WorkflowServer::Models::Decision do
   let(:user) { FactoryGirl.create(:user) }
 
+  deploy BACKBEAT_APP
+
   before do
     @event_klass = WorkflowServer::Models::Decision
     @event_data = {name: :test_decision, user: user}
@@ -18,18 +20,17 @@ describe WorkflowServer::Models::Decision do
     decision = WorkflowServer::Models::Decision.new(@event_data)
     decision.should_receive(:enqueue_schedule_next_decision)
     decision.save!
-  end  
+  end
 
   context "#start" do
     it "schedules an async job to call out to the client and changes status to enqueued" do
       WebMock.stub_request(:post, "http://localhost:9000/decision").
                to_return(:status => 200, :body => "", :headers => {})
 
-      FakeResque.for do       
-        @d1.start
-        @d1.status.should == :sent_to_client
-      end
-      @d1.status.should == :sent_to_client      
+      @d1.start
+      @d1.status.should == :sent_to_client
+
+      @d1.status.should == :sent_to_client
     end
   end
 
@@ -186,10 +187,10 @@ describe WorkflowServer::Models::Decision do
         ]
         WebMock.stub_request(:post, "http://localhost:9000/activity").
          to_return(:status => 200, :body => "", :headers => {})
-        FakeResque.for do
-          @d1.add_decisions(decisions)
-          @d1.change_status(:deciding_complete)
-        end
+
+        @d1.add_decisions(decisions)
+        @d1.change_status(:deciding_complete)
+
         @d1.reload
         @d1.children.any_in(_type: [WorkflowServer::Models::Flag]).first.status.should == :complete
         @d1.children.any_in(_type: [WorkflowServer::Models::Activity]).first.status.should == :executing

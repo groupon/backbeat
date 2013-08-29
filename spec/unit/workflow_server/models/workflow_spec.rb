@@ -2,8 +2,9 @@ require 'spec_helper'
 require_relative 'event_se'
 
 describe WorkflowServer::Models::Workflow do
-
   let(:user) { FactoryGirl.create(:user) }
+
+  deploy BACKBEAT_APP
 
   before do
     @event_klass = WorkflowServer::Models::Workflow
@@ -46,9 +47,9 @@ describe WorkflowServer::Models::Workflow do
     it "drops a signal / decision task to notify the workflow" do
       workflow = FactoryGirl.create(:workflow, user: user)
       @wf.update_attributes!(workflow: workflow)
-      FakeResque.for do
-        @wf.completed
-      end
+
+      @wf.completed
+
       workflow.signals.count.should == 1
       workflow.decisions.count.should == 1
       decision = workflow.decisions.first
@@ -64,9 +65,9 @@ describe WorkflowServer::Models::Workflow do
     it "drops a signal / decision task to notify the workflow" do
       workflow = FactoryGirl.create(:workflow, user: user)
       @wf.update_attributes!(workflow: workflow)
-      FakeResque.for do
-        @wf.errored(:some_error)
-      end
+
+      @wf.errored(:some_error)
+
       workflow.signals.count.should == 1
       workflow.decisions.count.should == 1
       decision = workflow.decisions.first

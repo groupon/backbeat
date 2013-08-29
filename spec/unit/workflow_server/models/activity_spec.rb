@@ -20,7 +20,8 @@ describe WorkflowServer::Models::Activity do
 
   context "#start" do
     it "schedules a job to perform_activity and goes into enqueued state" do
-      Resque.should_receive(:enqueue).with(WorkflowServer::Async::Job, {:data=>[@a1.id, :send_to_client, nil, 25]})
+      #Resque.should_receive(:enqueue).with(WorkflowServer::Async::Job, {:data=>[@a1.id, :send_to_client, nil, 25]})
+      TorqueBox::Messaging::Queue.any_instance.should_receive(:publish).with(data:[@a1.id, :send_to_client, nil, 25])
       @a1.start
       @a1.status.should == :executing
     end
@@ -343,7 +344,8 @@ describe WorkflowServer::Models::Activity do
         @a1.stub(:update_attributes!)
 
         WorkflowServer::Models::Watchdog.should_receive(:feed).with(@a1)
-        Resque.should_receive(:enqueue).with(WorkflowServer::Async::Job, {:data=>[@a1.id, :complete_if_done, nil, nil]})
+        TorqueBox::Messaging::Queue.any_instance.should_receive(:publish).with(data:[@a1.id, :complete_if_done, nil, nil])
+        #Resque.should_receive(:enqueue).with(WorkflowServer::Async::Job, {:data=>[@a1.id, :complete_if_done, nil, nil]})
 
         @a1.change_status(:completed, {next_decision: :none, result: {a: :b, c: :d}})
       end
