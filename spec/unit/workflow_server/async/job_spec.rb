@@ -1,6 +1,9 @@
 require 'spec_helper'
 
 describe WorkflowServer::Async::Job do
+
+  deploy BACKBEAT_APP
+
   let(:decision) { FactoryGirl.create(:decision) }
   context "#schedule" do
     it "schedules a delayed job" do
@@ -12,7 +15,7 @@ describe WorkflowServer::Async::Job do
     end
   end
   
-  context "resque" do
+  context "TorqueBox" do
 
     it "defines a queue" do
       WorkflowServer::Async::Job.queue.should == '/queues/accounting_backbeat_internal'
@@ -65,7 +68,7 @@ describe WorkflowServer::Async::Job do
       end
     end
 
-    it "enqueues to resque" do
+    it "enqueues to TorqueBox" do
       event = mock("event", id: "12")
 
       job_data = {event: event, method: :a_method_name, args:[:arg1, :arg2], max_attempts: 24}

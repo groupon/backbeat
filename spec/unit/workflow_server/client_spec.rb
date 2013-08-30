@@ -2,6 +2,9 @@ require 'spec_helper'
 require 'webmock/rspec'
 
 describe WorkflowServer::Client do
+
+  deploy BACKBEAT_APP
+
   before do
     WorkflowServer::Client.stub(:make_decision)
     WorkflowServer::Client.stub(:notify_of)

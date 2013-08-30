@@ -6,6 +6,8 @@ describe WorkflowServer::Models::Signal do
   let(:user) { FactoryGirl.create(:user) }
   let(:workflow) { FactoryGirl.create(:workflow, user: user) }
 
+  deploy BACKBEAT_APP
+
   before do
     @event_klass = WorkflowServer::Models::Signal
     @event_data = {name: :test_sig}
