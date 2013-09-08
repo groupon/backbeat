@@ -55,16 +55,17 @@ describe WorkflowServer::Client do
   context "#notify_of" do
     it "calls the notify of endpoint" do
       activity = FactoryGirl.create(:activity, workflow: FactoryGirl.create(:workflow, user: user))
+      notification_body = WorkflowServer::Helper::HashKeyTransformations.camelize_keys({"type"=>"activity", "event"=>activity.id, "name"=>"#{activity.name}", "subject"=>activity.workflow.subject, "message"=>"start"})
       WorkflowServer::Client.unstub!(:notify_of)
+
       WebMock.stub_request(:post, "http://notifications.com/api/v1/workflows/notify_of").
-        with(:body => "{\"notification\":\"{\\\"subject_klass\\\"=>\\\"PaymentTerm\\\", \\\"subject_id\\\"=>\\\"100\\\"}:#{activity.id}:activity(make_initial_payment):start\"}",
+        with(:body => notification_body.to_json,
              :headers => {'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json'}).
              to_return(:status => 200, :body => "", :headers => {})
       WorkflowServer::Client.notify_of(activity, :start)
 
       WebMock.should have_requested(:post, "http://notifications.com/api/v1/workflows/notify_of").
-        with(:body => "{\"notification\":\"{\\\"subject_klass\\\"=>\\\"PaymentTerm\\\", \\\"subject_id\\\"=>\\\"100\\\"}:#{activity.id}:activity(make_initial_payment):start\"}",
-             :headers => {'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json'})
+        with(body: notification_body.to_json)
     end
 
     it "raises an http error unless response is between 200-299" do
