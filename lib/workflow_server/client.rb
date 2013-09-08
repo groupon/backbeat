@@ -20,7 +20,7 @@ module WorkflowServer
 
     def self.notify_of(event, notification, error = nil)
       workflow = event.is_a?(WorkflowServer::Models::Workflow) ? event : event.workflow
-      notification_hash = { type: event.event_type, event: event.id, name: event.name, subject: workflow.try(:subject), message: notification }
+      notification_hash = { notification: { type: event.event_type, event: event.id, name: event.name, subject: workflow.try(:subject), message: notification } }
 
       if (url = event.my_user.try(:notification_endpoint))
         notification_hash.merge!(error: error) if error

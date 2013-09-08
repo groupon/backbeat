@@ -55,7 +55,7 @@ describe WorkflowServer::Client do
   context "#notify_of" do
     it "calls the notify of endpoint" do
       activity = FactoryGirl.create(:activity, workflow: FactoryGirl.create(:workflow, user: user))
-      notification_body = WorkflowServer::Helper::HashKeyTransformations.camelize_keys({"type"=>"activity", "event"=>activity.id, "name"=>"#{activity.name}", "subject"=>activity.workflow.subject, "message"=>"start"})
+      notification_body = WorkflowServer::Helper::HashKeyTransformations.camelize_keys({"notification" => {"type"=>"activity", "event"=>activity.id, "name"=>"#{activity.name}", "subject"=>activity.workflow.subject, "message"=>"start"}})
       WorkflowServer::Client.unstub!(:notify_of)
 
       WebMock.stub_request(:post, "http://notifications.com/api/v1/workflows/notify_of").
