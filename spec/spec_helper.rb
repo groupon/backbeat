@@ -38,7 +38,7 @@ ENV['RACK_ROOT'] = RACK_ROOT
 ########### TORQUEBOX SPECIFIC STUFF - START #########################
 # delete any deployed yml files before starting
 FileUtils.rm_rf("#{WorkflowServer::Config.root}/.torquespec")
-# 
+
 # # torquebox has some internal calls to its management service running inside localhost. this
 # # conflicts with the webmock stubs
 WebMock.disable_net_connect!(:allow_localhost => true)
@@ -48,12 +48,15 @@ BACKBEAT_APP = <<-DD_END.gsub(/^ {4}/,'')
         root: #{WorkflowServer::Config.root}
     environment:
         RACK_ENV: test
+    messaging:
+        /queues/accounting_backbeat_internal:
+             WorkflowServer::Async::MessageProcessor:
+                  synchronous: true
     DD_END
 
 ################ TORQUEBOX SPEFICIF STUFF - END #########################
 
 FullRackApp = Rack::Builder.parse_file(File.expand_path(File.join(__FILE__,'..','..','config.ru'))).first
-
 
 RSPEC_CONSTANT_USER_CLIENT_ID = UUIDTools::UUID.random_create.to_s
 

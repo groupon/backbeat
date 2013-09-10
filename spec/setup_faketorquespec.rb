@@ -1,4 +1,4 @@
-require_relative 'mock_queues'
+require_relative 'mock_session'
 
 def deploy(*args)
   application_root = YAML.load(args.first)["application"]["root"]
@@ -9,25 +9,11 @@ def deploy(*args)
 end
 
 module FakeTorquebox
-  def self.for
-    prepare_to_record_jobs unless run_jboss?
-    yield if block_given?
-    run_recorded_jobs unless run_jboss?
-  end
-
-  def self.prepare_to_record_jobs
-    MockQueues.record
-  end
-
-  def self.run_recorded_jobs
-    MockQueues.run
-  end
-
   def self.queue_processors(queue)
-    Thread.current[:torquebox_config]["<root>"]["queue"][queue.name]["processor"]
+    Thread.current[:torquebox_config][TorqueBox::CONFIGURATION_ROOT]["queue"][queue.name]["processor"]
   end
 
   def self.topic_processors
-    Thread.current[:torquebox_config]["<root>"]["topic"][queue.name]["processor"]
+    Thread.current[:torquebox_config][TorqueBox::CONFIGURATION_ROOT]["topic"][queue.name]["processor"]
   end
 end

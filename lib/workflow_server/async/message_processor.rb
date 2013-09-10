@@ -8,8 +8,6 @@ module WorkflowServer
       def on_message(body)
         @job = Job.new(*body[:data])
         @job.perform
-        ap '##########################'
-        ap Time.now.to_datetime.to_s
         body
       end
 

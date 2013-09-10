@@ -59,12 +59,10 @@ describe Api::Workflow do
           wf = activity.workflow
           user = wf.user
 
-          FakeTorquebox.for do
-            put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
-            last_response.status.should == 200
-            activity.reload
-            activity.result.should == 'i_was_successful'
-          end
+          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
+          last_response.status.should == 200
+          activity.reload
+          activity.result.should == 'i_was_successful'
 
           activity.reload
           activity.children.count.should == 1
