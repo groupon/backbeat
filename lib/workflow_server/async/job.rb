@@ -3,13 +3,13 @@ require 'workflow_server/logger'
 
 module WorkflowServer
   module Async
-    JobStruct = Struct.new(:event_id, :method_to_call, :args, :max_attempts)
+    JobStruct ||= Struct.new(:event_id, :method_to_call, :args, :max_attempts)
 
     class Job < JobStruct
       extend WorkflowServer::Logger
 
       def self.queue
-        '/queues/accounting_backbeat_internal'
+        WorkflowServer::Config.options[:async_queue]
       end
 
       def self.enqueue(job_data)
