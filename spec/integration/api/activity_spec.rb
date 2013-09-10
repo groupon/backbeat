@@ -14,12 +14,6 @@ describe Api::Workflow do
     WorkflowServer::Client.stub(:make_decision)
   end
 
-  def track_time(statement)
-    start = Time.now
-    yield
-    ap "Time taken for #{statement} is #{Time.now - start}"
-  end
-
   context "PUT /workflows/:id/events/:event_id/status/:new_status" do
     context "invalid status" do
       it "raises 400 if invalid new status" do
@@ -60,21 +54,20 @@ describe Api::Workflow do
         end
 
         it "returns 200 if the next decision is valid and the activity succeeds" do
-          start = Time.now
           decision = FactoryGirl.create(:decision)
           activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow, valid_next_decisions: ['test_decision'])
           wf = activity.workflow
           user = wf.user
 
-          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
-          last_response.status.should == 200
-          activity.reload
-          activity.result.should == 'i_was_successful'
-          #TODO: @naren, please check this change
-          #activity.children.count.should == 0
-          activity.children.count.should == 1
+          FakeTorquebox.for do
+            put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
+            last_response.status.should == 200
+            activity.reload
+            activity.result.should == 'i_was_successful'
+          end
 
           activity.reload
+          activity.children.count.should == 1
           child = activity.children.first
           child.name.should == :test_decision
           activity.status.should == :complete

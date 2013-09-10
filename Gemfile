@@ -25,12 +25,11 @@ gem 'resque'
 gem 'service-discovery', git: 'git@github.groupondev.com:groupon-api/service-discovery.git'
 gem 'squash_ruby', :require => 'squash/ruby'
 gem 'newrelic_rpm'
-gem 'jruby-openssl'
+gem 'jruby-openssl', require: false
 
 #Torquebox
 gem 'torquebox'
 gem 'torquebox-messaging'
-#gem 'torquebox-console'
 
 group :development do
   # Deploy
@@ -39,6 +38,7 @@ group :development do
   gem 'capistrano-campfire'
   # Documentation
   gem 'rdoc', '~> 3.4'
+  gem 'torquebox-console'
 end
 
 group :test do
@@ -49,6 +49,6 @@ group :test do
   gem 'timecop'
   gem 'webmock'
   gem 'simplecov'
-  #gem 'torquespec'
-  #gem 'torquebox-console'
+  gem 'torquebox-console'
+  gem 'torquespec', require: false
 end
