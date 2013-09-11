@@ -74,7 +74,7 @@ RSPEC_CONSTANT_USER_CLIENT_ID = UUIDTools::UUID.random_create.to_s
 FactoryGirl.find_definitions
 
 RSpec.configuration.before(:each) do
-  #Timecop.freeze(DateTime.now)
+  Timecop.freeze(DateTime.now)
   @start = Time.now
   response = double('response', code: 200)
   WorkflowServer::Client.stub(post: response)
@@ -82,7 +82,7 @@ end
 
 RSpec.configuration.after(:each) do
   ap "Time taken for this spec #{Time.now - @start}"
-  #Timecop.return
+  Timecop.return
   Mongoid::Sessions.default.collections.select {|c| c.name !~ /system/ }.each(&:drop)
   service.try(:clear)
 end
