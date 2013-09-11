@@ -1,5 +1,3 @@
-require_relative 'mock_session'
-
 module FakeTorquebox
   VERSION = "0.0.1"
 

@@ -6,19 +6,15 @@ module WorkflowServer
 
     def self.perform_activity(activity)
       if (url = activity.my_user.try(:activity_endpoint))
-        unless WorkflowServer::Config.environment == :test
-          response = post(url, activity: activity.serializable_hash)
-          raise WorkflowServer::HttpError.new("http request to perform_activity failed", response) unless response.code.between?(200, 299)
-        end
+        response = post(url, activity: activity.serializable_hash)
+        raise WorkflowServer::HttpError.new("http request to perform_activity failed", response) unless response.code.between?(200, 299)
       end
     end
 
     def self.make_decision(decision)
       if (url = decision.my_user.try(:decision_endpoint))
-        unless WorkflowServer::Config.environment == :test
         response = post(url, decision: decision.serializable_hash)
         raise WorkflowServer::HttpError.new("http request to make_decision failed", response) unless response.code.between?(200, 299)
-        end
       end
     end
 
@@ -27,13 +23,10 @@ module WorkflowServer
       notification = "#{workflow.try(:subject)}:#{event.id}:#{event.event_type}(#{event.name}):#{notification}"
 
       if (url = event.my_user.try(:notification_endpoint))
-        unless WorkflowServer::Config.environment == :test
-      
         params = {notification: notification}
         params.merge!(error: error) if error
         response = post(url, params)
         raise WorkflowServer::HttpError.new("http request to notify_of failed", response) unless response.code.between?(200, 299)
-        end
       end
     end
 

@@ -3,8 +3,10 @@ require_relative 'mock_session'
 def deploy(*args)
   application_root = YAML.load(args.first)["application"]["root"]
   require 'torquebox-configure'
-  Thread.current[:torquebox_config] = TorqueBox::Configuration::GlobalConfiguration.new
-  Thread.current[:torquebox_config_entry_map] = TorqueBox::Configuration::GlobalConfiguration::ENTRY_MAP
+  if Thread.current[:torquebox_config].nil?
+    Thread.current[:torquebox_config] = TorqueBox::Configuration::GlobalConfiguration.new
+    Thread.current[:torquebox_config_entry_map] = TorqueBox::Configuration::GlobalConfiguration::ENTRY_MAP
+  end
   require "#{application_root}/config/torquebox"
 end
 
