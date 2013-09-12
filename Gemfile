@@ -51,4 +51,5 @@ group :test do
   gem 'simplecov'
   gem 'torquebox-console'
   gem 'torquespec', require: false
+  gem 'external_service', git: 'git@github.groupondev.com:finance-engineering/external_service.git'
 end

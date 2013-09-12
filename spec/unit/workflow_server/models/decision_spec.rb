@@ -4,8 +4,6 @@ require_relative 'event_se'
 describe WorkflowServer::Models::Decision do
   let(:user) { FactoryGirl.create(:user) }
 
-  deploy BACKBEAT_APP
-
   before do
     @event_klass = WorkflowServer::Models::Decision
     @event_data = {name: :test_decision, user: user}

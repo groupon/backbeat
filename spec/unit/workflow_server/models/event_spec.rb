@@ -6,9 +6,6 @@ describe WorkflowServer::Models::Event do
   let(:event) { FactoryGirl.create(:event, workflow: workflow, client_data: {data: 123}, client_metadata: {git_sha: '12de3sdg'}) }
   let(:parent) { FactoryGirl.create(:decision, workflow: workflow) }
 
-  deploy BACKBEAT_APP
-
-
   context '#paused' do
     it 'updates status, dismisses watchdogs and notifies parent' do
       event.update_attributes!(parent: parent)

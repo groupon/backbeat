@@ -4,8 +4,6 @@ require_relative 'event_se'
 describe WorkflowServer::Models::Workflow do
   let(:user) { FactoryGirl.create(:user) }
 
-  deploy BACKBEAT_APP
-
   before do
     @event_klass = WorkflowServer::Models::Workflow
     @event_data = {name: :test_flag, workflow_type: :wf_type, subject: {subject_klass: "PaymentTerm", subject_id: 100}, decider: "A::B::C", user: user }

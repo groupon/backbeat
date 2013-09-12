@@ -6,8 +6,6 @@ describe WorkflowServer::Models::Timer do
   let(:user) { FactoryGirl.create(:user) }
   let(:workflow) { FactoryGirl.create(:workflow, user: user) }
 
-  deploy BACKBEAT_APP
-
   before do
     @event_klass = WorkflowServer::Models::Timer
     @event_data = {name: :test_timer, fires_at: Date.tomorrow}

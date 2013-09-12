@@ -1,8 +1,6 @@
 require 'spec_helper'
 
 describe WorkflowServer::Async::Job do
-  deploy BACKBEAT_APP
-
   it "calls the method on the model along with the arguments" do
     decision = FactoryGirl.create(:decision)
     job = WorkflowServer::Async::Job.schedule(event: decision, method: :send_to_client, args: [1, 2, 3, 4])

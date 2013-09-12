@@ -2,8 +2,6 @@ require 'spec_helper'
 
 describe WorkflowServer::Async::Job do
 
-  deploy BACKBEAT_APP
-
   let(:decision) { FactoryGirl.create(:decision) }
   context "#schedule" do
     it "schedules a delayed job" do
