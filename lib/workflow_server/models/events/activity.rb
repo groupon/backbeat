@@ -6,7 +6,7 @@ module WorkflowServer
       field :always, type: Boolean, default: false
       field :retry, type: Integer, default: 6, label: "The number of times this activity will be retried on error. Default is 6."
       field :retry_interval, type: Integer, default: 20.minutes, label: "The retry interval. Default is 20 minutes"
-      field :time_out, type: Integer, default: 2.days, label: "Default to 2 days"
+      field :time_out, type: Integer, default: 0, label: "Default to 2 days"
       field :valid_next_decisions, type: Array, default: [], label: "The range of valid next decision. next_decision can be null, none or one of the values from valid_next_decisions"
       field :orphan_decision, type: Boolean, default: false, label: "true implies next_decision will be a top-level decision and not a child of this activity. This field is ignored when next_decision is null. Default is false"
 
