@@ -25,7 +25,6 @@ Mongoid.load!(mongo_path, :test)
 RACK_ROOT = File.expand_path(File.join(__FILE__,'..'))
 ENV['RACK_ROOT'] = RACK_ROOT
 
-
 ########### TORQUEBOX SPECIFIC STUFF - START #########################
 # delete any deployed yml files before starting
 FileUtils.rm_rf("#{WorkflowServer::Config.root}/.torquespec")
@@ -39,21 +38,17 @@ BACKBEAT_APP = <<-DD_END.gsub(/^ {4}/,'')
         root: #{WorkflowServer::Config.root}
     environment:
         RACK_ENV: test
-    messaging:
-        /queues/accounting_backbeat_internal:
-             WorkflowServer::Async::MessageProcessor:
-                  synchronous: true
     DD_END
 
-################ TORQUEBOX SPECIFIC STUFF - END #########################
+require 'accounting_torquespec'
 
-require_relative 'fake_torquebox'
+################ TORQUEBOX SPECIFIC STUFF - END #########################
 
 ########### MOCK BACKBEAT CLIENT START #################
 BACKBEAT_CLIENT_ENDPOINT = "http://backbeat-client:9000"
 service = nil
 if FakeTorquebox.run_jboss?
-  require 'service'
+  require_relative 'service/backbeat_client'
   service = Service::BackbeatClient.new('backbeat-test')
   BACKBEAT_CLIENT_ENDPOINT = service.start(3010)
 end
@@ -93,7 +88,6 @@ end
 RSpec.configuration.after(:suite) do
   Mongoid::Sessions.default.collections.select {|c| c.name !~ /system/ }.each(&:drop)
   Helper::Mongo.stop(27018)
-  #FileUtils.rm_rf("#{WorkflowServer::Config.root}/.torquespec")
 end
 
 RSpec.configure do |config|

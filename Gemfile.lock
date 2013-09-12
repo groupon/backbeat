@@ -6,6 +6,14 @@ GIT
       mongoid (>= 2.4, < 3.2)
 
 GIT
+  remote: git@github.groupondev.com:finance-engineering/accounting_torquespec.git
+  revision: 0535e40a3a7115a4bc575aa86698e97b445388bd
+  specs:
+    accounting_torquespec (0.0.1)
+      rspec
+      torquespec
+
+GIT
   remote: git@github.groupondev.com:finance-engineering/external_service.git
   revision: 6063d8f074d7f578bd459f150eaac4fc8703106b
   specs:
@@ -272,6 +280,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  accounting_torquespec!
   awesome_print
   capistrano
   capistrano-campfire
