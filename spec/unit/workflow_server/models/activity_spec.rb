@@ -338,16 +338,6 @@ describe WorkflowServer::Models::Activity do
         @a1.reload.next_decision.should == 'none'
       end
 
-      it "feeding the watchdog enqueues an async job to call complete_if_done" do
-        @a1.update_attributes!(status: :executing, time_out: 10)
-        @a1.stub(:update_attributes!)
-
-        WorkflowServer::Models::Watchdog.should_receive(:feed).with(@a1)
-        Resque.should_receive(:enqueue).with(WorkflowServer::Async::Job, {:data=>[@a1.id, :complete_if_done, nil, nil]})
-
-        @a1.change_status(:completed, {next_decision: :none, result: {a: :b, c: :d}})
-      end
-
       it "branches raise an error if no next_decision is given" do
         a1 = FactoryGirl.create(:branch, workflow: @wf)
         a1.update_attributes!(status: :executing, valid_next_decisions: ['test', 'more_test'])

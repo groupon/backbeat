@@ -6,7 +6,7 @@ module WorkflowServer
       field :always, type: Boolean, default: false
       field :retry, type: Integer, default: 6, label: "The number of times this activity will be retried on error. Default is 6."
       field :retry_interval, type: Integer, default: 20.minutes, label: "The retry interval. Default is 20 minutes"
-      field :time_out, type: Integer, default: 0, label: "Default to 2 days"
+      field :time_out, type: Integer, default: 2.days, label: "Default to 2 days"
       field :valid_next_decisions, type: Array, default: [], label: "The range of valid next decision. next_decision can be null, none or one of the values from valid_next_decisions"
       field :orphan_decision, type: Boolean, default: false, label: "true implies next_decision will be a top-level decision and not a child of this activity. This field is ignored when next_decision is null. Default is false"
 
@@ -39,6 +39,8 @@ module WorkflowServer
       end
 
       def completed
+        Watchdog.dismiss(self, :timeout)
+
         if next_decision && next_decision != 'none'
           #only top level activities are allowed to schedule the next decision
           make_decision(next_decision)
@@ -55,7 +57,6 @@ module WorkflowServer
       end
 
       def complete_if_done
-        Watchdog.feed(self) if time_out > 0
         if self._client_done_with_activity && status != :complete && !children_running?
           with_lock do
             completed if status != :complete
@@ -71,7 +72,6 @@ module WorkflowServer
 
         sub_activity = create_sub_activity!(options)
         reload
-        Watchdog.feed(self) if time_out > 0
 
         sub_activity.start
         update_status!(:running_sub_activity) if sub_activity.blocking?
@@ -116,7 +116,6 @@ module WorkflowServer
         case new_status.to_sym
         when :completed
           update_attributes!(result: args[:result], next_decision: verify_and_get_next_decision(args[:next_decision]), _client_done_with_activity: true)
-          Watchdog.feed(self) if time_out > 0
           enqueue_complete_if_done
         when :errored
           errored(args[:error])
@@ -124,7 +123,7 @@ module WorkflowServer
       end
 
       def errored(error)
-        Watchdog.dismiss(self) if time_out > 0
+        Watchdog.dismiss(self, :timeout)
         if retry?
           do_retry(error)
         else

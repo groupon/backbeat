@@ -136,7 +136,7 @@ module WorkflowServer
       def child_timeout(child, timeout_name)
         unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
           Watchdog.mass_dismiss(self)
-          parent.child_errored(child, error) if parent
+          parent.child_timeout(child, timeout_name) if parent
         end
       end
 
