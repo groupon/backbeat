@@ -186,10 +186,12 @@ describe WorkflowServer::Models::Decision do
           {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds}
         ]
         WebMock.stub_request(:post, "http://localhost:9000/activity").
-         to_return(:status => 200, :body => "", :headers => {})
+        to_return(:status => 200, :body => "", :headers => {})
 
-        @d1.add_decisions(decisions)
-        @d1.change_status(:deciding_complete)
+        run_async_jobs do
+          @d1.add_decisions(decisions)
+          @d1.change_status(:deciding_complete)
+        end
 
         @d1.reload
         @d1.children.any_in(_type: [WorkflowServer::Models::Flag]).first.status.should == :complete

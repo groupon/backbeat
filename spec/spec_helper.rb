@@ -21,14 +21,6 @@ require 'app'
 mongo_path = File.expand_path(File.join(__FILE__, "..", "..", "config", "mongoid.yml"))
 Mongoid.load!(mongo_path, :test)
 
-require_relative("support/fake_resque.rb")
-module Resque
-  def enqueue_to(*args)
-  end
-  def enqueue(*args)
-    # we can't stub here.
-  end
-end
 
 RACK_ROOT = File.expand_path(File.join(__FILE__,'..'))
 ENV['RACK_ROOT'] = RACK_ROOT
@@ -67,21 +59,28 @@ if FakeTorquebox.run_jboss?
 end
 ########### MOCK BACKBEAT CLIENT END   #################
 
+FORMAT_TIME = Proc.new { |time| time.strftime("%Y-%m-%dT%H:%M:%SZ") }
+
 FullRackApp = Rack::Builder.parse_file(File.expand_path(File.join(__FILE__,'..','..','config.ru'))).first
 
 RSPEC_CONSTANT_USER_CLIENT_ID = UUIDTools::UUID.random_create.to_s
 
 FactoryGirl.find_definitions
 
+# should go in unit spec helper
+def run_async_jobs
+  WorkflowServer::Async::Job.stub(:enqueue) { |job_data| WorkflowServer::Async::Job.new(job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]).perform }
+  yield
+  WorkflowServer::Async::Job.unstub(:enqueue)
+end
+
 RSpec.configuration.before(:each) do
   Timecop.freeze(DateTime.now)
-  @start = Time.now
   response = double('response', code: 200)
   WorkflowServer::Client.stub(post: response)
 end
 
 RSpec.configuration.after(:each) do
-  ap "Time taken for this spec #{Time.now - @start}"
   Timecop.return
   Mongoid::Sessions.default.collections.select {|c| c.name !~ /system/ }.each(&:drop)
   service.try(:clear)
@@ -94,7 +93,7 @@ end
 RSpec.configuration.after(:suite) do
   Mongoid::Sessions.default.collections.select {|c| c.name !~ /system/ }.each(&:drop)
   Helper::Mongo.stop(27018)
-  FileUtils.rm_rf("#{WorkflowServer::Config.root}/.torquespec")
+  #FileUtils.rm_rf("#{WorkflowServer::Config.root}/.torquespec")
 end
 
 RSpec.configure do |config|

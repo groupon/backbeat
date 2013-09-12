@@ -48,7 +48,9 @@ describe WorkflowServer::Models::Workflow do
       workflow = FactoryGirl.create(:workflow, user: user)
       @wf.update_attributes!(workflow: workflow)
 
-      @wf.completed
+      run_async_jobs do
+        @wf.completed
+      end
 
       workflow.signals.count.should == 1
       workflow.decisions.count.should == 1
@@ -66,7 +68,9 @@ describe WorkflowServer::Models::Workflow do
       workflow = FactoryGirl.create(:workflow, user: user)
       @wf.update_attributes!(workflow: workflow)
 
-      @wf.errored(:some_error)
+      run_async_jobs do
+        @wf.errored(:some_error)
+      end
 
       workflow.signals.count.should == 1
       workflow.decisions.count.should == 1

@@ -1,6 +1,10 @@
 module FakeTorquebox
   VERSION = "0.0.1"
 
+  def self.run_jobs
+    # modules are expected to define this
+  end
+
   def self.stub_jobs
     # this ideally should not be used (unit specs should always stub out publish calls)
     TorqueBox::Messaging::Queue.any_instance.stub(:publish)

@@ -120,23 +120,25 @@ describe Api::Workflow do
       json_response.should == {"error" => "Workflow with id(1000) not found"}
     end
 
-    it "returns 201 and the signal json if workflow exists" do
-      wf = FactoryGirl.create(:workflow, user: user)
+    remote_describe "inside jboss container" do
+      it "returns 201 and the signal json if workflow exists" do
+        wf = FactoryGirl.create(:workflow, user: user)
 
-      post "/workflows/#{wf.id}/signal/test", options: { client_data: {data: '123'}, client_metadata: {metadata: '456'} }
+        FakeTorquebox.run_jobs do
+          post "/workflows/#{wf.id}/signal/test", options: { client_data: {data: '123'}, client_metadata: {metadata: '456'} }
+        end
 
-      last_response.status.should == 201
-      signal = JSON.parse(last_response.body)
+        last_response.status.should == 201
+        signal = JSON.parse(last_response.body)
 
-      wf.reload
-      wf.signals.first.id.to_s.should == signal['id']
-      wf.signals.first.client_data.should == {'data' => '123'}
-      wf.signals.first.client_metadata.should == {'metadata' => '456'}
-      decision = wf.signals.first.children.first
-      decision.name.should == :test
-      #TODO: @naren, please check this change
-      # decision.status.should == :sent_to_client
-      decision.status.should == :open
+        wf.reload
+        wf.signals.first.id.to_s.should == signal['id']
+        wf.signals.first.client_data.should == {'data' => '123'}
+        wf.signals.first.client_metadata.should == {'metadata' => '456'}
+        decision = wf.signals.first.children.first
+        decision.name.should == :test
+        decision.status.should == :sent_to_client
+      end
     end
 
     it "returns 400 if the workflow is closed for events" do
@@ -168,7 +170,7 @@ describe Api::Workflow do
       get "/workflows/#{@wf.id}"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "decider"=>"PaymentDecider", "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "status"=>"open", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}, "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>nil, "workflowType"=>"WFType", "id"=>@wf.id, "type"=>"workflow"}
+      json_response.should == {"clientData" => {}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "decider"=>"PaymentDecider", "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "status"=>"open", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}, "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>nil, "workflowType"=>"WFType", "id"=>@wf.id, "type"=>"workflow"}
       json_response['id'].should == @wf.id.to_s
     end
 
@@ -193,10 +195,8 @@ describe Api::Workflow do
       get "/workflows/#{@wf.id}/events"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      #TODO: @naren, please check this change
-      # json_response.should == [{"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@wf.id, "id"=>@d1.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}},
-      json_response.should == [{"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "name"=>"WFDecision", "parentId"=>nil, "status"=>"sent_to_client", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@wf.id, "id"=>@d1.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}},
-                               {"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@wf.id, "id"=>@d2.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}]
+      json_response.should == [{"clientData" => {}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>@wf.id, "id"=>@d1.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}},
+                               {"clientData" => {}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>@wf.id, "id"=>@d2.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}]
       json_response.count.should == 2
       json_response.map {|obj| obj["id"] }.should == [@d1, @d2].map(&:id).map(&:to_s)
     end
@@ -222,9 +222,7 @@ describe Api::Workflow do
       get "/workflows/#{@wf.id}/tree"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      #TODO: @naren, please check this change
-      # json_response.should == {"id"=>@wf.id, "type"=>"workflow", "name"=>"WFType", "status"=>"open", "children"=>[{"id"=>@d1.id, "type"=>"decision", "name"=>"WFDecision", "status"=>"open"},
-      json_response.should == {"id"=>@wf.id, "type"=>"workflow", "name"=>"WFType", "status"=>"open", "children"=>[{"id"=>@d1.id, "type"=>"decision", "name"=>"WFDecision", "status"=>"sent_to_client"},
+      json_response.should == {"id"=>@wf.id, "type"=>"workflow", "name"=>"WFType", "status"=>"open", "children"=>[{"id"=>@d1.id, "type"=>"decision", "name"=>"WFDecision", "status"=>"open"},
                                                                                                                   {"id"=>@d2.id, "type"=>"decision", "name"=>"WFDecision", "status"=>"open"}]}
     end
 

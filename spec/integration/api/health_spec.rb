@@ -24,7 +24,6 @@ describe Api::Health do
       get '/health'
       last_response.status.should == 200
       last_response.headers["Content-Type"].should == "text/plain"
-      last_response.headers["Content-Length"].should == "25"
       last_response.body.should == wf.created_at.to_s
     end
   end

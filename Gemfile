@@ -28,8 +28,8 @@ gem 'newrelic_rpm'
 gem 'jruby-openssl', require: false
 
 #Torquebox
-gem 'torquebox'
-gem 'torquebox-messaging'
+gem 'torquebox', '3.0.0'
+gem 'torquebox-messaging', '3.0.0'
 
 group :development do
   # Deploy

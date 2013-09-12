@@ -145,9 +145,7 @@ describe Api::Workflow do
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
       json_response.should be_instance_of(Array)
-      #TODO: @naren please check this change
-      #json_response.count.should == 2
-      json_response.count.should == 0
+      json_response.count.should == 2
       ids = json_response.map { |r| r['id'] }
       ids.should include(wf1.id)
       ids.should include(wf2.id)

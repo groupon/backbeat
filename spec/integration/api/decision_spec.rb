@@ -85,30 +85,32 @@ describe Api::Workflow do
       decision.children.count.should == 6
     end
 
-    it 'continue_as_new_workflow decision marks the old events as inactive and resets the past of the workflow' do
-      decision = FactoryGirl.create(:decision, status: :deciding)
-      wf = decision.workflow
-      user = wf.user
-      args = [
-        {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
-      ]
-      header "Content-Type", "application/json"
-      post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: args}}.to_json
-      last_response.status.should == 201
-      decision.reload
-      decision.children.count.should == 1
+    remote_describe "inside jboss container" do
+      it 'continue_as_new_workflow decision marks the old events as inactive and resets the past of the workflow' do
+        decision = FactoryGirl.create(:decision, status: :deciding)
+        wf = decision.workflow
+        user = wf.user
+        args = [
+          {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
+        ]
+        header "Content-Type", "application/json"
+        post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: args}}.to_json
+        last_response.status.should == 201
+        decision.reload
+        decision.children.count.should == 1
 
-      FakeResque.for do 
-        put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
+        FakeTorquebox.run_jobs do 
+          put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
+        end
+
+        timer = decision.children.first
+        timer.async_jobs.count.should == 1
+        flag = FactoryGirl.create(:continue_as_new_workflow_flag, workflow: wf)
+        flag.start
+        wf.reload
+        wf.events.each { |e| e.reload.async_jobs.count.should == 0 unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
+        wf.events.each { |e| e.inactive.should == true unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
       end
-
-      timer = decision.children.first
-      timer.async_jobs.count.should == 1
-      flag = FactoryGirl.create(:continue_as_new_workflow_flag, workflow: wf)
-      flag.start
-      wf.reload
-      wf.events.each { |e| e.reload.async_jobs.count.should == 0 unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
-      wf.events.each { |e| e.inactive.should == true unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
     end
 
     it "raises 400 if decision is not in deciding state" do
@@ -197,9 +199,7 @@ describe Api::Workflow do
       put "/workflows/#{wf.id}/events/#{decision.id}/restart"
       last_response.status.should == 400
       json_response = JSON.parse(last_response.body)
-      #TODO: naren, please check this change
-      #json_response['error'].should == "Decision #{decision.name} can't transition from open to restarting"
-      json_response['error'].should == "Decision #{decision.name} can't transition from sent_to_client to restarting"
+      json_response['error'].should == "Decision #{decision.name} can't transition from open to restarting"
     end
 
     it "returns 200 and restarts the decisions" do

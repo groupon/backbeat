@@ -419,7 +419,7 @@ describe WorkflowServer::Models::Activity do
       @a1.status_history[-2] = {"from"=>:open, "to"=>:failed, "at"=>Time.now.to_datetime.to_s, "error"=>:some_error}
       @a1.status_history[-1] = {"from"=>:failed, "to"=>:retrying, "at"=>Time.now.to_datetime.to_s}
       job = Delayed::Job.last
-      job.run_at.to_s.should == (Time.now + 40.minutes).to_s
+      job.run_at.to_s.should == (Time.now.utc + 40.minutes).to_s
       async_job = job.payload_object
       async_job.event.should eq @a1
       async_job.method_to_call.should eq :start
