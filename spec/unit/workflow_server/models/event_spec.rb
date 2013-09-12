@@ -139,7 +139,7 @@ describe WorkflowServer::Models::Event do
       WorkflowServer::Async::Job.should_receive(:schedule).with({event: event, method: :test, args: [1,2,3,4], max_attempts:20}, Time.now + 10.minutes).and_return(mock('job', id: 100))
       event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes})
     end
-    
+
     context 'on error' do
       it 'logs the error and backtrace' do
         WorkflowServer::Async::Job.stub(:schedule).and_raise('some error')
@@ -149,5 +149,20 @@ describe WorkflowServer::Models::Event do
         }.to raise_error('some error')
       end
     end
+
+    context '#with_lock_with_defaults' do
+      it 'merges in the default options' do
+        event.should_receive(:with_lock_without_defaults).with(retry_sleep: 0.5, retries: 10, timeout: 10)
+        event.with_lock_with_defaults {'NOTHING'}
+      end
+
+      it 'rescues Mongoid::Locker::LockError and reraises it as a Backbeat::TransientError' do
+        event.stub(:with_lock_without_defaults).and_raise(Mongoid::Locker::LockError.new('test'))
+        expect{
+          event.with_lock_with_defaults {'NOTHING'}
+        }.to raise_error(Backbeat::TransientError)
+      end
+    end
+
   end
 end

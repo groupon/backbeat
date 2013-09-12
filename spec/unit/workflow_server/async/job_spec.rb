@@ -11,7 +11,7 @@ describe WorkflowServer::Async::Job do
       decision.reload._delayed_jobs.should include(job.id)
     end
   end
-  
+
   context "resque" do
     it "defines a queue" do
       WorkflowServer::Async::Job.queue.should == :accounting_backbeat_server
@@ -89,7 +89,7 @@ describe WorkflowServer::Async::Job do
     end
 
     context '#error' do
-      it 'records exceptions and raises the error' do
+      it 'records exceptions and raises the error if they are NOT Backbeat::TransientError' do
         @dec.should_receive(:some_method).and_raise('some error')
         Squash::Ruby.should_receive(:notify)
         WorkflowServer::Async::Job.should_receive(:error).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_errored", error: anything, backtrace: anything, duration: 0.0)
@@ -97,6 +97,17 @@ describe WorkflowServer::Async::Job do
           @job.invoke_job
         }.to raise_error
       end
+    end
+    it 'records exceptions as INFO and reraises if they are Backbeat::TransientError' do
+      # We have to expect these first two so that we can accurately test the third, but we don't really care about these in this test
+      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", job: anything, id: 10, name: :make_payment, message: "some_method_start_before_hook").ordered
+      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_started").ordered
+
+      @dec.should_receive(:some_method).and_raise(Backbeat::TransientError.new(Exception.new('test')))
+      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_transient_error", error: anything, backtrace: anything, duration: 0.0).ordered
+      expect {
+        @job.invoke_job
+      }.to raise_error(Backbeat::TransientError)
     end
   end
 
