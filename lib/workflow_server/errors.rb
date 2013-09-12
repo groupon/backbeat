@@ -31,6 +31,7 @@ module WorkflowServer
   class InvalidEventStatus < StandardError
   end
 
+
   class HttpError < StandardError
     attr_accessor :response
     def initialize(message, response)
@@ -38,4 +39,15 @@ module WorkflowServer
       super(message)
     end
   end
+end
+
+module Backbeat
+
+  class TransientError < StandardError
+    def initialize(error)
+      super(error.message)
+      set_backtrace(error.backtrace)
+    end
+  end
+
 end
