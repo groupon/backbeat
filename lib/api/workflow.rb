@@ -235,7 +235,7 @@ module Api
           if params[:status].blank?
             wf.__send__(event_type)
           else
-            wf.__send__(event_type).and(status: params[:status])
+            wf.__send__(event_type).and(:status.in => Array(params[:status]))
           end
         end
       end
