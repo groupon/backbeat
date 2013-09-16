@@ -232,10 +232,10 @@ module Api
         }
         get "/:id/#{event_type}" do
           wf = find_workflow(params[:id])
-          if params[:status]
-            wf.__send__(event_type).and(status: params[:status])
-          else
+          if params[:status].blank?
             wf.__send__(event_type)
+          else
+            wf.__send__(event_type).and(status: params[:status])
           end
         end
       end
