@@ -60,7 +60,7 @@ describe Api::Workflow do
             wf = activity.workflow
             user = wf.user
 
-            FakeTorquebox.run_jobs do
+            FakeSidekiq.for do
               put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
               last_response.status.should == 200
               activity.reload
@@ -84,7 +84,7 @@ describe Api::Workflow do
             wf = activity.workflow
             user = wf.user
 
-            FakeTorquebox.run_jobs do
+            FakeSidekiq.for do
               put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
               last_response.status.should == 200
             end
@@ -174,7 +174,7 @@ describe Api::Workflow do
         last_response.status.should == 200
         last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
 
-        FakeTorquebox.run_jobs do
+        FakeSidekiq.for do
           put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
           last_response.status.should == 200
         end
@@ -190,7 +190,7 @@ describe Api::Workflow do
         last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
         sa = JSON.parse(last_response.body)
 
-        FakeTorquebox.run_jobs do
+        FakeSidekiq.for do
           put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
           last_response.status.should == 200
         end

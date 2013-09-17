@@ -1,8 +1,9 @@
 require 'rubygems'
 require 'bundler/setup'
 
-$: << File.expand_path(File.join(__FILE__, "..", "lib"))
+$: << File.expand_path(File.join(__FILE__, '..', 'lib'))
 
+require 'newrelic_rpm'
 require 'awesome_print'
 require 'mongoid'
 require 'mongoid-locker'
@@ -16,17 +17,29 @@ require 'grape'
 require 'torquebox'
 require 'api'
 require 'workflow_server'
-require 'resque'
+require 'sidekiq'
+require 'kiqstand'
 
 Squash::Ruby.configure(WorkflowServer::Config.squash_config)
 
-# Resque workers use this to pick up jobs, unicorn and delayed job workers need to be able to put stuff into redis
-config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[ENV['RACK_ENV']]
-Resque.redis = Redis.new(:host => config['host'], :port => config['port'])
+# Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
+redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[ENV['RACK_ENV']]
 
-require 'newrelic_rpm'
+# Sidekiq worker configuration
+Sidekiq.configure_server do |config|
+  # We set the namespace to resque so that we can use all of the resque monitoring tools to monitor sidekiq too
+  config.redis = { namespace: 'resque', url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
+  config.server_middleware do |chain|
+    chain.add Kiqstand::Middleware
+  end
+end
 
-mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, "config", "mongoid.yml"))
+Sidekiq.configure_client do |config|
+  # We set the namespace to resque so that we can use all of the resque monitoring tools to monitor sidekiq too
+  config.redis = { namespace: 'resque', size: 1, url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
+end
+
+mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, 'config', 'mongoid.yml'))
 Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 
 ############################################## MONKEY-PATCH ################################################

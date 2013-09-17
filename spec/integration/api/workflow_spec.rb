@@ -124,7 +124,7 @@ describe Api::Workflow do
       it "returns 201 and the signal json if workflow exists" do
         wf = FactoryGirl.create(:workflow, user: user)
 
-        FakeTorquebox.run_jobs do
+        FakeSidekiq.for do
           post "/workflows/#{wf.id}/signal/test", options: { client_data: {data: '123'}, client_metadata: {metadata: '456'} }
         end
 

@@ -99,7 +99,7 @@ describe Api::Workflow do
         decision.reload
         decision.children.count.should == 1
 
-        FakeTorquebox.run_jobs do 
+        FakeSidekiq.for do
           put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
         end
 

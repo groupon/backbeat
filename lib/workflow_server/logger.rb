@@ -75,6 +75,6 @@ module WorkflowServer
     end
   end
 
-  class ResqueLogger < DelayedJobLogger
+  class SidekiqLogger < DelayedJobLogger
   end
 end

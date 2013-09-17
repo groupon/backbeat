@@ -112,7 +112,7 @@ describe WorkflowServer::Models::Event do
   end
 
   context '#method_missing_with_enqueue' do
-    it "send to resqueue if run time is nil" do
+    it "send to sidekiq if run time is nil" do
       WorkflowServer::Async::Job.should_receive(:enqueue).with({
         event: subject,
         method: :testing_method_missing,
@@ -123,7 +123,7 @@ describe WorkflowServer::Models::Event do
       subject.enqueue_testing_method_missing(args: [:arg1, :arg2])
     end
 
-    it "sends to resqueue if run time is now" do
+    it "sends to sidekiq if run time is now" do
       WorkflowServer::Async::Job.should_receive(:enqueue).with({
         event: subject,
         method: :testing_method_missing,

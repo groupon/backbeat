@@ -3,7 +3,7 @@ defaults: &defaults
   port: 6379
 
 development:
-  <<: *defaults 
+  <<: *defaults
 
 test:
   <<: *defaults
@@ -11,7 +11,7 @@ test:
 uat:
   host: newuat-redis-vip
   port: 6379
-  
+
 staging:
   host: general-redis-staging-vip
   port: 6379

@@ -2,7 +2,6 @@
 
 require_relative 'app'
 require 'rake'
-require 'resque/tasks'
 
 MODELS_TO_INDEX = [WorkflowServer::Models.constants.map{|model| "WorkflowServer::Models::#{model}"},
                    Delayed::Backend::Mongoid.constants.map{|model| "Delayed::Backend::Mongoid::#{model}"}].flatten
@@ -58,14 +57,11 @@ namespace :squash do
   end
 end
 
-namespace :resque do
-  desc "configures logging for our resque workers"
+namespace :sidekiq do
+  desc "configures logging for our sidekiq workers"
   task :logging_setup do
-    mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, "config", "mongoid.yml"))
-    Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
-
-    Resque.logger = WorkflowServer::ResqueLogger
+    sidekiq.logger = WorkflowServer::SidekiqLogger
   end
 end
 
-task "resque:setup" => "resque:logging_setup"
+task "sidekiq:setup" => "sidekiq:logging_setup"

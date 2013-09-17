@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================================================
-# resque - start and stop resque workers
+# delayed_job - start and stop delayed_job workers
 # ==========================================================================
 # Source function library.
 . /usr/local/etc/init.d/functions

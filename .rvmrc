@@ -1,8 +1,0 @@
-rvm use jruby-1.7.4
-rvm gemset create jruby_gems
-rvm gemset use jruby_gems
-
-export TORQUEBOX_HOME=$HOME/.immutant/current
-export PATH=$TORQUEBOX_HOME/jruby/bin:$PATH
-export JRUBY_HOME=$TORQUEBOX_HOME/jruby
-export JBOSS_HOME=$TORQUEBOX_HOME/jboss

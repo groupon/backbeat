@@ -4,7 +4,7 @@ default: &default
   log_format: json
   dashboard_auth_token: '6dy6L8v8942jrbV622dr'
   dashboard_base_uri:   'http://localhost:3030/widgets/'
-  async_queue: /queues/accounting_backbeat_internal
+  async_queue: 'accounting_backbeat_server'
 
 test:
   <<: *default

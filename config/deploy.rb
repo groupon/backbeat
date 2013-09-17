@@ -5,6 +5,7 @@ require "#{File.dirname(__FILE__)}/useful_capistrano_functions"
 set :stages, %w(production staging uat)
 set :default_stage, "uat"
 require 'capistrano/ext/multistage'  # this must appear after you set up the stages
+require 'sidekiq/capistrano'
 require 'capistrano/campfire'
 require 'crack' #we have to require this to make the capistrano/campfire tasks work
 
@@ -39,7 +40,7 @@ set :normalize_asset_timestamps, false
 set :unicorn_binary, "bundle exec unicorn"
 set :unicorn_config, "#{current_path}/config/unicorn.conf.rb"
 set :unicorn_pid, "#{deploy_to}/shared/pids/unicorn.pid"
-set :worker_init_scripts, [:delayed_job_backbeat, :resque_backbeat_server]
+set :worker_init_scripts, [:delayed_job_backbeat, :sidekiq_backbeat_server]
 
 ssh_options[:forward_agent] = true
 
@@ -195,7 +196,7 @@ end
 namespace :workers do
   [:start, :stop, :restart, :status].each do |command|
     desc "#{command} worker processes on utility box"
-    task command, :roles => [:delayed_job_backbeat, :resque_backbeat_server] do
+    task command, :roles => [:delayed_job_backbeat, :sidekiq_backbeat_server] do
       worker_init_scripts.each do |script|
         run "/usr/local/etc/init.d/#{script} #{command}"
       end
