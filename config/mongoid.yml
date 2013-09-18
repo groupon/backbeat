@@ -59,11 +59,11 @@ staging:
 production:
   sessions:
     default:
-      database: workflow_production
+      database: workflow_uat
       hosts:
-        - accounting-tokumx1.snc1:27017
-        - accounting-tokumx2.snc1:27017
-        - accounting-tokumx3.snc1:27017
+        - accounting-mongodb1-uat.snc1:27017
+        - accounting-mongodb2-uat.snc1:27017
+        - accounting-mongodb3-uat.snc1:27017
       options:
         consistency: :strong
         max_retries: 10

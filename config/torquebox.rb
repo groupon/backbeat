@@ -7,13 +7,13 @@ TorqueBox.configure do
   end
 
   environment do
-    # EXAMPLE 'example_value'
+    RACK_ENV WorkflowServer::Config.environment
   end
 
   pool :web do
     type :bounded
     min 32
-    max 128
+    max 32
   end
 
   pool :job do
@@ -32,7 +32,7 @@ TorqueBox.configure do
     name 'backbeat_sidekiq_worker'
     config do
       queues ['accounting_backbeat_server']
-      concurrency 100
+      concurrency 32
     end
   end
 

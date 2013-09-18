@@ -1,0 +1,71 @@
+#!/bin/bash
+# ==========================================================================
+# jboss - start and stop jboss (immutant/torquebox)
+# ==========================================================================
+# Source function library.
+. /usr/local/etc/init.d/functions
+
+export PATH=$HOME/bin:/usr/local/bin:$PATH
+NAME="backbeat jboss"
+
+ROOT="/home/backbeat/.immutant/releases/current/jboss"
+
+export USER="backbeat"
+ENVIRONMENT="production"
+
+export JBOSS_HOME=/home/backbeat/.immutant/releases/current/jboss
+PROGRAM="lein immutant run -b 0.0.0.0"
+JBOSS_LOG_DIR="/var/groupon/backbeat/shared/log/jboss"
+LOGFILE=${JBOSS_LOG_DIR}/$(basename $0).log
+LAUNCH_JBOSS_IN_BACKGROUND=true
+JBOSS_PIDFILE="/var/groupon/backbeat/shared/pids/jboss.pid"
+
+start() {
+  local user_args
+  if [[ $EUID -ne 0 ]]; then
+    user_args=""
+  else
+    user_args="--user=$USER"
+  fi
+  echo "starting jboss..."
+  daemon $user_args "cd $ROOT;JBOSS_HOME=$JBOSS_HOME JBOSS_PIDFILE=$JBOSS_PIDFILE LAUNCH_JBOSS_IN_BACKGROUND=true RAILS_ENV=$ENVIRONMENT $PROGRAM -Djboss.server.log.dir=$JBOSS_LOG_DIR 1> /dev/null 2>> $LOGFILE &"
+  echo
+}
+stop() {
+  echo "stopping jboss..."
+  kill -TERM `cat $JBOSS_PIDFILE`
+}
+status_int() {
+  status -p $JBOSS_PIDFILE
+}
+
+restart() {
+  stop
+  sleep 3
+  start
+}
+
+if [ ! -d $ROOT ]; then
+  echo "$ROOT not on this machine. quitting."
+  exit 0
+fi
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+        status_int
+        ;;
+  restart)
+        restart
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|status|restart}"
+        exit 2
+esac
+
+exit $?
