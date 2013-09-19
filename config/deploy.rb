@@ -5,16 +5,11 @@ require "#{File.dirname(__FILE__)}/useful_capistrano_functions"
 set :stages, %w(production staging uat)
 set :default_stage, "uat"
 require 'capistrano/ext/multistage'  # this must appear after you set up the stages
-require 'sidekiq/capistrano'
 require 'capistrano/campfire'
 require 'crack' #we have to require this to make the capistrano/campfire tasks work
 
 #set :newrelic_rails_env, defer { stage }
 #require 'new_relic/recipes'
-
-set :whenever_roles, :cronjobs
-set :whenever_command, "bundle exec whenever"
-set :whenever_environment, defer { stage }
 
 # campfire options came from groupon/capistrano/config/notification_helper.yml
 set :campfire_options, { :account => 'thepoint',
@@ -37,12 +32,21 @@ set :normalize_asset_timestamps, false
 # QUICK TIP (useful for debugging) - If bundle is failing, uncomment the line below. It executes bundle without the quiet flag.
 #set :bundle_flags, "--deployment"
 
-set :unicorn_binary, "bundle exec unicorn"
-set :unicorn_config, "#{current_path}/config/unicorn.conf.rb"
-set :unicorn_pid, "#{deploy_to}/shared/pids/unicorn.pid"
-set :worker_init_scripts, [:delayed_job_backbeat, :sidekiq_backbeat_server]
+set :worker_init_scripts, [:delayed_job_backbeat]
+
+set :jboss_home,        '/home/backbeat/.immutant/releases/current/jboss'
+set :jruby_home,        '/home/backbeat/.immutant/releases/current/jruby'
+set :torquebox_home,    '/home/backbeat/.immutant/releases/current'
+set :jboss_init_script, '/usr/local/etc/init.d/jboss'
 
 ssh_options[:forward_agent] = true
+
+require 'torquebox-capistrano-support'
+require 'bundler/capistrano'
+
+set :default_environment, {
+  'PATH' => "#{jruby_home}/bin:$PATH"
+}
 
 def campfire_speak msg
   begin
@@ -138,7 +142,7 @@ namespace :setup do
   desc "configure deploy directories"
   task :deploy_dirs, :roles => :utility do
     set :user, ENV['DEPLOYER'] || ENV['USER']
-    sudo "mkdir -p #{deploy_to}/releases; sudo chown -R backbeat:backbeat #{deploy_to}"
+    sudo "mkdir -p #{deploy_to}/releases; mkdir -p #{shared_path}/log/jboss; sudo chown -R backbeat:backbeat #{deploy_to}"
   end
 end
 
@@ -196,7 +200,7 @@ end
 namespace :workers do
   [:start, :stop, :restart, :status].each do |command|
     desc "#{command} worker processes on utility box"
-    task command, :roles => [:delayed_job_backbeat, :sidekiq_backbeat_server] do
+    task command, :roles => [:delayed_job_backbeat] do
       worker_init_scripts.each do |script|
         run "/usr/local/etc/init.d/#{script} #{command}"
       end
@@ -204,7 +208,24 @@ namespace :workers do
   end
 end
 
+namespace :jboss do
+  desc "stop jboss"
+  task :stop, roles: :utility do
+     run "JBOSS_HOME=#{jboss_home}  #{jboss_init_script} stop"
+  end
+
+  desc "start jboss"
+  task :start, roles: :utility do
+    run "JBOSS_HOME=#{jboss_home} #{jboss_init_script} start"
+  end
+end
+
 namespace :deploy do
+
+   desc "Restart Application"
+    task :restart, :except => { :no_release => true } do
+      run "touch #{current_path}/tmp/restart-all.txt"
+    end
 
   # Deploy locks courtesy of http://kpumuk.info/development/advanced-capistrano-usage/
   desc "Prevent other people from deploying to this environment"
@@ -252,6 +273,10 @@ namespace :deploy do
     end
   end
 
+  task :rolling_restart, :roles => :utility do
+    run "touch #{current_path}/tmp/restart-all.txt"
+  end
+
   namespace :rollback do
     desc "we overwrote cleanup because it was screwing up unicorn which couldn't find its files during restart"
     task :cleanup do
@@ -259,58 +284,12 @@ namespace :deploy do
     end
   end
 
-  desc "start unicorn"
-  task :start, :roles => :utility do
-    run "cd #{current_path} && RACK_ENV=#{stage} #{unicorn_binary} -c #{unicorn_config} -D"
-  end
-
-  desc "stop unicorn"
-  task :stop, :roles => :utility do
-    run "kill -s KILL `cat #{unicorn_pid}` || true"
-  end
-
-  desc "rereads unicorn config files"
-  task :reread_config, :roles => :utility do
-    run "kill -s HUP `cat #{unicorn_pid}` || true"
-  end
-
-  desc "gracefully stop unicorn"
-  task :graceful_stop, :roles => :utility do
-    run "kill -s QUIT `cat #{unicorn_pid}` || true"
-  end
-
-  desc "gracefully stop/start unicorn (execs new unicorn instance, old one times out)"
-  task :restart, :roles => :utility do
-    roles[:utility].instance_variable_get('@static_servers').each do |host|
-      if unicorn_pids_by_host[host].empty?
-        run "(cd #{current_path} && RACK_ENV=#{stage} #{unicorn_binary} -c #{unicorn_config} -D)"
-      else
-        run "kill -s USR2 `cat #{unicorn_pid}`"
-      end
-    end
-  end
-
-  desc "start worker to update Backbeat Dashboard"
-  task :dashboard_worker, :roles => :utility do
-    run "(cd #{current_path} && ./script/dashboard_worker.sh) > /dev/null 2>&1 &"
-  end
-
   task :create_indexes, :roles => :utility do
-    run "(cd #{current_path} && RACK_ENV=#{stage} bundle exec rake mongo:create_indexes)"
+    run "(cd #{current_path} && RACK_ENV=#{stage} && #{bundle_cmd} exec rake mongo:create_indexes)"
   end
 
   task :remove_indexes, :roles => :utility do
-    run "(cd #{current_path} && RACK_ENV=#{stage} bundle exec rake mongo:remove_indexes)"
-  end
-
-  desc "rolling killing/restarting of unicorn. use this if unicorn gets in a weird state"
-  task :rolling_restart, :roles => :utility do
-    roles[:utility].instance_variable_get('@static_servers').each do |host|
-      run "kill -9 `cat #{unicorn_pid}` || true", :hosts => host
-      # 30 is the timeout for any unicorn request. we should be able to restart within 30 seconds. 35 just to be safe
-      run "for i in {1..35}; do if nc -z localhost 9000;then sleep 1; else break; fi done", :hosts => host
-      run "`cd #{current_path} && RACK_ENV=#{stage} #{unicorn_binary} -c #{unicorn_config} -D`", :hosts => host
-    end
+    run "(cd #{current_path} && RACK_ENV=#{stage} && #{bundle_cmd} exec rake mongo:remove_indexes)"
   end
 
   desc "shows the differences between what's about to deploy vs what's currently deployed"
@@ -354,51 +333,6 @@ namespace :deploy do
     campfire_speak "#{ENV['USER']} finished deploying branch(#{deploy_branch}) to #{stage}"
   end
 
-  task :find_existing_unicorn_processes, :roles => :utility do
-    unless exists?(:unicorn_pids_by_host)
-      set :unicorn_pids_by_host, Hash.new {|h,k| h[k] = [] }
-    end
-    roles[:utility].instance_variable_get('@static_servers').each do |host|
-      puts "HOST: #{host}"
-      pids = capture("ps -A -o pid,args | grep unicorn | grep '#{application}/current/config/unicorn.conf.rb' | grep -v grep | awk '{print $1}'", :hosts => host )
-      unicorn_pids_by_host[host] = pids.split(/\n/)
-    end
-  end
-
-  task :check_for_new_unicorn_processes, :roles => :utility do
-    unless exists?(:unicorn_pids_by_host)
-      puts Color.red("WARNING: You are checking for new unicorn processes but find_existing_unicorn_processes never ran.  I will now explode.")
-    end
-
-    new_unicorn_pids_by_host = Hash.new {|h,k| h[k] = [] }
-
-    roles[:utility].instance_variable_get('@static_servers').each do |host|
-      puts "HOST: #{host}"
-      pids = capture("ps -A -o pid,args | grep unicorn | grep '#{application}/current/config/unicorn.conf.rb' | grep -v grep | awk '{print $1}'", :hosts => host )
-      new_unicorn_pids_by_host[host] = pids.split(/\n/)
-    end
-
-    puts "Old #{unicorn_pids_by_host}"
-    puts "New #{new_unicorn_pids_by_host}"
-
-    unicorn_pids_by_host.each_pair do |host,pids|
-      new_pids = new_unicorn_pids_by_host[host] - pids
-      if new_pids.size == 0
-        puts Color.red("WARNING: No New Unicorn processes on #{host}, only the old ones: #{pids.inspect}.  Killing/restarting the brutally unicorn the hard way.")
-        run "kill -9 `cat #{unicorn_pid}` || true", :hosts => host
-        run "`cd #{current_path} && RACK_ENV=#{stage} #{unicorn_binary} -c #{unicorn_config} -D`", :hosts => host
-      else
-        puts Color.green("Woo hoo.  New unicorn processes are spinning up: #{new_pids.join(",")}")
-      end
-    end
-  end
-
-  desc "show runtime of unicorn processes"
-  task :check_processes, :roles => :utility do
-    puts "pid,uptime,process name"
-    run "echo pid, uptime, process name; ps -A -o pid,etime,args | grep unicorn | grep '#{application}/current/config/unicorn.conf.rb' | grep -v grep | awk '{print $1 \" \" $2 \" \" $3 \" \" $4}'"
-  end
-
   task :confirm do
     if stage == :production
       Groupon::FinancialEngineering::Capistrano.get_confirmation( "let's march!", "deploy to production")
@@ -411,10 +345,10 @@ end
 namespace :squash do
   desc "Notifies Squash of a new deploy."
   task :notify, :except => {:no_release => true} do
+    #puts "squash notifications are commented out in the jruby branch"
     run "cd #{current_path} && RACK_ENV=#{stage} bundle exec rake squash:notify REVISION=#{real_revision} DEPLOY_ENV=#{stage}"
   end
 end
-
 
 def sha_from_branch(arg)
   branch_to_sha = {}
@@ -431,15 +365,7 @@ before :deploy do
   deploy.check_lock
 end
 
-before 'deploy:update_code', 'deploy:confirm', 'deploy:campfire_notify', 'workers:stop'
-before 'deploy:finalize_update', 'bundle:install'
-before 'deploy:restart', 'deploy:find_existing_unicorn_processes'
+before 'deploy:update_code', 'deploy:confirm', 'deploy:campfire_notify','workers:stop'
 
-after 'deploy:start', 'squash:notify'
-after 'deploy:restart', 'deploy:dashboard_worker', 'deploy:check_for_new_unicorn_processes', 'deploy:create_indexes', 'deploy:cleanup', 'squash:notify'
-after 'deploy:cleanup', 'deploy:check_processes', 'workers:start', 'deploy:campfire_notify_complete'
-
-#after 'deploy:create_symlink', 'newrelic:notice_deployment'
-
-# This ensures bundle install happens before bundle exec whenever tries to update the crontab
-require 'whenever/capistrano'
+after 'deploy:restart', 'deploy:create_indexes', 'deploy:cleanup'
+after 'deploy:cleanup', 'workers:start', 'deploy:campfire_notify_complete'

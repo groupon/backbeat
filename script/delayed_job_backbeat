@@ -5,24 +5,22 @@
 require_relative '../app'
 
 def start(pidfile)
-  fork do
-    hostname = `hostname`.chomp
-    File.open(pidfile, File::CREAT|File::TRUNC|File::RDWR) do |f|
-      f.write(Process.pid)
-    end
-
-    mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, "config", "mongoid.yml"))
-    Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
-
-    Delayed::Worker.destroy_failed_jobs = false
-    Delayed::Worker.max_attempts = 15
-    Delayed::Worker.logger = WorkflowServer::DelayedJobLogger
-    Delayed::Worker.lifecycle.before(:perform) { |*args| WorkflowServer::Logger.tid(:set) }
-    Delayed::Worker.lifecycle.after(:perform) { |*args| WorkflowServer::Logger.tid(:clear) }
-    Delayed::Worker.default_priority = 2
-    Delayed::Worker.max_run_time = 24.hours
-    Delayed::Worker.new.start
+  hostname = `hostname`.chomp
+  File.open(pidfile, File::CREAT|File::TRUNC|File::RDWR) do |f|
+    f.write(Process.pid)
   end
+
+  mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, "config", "mongoid.yml"))
+  Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
+
+  Delayed::Worker.destroy_failed_jobs = false
+  Delayed::Worker.max_attempts = 15
+  Delayed::Worker.logger = WorkflowServer::DelayedJobLogger
+  Delayed::Worker.lifecycle.before(:perform) { |*args| WorkflowServer::Logger.tid(:set) }
+  Delayed::Worker.lifecycle.after(:perform) { |*args| WorkflowServer::Logger.tid(:clear) }
+  Delayed::Worker.default_priority = 2
+  Delayed::Worker.max_run_time = 24.hours
+  Delayed::Worker.new.start
 end
 
 def stop(pidfile)

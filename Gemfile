@@ -19,8 +19,6 @@ gem 'uuidtools'
 # Utility
 gem 'awesome_print'
 gem 'mail'
-gem 'rufus-scheduler'
-gem 'whenever'
 gem 'sidekiq'
 gem 'kiqstand'
 
@@ -32,6 +30,7 @@ gem 'jruby-openssl', require: false
 #Torquebox
 gem 'torquebox', '3.0.0'
 gem 'torquebox-messaging', '3.0.0'
+gem 'warbler'
 
 group :development do
   # Deploy
@@ -41,6 +40,7 @@ group :development do
   # Documentation
   gem 'rdoc', '~> 3.4'
   gem 'torquebox-console'
+  gem 'torquebox-capistrano-support'
 end
 
 group :test do
@@ -55,4 +55,5 @@ group :test do
   gem 'torquespec', require: false
   gem 'accounting_torquespec', git: 'git@github.groupondev.com:finance-engineering/accounting_torquespec.git'
   gem 'external_service', git: 'git@github.groupondev.com:finance-engineering/external_service.git'
+  gem 'torquebox-capistrano-support'
 end

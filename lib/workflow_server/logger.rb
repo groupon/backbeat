@@ -17,13 +17,25 @@ module WorkflowServer
     # Returns a uniq tid
     def self.tid(option = nil)
       if option == :set
-        @tid = UUIDTools::UUID.random_create.to_s.slice(0,7)
+        self.tid = UUIDTools::UUID.random_create.to_s.slice(0,7)
       elsif option.kind_of?(String)
-        @tid = option
+        self.tid = option
       elsif option == :clear
-        @tid = nil
+        self.tid = nil
       end
-      @tid
+      tid_store[Thread.current.object_id]
+    end
+
+    def self.tid=(value)
+      if value.nil?
+        tid_store.delete(Thread.current.object_id)
+      else
+        tid_store[Thread.current.object_id] = value
+      end
+    end
+
+    def self.tid_store
+      @tid ||= {}
     end
 
     def self.logger
@@ -53,6 +65,7 @@ module WorkflowServer
       message = {
         time: Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L"),
         pid: Process.pid,
+        thread_id: Thread.current.object_id,
         tid: WorkflowServer::Logger.tid || "none",
         level: Log4r::LNAMES[event.level],
         source: event.data[:name],
