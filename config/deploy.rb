@@ -12,10 +12,6 @@ require 'crack' #we have to require this to make the capistrano/campfire tasks w
 #set :newrelic_rails_env, defer { stage }
 #require 'new_relic/recipes'
 
-set :whenever_roles, :cronjobs
-set :whenever_command, "bundle exec whenever"
-set :whenever_environment, defer { stage }
-
 # campfire options came from groupon/capistrano/config/notification_helper.yml
 set :campfire_options, { :account => 'thepoint',
                          :room => 'Accounting-fu',
@@ -415,7 +411,6 @@ namespace :squash do
   end
 end
 
-
 def sha_from_branch(arg)
   branch_to_sha = {}
   `git ls-remote`.split("\n").each do |line|
@@ -440,6 +435,3 @@ after 'deploy:restart', 'deploy:dashboard_worker', 'deploy:check_for_new_unicorn
 after 'deploy:cleanup', 'deploy:check_processes', 'workers:start', 'deploy:campfire_notify_complete'
 
 #after 'deploy:create_symlink', 'newrelic:notice_deployment'
-
-# This ensures bundle install happens before bundle exec whenever tries to update the crontab
-require 'whenever/capistrano'

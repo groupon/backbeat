@@ -2,8 +2,6 @@ default: &default
   log: /tmp/backbeat.log
   log_level: DEBUG
   log_format: json
-  dashboard_auth_token: '6dy6L8v8942jrbV622dr'
-  dashboard_base_uri:   'http://localhost:3030/widgets/'
   async_queue: 'accounting_backbeat_server'
 
 test:

@@ -18,8 +18,6 @@ gem 'uuidtools'
 # Utility
 gem 'awesome_print'
 gem 'mail'
-gem 'rufus-scheduler'
-gem 'whenever'
 gem 'sidekiq'
 gem 'kiqstand'
 
