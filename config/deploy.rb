@@ -208,17 +208,6 @@ namespace :workers do
   end
 end
 
-set :backbeat_root, "/var/groupon/backbeat/current"
-namespace :backbeat do
-  desc "deploy backbeat under polyglot jboss (run once manually)"
-  task :deploy_polyglot, roles: :backbeat do
-    run "cd #{backbeat_root}; \
-export set PATH=$HOME/.immutant/releases/current/jruby/bin:$PATH; \
-export set JBOSS_HOME=~/.immutant/releases/current/jboss; \
-lein immutant deploy"
-  end
-end
-
 namespace :jboss do
   desc "stop jboss"
   task :stop, roles: :utility do
@@ -295,11 +284,6 @@ namespace :deploy do
     end
   end
 
-  desc "start worker to update Backbeat Dashboard"
-  task :dashboard_worker, :roles => :utility do
-    run "(cd #{current_path} && ./script/dashboard_worker.sh) > /dev/null 2>&1 &"
-  end
-
   task :create_indexes, :roles => :utility do
     run "(cd #{current_path} && RACK_ENV=#{stage} && #{bundle_cmd} exec rake mongo:create_indexes)"
   end
@@ -361,8 +345,8 @@ end
 namespace :squash do
   desc "Notifies Squash of a new deploy."
   task :notify, :except => {:no_release => true} do
-    run "squash notifications are commented out in the jruby branch"
-    #run "cd #{current_path} && RACK_ENV=#{stage} bundle exec rake squash:notify REVISION=#{real_revision} DEPLOY_ENV=#{stage}"
+    #puts "squash notifications are commented out in the jruby branch"
+    run "cd #{current_path} && RACK_ENV=#{stage} bundle exec rake squash:notify REVISION=#{real_revision} DEPLOY_ENV=#{stage}"
   end
 end
 
@@ -383,6 +367,5 @@ end
 
 before 'deploy:update_code', 'deploy:confirm', 'deploy:campfire_notify','workers:stop'
 
-after 'deploy:start', 'squash:notify'
-after 'deploy:restart', 'deploy:dashboard_worker', 'deploy:create_indexes', 'deploy:cleanup', 'squash:notify'
+after 'deploy:restart', 'deploy:create_indexes', 'deploy:cleanup'
 after 'deploy:cleanup', 'workers:start', 'deploy:campfire_notify_complete'
