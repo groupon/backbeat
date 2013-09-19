@@ -142,7 +142,7 @@ namespace :setup do
   desc "configure deploy directories"
   task :deploy_dirs, :roles => :utility do
     set :user, ENV['DEPLOYER'] || ENV['USER']
-    sudo "mkdir -p #{deploy_to}/releases; mkdir -p #{shared_path}/log/jboss; sudo chown -R backbeat:backbeat #{deploy_to}"
+    sudo "mkdir -p #{deploy_to}/releases; sudo mkdir -p #{shared_path}/log/jboss; sudo chown -R backbeat:backbeat #{deploy_to}"
   end
 end
 
@@ -222,10 +222,15 @@ end
 
 namespace :deploy do
 
-   desc "Restart Application"
-    task :restart, :except => { :no_release => true } do
-      run "touch #{current_path}/tmp/restart-all.txt"
-    end
+  desc "Restart Application"
+  task :restart, :except => { :no_release => true } do
+    run "touch #{current_path}/tmp/restart-all.txt"
+  end
+
+  desc "deploy the application"
+  task :install, :roles => :utility do
+    run "touch #{jboss_home}/standalone/deployments/#{torquebox_app_name}-knob.yml.dodeploy"
+  end
 
   # Deploy locks courtesy of http://kpumuk.info/development/advanced-capistrano-usage/
   desc "Prevent other people from deploying to this environment"

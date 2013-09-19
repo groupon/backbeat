@@ -24,8 +24,6 @@ TorqueBox.configure do
 
   web do
     context '/'
-    static 'public'
-    host 'localhost'
   end
 
   service WorkflowServer::Services::SidekiqService do
