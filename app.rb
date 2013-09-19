@@ -23,7 +23,7 @@ require 'kiqstand'
 Squash::Ruby.configure(WorkflowServer::Config.squash_config)
 
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
-redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment]
+redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment.to_s]
 
 # Sidekiq worker configuration
 Sidekiq.configure_server do |config|
