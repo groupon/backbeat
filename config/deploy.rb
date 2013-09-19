@@ -200,7 +200,7 @@ end
 namespace :workers do
   [:start, :stop, :restart, :status].each do |command|
     desc "#{command} worker processes on utility box"
-    task command, :roles => [:delayed_job_backbeat, :resque_backbeat_server] do
+    task command, :roles => [:delayed_job_backbeat] do
       worker_init_scripts.each do |script|
         run "/usr/local/etc/init.d/#{script} #{command}"
       end
@@ -285,7 +285,7 @@ namespace :deploy do
   end
 
   task :rolling_restart, :roles => :utility do
-    run "mkdir -p #{current_path}/tmp; touch #{current_path}/tmp/restart.txt"
+    run "touch #{current_path}/tmp/restart-all.txt"
   end
 
   namespace :rollback do
