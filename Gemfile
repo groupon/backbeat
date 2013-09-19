@@ -1,6 +1,7 @@
 source 'http://rubygems.org'
 
 gem 'rake'
+ruby '1.9.3'
 
 # Server/API
 gem 'grape'

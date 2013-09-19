@@ -45,10 +45,6 @@ describe WorkflowServer::Client do
       activity = FactoryGirl.create(:activity, workflow: FactoryGirl.create(:workflow, user: user))
       WorkflowServer::Client.unstub!(:perform_activity)
       WebMock.stub_request(:post, "http://activity.com/api/v1/workflows/perform_activity").with(:body => {activity: WorkflowServer::Helper::HashKeyTransformations.camelize_keys(activity.serializable_hash)}.to_json, :headers => {'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json'} )
-      #TODO: naren, can you check this change
-      # we need this hack to execute the url requests.  Since we use TorqueBox we don't
-      # perform the request when environment is :test
-      WorkflowServer::Config.stub(:environment).and_return(:in_test)
       WorkflowServer::Client.perform_activity(activity)
 
       WebMock.should have_requested(:post, "http://activity.com/api/v1/workflows/perform_activity").with(:body => {activity: WorkflowServer::Helper::HashKeyTransformations.camelize_keys(activity.serializable_hash)}.to_json, :headers => {'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json'} )
@@ -73,10 +69,6 @@ describe WorkflowServer::Client do
         with(:body => "{\"notification\":\"{\\\"subject_klass\\\"=>\\\"PaymentTerm\\\", \\\"subject_id\\\"=>\\\"100\\\"}:#{activity.id}:activity(make_initial_payment):start\"}",
              :headers => {'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json'}).
              to_return(:status => 200, :body => "", :headers => {})
-      #TODO: naren, can you check this change
-      # we need this hack to execute the url requests.  Since we use TorqueBox we don't
-      # perform the request when environment is :test
-      WorkflowServer::Config.stub(:environment).and_return(:in_test)
       WorkflowServer::Client.notify_of(activity, :start)
 
       WebMock.should have_requested(:post, "http://notifications.com/api/v1/workflows/notify_of").
@@ -88,10 +80,6 @@ describe WorkflowServer::Client do
       activity = FactoryGirl.create(:activity, workflow: FactoryGirl.create(:workflow, user: user))
       WorkflowServer::Client.unstub!(:notify_of)
       WebMock.stub_request(:post, "http://notifications.com/api/v1/workflows/notify_of").to_return(status: 404)
-      #TODO: naren, can you check this change
-      # we need this hack to execute the url requests.  Since we use TorqueBox we don't
-      # perform the request when environment is :test
-      WorkflowServer::Config.stub(:environment).and_return(:in_test)
 
       expect {
         WorkflowServer::Client.notify_of(activity, :start)

@@ -136,7 +136,7 @@ module WorkflowServer
       def child_timeout(child, timeout_name)
         unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
           Watchdog.mass_dismiss(self)
-          parent.child_errored(child, error) if parent
+          parent.child_timeout(child, timeout_name) if parent
         end
       end
 
@@ -208,7 +208,11 @@ module WorkflowServer
 
       def with_lock_with_defaults(options = {}, &block)
         opts = {retry_sleep: 0.5, retries: 10, timeout: 10}.merge(options)
-        with_lock_without_defaults(opts, &block)
+        begin
+          with_lock_without_defaults(opts, &block)
+        rescue Mongoid::Locker::LockError => err
+          raise Backbeat::TransientError.new(err)
+        end
       end
       alias_method :with_lock_without_defaults, :with_lock
       alias_method :with_lock, :with_lock_with_defaults

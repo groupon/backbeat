@@ -219,6 +219,7 @@ module Api
           action_descriptor: action_description(("get_" + event_type.to_s).to_sym) do |event|
             event.parameters do |parameters|
               parameters.string :id, description: 'the workflow id', required: true, location: 'url'
+              parameters.string :status, description: 'status of the event', required: false, location: 'query'
             end
             event.response do |response|
               response.array(event_type) do |event_object|
@@ -231,7 +232,11 @@ module Api
         }
         get "/:id/#{event_type}" do
           wf = find_workflow(params[:id])
-          wf.__send__(event_type)
+          if params[:status].blank?
+            wf.__send__(event_type)
+          else
+            wf.__send__(event_type).and(:status.in => Array(params[:status]))
+          end
         end
       end
 

@@ -201,6 +201,16 @@ describe Api::Workflow do
       json_response.map {|obj| obj["id"] }.should == [@d1, @d2].map(&:id).map(&:to_s)
     end
 
+    it "filters by status" do
+      @wf.events.first.update_attributes!(status: :something_unknown)
+      get "/workflows/#{@wf.id}/events?status=something_unknown"
+      last_response.status.should == 200
+      json_response = JSON.parse(last_response.body)
+      json_response.should == [{"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "name"=>"WFDecision", "parentId"=>nil, "status"=>"something_unknown", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@wf.id, "id"=>@d1.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}]
+      json_response.count.should == 1
+      json_response.map {|obj| obj["id"] }.should == [@d1].map(&:id).map(&:to_s)
+    end
+
     it "returns a 404 if the workflow is not found" do
       get "/workflows/1000/events"
       last_response.status.should == 404

@@ -43,8 +43,11 @@ module WorkflowServer
         self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_started")
         event.__send__(method_to_call, *args)
         self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_succeeded", duration: Time.now - t0)
+      rescue Backbeat::TransientError => error
+        self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_transient_error", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
+        raise
       rescue Exception => error
-        self.class.error(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error, backtrace: error.backtrace, duration: Time.now - t0)
+        self.class.error(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
         Squash::Ruby.notify error
         raise
       end
@@ -82,6 +85,7 @@ module WorkflowServer
   end
 end
 
+# TODO - Naren swears he'll add a comment here. 2013/09/12
 module Moped
   module BSON
     class ObjectId
