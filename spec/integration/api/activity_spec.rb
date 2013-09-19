@@ -158,7 +158,7 @@ describe Api::Workflow do
       activity.reload
       activity.children.count.should == 1
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "clientData" => {"arguments"=>[1, 2, 3]}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
+      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "clientData" => {"arguments"=>[1, 2, 3]}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>172800, "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
 
       last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
@@ -215,7 +215,7 @@ describe Api::Workflow do
       activity.reload
       activity.children.count.should == 1
       json_response = JSON.parse(last_response.body)
-      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "clientData" => {"arguments"=>[1, 2, 3]}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>0, "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
+      json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "clientData" => {"arguments"=>[1, 2, 3]}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>172800, "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
       sub = activity.children.first
       sub.actor_id.should == 100
       sub.actor_klass.should == "LineItem"
@@ -232,7 +232,7 @@ describe Api::Workflow do
       put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity"
       last_response.status.should == 400
       json_response = JSON.parse(last_response.body)
-      json_response['error'].should == "missing parameter: sub_activity"
+      json_response['error'].should == "sub_activity is missing"
     end
 
     it "returns 400 if some of the required parameters are missing" do

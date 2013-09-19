@@ -161,7 +161,7 @@ describe Api::Workflow do
       post "/workflows/#{@wf.id}/signal/test", {options: "some_string"}
       last_response.status.should == 400
       json_response = JSON.parse(last_response.body)
-      json_response["error"].should == "invalid parameter: options"
+      json_response["error"].should == "options is invalid"
     end
   end
 
@@ -206,7 +206,7 @@ describe Api::Workflow do
       get "/workflows/#{@wf.id}/events?status=something_unknown"
       last_response.status.should == 200
       json_response = JSON.parse(last_response.body)
-      json_response.should == [{"clientData" => {}, "createdAt"=>Time.now.to_datetime.to_s, "name"=>"WFDecision", "parentId"=>nil, "status"=>"something_unknown", "updatedAt"=>Time.now.to_datetime.to_s, "workflowId"=>@wf.id, "id"=>@d1.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}]
+      json_response.should == [{"clientData" => {}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "name"=>"WFDecision", "parentId"=>nil, "status"=>"something_unknown", "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>@wf.id, "id"=>@d1.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}]
       json_response.count.should == 1
       json_response.map {|obj| obj["id"] }.should == [@d1].map(&:id).map(&:to_s)
     end

@@ -1,4 +1,4 @@
-require File.expand_path('..', 'app')
+require File.join(File.dirname(__FILE__), "..", 'app')
 
 TorqueBox.configure do
   ruby do

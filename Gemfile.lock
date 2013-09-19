@@ -248,6 +248,7 @@ GEM
     webmock (1.13.0)
       addressable (>= 2.2.7)
       crack (>= 0.3.2)
+    zip (2.0.2)
 
 PLATFORMS
   java
@@ -290,3 +291,4 @@ DEPENDENCIES
   uuidtools
   warbler
   webmock
+  zip

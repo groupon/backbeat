@@ -47,7 +47,6 @@ group :test do
   gem 'rack-test'
   gem 'rspec'
   gem 'factory_girl'
-  gem 'pry'
   gem 'timecop'
   gem 'webmock'
   gem 'simplecov'
@@ -56,4 +55,6 @@ group :test do
   gem 'accounting_torquespec', git: 'git@github.groupondev.com:finance-engineering/accounting_torquespec.git'
   gem 'external_service', git: 'git@github.groupondev.com:finance-engineering/external_service.git'
   gem 'torquebox-capistrano-support'
+  gem 'zip'
+  gem 'pry'
 end
