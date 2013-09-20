@@ -16,12 +16,6 @@ TorqueBox.configure do
     max 1
   end
 
-  pool :job do
-    type :bounded
-    min 1
-    max 2
-  end
-
   web do
     context '/'
   end
