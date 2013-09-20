@@ -23,7 +23,7 @@ module Services
 
     def run
       Sidekiq.options.merge!(config)
-      Sidekiq.options[:queues] << 'default' if Sidekiq.options[:queues]
+      Sidekiq.options[:queues] << 'default' if Sidekiq.options[:queues].empty?
 
       Sidekiq::Logging.logger = WorkflowServer::SidekiqLogger
       Celluloid.logger = WorkflowServer::SidekiqLogger
