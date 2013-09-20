@@ -12,8 +12,8 @@ TorqueBox.configure do
 
   pool :web do
     type :shared
-    min 1
-    max 1
+    min 16
+    max 32
   end
 
   web do
@@ -24,12 +24,13 @@ TorqueBox.configure do
     name 'backbeat_sidekiq_worker'
     config do
       queues ['accounting_backbeat_server']
-      concurrency 1
+      concurrency 32
     end
   end
 
   job Reports::DailyReport do
     # Every day at midnight
-    cron '0 0 12 1/1 * ? *'
+    # cron '0 0 12 1/1 * ? *'
+    cron '0 */5 * * * ?'
   end
 end
