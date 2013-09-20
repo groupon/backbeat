@@ -10,14 +10,15 @@ TorqueBox.configure do
     RACK_ENV WorkflowServer::Config.environment
   end
 
+  web do
+    context '/'
+  end
+
   pool :web do
+    lazy :false
     type :shared
     min 16
     max 32
-  end
-
-  web do
-    context '/'
   end
 
   service Services::SidekiqService do
