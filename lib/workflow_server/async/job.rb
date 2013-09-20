@@ -7,18 +7,13 @@ module WorkflowServer
 
     class Job < JobStruct
       extend WorkflowServer::Logger
-      include Sidekiq::Worker
-
-      def self.queue
-        WorkflowServer::Config.options[:async_queue]
-      end
 
       def self.enqueue(job_data)
-        Sidekiq::Client.enqueue(self, data: [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]])
+        WorkflowServer::Workers::SidekiqJobWorker.perform_async(data: [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]])
       end
 
       def self.perform(job_data)
-        job = new(*(job_data["data"]))
+        job = new(*(job_data['data']))
         begin
           job.perform
         rescue Exception => error
@@ -92,7 +87,7 @@ module Moped
       class Generator
         def generate(time, counter = 0)
           process_thread_id = (RUBY_ENGINE == 'jruby' ? "#{Process.pid}#{Thread.current.object_id}".hash % 0xFFFF : Process.pid)
-          [time, @machine_id, process_thread_id, counter << 8].pack("N NX lXX NX")
+          [time, @machine_id, process_thread_id, counter << 8].pack('N NX lXX NX')
         end
       end
     end
