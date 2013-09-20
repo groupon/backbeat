@@ -9,6 +9,7 @@ require 'workflow_server/models'
 require 'workflow_server/client'
 require 'workflow_server/reports'
 require 'workflow_server/version'
+require 'workflow_server/workers'
 
 module WorkflowServer
   extend WorkflowServer::Logger

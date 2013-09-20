@@ -25,15 +25,6 @@ Squash::Ruby.configure(WorkflowServer::Config.squash_config)
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
 redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment.to_s]
 
-# Sidekiq worker configuration
-Sidekiq.configure_server do |config|
-  # We set the namespace to resque so that we can use all of the resque monitoring tools to monitor sidekiq too
-  config.redis = { namespace: 'resque', url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
-  config.server_middleware do |chain|
-    chain.add Kiqstand::Middleware
-  end
-end
-
 Sidekiq.configure_client do |config|
   # We set the namespace to resque so that we can use all of the resque monitoring tools to monitor sidekiq too
   config.redis = { namespace: 'resque', size: 1, url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
