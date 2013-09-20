@@ -15,7 +15,6 @@ TorqueBox.configure do
   end
 
   pool :web do
-    lazy false
     type :shared
     min 16
     max 32
@@ -23,7 +22,7 @@ TorqueBox.configure do
 
   pool :services do
     type :shared
-    min 16
+    min 32
     max 32
   end
 
