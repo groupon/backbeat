@@ -16,21 +16,21 @@ TorqueBox.configure do
 
   pool :web do
     type :shared
-    min 16
-    max 32
+    min 30
+    max 50
   end
 
-  # pool :services do
-  #   type :shared
-  #   min 32
-  #   max 32
-  # end
+  pool :services do
+    type :shared
+    min 16
+    max 16
+  end
 
   service Services::SidekiqService do
     name 'backbeat_sidekiq_worker'
     config do
       queues ['accounting_backbeat_server']
-      concurrency 32
+      concurrency 1
     end
   end
 
