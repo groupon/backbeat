@@ -53,7 +53,10 @@ module WorkflowServer
 
   module ClassMethods
     [:debug, :info, :warn, :error, :fatal].each do |level|
-      define_method(level) do |message|
+      define_method(level) do |message = nil, &block|
+        if message.nil? && !block.nil?
+          message = block.call
+        end
         WorkflowServer::Logger.logger.__send__(level, {:name => self.to_s, :message => message})
       end
     end
@@ -89,5 +92,8 @@ module WorkflowServer
   end
 
   class SidekiqLogger < DelayedJobLogger
+    def self.crash(string, exception)
+      self.error({error: string, backtrace: exception.backtrace})
+    end
   end
 end

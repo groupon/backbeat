@@ -26,7 +26,7 @@ TorqueBox.configure do
     context '/'
   end
 
-  service WorkflowServer::Services::SidekiqService do
+  service Services::SidekiqService do
     name 'backbeat_sidekiq_worker'
     config do
       queues ['accounting_backbeat_server']

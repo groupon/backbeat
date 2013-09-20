@@ -14,11 +14,13 @@ export USER="backbeat"
 ENVIRONMENT="production"
 
 export JBOSS_HOME=/home/backbeat/.immutant/releases/current/jboss
-PROGRAM="lein immutant run -b 0.0.0.0"
+PROGRAM="lein immutant run -b 0.0.0.0 -Dhttp.port=9000"
 JBOSS_LOG_DIR="/var/groupon/backbeat/shared/log/jboss"
 LOGFILE=${JBOSS_LOG_DIR}/$(basename $0).log
 LAUNCH_JBOSS_IN_BACKGROUND=true
 JBOSS_PIDFILE="/var/groupon/backbeat/shared/pids/jboss.pid"
+
+export JAVA_OPTS="$JAVA_OPTS -Xms5120m -Xmx5120m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true"
 
 start() {
   local user_args
