@@ -7,7 +7,6 @@ require 'workflow_server/errors'
 require 'workflow_server/async'
 require 'workflow_server/models'
 require 'workflow_server/client'
-require 'workflow_server/reports'
 require 'workflow_server/version'
 require 'workflow_server/workers'
 

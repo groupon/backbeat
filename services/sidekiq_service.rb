@@ -43,6 +43,7 @@ module Services
 
     def run
       Sidekiq.options.merge!(config)
+      Sidekiq.options[:environment] = WorkflowServer::Config.environment
       raise 'Sidekiq workers must have at least 1 queue!' if Sidekiq.options[:queues].size < 1
 
       Sidekiq::Logging.logger = WorkflowServer::SidekiqLogger

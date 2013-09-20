@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', 'app')
+require File.join(File.dirname(__FILE__), '..', 'lib', 'workflow_server', 'config')
 
 TorqueBox.configure do
   ruby do
@@ -34,8 +34,8 @@ TorqueBox.configure do
     end
   end
 
-  job WorkflowServer::Reports::DailyReport do
+  job Reports::DailyReport do
     # Every day at midnight
-    cron '0 0 12 1/1 * ? *'
+    cron '0 */1 * * * ?'
   end
 end
