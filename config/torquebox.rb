@@ -16,7 +16,13 @@ TorqueBox.configure do
 
   pool :web do
     lazy false
-    type :shared
+    type :bounded
+    min 16
+    max 32
+  end
+
+  pool :services do
+    type :bounded
     min 16
     max 32
   end
@@ -25,7 +31,7 @@ TorqueBox.configure do
     name 'backbeat_sidekiq_worker'
     config do
       queues ['accounting_backbeat_server']
-      concurrency 32
+      concurrency 1
     end
   end
 
