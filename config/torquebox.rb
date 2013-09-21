@@ -21,9 +21,9 @@ TorqueBox.configure do
   end
 
   pool :services do
-    type :bounded
-    min 16
-    max 16
+    type :shared
+    min 30
+    max 30
   end
 
   service Services::SidekiqService do
