@@ -21,7 +21,7 @@ TorqueBox.configure do
   end
 
   pool :services do
-    type :shared
+    type :bounded
     min 30
     max 30
   end
