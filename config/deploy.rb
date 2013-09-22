@@ -47,7 +47,7 @@ require 'bundler/capistrano'
 
 set :default_environment, {
   'TORQUEBOX_HOME' => "#{torquebox_home}",
-  'PATH'           => "#{jruby_home}/bin:$PATH"
+  'PATH'           => "#{jruby_home}/bin:$PATH",
   'RACK_ENV'       => "#{stage}"
 }
 
