@@ -1,4 +1,3 @@
-require File.join(File.dirname(__FILE__), '..', 'lib', 'workflow_server', 'config')
 
 TorqueBox.configure do
   ruby do
@@ -6,9 +5,6 @@ TorqueBox.configure do
     compile_mode 'jit'
   end
 
-  environment do
-    RACK_ENV WorkflowServer::Config.environment
-  end
 
   web do
     context '/'

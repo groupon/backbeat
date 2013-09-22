@@ -38,6 +38,7 @@ set :jboss_home,        '/home/backbeat/.immutant/releases/current/jboss'
 set :jruby_home,        '/home/backbeat/.immutant/releases/current/jruby'
 set :torquebox_home,    '/home/backbeat/.immutant/releases/current'
 set :jboss_init_script, '/usr/local/etc/init.d/jboss'
+set :torquebox_app_name, 'backbeat'
 
 ssh_options[:forward_agent] = true
 
@@ -236,6 +237,12 @@ namespace :deploy do
   desc "deploy backstage"
   task :backstage, :roles => :utility do
     run "jruby -S gem install torquebox-backstage --no-ri --no-rdoc; jruby -S backstage deploy"
+  end
+
+  desc "deploy sidekiq monitor"
+  task :sidekiq_monitor, :roles => :utility do
+    remote_url = "git@github.groupondev.com:finance-engineering/sidekiq-monitor.git"
+    run "if ! [ -d #{shared_path}/sidekiq_monitor ]; then cd #{shared_path}; git clone #{remote_url} sidekiq_monitor ; fi; cd #{shared_path}/sidekiq_monitor; git remote set-url origin #{remote_url}; git pull --rebase origin master; bundle install; torquebox deploy ."
   end
 
   # Deploy locks courtesy of http://kpumuk.info/development/advanced-capistrano-usage/
