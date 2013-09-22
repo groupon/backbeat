@@ -47,7 +47,8 @@ require 'bundler/capistrano'
 
 set :default_environment, {
   'TORQUEBOX_HOME' => "#{torquebox_home}",
-  'PATH' => "#{jruby_home}/bin:$PATH"
+  'PATH'           => "#{jruby_home}/bin:$PATH"
+  'RACK_ENV'       => "#{stage}"
 }
 
 def campfire_speak msg
@@ -242,7 +243,7 @@ namespace :deploy do
   desc "deploy sidekiq monitor"
   task :sidekiq_monitor, :roles => :utility do
     remote_url = "git@github.groupondev.com:finance-engineering/sidekiq-monitor.git"
-    run "if ! [ -d #{shared_path}/sidekiq_monitor ]; then cd #{shared_path}; git clone #{remote_url} sidekiq_monitor ; fi; cd #{shared_path}/sidekiq_monitor; git remote set-url origin #{remote_url}; git pull --rebase origin master; bundle install; torquebox deploy ."
+    run "if ! [ -d #{shared_path}/sidekiq_monitor ]; then cd #{shared_path}; git clone #{remote_url} sidekiq_monitor ; fi; cd #{shared_path}/sidekiq_monitor; git remote set-url origin #{remote_url}; git pull --rebase origin master; bundle install; RACK_ENV=#{stage} torquebox deploy ."
   end
 
   # Deploy locks courtesy of http://kpumuk.info/development/advanced-capistrano-usage/
