@@ -45,6 +45,7 @@ require 'torquebox-capistrano-support'
 require 'bundler/capistrano'
 
 set :default_environment, {
+  'TORQUEBOX_HOME' => "#{torquebox_home}",
   'PATH' => "#{jruby_home}/bin:$PATH"
 }
 
@@ -230,6 +231,11 @@ namespace :deploy do
   desc "deploy the application"
   task :install, :roles => :utility do
     run "touch #{jboss_home}/standalone/deployments/#{torquebox_app_name}-knob.yml.dodeploy"
+  end
+
+  desc "deploy backstage"
+  task :backstage, :roles => :utility do
+    run "jruby -S gem install torquebox-backstage --no-ri --no-rdoc; jruby -S backstage deploy"
   end
 
   # Deploy locks courtesy of http://kpumuk.info/development/advanced-capistrano-usage/
