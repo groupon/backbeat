@@ -19,12 +19,6 @@ TorqueBox.configure do
     min 30
     max 50
   end
-  # 
-  # pool :services do
-  #   type :bounded
-  #   min 30
-  #   max 30
-  # end
 
   service Services::SidekiqService do
     name 'backbeat_sidekiq_worker'
