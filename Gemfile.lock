@@ -27,6 +27,17 @@ GIT
     service-discovery (0.3.0)
       multi_json
 
+GIT
+  remote: http://github.com/nchainani/mongoid.git
+  revision: 49f2004ebaaebb34663bc9865afa22b960dd64bb
+  branch: 3.1.0-stable
+  specs:
+    mongoid (3.1.5)
+      activemodel (~> 3.2)
+      moped (~> 1.4)
+      origin (~> 1.0)
+      tzinfo (~> 0.3.29)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -68,6 +79,7 @@ GEM
     diff-lcs (1.2.4)
     edn (1.0.0)
       parslet (~> 1.4.0)
+    eventmachine (1.0.3)
     eventmachine (1.0.3-java)
     factory_girl (4.2.0)
       activesupport (>= 3.0.0)
@@ -88,6 +100,7 @@ GEM
       virtus
     hashie (2.0.5)
     highline (1.6.19)
+    http_parser.rb (0.5.3)
     http_parser.rb (0.5.3-java)
     httparty (0.11.0)
       multi_json (~> 1.0)
@@ -97,6 +110,7 @@ GEM
     jruby-openssl (0.9.0)
       bouncy-castle-java (>= 1.5.0147)
     jruby-rack (1.1.13.2)
+    json (1.8.0)
     json (1.8.0-java)
     kiqstand (1.1.0)
       mongoid (~> 3.1)
@@ -107,11 +121,6 @@ GEM
       treetop (~> 1.4.8)
     method_source (0.8.2)
     mime-types (1.25)
-    mongoid (3.1.5)
-      activemodel (~> 3.2)
-      moped (~> 1.4)
-      origin (~> 1.0)
-      tzinfo (~> 0.3.29)
     mongoid-indifferent-access (1.0.0)
       mongoid
     mongoid_auto_increment (0.1.1)
@@ -133,6 +142,10 @@ GEM
     parslet (1.4.0)
       blankslate (~> 2.0)
     polyglot (0.3.3)
+    pry (0.9.12.2)
+      coderay (~> 1.0.5)
+      method_source (~> 0.8)
+      slop (~> 3.4)
     pry (0.9.12.2-java)
       coderay (~> 1.0.5)
       method_source (~> 0.8)
@@ -268,7 +281,7 @@ DEPENDENCIES
   kiqstand
   log4r
   mail
-  mongoid
+  mongoid!
   mongoid-indifferent-access
   mongoid-locker!
   mongoid_auto_increment
