@@ -25,7 +25,7 @@ module Services
 
       Sidekiq.configure_server do |config|
         # We set the namespace to resque so that we can use all of the resque monitoring tools to monitor sidekiq too
-        config.redis = { namespace: 'resque', url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
+        config.redis = { namespace: 'fed_sidekiq', url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
         config.server_middleware do |chain|
           chain.add Kiqstand::Middleware
         end
