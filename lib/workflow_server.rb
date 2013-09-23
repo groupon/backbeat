@@ -49,7 +49,7 @@ module WorkflowServer
         workflow.save
         workflow
       rescue Moped::Errors::OperationFailure => error
-        if error.message =~ /duplicate key error index/ && !retried
+        if error.message =~ /duplicate key error/ && !retried
           retried = true
           retry
         end
