@@ -45,10 +45,10 @@ ssh_options[:forward_agent] = true
 require 'torquebox-capistrano-support'
 require 'bundler/capistrano'
 
+
 set :default_environment, {
   'TORQUEBOX_HOME' => "#{torquebox_home}",
-  'PATH'           => "#{jruby_home}/bin:$PATH",
-  'RACK_ENV'       => "#{stage}"
+  'PATH'           => "#{jruby_home}/bin:$PATH"
 }
 
 def campfire_speak msg
@@ -214,12 +214,12 @@ end
 namespace :jboss do
   desc "stop jboss"
   task :stop, roles: :utility do
-     run "JBOSS_HOME=#{jboss_home}  #{jboss_init_script} stop"
+     run "JBOSS_HOME=#{jboss_home} RACK_ENV=#{stage}  #{jboss_init_script} stop"
   end
 
   desc "start jboss"
   task :start, roles: :utility do
-    run "JBOSS_HOME=#{jboss_home} #{jboss_init_script} start"
+    run "JBOSS_HOME=#{jboss_home} RACK_ENV=#{stage} #{jboss_init_script} start"
   end
 end
 
@@ -227,12 +227,12 @@ namespace :deploy do
 
   desc "Restart Application"
   task :restart, :except => { :no_release => true } do
-    run "touch #{current_path}/tmp/restart-all.txt"
+    run "RACK_ENV=#{stage} touch #{current_path}/tmp/restart-all.txt"
   end
 
   desc "deploy the application"
   task :install, :roles => :utility do
-    run "touch #{jboss_home}/standalone/deployments/#{torquebox_app_name}-knob.yml.dodeploy"
+    run "RACK_ENV=#{stage} touch #{jboss_home}/standalone/deployments/#{torquebox_app_name}-knob.yml.dodeploy"
   end
 
   desc "deploy backstage"
