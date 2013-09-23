@@ -28,8 +28,8 @@ GIT
       multi_json
 
 GIT
-  remote: http://github.com/nchainani/mongoid.git
-  revision: 49f2004ebaaebb34663bc9865afa22b960dd64bb
+  remote: http://github.com/mongoid/mongoid.git
+  revision: 28ee2d96707f607b12235bddf13f9fbeea310f74
   branch: 3.1.0-stable
   specs:
     mongoid (3.1.5)
