@@ -99,9 +99,9 @@ describe Api::Workflow do
         decision.reload
         decision.children.count.should == 1
 
-        FakeSidekiq.for do
-          put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
-        end
+        put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
+
+        WorkflowServer::Workers::SidekiqJobWorker.drain
 
         timer = decision.children.first
         timer.async_jobs.count.should == 1

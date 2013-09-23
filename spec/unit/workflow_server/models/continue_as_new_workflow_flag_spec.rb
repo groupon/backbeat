@@ -10,7 +10,7 @@ describe WorkflowServer::Models::ContinueAsNewWorkflowFlag do
   end
 
   it 'marks past events as complete and inactive, destroys all async jobs on them' do
-    past_events = [ mock('event1', cleanup: nil), mock('event2', cleanup: nil) ]
+    past_events = [ double('event1', cleanup: nil), double('event2', cleanup: nil) ]
     @event.workflow.should_receive(:events).and_return(past_events)
     past_events.should_receive(:where).with(:sequence.lt => @event.sequence).and_return(past_events)
     past_events.should_receive(:update_all).with(status: :complete, inactive: true)

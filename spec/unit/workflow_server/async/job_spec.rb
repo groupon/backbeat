@@ -13,49 +13,42 @@ describe WorkflowServer::Async::Job do
     end
   end
 
-  context 'Sidekiq' do
+  context 'Job.perform' do
+    it 'invokes perform on a new instance' do
+      args = ['12', :a_method_name, [:arg1, :arg2], 24]
+      job  = double('job')
 
-    it 'defines a queue' do
-      WorkflowServer::Async::Job.queue.should == 'accounting_backbeat_server'
+      WorkflowServer::Async::Job.should_receive(:new).with(*args).and_return(job)
+
+      job.should_receive(:perform)
+
+      WorkflowServer::Async::Job.perform('data' => args)
     end
 
-    context 'Job.perform' do
-      it 'invokes perform on a new instance' do
+    it 'schedules a delayed job on exception' do
+      Timecop.freeze do
         args = ['12', :a_method_name, [:arg1, :arg2], 24]
-        job  = mock('job')
+        event = double('event')
 
-        WorkflowServer::Async::Job.should_receive(:new).with(*args).and_return(job)
+        WorkflowServer::Async::Job.any_instance.should_receive(:perform).and_raise('Something')
 
-        job.should_receive(:perform)
+        WorkflowServer::Models::Event.should_receive(:find).with('12').and_return(event)
 
-        WorkflowServer::Async::Job.perform('data' => args)
-      end
-
-      it 'schedules a delayed job on exception' do
-        Timecop.freeze do
-          args = ['12', :a_method_name, [:arg1, :arg2], 24]
-          event = mock('event')
-
-          WorkflowServer::Async::Job.any_instance.should_receive(:perform).and_raise('Something')
-
-          WorkflowServer::Models::Event.should_receive(:find).with('12').and_return(event)
-
-          WorkflowServer::Async::Job.should_receive(:schedule).with({ event: event,
-                                                                      method: :a_method_name,
-                                                                      args: [:arg1, :arg2],
-                                                                      max_attempts: 24},
+        WorkflowServer::Async::Job.should_receive(:schedule).with({ event: event,
+                                                                    method: :a_method_name,
+                                                                    args: [:arg1, :arg2],
+                                                                    max_attempts: 24},
                                                                     Time.now + 5)
 
-          WorkflowServer::Async::Job.perform('data' => args)
-        end
+        WorkflowServer::Async::Job.perform('data' => args)
       end
     end
 
     it 'enqueues to Sidekiq' do
-      event = mock('event', id: '12')
+      event = double('event', id: '12')
       job_data = {event: event, method: :a_method_name, args:[:arg1, :arg2], max_attempts: 24}
 
-      Sidekiq::Client.should_receive(:enqueue).with(WorkflowServer::Async::Job, {:data=>['12', :a_method_name, [:arg1, :arg2], 24]})
+      WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_async).with(data: ['12', :a_method_name, [:arg1, :arg2], 24])
 
       WorkflowServer::Async::Job.enqueue(job_data)
     end
@@ -64,7 +57,7 @@ describe WorkflowServer::Async::Job do
   context '#perform' do
     before do
       @job = WorkflowServer::Async::Job.schedule({event: decision, method: :some_method, args: [1,2,3,4], max_attempts: 100}, Time.now + 2.days)
-      @dec = mock('decision', some_method: nil, id: 10, name: :make_payment, pull: nil)
+      @dec = double('decision', some_method: nil, id: 10, name: :make_payment, pull: nil)
       WorkflowServer::Models::Event.stub(find: @dec)
     end
 

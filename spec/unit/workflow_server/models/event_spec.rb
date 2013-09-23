@@ -135,7 +135,7 @@ describe WorkflowServer::Models::Event do
     end
 
     it 'schedules a job if the method name begins with enqueue_' do
-      WorkflowServer::Async::Job.should_receive(:schedule).with({event: event, method: :test, args: [1,2,3,4], max_attempts:20}, Time.now + 10.minutes).and_return(mock('job', id: 100))
+      WorkflowServer::Async::Job.should_receive(:schedule).with({event: event, method: :test, args: [1,2,3,4], max_attempts:20}, Time.now + 10.minutes).and_return(double('job', id: 100))
       event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes})
     end
 

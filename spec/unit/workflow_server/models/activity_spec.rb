@@ -434,7 +434,7 @@ describe WorkflowServer::Models::Activity do
 
   context "#handle_error" do
     before do
-      @mock_decision = mock('parent_decision', name: :test)
+      @mock_decision = double('parent_decision', name: :test)
       @a1.stub(parent_decision: @mock_decision)
     end
     it "doesn't schedule an error event if mode is fire_and_forget" do

@@ -124,9 +124,9 @@ describe Api::Workflow do
       it "returns 201 and the signal json if workflow exists" do
         wf = FactoryGirl.create(:workflow, user: user)
 
-        FakeSidekiq.for do
-          post "/workflows/#{wf.id}/signal/test", options: { client_data: {data: '123'}, client_metadata: {metadata: '456'} }
-        end
+        post "/workflows/#{wf.id}/signal/test", options: { client_data: {data: '123'}, client_metadata: {metadata: '456'} }
+
+        WorkflowServer::Workers::SidekiqJobWorker.drain
 
         last_response.status.should == 201
         signal = JSON.parse(last_response.body)

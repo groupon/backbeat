@@ -135,7 +135,7 @@ describe WorkflowServer::Models::Workflow do
     end
     it 'calls resumed on the paused events' do
       @wf.should_receive(:update_status!).with(:open)
-      events = [mock('1', resumed: nil), mock('2', resumed: nil)]
+      events = [double('1', resumed: nil), double('2', resumed: nil)]
       @wf.stub_chain(:events, :where => events)
       events.each { |e| e.should_receive(:resumed) }
       @wf.resumed

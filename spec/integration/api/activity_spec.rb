@@ -60,13 +60,13 @@ describe Api::Workflow do
             wf = activity.workflow
             user = wf.user
 
-            FakeSidekiq.for do
-              put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
-              last_response.status.should == 200
-              activity.reload
-              activity.result.should == 'i_was_successful'
-              activity.children.count.should == 0
-            end
+            put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
+            last_response.status.should == 200
+            activity.reload
+            activity.result.should == 'i_was_successful'
+            activity.children.count.should == 0
+
+            WorkflowServer::Workers::SidekiqJobWorker.drain
 
             activity.reload
             activity.children.count.should == 1
@@ -84,10 +84,10 @@ describe Api::Workflow do
             wf = activity.workflow
             user = wf.user
 
-            FakeSidekiq.for do
-              put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
-              last_response.status.should == 200
-            end
+            put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
+            last_response.status.should == 200
+
+            WorkflowServer::Workers::SidekiqJobWorker.drain
 
             activity.reload
             activity.status.should == :complete
@@ -175,10 +175,10 @@ describe Api::Workflow do
         last_response.status.should == 200
         last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
 
-        FakeSidekiq.for do
-          put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
-          last_response.status.should == 200
-        end
+        put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
+        last_response.status.should == 200
+
+        WorkflowServer::Workers::SidekiqJobWorker.drain
 
         put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
         last_response.status.should == 200
@@ -191,10 +191,10 @@ describe Api::Workflow do
         last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
         sa = JSON.parse(last_response.body)
 
-        FakeSidekiq.for do
-          put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
-          last_response.status.should == 200
-        end
+        put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
+        last_response.status.should == 200
+
+        WorkflowServer::Workers::SidekiqJobWorker.drain
 
         # change the arguments this time
         sub_activity[:client_data][:arguments] = [1,2,3,4]

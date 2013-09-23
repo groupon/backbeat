@@ -62,8 +62,6 @@ RSPEC_CONSTANT_USER_CLIENT_ID = UUIDTools::UUID.random_create.to_s
 
 FactoryGirl.find_definitions
 
-require_relative 'support/fake_sidekiq.rb'
-
 # should go in unit spec helper
 def run_async_jobs
   WorkflowServer::Async::Job.stub(:enqueue) { |job_data| WorkflowServer::Async::Job.new(job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]).perform }

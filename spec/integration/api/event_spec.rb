@@ -44,7 +44,7 @@ describe Api::Workflow do
       end
 
       it "returns a 404 if the event is not found" do
-        event = mock('mock', id: 1000, workflow: workflow)
+        event = double('mock', id: 1000, workflow: workflow)
         get uri(template, event)
         last_response.status.should == 404
         json_response = JSON.parse(last_response.body)
@@ -84,7 +84,7 @@ describe Api::Workflow do
       end
 
       it "returns a 404 if the event is not found" do
-        event = mock('mock', id: 1000, workflow: @d1.workflow)
+        event = double('mock', id: 1000, workflow: @d1.workflow)
         get "#{uri(template, event)}/history_decisions"
         last_response.status.should == 404
         json_response = JSON.parse(last_response.body)
@@ -109,7 +109,7 @@ describe Api::Workflow do
       end
 
       it "returns a 404 if the event is not found" do
-        event = mock('mock', id: 1000, workflow: @d1.workflow)
+        event = double('mock', id: 1000, workflow: @d1.workflow)
         get "#{uri(template, event)}/tree"
         last_response.status.should == 404
         json_response = JSON.parse(last_response.body)
@@ -134,7 +134,7 @@ describe Api::Workflow do
       end
 
       it "returns a 404 if the event is not found" do
-        event = mock('mock', id: 1000, workflow: @d1.workflow)
+        event = double('mock', id: 1000, workflow: @d1.workflow)
         get "#{uri(template, event)}/tree/print"
         last_response.status.should == 404
         json_response = JSON.parse(last_response.body)

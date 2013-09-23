@@ -46,6 +46,7 @@ end
 group :test do
   gem 'rack-test'
   gem 'rspec'
+  gem 'rspec-sidekiq'
   gem 'factory_girl'
   gem 'timecop'
   gem 'webmock'
