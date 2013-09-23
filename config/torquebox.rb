@@ -1,6 +1,3 @@
-require_relative '../services/sidekiq_service'
-require_relative '../reports/daily_report'
-
 TorqueBox.configure do
   ruby do
     version '1.9'

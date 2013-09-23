@@ -17,6 +17,9 @@ Bundler.setup
 Bundler.require(:default, :test)
 
 require 'app'
+require_relative '../services/sidekiq_service'
+require_relative '../reports/daily_report'
+
 
 mongo_path = File.expand_path(File.join(__FILE__, "..", "..", "config", "mongoid.yml"))
 Mongoid.load!(mongo_path, :test)
