@@ -9,8 +9,8 @@ TorqueBox.configure do
   end
 
   pool :web do
-    type :shared
-    min 30
+    type :bounded
+    min 10
     max 50
   end
 
