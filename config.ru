@@ -4,6 +4,8 @@ require 'app'
 
 use Api::Log
 
+use Api::ClearSession
+
 use Api::Health
 
 use Rack::Lint if WorkflowServer::Config.environment == :test
