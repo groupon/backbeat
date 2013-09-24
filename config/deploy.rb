@@ -232,7 +232,7 @@ namespace :deploy do
 
   desc "deploy the application"
   task :install, :roles => :utility do
-    run "RACK_ENV=#{stage} touch #{jboss_home}/standalone/deployments/#{torquebox_app_name}-knob.yml.dodeploy"
+    run "cd #{current_path}; RACK_ENV=#{stage} torquebox deploy #{current_path} --name=#{application}"
   end
 
   desc "deploy backstage"
