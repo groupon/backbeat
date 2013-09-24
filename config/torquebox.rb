@@ -9,9 +9,9 @@ TorqueBox.configure do
   end
 
   pool :web do
-    type :bounded
-    min 40
-    max 40
+    type :shared
+    min 10
+    max 50
   end
 
   service Services::SidekiqService do
