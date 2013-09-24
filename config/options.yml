@@ -1,28 +1,26 @@
 default: &default
-  log: /tmp/backbeat.log
   log_level: DEBUG
   log_format: json
   async_queue: 'accounting_backbeat_server'
 
 test:
   <<: *default
+  log: /tmp/backbeat.log
 
 development:
   <<: *default
+  log: /tmp/backbeat.log
 
 uat:
   <<: *default
-  log: /var/groupon/backbeat/shared/log/backbeat.log
   log_level: INFO
 
 staging:
   <<: *default
-  log: /var/groupon/backbeat/shared/log/backbeat.log
   log_level: INFO
 
 production:
   <<: *default
-  log: /var/groupon/backbeat/shared/log/backbeat.log
   log_level: INFO
 
 squash:

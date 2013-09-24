@@ -41,7 +41,9 @@ module WorkflowServer
     def self.logger
       if !class_variable_defined?(:@@logger)
         @@logger = ::Log4r::Logger.new("backbeat_logger")
-        @@logger.outputters = Log4r::FileOutputter.new("backbeat_formatter",
+        log_file = WorkflowServer::Config.log_file
+        logger = log_file.nil? ? Log4r::StdoutOutputter : Log4r::FileOutputter
+        @@logger.outputters = logger.new("backbeat_formatter",
                                                         level: Log4r::LNAMES.index(WorkflowServer::Config.options[:log_level]) || 0,
                                                         formatter: WorkflowServer::OutputFormatter,
                                                         filename: WorkflowServer::Config.log_file
