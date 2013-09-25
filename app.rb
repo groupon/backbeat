@@ -28,7 +28,7 @@ redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[Wor
 
 Sidekiq.configure_client do |config|
   # We set the namespace to resque so that we can use all of the resque monitoring tools to monitor sidekiq too
-  config.redis = { namespace: 'fed_sidekiq', size: 25, url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
+  config.redis = { namespace: 'fed_sidekiq', size: 40, url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
 end
 
 mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, 'config', 'mongoid.yml'))
