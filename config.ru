@@ -4,7 +4,7 @@ require 'app'
 
 use Api::Log
 
-use Api::ClearSession
+#use Api::ClearSession
 
 use Api::Health
 
