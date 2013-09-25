@@ -36,7 +36,6 @@
    #  sharedscripts runs this only once per rotation
    sharedscripts
    lastaction
-     touch /var/groupon/backbeat/current/tmp/restart-all.txt
      test -x /usr/local/etc/init.d/delayed_job_backbeat && /usr/local/etc/init.d/delayed_job_backbeat restart || true
    endscript
 }
