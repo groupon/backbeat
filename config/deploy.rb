@@ -48,7 +48,9 @@ require 'bundler/capistrano'
 
 set :default_environment, {
   'TORQUEBOX_HOME' => "#{torquebox_home}",
-  'PATH'           => "#{jruby_home}/bin:$PATH"
+  'PATH'           => "#{jruby_home}/bin:$PATH",
+  'JRUBY_HOME'     => "#{jruby_home}",
+  'JBOSS_HOME'     => "#{jboss_home}"
 }
 
 def campfire_speak msg
