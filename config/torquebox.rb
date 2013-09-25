@@ -24,6 +24,7 @@ TorqueBox.configure do
     config do
       queues ['accounting_backbeat_server']
       concurrency 25
+      timeout 600
     end
   end
 
