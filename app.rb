@@ -5,6 +5,7 @@ $: << File.expand_path(File.join(__FILE__, '..', 'lib'))
 
 require 'newrelic_rpm'
 require 'awesome_print'
+require 'tzinfo'
 require 'mongoid'
 require 'mongoid-locker'
 require 'mongoid_auto_increment'
