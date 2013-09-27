@@ -239,7 +239,7 @@ namespace :deploy do
 
   desc "deploy backstage"
   task :backstage, :roles => :utility do
-    run "jruby -S gem install torquebox-backstage --no-ri --no-rdoc; jruby -S backstage deploy"
+    run "jruby -S gem install torquebox-backstage --no-ri --no-rdoc; jruby -S backstage deploy --secure=fed:secure_password"
   end
 
   desc "deploy sidekiq monitor"
