@@ -1,7 +1,5 @@
 role :utility,     'accounting-utility2.snc1', :primary => true
-role :delayed_job, 'accounting-utility2.snc1'
-role :cronjobs,    'accounting-utility2.snc1'
+role :delayed_job_backbeat, 'accounting-utility2.snc1'
 
 set :branch, ENV['branch'] if ENV['branch']
 set :branch, ENV['BRANCH'] if ENV['BRANCH']
-set :rails_env, "uat" # for deployment descriptor to pick the environment
