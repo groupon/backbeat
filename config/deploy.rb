@@ -203,11 +203,13 @@ namespace :documentation do
 end
 
 namespace :workers do
-  [:start, :stop, :restart, :status].each do |command|
-    desc "#{command} worker processes on utility box"
-    task command, :roles => [:delayed_job_backbeat] do
-      worker_init_scripts.each do |script|
-        run "/usr/local/etc/init.d/#{script} #{command}"
+  namespace :delayed_job do
+    [:start, :stop, :restart, :status].each do |command|
+      desc "#{command} worker processes on utility box"
+      task command, :roles => [:delayed_job_backbeat] do
+        worker_init_scripts.each do |script|
+          run "/usr/local/etc/init.d/#{script} #{command}"
+        end
       end
     end
   end
@@ -386,7 +388,7 @@ before :deploy do
   deploy.check_lock
 end
 
-before 'deploy:update_code', 'deploy:confirm', 'deploy:campfire_notify','workers:stop'
+before 'deploy:update_code', 'deploy:confirm', 'deploy:campfire_notify','workers:delayed_job:stop'
 
 after 'deploy:restart', 'deploy:create_indexes', 'deploy:cleanup'
-after 'deploy:cleanup', 'workers:start', 'deploy:campfire_notify_complete'
+after 'deploy:cleanup', 'workers:delayed_job:start', 'deploy:campfire_notify_complete'

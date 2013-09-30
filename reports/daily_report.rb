@@ -29,7 +29,7 @@ module Reports
         to      'financial-engineering-alerts@groupon.com'
         subject 'Backbeat Workflow Error Report'
         body    "#{report_body}"
-      end# if WorkflowServer::Config.environment == :production
+      end
     end
 
     def generate_body(report_results)

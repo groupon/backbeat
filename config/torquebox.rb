@@ -32,8 +32,10 @@ TorqueBox.configure do
     end
   end
 
-  job Reports::DailyReport do
-    # Every day at midnight
-    cron '0 0 12 1/1 * ? *'
+  if ENV['RACK_ENV'] == 'production'
+    job Reports::DailyReport do
+      # Every day at midnight
+      cron '0 0 12 1/1 * ? *'
+    end
   end
 end
