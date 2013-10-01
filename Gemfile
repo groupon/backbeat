@@ -51,7 +51,6 @@ group :test do
   gem 'torquespec', require: false
   gem 'accounting_torquespec', git: 'git@github.groupondev.com:finance-engineering/accounting_torquespec.git'
   gem 'external_service', git: 'git@github.groupondev.com:finance-engineering/external_service.git'
-  gem 'torquebox-capistrano-support'
   gem 'zip'
   gem 'pry'
 end
