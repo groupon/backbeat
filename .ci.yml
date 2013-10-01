@@ -1,6 +1,7 @@
-language: ruby
-ruby_version:
-  - "jruby-1.7.2"
-  - "ruby-1.9.3-p194"
-script:
-  - rspec: CORES=8 CUCUMBER_PROFILE=plain SPEC_OPTS='--order random --no-color' bundle exec rspec spec
+environment:
+  language: ruby
+  language_versions:
+    - 1.9.3-p194
+    - jruby-1.7.2
+build:
+  run: CORES=8 CUCUMBER_PROFILE=plain SPEC_OPTS='--order random --no-color' bundle exec rspec spec
