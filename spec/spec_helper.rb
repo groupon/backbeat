@@ -56,7 +56,6 @@ if defined?(JRUBY_VERSION)
     BACKBEAT_CLIENT_ENDPOINT = service.start(3010)
   end
 else
-  puts "VERS"
   def deploy(*args)
     # no-op on MRI
   end
