@@ -44,17 +44,28 @@ BACKBEAT_APP = <<-DD_END.gsub(/^ {4}/,'')
         RACK_ENV: test
     DD_END
 
-require 'accounting_torquespec'
-
 ################ TORQUEBOX SPECIFIC STUFF - END #########################
 
 ########### MOCK BACKBEAT CLIENT START #################
 BACKBEAT_CLIENT_ENDPOINT = "http://backbeat-client:9000"
 service = nil
-if FakeTorquebox.run_jboss?
-  require_relative 'service/backbeat_client'
-  service = Service::BackbeatClient.new('backbeat-test')
-  BACKBEAT_CLIENT_ENDPOINT = service.start(3010)
+if defined?(JRUBY_VERSION)
+  if FakeTorquebox.run_jboss?
+    require_relative 'service/backbeat_client'
+    service = Service::BackbeatClient.new('backbeat-test')
+    BACKBEAT_CLIENT_ENDPOINT = service.start(3010)
+  end
+else
+  puts "VERS"
+  def deploy(*args)
+    # no-op on MRI
+  end
+
+  def remote_describe(*args)
+    describe *args do
+      yield
+    end
+  end
 end
 ########### MOCK BACKBEAT CLIENT END   #################
 
