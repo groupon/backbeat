@@ -20,12 +20,11 @@ module WorkflowServer
 
     def self.notify_of(event, notification, error = nil)
       workflow = event.is_a?(WorkflowServer::Models::Workflow) ? event : event.workflow
-      notification = "#{workflow.try(:subject)}:#{event.id}:#{event.event_type}(#{event.name}):#{notification}"
+      notification_hash = { notification: { type: event.event_type, event: event.id, name: event.name, subject: workflow.try(:subject), message: notification } }
 
       if (url = event.my_user.try(:notification_endpoint))
-        params = {notification: notification}
-        params.merge!(error: error) if error
-        response = post(url, params)
+        notification_hash.merge!(error: error) if error
+        response = post(url, notification_hash)
         raise WorkflowServer::HttpError.new("http request to notify_of failed", response) unless response.code.between?(200, 299)
       end
     end
