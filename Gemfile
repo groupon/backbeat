@@ -25,7 +25,10 @@ gem 'kiqstand'
 gem 'service-discovery', git: 'git@github.groupondev.com:groupon-api/service-discovery.git'
 gem 'squash_ruby', :require => 'squash/ruby'
 gem 'newrelic_rpm'
-gem 'jruby-openssl', require: false
+
+platforms :jruby do
+  gem 'jruby-openssl', require: false
+end
 
 #Torquebox
 gem 'torquebox', '3.0.0'
