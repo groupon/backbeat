@@ -33,10 +33,6 @@ gem 'torquebox-messaging', '3.0.0'
 gem 'warbler'
 
 group :development do
-  # Deploy
-  gem 'capistrano'
-  gem 'capistrano-ext'
-  gem 'capistrano-campfire'
   # Documentation
   gem 'rdoc', '~> 3.4'
   gem 'torquebox-console'

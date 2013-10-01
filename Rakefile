@@ -47,6 +47,53 @@ namespace :mongo do
   end
 end
 
+namespace :roller do
+  desc "build a new roller package.  pass PACKAGE=<package_name> on cl"
+  task :build_package do
+    package_name = ENV['PACKAGE']
+    local_package_location = "config/roller/#{package_name}/"
+
+    if package_name.nil? || package_name.empty?
+      puts "Please specify PACKAGE=package_name on command line"
+      exit 1
+    elsif !Dir.exists?(local_package_location)
+      puts "Can't find #{package_name} under config/roller"
+      exit 2
+    end
+
+    date_ext = Time.now.strftime("%Y.%m.%d_%H.%M")
+    dirname = "#{package_name}-#{date_ext}"
+    filename = "#{dirname}.tar.gz"
+    system("rsync -a #{local_package_location} /tmp/#{dirname}; cd /tmp; gnutar zcf #{filename} #{dirname}")
+    system("rsync -a --stats --progress /tmp/#{filename} dev1.snc1:#{filename}")
+    system("ssh dev1.snc1 publish_encap #{filename}")
+
+    puts "created roller package named: #{dirname}"
+  end
+end
+namespace :documentation do
+  desc "update documentation at https://services.groupondev.com"
+  task :update_service_discovery do
+    require "#{File.join(File.expand_path(File.dirname(__FILE__)), '..', 'app')}"
+    require 'service_discovery/generation/generator'
+
+    resource_schema = ServiceDiscovery::Generation::Generator.generate_grape_documentation(WorkflowServer::Config.root + "/doc/service-discovery/resources.json", /.*/, File.expand_path("public/resources.json"), Api)
+
+    FileUtils.mkdir_p("public")
+    File.open("public/resources.json", "w") { |f| f.print resource_schema }
+
+    local_port = 8765
+
+    # create a ssh tunnel to go to service-discovery.west host through b.west.groupon.com
+    system("ssh -f -N -L #{local_port}:service-discovery.west:80 b.west.groupon.com > /dev/null 2>&1")
+
+    response = HTTParty.post( "http://localhost:#{local_port}/services/backbeat",
+                              body: {schema: JSON.parse(resource_schema)}.to_json,
+                              headers: {"Content-Type" => "application/json"})
+
+    raise "looks like the http request failed - code(#{response.code}), body(#{response.body})" if response.code != 200 || response.body != " "
+  end
+end
 namespace :squash do
   desc "Notifies Squash that this server has received a new deploy."
   task :notify do
