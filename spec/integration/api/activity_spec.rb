@@ -20,10 +20,10 @@ describe Api::Workflow do
         activity = FactoryGirl.create(:activity)
         wf = activity.workflow
         user = wf.user
-        put "/workflows/#{wf.id}/events/#{activity.id}/status/something_invalid"
-        last_response.status.should == 400
+        response = put "/workflows/#{wf.id}/events/#{activity.id}/status/something_invalid"
+        response.status.should == 400
         activity.reload
-        json_response = JSON.parse(last_response.body)
+        json_response = JSON.parse(response.body)
         json_response['error'].should == "Activity make_initial_payment can't transition from open to something_invalid"
       end
 
@@ -32,10 +32,10 @@ describe Api::Workflow do
           activity = FactoryGirl.create(:activity, status: :open)
           wf = activity.workflow
           user = wf.user
-          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
-          last_response.status.should == 400
+          response = put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
+          response.status.should == 400
           activity.reload
-          json_response = JSON.parse(last_response.body)
+          json_response = JSON.parse(response.body)
           json_response['error'].should == "Activity #{activity.name} can't transition from open to completed"
         end
 
@@ -45,10 +45,10 @@ describe Api::Workflow do
           wf = activity.workflow
           user = wf.user
           header "Content-Type", "application/json"
-          put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision}}.to_json
-          last_response.status.should == 400
+          response = put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision}}.to_json
+          response.status.should == 400
           activity.reload
-          json_response = JSON.parse(last_response.body)
+          json_response = JSON.parse(response.body)
           json_response['error'].should == "Activity:#{activity.name} tried to make test_decision the next decision but is not allowed to."
           activity.status.should_not == :complete
         end
@@ -60,8 +60,8 @@ describe Api::Workflow do
             wf = activity.workflow
             user = wf.user
 
-            put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
-            last_response.status.should == 200
+            response = put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
+            response.status.should == 200
             activity.reload
             activity.result.should == 'i_was_successful'
             activity.children.count.should == 0
@@ -84,8 +84,8 @@ describe Api::Workflow do
             wf = activity.workflow
             user = wf.user
 
-            put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
-            last_response.status.should == 200
+            response = put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
+            response.status.should == 200
 
             WorkflowServer::Workers::SidekiqJobWorker.drain
 
@@ -101,9 +101,9 @@ describe Api::Workflow do
           activity = FactoryGirl.create(:activity, status: :open)
           wf = activity.workflow
           user = wf.user
-          put "/workflows/#{wf.id}/events/#{activity.id}/status/errored"
-          last_response.status.should == 400
-          json_response = JSON.parse(last_response.body)
+          response = put "/workflows/#{wf.id}/events/#{activity.id}/status/errored"
+          response.status.should == 400
+          json_response = JSON.parse(response.body)
           json_response['error'].should == "Activity #{activity.name} can't transition from open to errored"
         end
 
@@ -112,8 +112,8 @@ describe Api::Workflow do
           wf = activity.workflow
           user = wf.user
           header "Content-Type", "application/json"
-          put "/workflows/#{wf.id}/events/#{activity.id}/status/errored", {args: {error: {a: 1, b: 2}}}.to_json
-          last_response.status.should == 200
+          response = put "/workflows/#{wf.id}/events/#{activity.id}/status/errored", {args: {error: {a: 1, b: 2}}}.to_json
+          response.status.should == 200
           activity.reload
           activity.status.should == :error
           activity.status_history.last["error"].should == {"a"=>1, "b"=>2}
@@ -129,9 +129,9 @@ describe Api::Workflow do
       user = wf.user
       sub_activity = { name: :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, client_data: {arguments: [1,2,3]}}
       header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{signal.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
-      last_response.status.should == 404
-      json_response = JSON.parse(last_response.body)
+      response = put "/workflows/#{wf.id}/events/#{signal.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      response.status.should == 404
+      json_response = JSON.parse(response.body)
       json_response['error'].should == "Event with id(#{signal.id}) not found"
     end
 
@@ -141,9 +141,9 @@ describe Api::Workflow do
       user = wf.user
       sub_activity = { name: :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, client_data: {arguments: [1,2,3]}}
       header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
-      last_response.status.should == 400
-      json_response = JSON.parse(last_response.body)
+      response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      response.status.should == 400
+      json_response = JSON.parse(response.body)
       json_response['error'].should == "Cannot run subactivity while in status(#{activity.status})"
     end
 
@@ -153,14 +153,14 @@ describe Api::Workflow do
       user = wf.user
       sub_activity = { :name => :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, client_data: { arguments: [1,2,3]} }
       header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
-      last_response.status.should == 200
+      response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      response.status.should == 200
       activity.reload
       activity.children.count.should == 1
-      json_response = JSON.parse(last_response.body)
+      json_response = JSON.parse(response.body)
       json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "clientData" => {"arguments"=>[1, 2, 3]}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>172800, "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
 
-      last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
+      response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
 
     remote_describe "inside jboss container" do
@@ -171,36 +171,36 @@ describe Api::Workflow do
         sub_activity = { :name => :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, client_data: {arguments: [1,2,3]}}
         header "Content-Type", "application/json"
 
-        put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
-        last_response.status.should == 200
-        last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
+        response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+        response.status.should == 200
+        response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
 
-        put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
-        last_response.status.should == 200
+        response = put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
+        response.status.should == 200
 
         WorkflowServer::Workers::SidekiqJobWorker.drain
 
-        put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
-        last_response.status.should == 200
-        last_response.headers.should_not include("WAIT_FOR_SUB_ACTIVITY")
+        response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+        response.status.should == 200
+        response.headers.should_not include("WAIT_FOR_SUB_ACTIVITY")
 
         # change the name
         sub_activity[:name] = :make_initial_payment_SOMETHING_ELSE
-        put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
-        last_response.status.should == 200
-        last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
-        sa = JSON.parse(last_response.body)
+        response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+        response.status.should == 200
+        response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
+        sa = JSON.parse(response.body)
 
-        put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
-        last_response.status.should == 200
+        response = put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
+        response.status.should == 200
 
         WorkflowServer::Workers::SidekiqJobWorker.drain
 
         # change the arguments this time
         sub_activity[:client_data][:arguments] = [1,2,3,4]
-        put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
-        last_response.status.should == 200
-        last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
+        response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+        response.status.should == 200
+        response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
       end
     end
 
@@ -210,17 +210,17 @@ describe Api::Workflow do
       user = wf.user
       sub_activity = { :name => :make_initial_payment, actorKlass: "LineItem", actorId: 100, retry: 100, retryInterval: 5, client_data: {arguments: [1,2,3]}}
       header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {subActivity: sub_activity}.to_json
-      last_response.status.should == 200
+      response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {subActivity: sub_activity}.to_json
+      response.status.should == 200
       activity.reload
       activity.children.count.should == 1
-      json_response = JSON.parse(last_response.body)
+      json_response = JSON.parse(response.body)
       json_response.should == {"actorId"=>100, "actorKlass"=>"LineItem", "always"=>false, "clientData" => {"arguments"=>[1, 2, 3]}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "mode"=>"blocking", "name"=>"make_initial_payment", "nextDecision" => nil, "parentId"=>activity.id, "result" => nil, "retry"=>100, "retryInterval"=>5, "status"=>"executing", "timeOut"=>172800, "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "validNextDecisions"=>[], "workflowId"=>wf.id, "id"=>activity.children.first.id, "type"=>"activity"}
       sub = activity.children.first
       sub.actor_id.should == 100
       sub.actor_klass.should == "LineItem"
       sub.retry_interval.should == 5
-      last_response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
+      response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
 
     it "returns 400 if some of the required parameters are missing" do
@@ -229,9 +229,9 @@ describe Api::Workflow do
       user = wf.user
       sub_activity = { name: :my_name, actor_id: 100, retry: 100, retry_interval: 5, client_data: {arguments: [1,2,3]}}
       header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity"
-      last_response.status.should == 400
-      json_response = JSON.parse(last_response.body)
+      response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity"
+      response.status.should == 400
+      json_response = JSON.parse(response.body)
       json_response['error'].should == "sub_activity is missing"
     end
 
@@ -241,9 +241,9 @@ describe Api::Workflow do
       user = wf.user
       sub_activity = {actor_id: 100, retry: 100, retry_interval: 5, client_data: {arguments: [1,2,3]}}
       header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {subActivity: sub_activity}.to_json
-      last_response.status.should == 400
-      json_response = JSON.parse(last_response.body)
+      response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {subActivity: sub_activity}.to_json
+      response.status.should == 400
+      json_response = JSON.parse(response.body)
       json_response['error'].should == {"activity"=>{"name"=>["can't be blank"]}}
     end
   end
@@ -252,17 +252,17 @@ describe Api::Workflow do
     it "returns 400 if the activity can NOT be restarted" do
       activity = FactoryGirl.create(:activity, status: :open)
       header "Content-Type", "application/json"
-      put "/events/#{activity.id}/restart"
-      last_response.status.should == 400
-      json_response = JSON.parse(last_response.body)
+      response = put "/events/#{activity.id}/restart"
+      response.status.should == 400
+      json_response = JSON.parse(response.body)
       json_response['error'].should == "Activity #{activity.name} can't transition from open to restarting"
     end
 
     it "returns 200 and restarts the activity" do
       activity = FactoryGirl.create(:activity, status: :error, retry: 0)
       header "Content-Type", "application/json"
-      put "/events/#{activity.id}/restart"
-      last_response.status.should == 200
+      response = put "/events/#{activity.id}/restart"
+      response.status.should == 200
       activity.reload
       activity.status_history.first['to'].should == :restarting
       activity.status_history.last['to'].should == :executing

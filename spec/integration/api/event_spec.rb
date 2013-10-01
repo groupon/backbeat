@@ -27,9 +27,9 @@ describe Api::Workflow do
   ["/workflows/<%=workflow_id%>/events/<%=event_id%>", "/events/<%=event_id%>"].each do |template|
     context "GET #{template}" do
       it "returns an event object with valid params" do
-        get uri(template, @d1)
-        last_response.status.should == 200
-        json_response = JSON.parse(last_response.body)
+        response = get uri(template, @d1)
+        response.status.should == 200
+        json_response = JSON.parse(response.body)
         json_response.should == {"clientData"=>{}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "decider" => "PaymentDecider", "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>@d1.workflow.id, "id"=>@d1.id, "type"=>"decision", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}
         json_response['id'].should == @d1.id.to_s
       end
@@ -38,16 +38,16 @@ describe Api::Workflow do
         name = 'decision'
         flag = FactoryGirl.create(:flag, name: "#{name}_completed", workflow: workflow)
         decision = FactoryGirl.create(:decision, name: name, workflow: workflow)
-        get uri(template, decision)
-        last_response.status.should == 200
-        json_response = JSON.parse(last_response.body)
+        response = get uri(template, decision)
+        response.status.should == 200
+        json_response = JSON.parse(response.body)
       end
 
       it "returns a 404 if the event is not found" do
         event = double('mock', id: 1000, workflow: workflow)
-        get uri(template, event)
-        last_response.status.should == 404
-        json_response = JSON.parse(last_response.body)
+        response = get uri(template, event)
+        response.status.should == 404
+        json_response = JSON.parse(response.body)
         json_response.should == {"error" => "Event with id(1000) not found"}
       end
 
@@ -55,18 +55,18 @@ describe Api::Workflow do
         decision = FactoryGirl.create(:decision, workflow: workflow)
         user = FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s)
         header 'CLIENT_ID', user.id
-        get uri(template, decision)
-        last_response.status.should == 404
-        json_response = JSON.parse(last_response.body)
+        response = get uri(template, decision)
+        response.status.should == 404
+        json_response = JSON.parse(response.body)
         json_response.should == (template.match(/^\/workflows/) ? {"error" => "Workflow with id(#{decision.workflow.id}) not found"} : {"error" => "Event with id(#{decision.id}) not found"})
       end
     end
 
     context "GET #{template}/history_decisions" do
       it "empty array when no history" do
-        get "#{uri(template, @d1)}/history_decisions"
-        last_response.status.should == 200
-        json_response = JSON.parse(last_response.body)
+        response = get "#{uri(template, @d1)}/history_decisions"
+        response.status.should == 200
+        json_response = JSON.parse(response.body)
         json_response.should == []
       end
       it "returns all the decisions before the given event" do
@@ -74,9 +74,9 @@ describe Api::Workflow do
         decision2 = FactoryGirl.create(:decision, workflow: workflow, status: :executing)
         decision3 = FactoryGirl.create(:decision, workflow: workflow, status: :executing)
         decision4 = FactoryGirl.create(:decision, workflow: workflow, status: :complete)
-        get "#{uri(template, decision3)}/history_decisions"
-        last_response.status.should == 200
-        json_response = JSON.parse(last_response.body)
+        response = get "#{uri(template, decision3)}/history_decisions"
+        response.status.should == 200
+        json_response = JSON.parse(response.body)
         json_response.size.should == 3
         json_response.first['id'].should == @d1.id
         json_response[1]['id'].should == decision1.id
@@ -85,67 +85,67 @@ describe Api::Workflow do
 
       it "returns a 404 if the event is not found" do
         event = double('mock', id: 1000, workflow: @d1.workflow)
-        get "#{uri(template, event)}/history_decisions"
-        last_response.status.should == 404
-        json_response = JSON.parse(last_response.body)
+        response = get "#{uri(template, event)}/history_decisions"
+        response.status.should == 404
+        json_response = JSON.parse(response.body)
         json_response.should == {"error" => "Event with id(1000) not found"}
       end
 
       it "returns a 404 if a user tries to access a workflow that doesn't belong to them" do
         header 'CLIENT_ID', @user.id
-        get "#{uri(template, @d1)}/history_decisions"
-        last_response.status.should == 404
-        json_response = JSON.parse(last_response.body)
+        response = get "#{uri(template, @d1)}/history_decisions"
+        response.status.should == 404
+        json_response = JSON.parse(response.body)
         json_response.should == (template.match(/^\/workflows/) ? {"error" => "Workflow with id(#{@d1.workflow.id}) not found"} : {"error" => "Event with id(#{@d1.id}) not found"})
       end
     end
 
     context "GET #{template}/tree" do
       it "returns a tree of the event with valid params" do
-        get "#{uri(template, @d1)}/tree"
-        last_response.status.should == 200
-        json_response = JSON.parse(last_response.body)
+        response = get "#{uri(template, @d1)}/tree"
+        response.status.should == 200
+        json_response = JSON.parse(response.body)
         json_response.should == {"id"=>@d1.id, "type"=>"decision", "name"=>"WFDecision", "status"=>"open"}
       end
 
       it "returns a 404 if the event is not found" do
         event = double('mock', id: 1000, workflow: @d1.workflow)
-        get "#{uri(template, event)}/tree"
-        last_response.status.should == 404
-        json_response = JSON.parse(last_response.body)
+        response = get "#{uri(template, event)}/tree"
+        response.status.should == 404
+        json_response = JSON.parse(response.body)
         json_response.should == {"error" => "Event with id(1000) not found"}
       end
 
       it "returns a 404 if a user tries to access a workflow that doesn't belong to them" do
         header 'CLIENT_ID', @user.id
-        get "#{uri(template, @d1)}/tree"
-        last_response.status.should == 404
-        json_response = JSON.parse(last_response.body)
+        response = get "#{uri(template, @d1)}/tree"
+        response.status.should == 404
+        json_response = JSON.parse(response.body)
         json_response.should == (template.match(/^\/workflows/) ? {"error" => "Workflow with id(#{@d1.workflow.id}) not found"} : {"error" => "Event with id(#{@d1.id}) not found"})
       end
     end
 
     context "GET #{template}/print" do
       it "returns a tree of the event with valid params" do
-        get "#{uri(template, @d1)}/tree/print"
-        last_response.status.should == 200
-        json_response = JSON.parse(last_response.body)
+        response = get "#{uri(template, @d1)}/tree/print"
+        response.status.should == 200
+        json_response = JSON.parse(response.body)
         json_response["print"].should be_a(String)
       end
 
       it "returns a 404 if the event is not found" do
         event = double('mock', id: 1000, workflow: @d1.workflow)
-        get "#{uri(template, event)}/tree/print"
-        last_response.status.should == 404
-        json_response = JSON.parse(last_response.body)
+        response = get "#{uri(template, event)}/tree/print"
+        response.status.should == 404
+        json_response = JSON.parse(response.body)
         json_response.should == {"error" => "Event with id(1000) not found"}
       end
 
       it "returns a 404 if a user tries to access a workflow that doesn't belong to them" do
         header 'CLIENT_ID', @user.id
-        get "#{uri(template, @d1)}/tree/print"
-        last_response.status.should == 404
-        json_response = JSON.parse(last_response.body)
+        response = get "#{uri(template, @d1)}/tree/print"
+        response.status.should == 404
+        json_response = JSON.parse(response.body)
         json_response.should == (template.match(/^\/workflows/) ? {"error" => "Workflow with id(#{@d1.workflow.id}) not found"} : {"error" => "Event with id(#{@d1.id}) not found"})
       end
     end
@@ -156,18 +156,18 @@ describe Api::Workflow do
     context "GET #{template}/tree" do
       it "returns a 404 if the workflow is not found" do
         @d1.stub_chain(:workflow, :id => 1000)
-        get "#{uri(template, @d1)}/tree"
-        last_response.status.should == 404
-        json_response = JSON.parse(last_response.body)
+        response = get "#{uri(template, @d1)}/tree"
+        response.status.should == 404
+        json_response = JSON.parse(response.body)
         json_response.should == {"error" => "Workflow with id(1000) not found"}
       end
     end
     context "GET #{template}/print" do
       it "returns a 404 if the workflow is not found" do
         @d1.stub_chain(:workflow, :id => 1000)
-        get "#{uri(template, @d1)}/tree/print"
-        last_response.status.should == 404
-        json_response = JSON.parse(last_response.body)
+        response = get "#{uri(template, @d1)}/tree/print"
+        response.status.should == 404
+        json_response = JSON.parse(response.body)
         json_response.should == {"error" => "Workflow with id(1000) not found"}
       end
     end
