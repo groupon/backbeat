@@ -1,9 +1,25 @@
 environment:
   language: ruby
   language_versions:
-    - 1.9.3-p194
-    - jruby-1.7.2
+    - 1.9.3_p392
+    - jruby-1.7.4
   packages:
     - mongodb-2.2.3
+    - java-1.7.0_05
+    - memcached-1.4.5
+    - mysql-5.1.56_percona_server
+  vars:
+    PATH: /packages/encap/jruby-1.7.4/lib/jruby/bin:$PATH
+    CORE: 8
+    CUCUMBER_PROFILE: plain
+    SPEC_OPTS: '"--order random --no-color"'
+
 build:
-  run: CORES=8 CUCUMBER_PROFILE=plain SPEC_OPTS='--order random --no-color' bundle exec rspec spec
+  before:
+    - gem install bundler
+    - '[[ "\$PWD" == *language_version=jruby* ]] && jruby -S bundle install --no-deployment || bundle install --no-deployment'
+  run:
+    - '[[ "\$PWD" == *language_version=jruby* ]] && jruby -S bundle exec rspec spec || bundle exec rspec spec'
+
+notifications:
+  - campfire: Accounting-fu
