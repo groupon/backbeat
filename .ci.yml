@@ -2,14 +2,14 @@ environment:
   language: ruby
   language_versions:
     - 1.9.3_p392
-    - jruby-1.7.2_p1
+    - jruby-1.7.4
   packages:
     - mongodb-2.2.3
     - java-1.7.0_05
     - memcached-1.4.5
     - mysql-5.1.56_percona_server
   vars:
-    PATH: /packages/encap/jruby-1.7.2_p1/lib/jruby/bin:$PATH
+    PATH: /packages/encap/jruby-1.7.4/lib/jruby/bin:$PATH
     CORE: 8
     CUCUMBER_PROFILE: plain
     SPEC_OPTS: '"--order random --no-color"'
