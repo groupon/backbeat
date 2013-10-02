@@ -18,10 +18,10 @@ describe Api::Workflow do
       branch = FactoryGirl.create(:branch, status: :executing, parent: decision, workflow: decision.workflow)
       wf = branch.workflow
       user = wf.user
-      put "/workflows/#{wf.id}/events/#{branch.id}/status/completed"
-      last_response.status.should == 400
+      response = put "/workflows/#{wf.id}/events/#{branch.id}/status/completed"
+      response.status.should == 400
       branch.reload
-      json_response = JSON.parse(last_response.body)
+      json_response = JSON.parse(response.body)
       json_response['error'].should == "branch:automate_payment? has to make a decision or return none."
       branch.status.should_not == :complete
     end

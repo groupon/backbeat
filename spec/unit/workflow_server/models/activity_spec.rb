@@ -20,7 +20,8 @@ describe WorkflowServer::Models::Activity do
 
   context "#start" do
     it "schedules a job to perform_activity and goes into enqueued state" do
-      Resque.should_receive(:enqueue).with(WorkflowServer::Async::Job, {:data=>[@a1.id, :send_to_client, nil, 25]})
+      WorkflowServer::Async::Job.should_receive(:enqueue)
+        .with({event: @a1, method: :send_to_client, args: nil, max_attempts: 25})
       @a1.start
       @a1.status.should == :executing
     end
@@ -43,6 +44,10 @@ describe WorkflowServer::Models::Activity do
     end
 
     it "raises an error if the current status is not either :error or :timeout" do
+      WorkflowServer::Async::Job.should_receive(:enqueue)
+        .with({event: @a1, method: :send_to_client, args: nil, max_attempts: 25})
+        .exactly(2).times
+
       @a1.update_status!(:open)
       expect {
         @a1.restart
@@ -115,12 +120,22 @@ describe WorkflowServer::Models::Activity do
     context "no subactivities running" do
       before do
         @a1.stub(subactivities_running?: false)
+
+        WorkflowServer::Async::Job.should_receive(:enqueue)
+          .twice
+          .with({event: kind_of(WorkflowServer::Models::Decision), method: :schedule_next_decision, args: nil, max_attempts: nil})
         @activity = FactoryGirl.create(:activity, parent: FactoryGirl.create(:decision, workflow: @wf), workflow: @wf)
       end
 
       context "next decision is set" do
         it "schedules a decision task and goes to complete state" do
           @activity.update_attributes!(next_decision: :decision_blah_blah)
+
+          WorkflowServer::Async::Job.should_receive(:enqueue)
+            .with({event: kind_of(WorkflowServer::Models::Decision), method: :send_to_client, args: nil, max_attempts: 25})
+          WorkflowServer::Async::Job.should_receive(:enqueue)
+            .with({event: kind_of(WorkflowServer::Models::Decision), method: :schedule_next_decision, args: nil, max_attempts: nil})
+
           @activity.completed
           @activity.reload.children.count.should == 1
           decision = @activity.children.first
@@ -167,6 +182,9 @@ describe WorkflowServer::Models::Activity do
     context "sub-activity is blocking" do
       it "creates and starts the sub_activity and changes the status" do
         @a1.update_status!(:executing)
+
+        WorkflowServer::Async::Job.should_receive(:enqueue)
+          .with({event: kind_of(WorkflowServer::Models::Activity), method: :send_to_client, args: nil, max_attempts: 25})
         @a1.run_sub_activity(@sub_activity)
         @a1.reload.status.should == :running_sub_activity
         @a1.children.count.should == 1
@@ -178,6 +196,9 @@ describe WorkflowServer::Models::Activity do
 
       it "doesn't run the same sub_activity twice" do
         @a1.update_status!(:executing)
+
+        WorkflowServer::Async::Job.should_receive(:enqueue)
+          .with({event: kind_of(WorkflowServer::Models::Activity), method: :send_to_client, args: nil, max_attempts: 25})
         @a1.run_sub_activity(@sub_activity.dup)
         @a1.children.count.should == 1
 
@@ -191,6 +212,10 @@ describe WorkflowServer::Models::Activity do
       it "creates and starts the sub_activity but doesn't change status" do
         @a1.update_status!(:executing)
         @sub_activity[:mode] = :non_blocking
+
+
+        WorkflowServer::Async::Job.should_receive(:enqueue)
+          .with({event: kind_of(WorkflowServer::Models::Activity), method: :send_to_client, args: nil, max_attempts: 25})
         @a1.run_sub_activity(@sub_activity)
         @a1.reload.status.should == :executing
         @a1.children.count.should == 1
@@ -209,6 +234,9 @@ describe WorkflowServer::Models::Activity do
       end
       it "adds a decision but doesn't create the parent child relationship" do
         decisions = @wf.decisions.count
+
+        WorkflowServer::Async::Job.should_receive(:enqueue)
+          .with({event: kind_of(WorkflowServer::Models::Decision), method: :schedule_next_decision, args: nil, max_attempts: nil})
         @a1.make_decision(:test_decision, false)
         @wf.decisions.count.should == (decisions + 1)
         decision = @wf.decisions.last
@@ -223,6 +251,11 @@ describe WorkflowServer::Models::Activity do
       end
       it "calls adds an interrupt and maintains the parent child relationship" do
         decisions = @wf.decisions.count
+        #TODO: guessing!
+        WorkflowServer::Async::Job.should_receive(:enqueue)
+          .with({event: kind_of(WorkflowServer::Models::Decision), method: :schedule_next_decision, args: nil, max_attempts: nil})
+        WorkflowServer::Async::Job.should_receive(:enqueue)
+          .with({event: kind_of(WorkflowServer::Models::Decision), method: :send_to_client, args: nil, max_attempts: 25})
         @a1.make_decision(:test_decision, false)
         @wf.decisions.count.should == (decisions + 1)
         decision = @wf.decisions.last
@@ -333,6 +366,9 @@ describe WorkflowServer::Models::Activity do
 
       it "records none as the next decision" do
         @a1.update_attributes!(status: :executing, valid_next_decisions: ['test', 'more_test'])
+
+        WorkflowServer::Async::Job.should_receive(:enqueue)
+          .with({event: kind_of(WorkflowServer::Models::Activity), method: :complete_if_done, args: nil, max_attempts: nil})
         @a1.change_status(:completed, {next_decision: :none, result: {a: :b, c: :d}})
         @a1.reload.result.should == {"a" => :b, "c" => :d}
         @a1.reload.next_decision.should == 'none'
@@ -371,15 +407,21 @@ describe WorkflowServer::Models::Activity do
       @a1.status_history[-2] = {"from"=>:open, "to"=>:failed, "at"=>Time.now.to_datetime.to_s, "error"=>:some_error}
       @a1.status_history[-1] = {"from"=>:failed, "to"=>:retrying, "at"=>Time.now.to_datetime.to_s}
       job = Delayed::Job.last
-      job.run_at.to_s.should == (Time.now + 40.minutes).to_s
+      job.run_at.to_s.should == (Time.now.utc + 40.minutes).to_s
       async_job = job.payload_object
       async_job.event.should eq @a1
       async_job.method_to_call.should eq :start
     end
 
     it "goes into error state and calls handle_error" do
+      WorkflowServer::Async::Job.should_receive(:enqueue)
+        .with({event: kind_of(WorkflowServer::Models::Decision), method: :schedule_next_decision, args: nil, max_attempts: nil})
       @a1.update_attributes!(parent: FactoryGirl.create(:decision, workflow: @wf))
       @a1.update_attributes!(retry: 2, retry_interval: 40.minutes)
+
+      WorkflowServer::Async::Job.should_receive(:enqueue)
+        .with({event: kind_of(WorkflowServer::Models::Activity), method: :notify_client, args: ["error", :some_error], max_attempts: 2})
+
       2.times do
         @a1.errored(:some_error)
         @a1.reload.status.should == :retrying
@@ -392,7 +434,7 @@ describe WorkflowServer::Models::Activity do
 
   context "#handle_error" do
     before do
-      @mock_decision = mock('parent_decision', name: :test)
+      @mock_decision = double('parent_decision', name: :test)
       @a1.stub(parent_decision: @mock_decision)
     end
     it "doesn't schedule an error event if mode is fire_and_forget" do

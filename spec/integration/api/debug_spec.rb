@@ -56,9 +56,9 @@ describe Api::Workflow do
   context '/debug/error_workflows' do
     it 'returns empty when no error workflows' do
       user
-      get "/debug/error_workflows"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/error_workflows"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.should be_empty
     end
@@ -69,9 +69,9 @@ describe Api::Workflow do
       wf3.decisions.first.update_status!(:enqueued)
       wf4 = create_error_workflow(FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s))
 
-      get "/debug/error_workflows"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/error_workflows"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.count.should == 2
       ids = json_response.map { |r| r['id'] }
@@ -84,9 +84,9 @@ describe Api::Workflow do
       wf3 = create_error_workflow(user)
       wf2.pause
 
-      get "/debug/error_workflows"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/error_workflows"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.count.should == 2
       ids = json_response.map { |r| r['id'] }
@@ -99,9 +99,9 @@ describe Api::Workflow do
   context '/debug/paused_workflows' do
     it 'returns empty when no paused workflows' do
       user
-      get "/debug/paused_workflows"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/paused_workflows"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.should be_empty
     end
@@ -110,9 +110,9 @@ describe Api::Workflow do
       wf2 = create_paused_workflow(user)
       wf3 = create_paused_workflow(user)
 
-      get "/debug/paused_workflows"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/paused_workflows"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.count.should == 3
       ids = json_response.map { |r| r['id'] }
@@ -125,9 +125,9 @@ describe Api::Workflow do
   context '/debug/stuck_workflows' do
     it 'returns empty when none stuck' do
       user
-      get "/debug/stuck_workflows"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/stuck_workflows"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.should be_empty
     end
@@ -139,9 +139,9 @@ describe Api::Workflow do
       wf4 = create_stuck_workflow(FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s))
       wf5 = create_paused_workflow(user)
 
-      get "/debug/stuck_workflows"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/stuck_workflows"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.count.should == 2
       ids = json_response.map { |r| r['id'] }
@@ -153,9 +153,9 @@ describe Api::Workflow do
   context '/debug/long_running_events' do
     it 'returns empty when none stuck' do
       user
-      get "/debug/long_running_events"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/long_running_events"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.should be_empty
     end
@@ -164,9 +164,9 @@ describe Api::Workflow do
       wf2 = create_long_running_event(user)
       wf3 = create_long_running_event(FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s))
 
-      get "/debug/long_running_events"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/long_running_events"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.count.should == 2
       ids = json_response.map { |r| r['id'] }
@@ -178,9 +178,9 @@ describe Api::Workflow do
   context '/debug/multiple_executing_decisions' do
     it "returns empty when nothing of interest" do
       workflow
-      get "/debug/multiple_executing_decisions"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/multiple_executing_decisions"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.should be_empty
     end
@@ -190,9 +190,9 @@ describe Api::Workflow do
       wf3 = create_multiple_decision_workflow(user)
       wf3.decisions.first.update_status!(:open)
       wf4 = create_multiple_decision_workflow(FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s))
-      get "/debug/multiple_executing_decisions"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/multiple_executing_decisions"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.count.should == 2
       ids = json_response.map { |r| r['id'] }
@@ -204,9 +204,9 @@ describe Api::Workflow do
   context '/debug/inconsistent_workflows' do
     it "returns empty when nothing of interest" do
       workflow
-      get "/debug/inconsistent_workflows"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/inconsistent_workflows"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.should be_empty
     end
@@ -216,9 +216,9 @@ describe Api::Workflow do
       t3 = create_duplicate_decisions_on_event(workflow)
       t3.children.first.destroy
       t4 = create_duplicate_decisions_on_event(FactoryGirl.create(:workflow, user: FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s)))
-      get "/debug/inconsistent_workflows"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/inconsistent_workflows"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.count.should == 2
       ids = json_response.map { |r| r['id'] }
@@ -231,9 +231,9 @@ describe Api::Workflow do
       s3 = create_duplicate_decisions_on_event(workflow, :signal)
       s3.children.first.destroy
       s4 = create_duplicate_decisions_on_event(FactoryGirl.create(:workflow, user: FactoryGirl.create(:user, id: UUIDTools::UUID.random_create.to_s)), :signal)
-      get "/debug/inconsistent_workflows"
-      last_response.status.should == 200
-      json_response = JSON.parse(last_response.body)
+      response = get "/debug/inconsistent_workflows"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
       json_response.should be_instance_of(Array)
       json_response.count.should == 2
       ids = json_response.map { |r| r['id'] }

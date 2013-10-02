@@ -98,7 +98,7 @@ module WorkflowServer
           # Returns events of the given type
           #
           define_method(name) do
-            arel = events.type(klass)
+            arel = events.any_in(_type: Array(klass))
             if block_given?
               arel.each do |record|
                 yield record

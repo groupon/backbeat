@@ -1,3 +1,6 @@
+require 'log4r'
+
+
 module WorkflowServer
   module Logger
 
@@ -14,19 +17,32 @@ module WorkflowServer
     # Returns a uniq tid
     def self.tid(option = nil)
       if option == :set
-        @tid = UUIDTools::UUID.random_create.to_s.slice(0,7)
+        self.tid = UUIDTools::UUID.random_create.to_s.slice(0,7)
       elsif option.kind_of?(String)
-        @tid = option
+        self.tid = option
       elsif option == :clear
-        @tid = nil
+        self.tid = nil
       end
-      @tid
+      tid_store[Thread.current.object_id]
     end
 
-    def self.logger
+    def self.tid=(value)
+      if value.nil?
+        tid_store.delete(Thread.current.object_id)
+      else
+        tid_store[Thread.current.object_id] = value
+      end
+    end
+
+    def self.tid_store
+      @tid ||= {}
+    end
+
+    def self.logger(log_file = nil)
       if !class_variable_defined?(:@@logger)
         @@logger = ::Log4r::Logger.new("backbeat_logger")
-        @@logger.outputters = Log4r::FileOutputter.new("backbeat_formatter",
+        logger = log_file.nil? ? Log4r::StdoutOutputter : Log4r::FileOutputter
+        @@logger.outputters = logger.new("backbeat_formatter",
                                                         level: Log4r::LNAMES.index(WorkflowServer::Config.options[:log_level]) || 0,
                                                         formatter: WorkflowServer::OutputFormatter,
                                                         filename: WorkflowServer::Config.log_file
@@ -38,7 +54,10 @@ module WorkflowServer
 
   module ClassMethods
     [:debug, :info, :warn, :error, :fatal].each do |level|
-      define_method(level) do |message|
+      define_method(level) do |message = nil, &block|
+        if message.nil? && !block.nil?
+          message = block.call
+        end
         WorkflowServer::Logger.logger.__send__(level, {:name => self.to_s, :message => message})
       end
     end
@@ -50,6 +69,7 @@ module WorkflowServer
       message = {
         time: Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L"),
         pid: Process.pid,
+        thread_id: Thread.current.object_id,
         tid: WorkflowServer::Logger.tid || "none",
         level: Log4r::LNAMES[event.level],
         source: event.data[:name],
@@ -68,10 +88,13 @@ module WorkflowServer
     include WorkflowServer::Logger
 
     def self.add(level, text)
-      WorkflowServer::Logger.logger.__send__(Log4r::LNAMES[level + 1].to_s.downcase, {:name => self.to_s, :message => text})
+      WorkflowServer::Logger.logger(WorkflowServer::Config.log_file).__send__(Log4r::LNAMES[level + 1].to_s.downcase, {:name => self.to_s, :message => text})
     end
   end
 
-  class ResqueLogger < DelayedJobLogger
+  class SidekiqLogger < DelayedJobLogger
+    def self.crash(string, exception)
+      self.error({error: string, backtrace: exception.backtrace})
+    end
   end
 end

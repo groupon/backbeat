@@ -185,7 +185,7 @@ module WorkflowServer
       end
 
       def subactivity_handled?(name, client_data)
-        children.type(SubActivity).where(name: name, client_data: client_data).any?
+        children.any_in(_type: SubActivity).where(name: name, client_data: client_data).any?
       end
 
       def send_to_client

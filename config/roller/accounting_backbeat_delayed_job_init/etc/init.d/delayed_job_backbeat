@@ -1,28 +1,26 @@
 #!/bin/bash
 # ==========================================================================
-# resque - start and stop resque workers
+# delayed_job - start and stop delayed_job workers
 # ==========================================================================
 # Source function library.
 . /usr/local/etc/init.d/functions
 
 export PATH=/usr/local/bin:$PATH
+export PATH=/home/backbeat/.immutant/releases/current/jruby/bin:$PATH
+
 NAME="backbeat delayed job"
 ROOT="/var/groupon/backbeat/current"
 export USER="backbeat"
 LOGFILE=/var/groupon/backbeat/shared/log/$(basename $0).log
 BUNDLER="/usr/local/bin/bundle"
 PIDFILE="/var/groupon/backbeat/shared/pids/$(basename $0).%d.pid"
-PROGRAM="$BUNDLER exec ruby $ROOT/script/delayed_job_backbeat"
+PROGRAM="$BUNDLER exec jruby $ROOT/script/delayed_job_backbeat"
 
 HOST=`hostname`
 # avert your eyes
 RACK_ENV=`ruby -e "puts(case \"$HOST\"; when /uat/, /fed2-tat/; 'uat'; when /staging/, /fed1-tat/; 'staging'; else; 'production'; end)"`
-COUNT=2
-case $RACK_ENV in
-  production)
-             COUNT=32
-             ;;
-esac
+
+COUNT=1
 
 action() {
   local command=$1

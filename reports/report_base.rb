@@ -1,3 +1,4 @@
+require_relative '../app'
 require 'mail'
 
 module Reports

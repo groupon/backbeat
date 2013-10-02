@@ -17,7 +17,7 @@ module Api
     end
 
     rescue_from :all do |e|
-      Api::Workflow.error({ error: e, backtrace: e.backtrace })
+      Api::Workflow.error({ error: e.message, backtrace: e.backtrace })
       Squash::Ruby.notify e
       Rack::Response.new({error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
     end
@@ -28,7 +28,7 @@ module Api
       Rack::Response.new({error: e.message }.to_json, 404, { "Content-type" => "application/json" }).finish
     end
 
-    rescue_from WorkflowServer::EventComplete, WorkflowServer::InvalidParameters, WorkflowServer::InvalidEventStatus, WorkflowServer::InvalidOperation, WorkflowServer::InvalidDecisionSelection, Grape::Exceptions::Validation do |e|
+    rescue_from WorkflowServer::EventComplete, WorkflowServer::InvalidParameters, WorkflowServer::InvalidEventStatus, WorkflowServer::InvalidOperation, WorkflowServer::InvalidDecisionSelection, Grape::Exceptions::Validation, Grape::Exceptions::ValidationErrors do |e|
       Api::Workflow.info(e)
       Squash::Ruby.notify e
       Rack::Response.new({error: e.message }.to_json, 400, { "Content-type" => "application/json" }).finish

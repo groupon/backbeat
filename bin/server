@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
-echo "Starting Unicorn..."
-echo "Port = 9000"
-unicorn -c config/unicorn.conf.rb
+#echo "Starting Unicorn..."
+#echo "Port = 9000"
+#unicorn -c config/unicorn.conf.rb
+echo "Deploying"
+torquebox deploy .
+echo "Starting Torquebox"
+torquebox run

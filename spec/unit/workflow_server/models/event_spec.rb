@@ -6,7 +6,6 @@ describe WorkflowServer::Models::Event do
   let(:event) { FactoryGirl.create(:event, workflow: workflow, client_data: {data: 123}, client_metadata: {git_sha: '12de3sdg'}) }
   let(:parent) { FactoryGirl.create(:decision, workflow: workflow) }
 
-
   context '#paused' do
     it 'updates status, dismisses watchdogs and notifies parent' do
       event.update_attributes!(parent: parent)
@@ -113,7 +112,7 @@ describe WorkflowServer::Models::Event do
   end
 
   context '#method_missing_with_enqueue' do
-    it "send to resqueue if run time is nil" do
+    it "send to sidekiq if run time is nil" do
       WorkflowServer::Async::Job.should_receive(:enqueue).with({
         event: subject,
         method: :testing_method_missing,
@@ -124,7 +123,7 @@ describe WorkflowServer::Models::Event do
       subject.enqueue_testing_method_missing(args: [:arg1, :arg2])
     end
 
-    it "sends to resqueue if run time is now" do
+    it "sends to sidekiq if run time is now" do
       WorkflowServer::Async::Job.should_receive(:enqueue).with({
         event: subject,
         method: :testing_method_missing,
@@ -136,7 +135,7 @@ describe WorkflowServer::Models::Event do
     end
 
     it 'schedules a job if the method name begins with enqueue_' do
-      WorkflowServer::Async::Job.should_receive(:schedule).with({event: event, method: :test, args: [1,2,3,4], max_attempts:20}, Time.now + 10.minutes).and_return(mock('job', id: 100))
+      WorkflowServer::Async::Job.should_receive(:schedule).with({event: event, method: :test, args: [1,2,3,4], max_attempts:20}, Time.now + 10.minutes).and_return(double('job', id: 100))
       event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes})
     end
 

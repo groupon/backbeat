@@ -2,7 +2,6 @@ require 'spec_helper'
 require_relative 'event_se'
 
 describe WorkflowServer::Models::Workflow do
-
   let(:user) { FactoryGirl.create(:user) }
 
   before do
@@ -46,9 +45,11 @@ describe WorkflowServer::Models::Workflow do
     it "drops a signal / decision task to notify the workflow" do
       workflow = FactoryGirl.create(:workflow, user: user)
       @wf.update_attributes!(workflow: workflow)
-      FakeResque.for do
+
+      run_async_jobs do
         @wf.completed
       end
+
       workflow.signals.count.should == 1
       workflow.decisions.count.should == 1
       decision = workflow.decisions.first
@@ -64,9 +65,11 @@ describe WorkflowServer::Models::Workflow do
     it "drops a signal / decision task to notify the workflow" do
       workflow = FactoryGirl.create(:workflow, user: user)
       @wf.update_attributes!(workflow: workflow)
-      FakeResque.for do
+
+      run_async_jobs do
         @wf.errored(:some_error)
       end
+
       workflow.signals.count.should == 1
       workflow.decisions.count.should == 1
       decision = workflow.decisions.first
@@ -132,7 +135,7 @@ describe WorkflowServer::Models::Workflow do
     end
     it 'calls resumed on the paused events' do
       @wf.should_receive(:update_status!).with(:open)
-      events = [mock('1', resumed: nil), mock('2', resumed: nil)]
+      events = [double('1', resumed: nil), double('2', resumed: nil)]
       @wf.stub_chain(:events, :where => events)
       events.each { |e| e.should_receive(:resumed) }
       @wf.resumed

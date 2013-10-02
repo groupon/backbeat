@@ -18,18 +18,17 @@ describe WorkflowServer::Models::Decision do
     decision = WorkflowServer::Models::Decision.new(@event_data)
     decision.should_receive(:enqueue_schedule_next_decision)
     decision.save!
-  end  
+  end
 
   context "#start" do
     it "schedules an async job to call out to the client and changes status to enqueued" do
       WebMock.stub_request(:post, "http://localhost:9000/decision").
                to_return(:status => 200, :body => "", :headers => {})
 
-      FakeResque.for do       
-        @d1.start
-        @d1.status.should == :sent_to_client
-      end
-      @d1.status.should == :sent_to_client      
+      @d1.start
+      @d1.status.should == :sent_to_client
+
+      @d1.status.should == :sent_to_client
     end
   end
 
@@ -185,15 +184,17 @@ describe WorkflowServer::Models::Decision do
           {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds}
         ]
         WebMock.stub_request(:post, "http://localhost:9000/activity").
-         to_return(:status => 200, :body => "", :headers => {})
-        FakeResque.for do
+        to_return(:status => 200, :body => "", :headers => {})
+
+        run_async_jobs do
           @d1.add_decisions(decisions)
           @d1.change_status(:deciding_complete)
         end
+
         @d1.reload
-        @d1.children.type(WorkflowServer::Models::Flag).first.status.should == :complete
-        @d1.children.type(WorkflowServer::Models::Activity).first.status.should == :executing
-        @d1.children.type([WorkflowServer::Models::Branch, WorkflowServer::Models::Workflow, WorkflowServer::Models::WorkflowCompleteFlag, WorkflowServer::Models::Timer]).each do |child|
+        @d1.children.any_in(_type: [WorkflowServer::Models::Flag]).first.status.should == :complete
+        @d1.children.any_in(_type: [WorkflowServer::Models::Activity]).first.status.should == :executing
+        @d1.children.any_in(_type: [WorkflowServer::Models::Branch, WorkflowServer::Models::Workflow, WorkflowServer::Models::WorkflowCompleteFlag, WorkflowServer::Models::Timer]).each do |child|
           child.status.should == :open
         end
         @d1.status.should == :executing

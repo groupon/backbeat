@@ -3,6 +3,8 @@ require 'spec_helper'
 describe Api::Workflow do
   include Rack::Test::Methods
 
+  deploy BACKBEAT_APP
+
   def app
     FullRackApp
   end
@@ -19,11 +21,11 @@ describe Api::Workflow do
         decision.reload.update_status!(:open)
         wf = decision.workflow
         user = wf.user
-        put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding"
-        last_response.status.should == 400
+        response = put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding"
+        response.status.should == 400
         decision.reload
         decision.status.should == :open
-        json_response = JSON.parse(last_response.body)
+        json_response = JSON.parse(response.body)
         json_response['error'].should == "Decision #{decision.name} can't transition from open to deciding"
       end
 
@@ -32,8 +34,8 @@ describe Api::Workflow do
           decision = FactoryGirl.create(:decision, status: new_status)
           wf = decision.workflow
           user = wf.user
-          put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding"
-          last_response.status.should == 200
+          response = put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding"
+          response.status.should == 200
           decision.reload
           decision.status.should == :deciding
         end
@@ -55,9 +57,9 @@ describe Api::Workflow do
         {type: :complete_workflow}
       ]
       header "Content-Type", "application/json"
-      post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: decisions}}.to_json
-      last_response.status.should == 400
-      json_response = JSON.parse(last_response.body)
+      response = post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: decisions}}.to_json
+      response.status.should == 400
+      json_response = JSON.parse(response.body)
       json_response.should == {"error"=>[{"workflow"=>{"workflowType"=>["can't be blank"]}}]}
       decision.reload
       decision.children.count.should == 0
@@ -77,36 +79,38 @@ describe Api::Workflow do
         {type: :complete_workflow}
       ]
       header "Content-Type", "application/json"
-      post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: args}}.to_json
-      last_response.status.should == 201
+      response = post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: args}}.to_json
+      response.status.should == 201
       decision.reload
       decision.children.count.should == 6
     end
 
-    it 'continue_as_new_workflow decision marks the old events as inactive and resets the past of the workflow' do
-      decision = FactoryGirl.create(:decision, status: :deciding)
-      wf = decision.workflow
-      user = wf.user
-      args = [
-        {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
-      ]
-      header "Content-Type", "application/json"
-      post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: args}}.to_json
-      last_response.status.should == 201
-      decision.reload
-      decision.children.count.should == 1
+    remote_describe "inside jboss container" do
+      it 'continue_as_new_workflow decision marks the old events as inactive and resets the past of the workflow' do
+        decision = FactoryGirl.create(:decision, status: :deciding)
+        wf = decision.workflow
+        user = wf.user
+        args = [
+          {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
+        ]
+        header "Content-Type", "application/json"
+        response = post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: args}}.to_json
+        response.status.should == 201
+        decision.reload
+        decision.children.count.should == 1
 
-      FakeResque.for do 
-        put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
+        response = put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
+
+        WorkflowServer::Workers::SidekiqJobWorker.drain
+
+        timer = decision.children.first
+        timer.async_jobs.count.should == 1
+        flag = FactoryGirl.create(:continue_as_new_workflow_flag, workflow: wf)
+        flag.start
+        wf.reload
+        wf.events.each { |e| e.reload.async_jobs.count.should == 0 unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
+        wf.events.each { |e| e.inactive.should == true unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
       end
-
-      timer = decision.children.first
-      timer.async_jobs.count.should == 1
-      flag = FactoryGirl.create(:continue_as_new_workflow_flag, workflow: wf)
-      flag.start
-      wf.reload
-      wf.events.each { |e| e.reload.async_jobs.count.should == 0 unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
-      wf.events.each { |e| e.inactive.should == true unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
     end
 
     it "raises 400 if decision is not in deciding state" do
@@ -117,9 +121,9 @@ describe Api::Workflow do
         {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
       ]
       header "Content-Type", "application/json"
-      post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: args}}.to_json
-      last_response.status.should == 400
-      json_response = JSON.parse(last_response.body)
+      response = post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: args}}.to_json
+      response.status.should == 400
+      json_response = JSON.parse(response.body)
       json_response.should == {"error"=>"Decisions can only be added to an event in the 'deciding' state"}
     end
   end
@@ -130,11 +134,11 @@ describe Api::Workflow do
       decision.reload.update_status!(:open)
       wf = decision.workflow
       user = wf.user
-      put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
-      last_response.status.should == 400
+      response = put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
+      response.status.should == 400
       decision.reload
       decision.status.should == :open
-      json_response = JSON.parse(last_response.body)
+      json_response = JSON.parse(response.body)
       json_response['error'].should == "Decision #{decision.name} can't transition from open to deciding_complete"
     end
 
@@ -143,8 +147,8 @@ describe Api::Workflow do
       wf = decision.workflow
       user = wf.user
       header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
-      last_response.status.should == 200
+      response = put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
+      response.status.should == 200
       decision.reload
       decision.status.should == :complete
     end
@@ -156,9 +160,9 @@ describe Api::Workflow do
       decision.reload.update_status!(:open)
       wf = decision.workflow
       user = wf.user
-      put "/workflows/#{wf.id}/events/#{decision.id}/status/errored"
-      last_response.status.should == 400
-      json_response = JSON.parse(last_response.body)
+      response = put "/workflows/#{wf.id}/events/#{decision.id}/status/errored"
+      response.status.should == 400
+      json_response = JSON.parse(response.body)
       json_response['error'].should == "Decision #{decision.name} can't transition from open to errored"
     end
 
@@ -167,8 +171,8 @@ describe Api::Workflow do
       wf = decision.workflow
       user = wf.user
       header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{decision.id}/status/errored", {args: {error: {a: 1, b: 2}}}.to_json
-      last_response.status.should == 200
+      response = put "/workflows/#{wf.id}/events/#{decision.id}/status/errored", {args: {error: {a: 1, b: 2}}}.to_json
+      response.status.should == 200
       decision.reload
       decision.status.should == :error
       decision.status_history.last["error"].should == {"a"=>1, "b"=>2}
@@ -180,10 +184,10 @@ describe Api::Workflow do
       decision = FactoryGirl.create(:decision)
       wf = decision.workflow
       user = wf.user
-      put "/workflows/#{wf.id}/events/#{decision.id}/status/something_invalid"
-      last_response.status.should == 400
+      response = put "/workflows/#{wf.id}/events/#{decision.id}/status/something_invalid"
+      response.status.should == 400
       decision.reload
-      json_response = JSON.parse(last_response.body)
+      json_response = JSON.parse(response.body)
       json_response['error'].should == "Invalid status something_invalid"
     end
   end
@@ -192,9 +196,9 @@ describe Api::Workflow do
       decision = FactoryGirl.create(:decision)
       wf = decision.workflow
       user = wf.user
-      put "/workflows/#{wf.id}/events/#{decision.id}/restart"
-      last_response.status.should == 400
-      json_response = JSON.parse(last_response.body)
+      response = put "/workflows/#{wf.id}/events/#{decision.id}/restart"
+      response.status.should == 400
+      json_response = JSON.parse(response.body)
       json_response['error'].should == "Decision #{decision.name} can't transition from open to restarting"
     end
 
@@ -203,8 +207,8 @@ describe Api::Workflow do
       wf = decision.workflow
       user = wf.user
       header "Content-Type", "application/json"
-      put "/workflows/#{wf.id}/events/#{decision.id}/restart"
-      last_response.status.should == 200
+      response = put "/workflows/#{wf.id}/events/#{decision.id}/restart"
+      response.status.should == 200
       decision.reload
       decision.status_history.first['to'].should == :restarting
       decision.status_history.last['to'].should == :sent_to_client

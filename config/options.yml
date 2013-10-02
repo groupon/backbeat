@@ -1,37 +1,28 @@
-test:
-  log: /tmp/backbeat.log
+default: &default
   log_level: DEBUG
   log_format: json
-  dashboard_auth_token: '6dy6L8v8942jrbV622dr'
-  dashboard_base_uri:   'http://localhost:3030/widgets/'
+  async_queue: 'accounting_backbeat_server'
+  log: /var/groupon/backbeat/shared/log/backbeat.log
+
+test:
+  <<: *default
+  log: /tmp/backbeat.log
 
 development:
+  <<: *default
   log: /tmp/backbeat.log
-  log_level: DEBUG
-  log_format: json
-  dashboard_auth_token: '6dy6L8v8942jrbV622dr'
-  dashboard_base_uri:   'http://localhost:3030/widgets/'
 
 uat:
-  log: /var/groupon/backbeat/shared/log/backbeat.log
+  <<: *default
   log_level: INFO
-  log_format: json
-  dashboard_auth_token: '6dy6L8v8942jrbV622dr'
-  dashboard_base_uri:   'http://localhost:3030/widgets/'
 
 staging:
-  log: /var/groupon/backbeat/shared/log/backbeat.log
+  <<: *default
   log_level: INFO
-  log_format: json
-  dashboard_auth_token: '6dy6L8v8942jrbV622dr'
-  dashboard_base_uri:   'http://localhost:3030/widgets/'
 
 production:
-  log: /var/groupon/backbeat/shared/log/backbeat.log
+  <<: *default
   log_level: INFO
-  log_format: json
-  dashboard_auth_token: '6dy6L8v8942jrbV622dr'
-  dashboard_base_uri:   'http://localhost:3030/widgets/'
 
 squash:
   api_key:        '9af7f0de-ddb0-4db3-9285-6b93d1dcb743'

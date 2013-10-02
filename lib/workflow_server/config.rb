@@ -9,7 +9,7 @@ module WorkflowServer
     end
 
     def self.log_file
-      ENV['LOG_FILE'] || WorkflowServer::Config.options[:log] || "/tmp/test.log"
+      ENV['LOG_FILE'] || WorkflowServer::Config.options[:log]
     end
 
     def self.options

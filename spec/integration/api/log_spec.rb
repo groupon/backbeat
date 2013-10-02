@@ -14,8 +14,8 @@ describe Api::Workflow do
 
   it "includes the transaction id in the response" do
     wf = FactoryGirl.create(:workflow)
-    get "/workflows/#{wf.id}"
-    last_response.status.should == 200
-    last_response.headers.keys.should include("X-backbeat-tid")
+    response = get "/workflows/#{wf.id}"
+    response.status.should == 200
+    response.headers.keys.should include("X-backbeat-tid")
   end
 end

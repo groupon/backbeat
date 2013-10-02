@@ -1,21 +1,23 @@
 require 'workflow_server/logger'
+require 'sidekiq'
 
 module WorkflowServer
   module Async
     JobStruct ||= Struct.new(:event_id, :method_to_call, :args, :max_attempts)
+
     class Job < JobStruct
       extend WorkflowServer::Logger
 
-      def self.queue
-        :accounting_backbeat_server
+      def self.enqueue(job_data)
+        WorkflowServer::Workers::SidekiqJobWorker.perform_async(data: [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]])
       end
 
       def self.perform(job_data)
-        job = new(*(job_data["data"]))
+        job = new(*(job_data['data']))
         begin
           job.perform
         rescue Exception => error
-          # if the attempt to use Resque to perform this job fails, we will mimic delayed job
+          # if the attempt to use Sidekiq to perform this job fails, we will mimic delayed job
           # behavior and enqueue a reattempt in 5 seconds. DJ implements backoff semantics on future
           # retries. We end up doing 1 extra attempt in this flow, but we don't care
           event = WorkflowServer::Models::Event.find(job.event_id)
@@ -23,8 +25,12 @@ module WorkflowServer
         end
       end
 
-      def self.enqueue(job_data)
-        Resque.enqueue(self, data: [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]])
+      def self.schedule(options = {}, run_at = Time.now)
+        job = new(options[:event].id, options[:method], options[:args], options[:max_attempts])
+        job = Delayed::Job.enqueue(job, run_at: run_at)
+        # Maintain a list of outstanding delayed jobs on the event
+        options[:event].push(:_delayed_jobs, job.id)
+        job
       end
 
       def perform
@@ -39,14 +45,6 @@ module WorkflowServer
         self.class.error(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
         Squash::Ruby.notify error
         raise
-      end
-
-      def self.schedule(options = {}, run_at = Time.now)
-        job = new(options[:event].id, options[:method], options[:args], options[:max_attempts])
-        job = Delayed::Job.enqueue(job, run_at: run_at)
-        # Maintain a list of outstanding delayed jobs on the event
-        options[:event].push(:_delayed_jobs, job.id)
-        job
       end
 
       def before(job, *args)
@@ -89,7 +87,7 @@ module Moped
       class Generator
         def generate(time, counter = 0)
           process_thread_id = (RUBY_ENGINE == 'jruby' ? "#{Process.pid}#{Thread.current.object_id}".hash % 0xFFFF : Process.pid)
-          [time, @machine_id, process_thread_id, counter << 8].pack("N NX lXX NX")
+          [time, @machine_id, process_thread_id, counter << 8].pack('N NX lXX NX')
         end
       end
     end

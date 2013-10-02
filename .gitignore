@@ -3,6 +3,7 @@ shared/log/unicorn.stdout.log
 shared/pids/unicorn.pid
 shared/sockets/unicorn.sock
 coverage
+.torquespec
 public/resources.json
 *.gem
 *.rbc
@@ -19,3 +20,4 @@ test/version_tmp
 tmp
 .DS_store
 squash.failsafe.log
+log/
