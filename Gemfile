@@ -4,8 +4,12 @@ gem 'rake'
 ruby '1.9.3'
 
 # Server/API
-gem 'unicorn', platform: :ruby
-gem 'puma',    platform: :jruby
+platforms :ruby do
+  gem 'unicorn'
+end
+platforms :jruby do
+  gem 'puma'
+end
 gem 'grape'
 gem 'httparty'
 gem 'log4r'
