@@ -16,7 +16,7 @@ gem 'log4r'
 
 # Database
 gem 'mongoid'
-gem 'mongoid-locker', git: 'git://github.com/mooremo/mongoid-locker.git'
+gem 'mongoid-locker', :git => 'git://github.com/mooremo/mongoid-locker.git'
 gem 'delayed_job_mongoid'
 gem 'mongoid_auto_increment'
 gem 'mongoid-indifferent-access'
@@ -29,7 +29,7 @@ gem 'rufus-scheduler'
 gem 'whenever'
 gem 'resque'
 
-gem 'service-discovery', git: 'git@github.groupondev.com:groupon-api/service-discovery.git'
+gem 'service-discovery', :git => 'git@github.groupondev.com:groupon-api/service-discovery.git'
 gem 'squash_ruby', :require => 'squash/ruby'
 gem 'newrelic_rpm'
 
