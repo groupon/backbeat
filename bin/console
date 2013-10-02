@@ -3,6 +3,7 @@
 require_relative '../app'
 
 require 'irb'
+require 'redis-namespace'
 
 mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, "config", "mongoid.yml"))
 Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
