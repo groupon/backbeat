@@ -32,7 +32,7 @@ end
 
 platforms :jruby do
   gem 'puma'
-  gem 'jruby-openssl', require: false
+  gem 'jruby-openssl', :require => false
   #Torquebox
   gem 'torquebox', '3.0.0'
   gem 'torquebox-messaging', '3.0.0'
@@ -63,7 +63,7 @@ group :test do
 
   platforms :jruby do
     gem 'torquebox-console'
-    gem 'torquespec', require: false
+    gem 'torquespec', :require => false
     gem 'accounting_torquespec', :git => 'git@github.groupondev.com:finance-engineering/accounting_torquespec.git'
   end
 end
