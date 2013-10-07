@@ -1,6 +1,3 @@
-require 'log4r'
-
-
 module WorkflowServer
   module Logger
 
@@ -10,7 +7,21 @@ module WorkflowServer
 
     [:debug, :info, :warn, :error, :fatal].each do |level|
       define_method(level) do |message|
-        WorkflowServer::Logger.logger.__send__(level, {:name => self.class.to_s, :message => message})
+        message_with_metadata = {
+          time: Time.now.strftime('%Y-%m-%dT%H:%M:%S.%L'),
+          pid: Process.pid,
+          thread_id: Thread.current.object_id,
+          tid: WorkflowServer::Logger.tid || 'none',
+          level: level,
+          source: self.class.to_s,
+          message: message
+        }
+        if WorkflowServer::Config.options[:log_format] == 'json'
+          message_to_log = message_with_metadata.to_json + "\n"
+        else
+          message_to_log = sprintf("%s | %s | %s | %s | %s | %s | %s\n", *message_with_metadata.values)
+        end
+        WorkflowServer::Logger.logger.__send__(level, {:name => self.class.to_s, :message => message_to_log})
       end
     end
 
@@ -39,47 +50,17 @@ module WorkflowServer
     end
 
     def self.logger(log_file = nil)
-      if !class_variable_defined?(:@@logger)
-        @@logger = ::Log4r::Logger.new("backbeat_logger")
-        logger = log_file.nil? ? Log4r::StdoutOutputter : Log4r::FileOutputter
-        @@logger.outputters = logger.new("backbeat_formatter",
-                                                        level: Log4r::LNAMES.index(WorkflowServer::Config.options[:log_level]) || 0,
-                                                        formatter: WorkflowServer::OutputFormatter,
-                                                        filename: WorkflowServer::Config.log_file
-                                                       )
-      end
-      @@logger
+      @@logger ||= TorqueBox::Logger.new('backbeat_logger')
     end
-  end
 
-  module ClassMethods
-    [:debug, :info, :warn, :error, :fatal].each do |level|
-      define_method(level) do |message = nil, &block|
+    module ClassMethods
+      [:debug, :info, :warn, :error, :fatal].each do |level|
+        define_method(level) do |message = nil, &block|
         if message.nil? && !block.nil?
           message = block.call
         end
         WorkflowServer::Logger.logger.__send__(level, {:name => self.to_s, :message => message})
-      end
-    end
-  end
-
-  class OutputFormatter < Log4r::BasicFormatter
-    LOG_FORMAT = "%s | %s | %s | %s | %s | %s\n"
-    def format(event)
-      message = {
-        time: Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L"),
-        pid: Process.pid,
-        thread_id: Thread.current.object_id,
-        tid: WorkflowServer::Logger.tid || "none",
-        level: Log4r::LNAMES[event.level],
-        source: event.data[:name],
-        message: event.data[:message]
-      }
-      case WorkflowServer::Config.options[:log_format]
-      when 'json'
-        message.to_json + "\n"
-      else
-        sprintf(LOG_FORMAT, *message.values)
+        end
       end
     end
   end
@@ -87,14 +68,14 @@ module WorkflowServer
   class DelayedJobLogger
     include WorkflowServer::Logger
 
-    def self.add(level, text)
-      WorkflowServer::Logger.logger(WorkflowServer::Config.log_file).__send__(Log4r::LNAMES[level + 1].to_s.downcase, {:name => self.to_s, :message => text})
+    def self.add(level, message)
+      logger.add(level, {:name => self.to_s, :message => message}, 'backbeat_delayed_job')
     end
   end
 
   class SidekiqLogger < DelayedJobLogger
-    def self.crash(string, exception)
-      self.error({error: string, backtrace: exception.backtrace})
+    def self.crash(message, exception)
+      self.fatal({error: message, backtrace: exception.backtrace})
     end
   end
 end

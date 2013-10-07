@@ -95,7 +95,6 @@ GEM
     kiqstand (1.1.0)
       mongoid (~> 3.1)
       moped (~> 1.4)
-    log4r (1.1.10)
     mail (2.5.4)
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
@@ -240,7 +239,6 @@ DEPENDENCIES
   httparty
   jruby-openssl
   kiqstand
-  log4r
   mail
   mongoid!
   mongoid-indifferent-access

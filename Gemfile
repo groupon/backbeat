@@ -6,7 +6,6 @@ ruby '1.9.3'
 # Server/API
 gem 'grape'
 gem 'httparty'
-gem 'log4r'
 
 # Database
 gem 'mongoid', :git => 'http://github.com/mongoid/mongoid.git', :branch => '3.1.0-stable'

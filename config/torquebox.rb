@@ -9,9 +9,8 @@ TorqueBox.configure do
   end
 
   pool :web do
-    type :bounded
-    min 32
-    max 32
+    type :shared
+    lazy false
   end
 
   pool :services do
@@ -20,7 +19,7 @@ TorqueBox.configure do
     max 2
   end
 
-  2.times do |i|
+  4.times do |i|
     service Services::SidekiqService do
       name "backbeat_sidekiq_worker_pool_#{i}"
       config do

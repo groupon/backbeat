@@ -2,6 +2,7 @@
 
 require_relative 'app'
 require 'rake'
+require 'torquebox-rake-support'
 
 MODELS_TO_INDEX = [WorkflowServer::Models.constants.map{|model| "WorkflowServer::Models::#{model}"},
                    Delayed::Backend::Mongoid.constants.map{|model| "Delayed::Backend::Mongoid::#{model}"}].flatten
