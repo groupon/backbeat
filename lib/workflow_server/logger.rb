@@ -1,3 +1,5 @@
+require 'torquebox/logger'
+
 module WorkflowServer
   module Logger
 
