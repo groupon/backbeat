@@ -71,7 +71,7 @@ module WorkflowServer
     include WorkflowServer::Logger
 
     def self.add(level, message)
-      logger.add(level, {:name => self.to_s, :message => message}, 'backbeat_delayed_job')
+      WorkflowServer::Logger.logger.add(level, {:name => self.to_s, :message => message}, 'backbeat_delayed_job')
     end
   end
 
