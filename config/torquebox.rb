@@ -19,7 +19,7 @@ TorqueBox.configure do
     max 2
   end
 
-  4.times do |i|
+  2.times do |i|
     service Services::SidekiqService do
       name "backbeat_sidekiq_worker_pool_#{i}"
       config do
