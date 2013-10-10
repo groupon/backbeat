@@ -16,14 +16,15 @@ module WorkflowServer
           tid: WorkflowServer::Logger.tid || 'none',
           level: level,
           source: self.class.to_s,
+          name: self.class.to_s,
           message: message
         }
         if WorkflowServer::Config.options[:log_format] == 'json'
           message_to_log = message_with_metadata.to_json + "\n"
         else
-          message_to_log = sprintf("%s | %s | %s | %s | %s | %s | %s\n", *message_with_metadata.values)
+          message_to_log = sprintf("%s | %s | %s | %s | %s | %s | %s | %s\n", *message_with_metadata.values)
         end
-        WorkflowServer::Logger.logger.__send__(level, {:name => self.class.to_s, :message => message_to_log})
+        WorkflowServer::Logger.logger.__send__(level, message_to_log)
       end
     end
 
@@ -61,7 +62,21 @@ module WorkflowServer
         if message.nil? && !block.nil?
           message = block.call
         end
-        WorkflowServer::Logger.logger.__send__(level, {:name => self.to_s, :message => message})
+        message_with_metadata = {
+          time: Time.now.strftime('%Y-%m-%dT%H:%M:%S.%L'),
+          pid: Process.pid,
+          thread_id: Thread.current.object_id,
+          tid: WorkflowServer::Logger.tid || 'none',
+          level: level,
+          source: self.to_s,
+          message: message
+        }
+        if WorkflowServer::Config.options[:log_format] == 'json'
+          message_to_log = message_with_metadata.to_json + "\n"
+        else
+          message_to_log = sprintf("%s | %s | %s | %s | %s | %s | %s\n", *message_with_metadata.values)
+        end
+        WorkflowServer::Logger.logger.__send__(level, message_to_log)
         end
       end
     end
