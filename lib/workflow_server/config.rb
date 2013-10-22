@@ -47,12 +47,7 @@ module WorkflowServer
     end
 
     def self.get_root
-      case environment
-      when :test, :development
-        File.expand_path(File.join(File.dirname(__FILE__), "..", ".."))
-      else
-        "/var/groupon/backbeat/current"
-      end
+      File.expand_path(File.join(File.dirname(__FILE__), "..", ".."))
     end
   end
 end
