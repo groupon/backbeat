@@ -7,6 +7,8 @@ module WorkflowServer
 
       index({ fires_at: 1 })
 
+      field :mode, type: Symbol, default: :non_blocking
+
       def start
         super
         update_status!(:scheduled)
@@ -15,7 +17,7 @@ module WorkflowServer
 
       def fire
         return if status == :complete
-        add_decision(name)
+        mode == :blocking ? add_interrupt(name) : add_decision(name)
         completed
       end
 
