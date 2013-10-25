@@ -183,8 +183,8 @@ module WorkflowServer
       end
 
       def all_children_done?
-        children.not_in(_type: Timer).where(:mode.ne => :fire_and_forget, :status.ne => :complete).none? &&
-        children.in(_type: Timer).where(:status => :open, :mode.ne => :fire_and_forget).none?
+        children.not_in(_type: Timer).any_of({status: :open}, {:mode.ne => :fire_and_forget, :status.ne => :complete}).none? &&
+        children.in(_type: Timer).where(status: :open).none?
       end
 
       def schedule_next_decision

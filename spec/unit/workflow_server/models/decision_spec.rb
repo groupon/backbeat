@@ -295,7 +295,9 @@ describe WorkflowServer::Models::Decision do
         options[:user] = user if event == :workflow
         child = FactoryGirl.create(event, options)
         @d1.__send__(:all_children_done?).should == false
-        child.update_attributes!(mode: :fire_and_forget)
+        child.update_attributes!(mode: :fire_and_forget, status: :open)
+        @d1.__send__(:all_children_done?).should == false
+        child.update_attributes!(mode: :fire_and_forget, status: :executing)
         @d1.__send__(:all_children_done?).should == true
         child.update_attributes!(mode: :blocking)
         @d1.__send__(:all_children_done?).should == false
