@@ -10,4 +10,6 @@ Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 Moped.logger = Logger.new($stdout)
 Moped.logger.level = Logger::DEBUG
 
+include WorkflowServer::Models
+
 IRB.start

@@ -51,11 +51,11 @@ module WorkflowServer
 
       def start
         super
-        update_status!(:executing)
         if start_signal
           # send the start signal on the workflow
           self.signal(start_signal)
         end
+        update_status!(:executing)
       end
 
       def pause

@@ -272,6 +272,31 @@ module WorkflowServer
         hash
       end
 
+      def self.transaction
+        unless @transaction == true
+          self.collection.database.command({"beginTransaction" => 1})
+          begin
+            @transaction = true
+            yield
+          rescue => error
+            Event.collection.database.command({"rollbackTransaction" => 1})
+            raise
+          else
+            Event.collection.database.command({"commitTransaction" => 1})
+          ensure
+            @transaction = false
+          end
+        else
+          yield
+        end
+      end
+
+      def transaction
+        self.class.transaction do
+          yield
+        end
+      end
+
       private
 
       def error_hash(error)
