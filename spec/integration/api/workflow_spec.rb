@@ -45,7 +45,7 @@ describe Api::Workflow do
     end
 
     it "returns workflow from database if it already exists" do
-      response = post '/workflows', {'workflow_type'=>@wf.workflow_type, 'subject'=>@wf.subject, 'decider'=>@wf.decider}
+      response = post '/workflows', {'workflow_type'=>@wf.workflow_type, 'subject'=>{subject_klass: "PaymentTerm", subject_id: 100}, 'decider'=>@wf.decider}
       response.status.should == 201
       json_response = JSON.parse(response.body)
       new_wf = json_response
