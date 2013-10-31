@@ -7,6 +7,7 @@ module WorkflowServer
       field :decider, type: String, label: "The entity on the client side that will handle decision tasks for this workflow"
       field :mode, type: Symbol, default: :blocking
       field :start_signal, type: Symbol
+      field :_event_sequence, type: Integer, default: 0
 
       has_many :events, inverse_of: :workflow, order: {sequence: 1}, dependent: :destroy
 
@@ -83,6 +84,14 @@ module WorkflowServer
 
       def paused_events
         events.where(status: :pause)
+      end
+
+      def next_sequence
+        if topmost_workflow == self
+          # if I am the top level workflow, start with 0
+          return 0
+        end
+        super
       end
 
       alias_method :my_user, :user

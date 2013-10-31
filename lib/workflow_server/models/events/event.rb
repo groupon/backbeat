@@ -17,8 +17,7 @@ module WorkflowServer
 
       field :inactive,       type: Boolean, default: false
       field :_delayed_jobs,  type: Array, default: []
-
-      auto_increment :sequence
+      field :sequence,       type: Integer
 
       belongs_to :user, index: true
       belongs_to :workflow, inverse_of: :events, class_name: "WorkflowServer::Models::Workflow", index: true
@@ -35,6 +34,10 @@ module WorkflowServer
 
       before_destroy do
         destroy_jobs
+      end
+
+      before_create do
+        self.send("sequence=", next_sequence)
       end
 
       validates_presence_of :name, :user
@@ -274,15 +277,15 @@ module WorkflowServer
 
       def self.transaction
         unless @transaction == true
-          self.collection.database.command({"beginTransaction" => 1})
+          Event.collection.database.command(beginTransaction: 1)
           begin
             @transaction = true
             yield
           rescue => error
-            Event.collection.database.command({"rollbackTransaction" => 1})
+            Event.collection.database.command(rollbackTransaction: 1)
             raise
           else
-            Event.collection.database.command({"commitTransaction" => 1})
+            Event.collection.database.command(commitTransaction: 1)
           ensure
             @transaction = false
           end
@@ -297,7 +300,45 @@ module WorkflowServer
         end
       end
 
+      # Gives the top most workflow of the stack
+      def topmost_workflow
+        @topmost_workflow ||= begin
+          wf = self
+          loop do
+            if wf.workflow
+              wf = wf.workflow
+            else
+              break
+            end
+          end
+          wf
+        end
+      end
+
+      STARTING_SEQUENCE_NUMBER = 8_000_000_000
+
+      def next_sequence
+        if old_workflow?
+          # The if clause is for lazily converting old workflows to this format.
+          reset_old_workflow_sequence
+        end
+        generate_next_sequence
+      end
+
       private
+
+      def old_workflow?
+        topmost_workflow.sequence != 0 && topmost_workflow._event_sequence == 0
+      end
+
+      def reset_old_workflow_sequence
+        self.class.collection.find({_id: topmost_workflow.id, "$or" => [ { "_event_sequence" => nil }, { "_event_sequence" => 0} ]}).modify({ "$inc" => {_event_sequence: STARTING_SEQUENCE_NUMBER}}, upsert: true)
+      end
+
+      def generate_next_sequence
+        output = self.class.collection.find(_id: topmost_workflow.id).modify({ "$inc" => {_event_sequence: 1}}, new: true, fields: {'_event_sequence' => 1})
+        output['_event_sequence']
+      end
 
       def error_hash(error)
         case error
