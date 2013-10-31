@@ -503,6 +503,13 @@ module Api
 
     namespace 'debug' do
 
+      desc 'returns the sidekiq latency', {
+        action_descriptor: action_description(:get_sidekiq_latency) {}
+      }
+      get '/sidekiq_latency' do
+        Sidekiq::Queue.new.latency
+      end
+
       desc 'returns workflows that have something in error or timeout state', {
         action_descriptor: action_description(:get_error_workflows, deprecated: true) do |error_workflows|
           error_workflows.parameters do |parameters|
