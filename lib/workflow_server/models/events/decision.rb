@@ -122,8 +122,8 @@ module WorkflowServer
         Flag.new(name: name, parent: self, workflow: workflow, user: user)
       end
 
-      def new_timer(name, fires_at = Time.now)
-        Timer.new(fires_at: fires_at, name: name, parent: self, workflow: workflow, user: user)
+      def new_timer(name, fires_at = Time.now, options = {})
+        Timer.new({fires_at: fires_at, name: name, parent: self, workflow: workflow, user: user}.merge(options))
       end
 
       def new_activity(name, options = {})
@@ -151,7 +151,7 @@ module WorkflowServer
         when 'flag'
           new_flag(options[:name])
         when 'timer'
-          new_timer(options[:name], options[:fires_at])
+          new_timer(options.delete(:name), options.delete(:fires_at), options)
         when 'activity'
           new_activity(options.delete(:name), options)
         when 'branch'
@@ -183,8 +183,9 @@ module WorkflowServer
       end
 
       def all_children_done?
-        children.not_in(_type: Timer).any_of({status: :open}, {:mode.ne => :fire_and_forget, :status.ne => :complete}).none? &&
-        children.in(_type: Timer).where(status: :open).none?
+        children.where(status: :open).none? &&
+        children.not_in(_type: Timer).where({:mode.ne => :fire_and_forget, :status.ne => :complete}).none? &&
+        children.in(_type: Timer).where({mode: :blocking, :status.ne => :complete}).none?
       end
 
       def schedule_next_decision
