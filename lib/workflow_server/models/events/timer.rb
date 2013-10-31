@@ -7,7 +7,7 @@ module WorkflowServer
 
       index({ fires_at: 1 })
 
-      field :mode, type: Symbol, default: :non_blocking
+      field :mode, type: Symbol, default: :fire_and_forget
 
       def start
         super
