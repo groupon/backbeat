@@ -206,17 +206,17 @@ describe WorkflowServer::Models::Event do
         workflow._event_sequence = 0
         event = FactoryGirl.create(:event, workflow: workflow)
         output = event.sequence
-        output.should == WorkflowServer::Models::Event::STARTING_SEQUENCE_NUMBER + 1
+        output.should == WorkflowServer::Models::Event::STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS + 1
         workflow.reload
-        workflow._event_sequence.should == WorkflowServer::Models::Event::STARTING_SEQUENCE_NUMBER + 1
+        workflow._event_sequence.should == WorkflowServer::Models::Event::STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS + 1
       end
       it "works when _event_sequence is set to 0 in db (will happen if you save the workflow object)" do
         workflow.update_attributes!(sequence: 100, _event_sequence: 0)
         event = FactoryGirl.create(:event, workflow: workflow)
         output = event.sequence
-        output.should == WorkflowServer::Models::Event::STARTING_SEQUENCE_NUMBER + 1
+        output.should == WorkflowServer::Models::Event::STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS + 1
         workflow.reload
-        workflow._event_sequence.should == WorkflowServer::Models::Event::STARTING_SEQUENCE_NUMBER + 1
+        workflow._event_sequence.should == WorkflowServer::Models::Event::STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS + 1
       end
     end
     context "new workflows" do

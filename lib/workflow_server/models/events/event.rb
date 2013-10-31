@@ -315,7 +315,15 @@ module WorkflowServer
         end
       end
 
-      STARTING_SEQUENCE_NUMBER = 8_000_000_000
+      # New workflows begin with sequence number 0.
+      # For older workflows, we will begin with the value of this constant - STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS
+      # How did we get to this number?
+      # The current global sequence number is in 7 million
+      # tokumx_production:SECONDARY> db.sequences.find()
+      # { "_id" : ObjectId("525822b9ac9e58700fdcb512"), "number" : 784547549, "seq_name" : "workflowserver::models::event_sequence" }
+      # This implies the older workflow could have events with sequence number in that range (1 - 784547549). Setting _event_sequence to
+      # 900_000_000 will allow a clean separation and newer event under the old workflow will continue to get a bigger sequence number
+      STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS = 900_000_000
 
       def next_sequence
         if old_workflow?
@@ -332,7 +340,7 @@ module WorkflowServer
       end
 
       def reset_old_workflow_sequence
-        self.class.collection.find({_id: topmost_workflow.id, "$or" => [ { "_event_sequence" => nil }, { "_event_sequence" => 0} ]}).modify({ "$inc" => {_event_sequence: STARTING_SEQUENCE_NUMBER}}, upsert: true)
+        self.class.collection.find({_id: topmost_workflow.id, "$or" => [ { "_event_sequence" => nil }, { "_event_sequence" => 0} ]}).modify({ "$inc" => {_event_sequence: STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS}}, upsert: true)
       end
 
       def generate_next_sequence
