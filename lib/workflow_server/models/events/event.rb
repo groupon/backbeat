@@ -37,7 +37,9 @@ module WorkflowServer
       end
 
       before_create do
-        self.send("sequence=", next_sequence)
+        if self.sequence.nil?
+          self.sequence = workflow ? workflow.next_sequence : 1
+        end
       end
 
       validates_presence_of :name, :user
@@ -276,10 +278,10 @@ module WorkflowServer
       end
 
       def self.transaction
-        unless @transaction == true
+        unless Thread.current['backbeat_db_transaction'] == true
           Event.collection.database.command(beginTransaction: 1)
           begin
-            @transaction = true
+            Thread.current['backbeat_db_transaction'] = true
             yield
           rescue => error
             Event.collection.database.command(rollbackTransaction: 1)
@@ -287,7 +289,7 @@ module WorkflowServer
           else
             Event.collection.database.command(commitTransaction: 1)
           ensure
-            @transaction = false
+            Thread.current['backbeat_db_transaction'] = false
           end
         else
           yield
@@ -298,54 +300,6 @@ module WorkflowServer
         self.class.transaction do
           yield
         end
-      end
-
-      # Gives the top most workflow of the stack
-      def topmost_workflow
-        @topmost_workflow ||= begin
-          wf = self
-          loop do
-            if wf.workflow
-              wf = wf.workflow
-            else
-              break
-            end
-          end
-          wf
-        end
-      end
-
-      # New workflows begin with sequence number 0.
-      # For older workflows, we will begin with the value of this constant - STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS
-      # How did we get to this number?
-      # The current global sequence number is in 7 million
-      # tokumx_production:SECONDARY> db.sequences.find()
-      # { "_id" : ObjectId("525822b9ac9e58700fdcb512"), "number" : 784547549, "seq_name" : "workflowserver::models::event_sequence" }
-      # This implies the older workflow could have events with sequence number in that range (1 - 784547549). Setting _event_sequence to
-      # 900_000_000 will allow a clean separation and newer event under the old workflow will continue to get a bigger sequence number
-      STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS = 900_000_000
-
-      def next_sequence
-        if old_workflow?
-          # The if clause is for lazily converting old workflows to this format.
-          reset_old_workflow_sequence
-        end
-        generate_next_sequence
-      end
-
-      private
-
-      def old_workflow?
-        topmost_workflow.sequence != 0 && topmost_workflow._event_sequence == 0
-      end
-
-      def reset_old_workflow_sequence
-        self.class.collection.find({_id: topmost_workflow.id, "$or" => [ { "_event_sequence" => nil }, { "_event_sequence" => 0} ]}).modify({ "$inc" => {_event_sequence: STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS}}, upsert: true)
-      end
-
-      def generate_next_sequence
-        output = self.class.collection.find(_id: topmost_workflow.id).modify({ "$inc" => {_event_sequence: 1}}, new: true, fields: {'_event_sequence' => 1})
-        output['_event_sequence']
       end
 
       def error_hash(error)

@@ -105,9 +105,7 @@ module WorkflowServer
       def deciding_complete
         transaction do
           Watchdog.dismiss(self, :decision_deciding_time_out)
-          # switched from completed to enqueue_completed. completed relies on with_lock that has to be
-          # broadcasted to world. calling it from inside transaction would not have that effect.
-          children.any? ? update_status!(:executing) : enqueue_completed
+          update_status!(:executing)
           enqueue_work_on_decisions
         end
       end
