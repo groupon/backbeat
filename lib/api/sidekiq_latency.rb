@@ -1,13 +1,13 @@
 module Api
-  class Health
+  class SidekiqLatency
     def initialize(app)
       @app = app
     end
 
-    ENDPOINT = '/health'.freeze
+    ENDPOINT = '/sidekiq_latency'
     def call(env)
       if env['PATH_INFO'] == ENDPOINT
-        return [ 200, {"Content-Type" => "text/plain"}, [WorkflowServer::Models::Workflow.last.try(:created_at).to_s] ]
+        return [ 200, {"Content-Type" => "text/plain"}, [ Sidekiq::Queue.new.latency.to_s ] ]
       end
       status, headers, body = @app.call(env)
       [status, headers, body]

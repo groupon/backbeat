@@ -502,7 +502,6 @@ module Api
     end
 
     namespace 'debug' do
-
       desc 'returns workflows that have something in error or timeout state', {
         action_descriptor: action_description(:get_error_workflows, deprecated: true) do |error_workflows|
           error_workflows.parameters do |parameters|

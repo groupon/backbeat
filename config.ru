@@ -8,6 +8,8 @@ use Api::Log
 
 use Api::Health
 
+use Api::SidekiqLatency
+
 use Rack::Lint if WorkflowServer::Config.environment == :test
 
 use Api::CamelCase
