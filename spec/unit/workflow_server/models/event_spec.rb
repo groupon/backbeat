@@ -163,5 +163,75 @@ describe WorkflowServer::Models::Event do
       end
     end
 
+    context "#self.transaction" do
+      before do
+        WorkflowServer::Models::Workflow.any_instance.stub(next_sequence: 10)
+      end
+      it "runs inside a transaction and commits the transaction" do
+        command_args = []
+        WorkflowServer::Models::Event.collection.database.class.any_instance.stub(:command){ |options|
+          command_args << options
+        }
+        event.class.transaction_original {}
+        command_args.should == [{beginTransaction: 1}, {commitTransaction: 1}]
+      end
+      it "runs inside a transaction and rolls back on error (doesnt commit the transaction)" do
+        command_args = []
+        WorkflowServer::Models::Event.collection.database.class.any_instance.stub(:command){ |options|
+          command_args << options
+        }
+        expect {
+          event.class.transaction_original { raise "Exception" }
+        }.to raise_error("Exception")
+        command_args.should == [{beginTransaction: 1}, {rollbackTransaction: 1}]
+      end
+      it "runs nested transactions" do
+        command_args = []
+        WorkflowServer::Models::Event.collection.database.class.any_instance.stub(:command){ |options|
+          command_args << options
+        }
+        event.class.transaction_original {
+          event.class.transaction_original {}
+        }
+        command_args.should == [{beginTransaction: 1}, {commitTransaction: 1}]
+      end
+    end
+  end
+  context "#next_sequence" do
+    context "old workflows" do
+      context "someone calls save on workflow, _event_sequence becomes 0" do
+        it "assings event sequence to STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS and returns the next sequence number" do
+          # old workflows will have some sequence number other than 0
+          workflow.update_attributes!(sequence: 100, _event_sequence: 0)
+          event = FactoryGirl.create(:event, workflow: workflow)
+          output = event.sequence
+          output.should == WorkflowServer::Models::Workflow::STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS + 1
+          workflow.reload
+          workflow._event_sequence.should == WorkflowServer::Models::Workflow::STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS + 1
+        end
+      end
+      context "just an old workflow (so _event_sequence is never set)" do
+        it "assings event sequence to STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS and returns the next sequence number" do
+          # old workflows will have some sequence number other than 0
+          workflow.update_attributes!(sequence: 100)
+          workflow.unset(:_event_sequence)
+          event = FactoryGirl.create(:event, workflow: workflow)
+          output = event.sequence
+          output.should == WorkflowServer::Models::Workflow::STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS + 1
+          workflow.reload
+          workflow._event_sequence.should == WorkflowServer::Models::Workflow::STARTING_SEQUENCE_NUMBER_FOR_OLD_WORKFLOWS + 1
+        end
+      end
+    end
+    context "new workflows" do
+      it "starts from 0" do
+        event = FactoryGirl.create(:event, workflow: workflow)
+        output = event.sequence
+        output.should == 2
+        workflow.reload
+        workflow._event_sequence.should == 2
+        workflow.sequence.should == 1
+      end
+    end
   end
 end

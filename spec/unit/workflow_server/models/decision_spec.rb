@@ -6,7 +6,7 @@ describe WorkflowServer::Models::Decision do
 
   before do
     @event_klass = WorkflowServer::Models::Decision
-    @event_data = {name: :test_decision, user: user}
+    @event_data = {name: :test_decision, user: user, workflow: FactoryGirl.create(:workflow, user: user)}
     @wf = FactoryGirl.create(:workflow, user: user)
     @d1 = FactoryGirl.create(:decision, workflow: @wf, name: "WF_Decision-1").reload
     @event = @d1
@@ -168,6 +168,7 @@ describe WorkflowServer::Models::Decision do
           @d1.update_status!(base_state)
           @d1.change_status(:deciding_complete)
           @d1.async_jobs.map(&:payload_object).map(&:perform)
+          WorkflowServer::Workers::SidekiqJobWorker.drain
           @d1.reload
           @d1.status.should == :complete
         end

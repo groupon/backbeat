@@ -17,8 +17,7 @@ module WorkflowServer
 
       field :inactive,       type: Boolean, default: false
       field :_delayed_jobs,  type: Array, default: []
-
-      auto_increment :sequence
+      field :sequence,       type: Integer
 
       belongs_to :user, index: true
       belongs_to :workflow, inverse_of: :events, class_name: "WorkflowServer::Models::Workflow", index: true
@@ -35,6 +34,12 @@ module WorkflowServer
 
       before_destroy do
         destroy_jobs
+      end
+
+      before_create do
+        if self.sequence.nil?
+          self.sequence = workflow ? workflow.next_sequence : 1
+        end
       end
 
       validates_presence_of :name, :user
@@ -272,7 +277,30 @@ module WorkflowServer
         hash
       end
 
-      private
+      def self.transaction
+        unless Thread.current['backbeat_db_transaction'] == true
+          Event.collection.database.command(beginTransaction: 1)
+          begin
+            Thread.current['backbeat_db_transaction'] = true
+            yield
+          rescue => error
+            Event.collection.database.command(rollbackTransaction: 1)
+            raise
+          else
+            Event.collection.database.command(commitTransaction: 1)
+          ensure
+            Thread.current['backbeat_db_transaction'] = false
+          end
+        else
+          yield
+        end
+      end
+
+      def transaction
+        self.class.transaction do
+          yield
+        end
+      end
 
       def error_hash(error)
         case error

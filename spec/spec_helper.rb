@@ -29,6 +29,23 @@ Mongoid.load!(mongo_path, :test)
 RACK_ROOT = File.expand_path(File.join(__FILE__,'..'))
 ENV['RACK_ROOT'] = RACK_ROOT
 
+
+###### FOR TRANSACTION SUPPORT #########
+# We need this till we have tokumx 1.2.0 on build and dev machines
+module WorkflowServer
+  module Models
+    class Event
+      class << self
+        alias_method :transaction_original, :transaction # useful to test unit specs
+      end
+      def self.transaction
+        yield
+      end
+    end
+  end
+end
+###### FOR TRANSACTION SUPPORT END #####
+
 ########### TORQUEBOX SPECIFIC STUFF - START #########################
 # delete any deployed yml files before starting
 FileUtils.rm_rf("#{WorkflowServer::Config.root}/.torquespec")

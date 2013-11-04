@@ -149,6 +149,7 @@ describe Api::Workflow do
       header "Content-Type", "application/json"
       response = put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
       response.status.should == 200
+      WorkflowServer::Workers::SidekiqJobWorker.drain
       decision.reload
       decision.status.should == :complete
     end

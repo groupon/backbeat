@@ -5,10 +5,10 @@ describe WorkflowServer::Async::Job do
   let(:decision) { FactoryGirl.create(:decision) }
   context '#schedule' do
     it 'schedules a delayed job' do
-      WorkflowServer::Async::Job.schedule({event: decision, method: :some_method, max_attempts: 100}, Time.now + 2.days)
+      WorkflowServer::Async::Job.schedule({event: decision, method: :some_method, max_attempts: 100}, Time.now + 20.minutes)
       Delayed::Job.where(handler: /some_method/).count.should == 1
       job = Delayed::Job.where(handler: /some_method/).first
-      job.run_at.to_s.should == (Time.now.utc + 2.days).to_s
+      job.run_at.to_s.should == (Time.now.utc + 20.minutes).to_s
       decision.reload._delayed_jobs.should include(job.id)
     end
   end

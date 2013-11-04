@@ -11,8 +11,8 @@ module WorkflowServer
 
       def start
         super
-        update_status!(:scheduled)
         enqueue_fire(max_attempts: 5, fires_at: fires_at)
+        update_status!(:scheduled)
       end
 
       def fire

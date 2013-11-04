@@ -102,9 +102,6 @@ GEM
     mime-types (1.25)
     mongoid-indifferent-access (1.0.0)
       mongoid
-    mongoid_auto_increment (0.1.1)
-      mongoid
-      mongoid_auto_increment
     moped (1.5.1)
     multi_json (1.8.0)
     multi_xml (0.5.5)
@@ -243,7 +240,6 @@ DEPENDENCIES
   mongoid!
   mongoid-indifferent-access
   mongoid-locker!
-  mongoid_auto_increment
   newrelic_rpm
   pry
   puma
