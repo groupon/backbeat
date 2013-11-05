@@ -38,9 +38,9 @@ module WorkflowServer
         t0 = Time.now
         self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_started")
         event.__send__(method_to_call, *args)
-        self.class.info(source: self.class.to_s, id: event.id, name: event.name || "unknown", message: "#{method_to_call}_succeeded", duration: Time.now - t0)
+        self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_succeeded", duration: Time.now - t0)
       rescue WorkflowServer::EventNotFound, Backbeat::TransientError => error
-        self.class.info(source: self.class.to_s, id: event_id, name: event.try(:name), message: "#{method_to_call}:#{error.message.to_s}", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
+        self.class.info(source: self.class.to_s, id: event_id, name: event.try(:name) || "unknown", message: "#{method_to_call}:#{error.message.to_s}", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
         raise
       rescue Exception => error
         self.class.error(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
