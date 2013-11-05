@@ -60,7 +60,6 @@ describe WorkflowServer::Async::Job do
     end
 
     it 'logs start and succeeded messages' do
-      WorkflowServer::Async::Job.should_receive(:info).with(source: 'WorkflowServer::Async::Job', job: anything, id: 10, name: :make_payment, message: 'some_method_start_before_hook').ordered
       WorkflowServer::Async::Job.should_receive(:info).with(source: 'WorkflowServer::Async::Job', id: 10, name: :make_payment, message: 'some_method_started').ordered
       WorkflowServer::Async::Job.should_receive(:info).with(source: 'WorkflowServer::Async::Job', id: 10, name: :make_payment, message: 'some_method_succeeded', duration: 0.0).ordered
       @job.invoke_job
@@ -84,14 +83,20 @@ describe WorkflowServer::Async::Job do
     end
     it 'records exceptions as INFO and reraises if they are Backbeat::TransientError' do
       # We have to expect these first two so that we can accurately test the third, but we don't really care about these in this test
-      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", job: anything, id: 10, name: :make_payment, message: "some_method_start_before_hook").ordered
       WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_started").ordered
 
       @dec.should_receive(:some_method).and_raise(Backbeat::TransientError.new(Exception.new('test')))
-      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_transient_error", error: anything, backtrace: anything, duration: 0.0).ordered
+      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method:test", error: anything, backtrace: anything, duration: 0.0).ordered
       expect {
         @job.invoke_job
       }.to raise_error(Backbeat::TransientError)
+    end
+    it 'records exceptions as INFO and reraises if they are NoMethodError' do
+      WorkflowServer::Models::Event.should_receive(:find).and_return(nil) # this is the real exception
+      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method:Event with id(10) not found", error: anything, backtrace: anything, duration: 0.0).ordered
+      expect {
+        @job.invoke_job
+      }.to raise_error(WorkflowServer::EventNotFound)
     end
   end
 

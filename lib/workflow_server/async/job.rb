@@ -1,4 +1,5 @@
 require 'workflow_server/logger'
+require 'workflow_server/errors'
 require 'sidekiq'
 
 module WorkflowServer
@@ -38,17 +39,13 @@ module WorkflowServer
         self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_started")
         event.__send__(method_to_call, *args)
         self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_succeeded", duration: Time.now - t0)
-      rescue Backbeat::TransientError => error
-        self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_transient_error", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
+      rescue WorkflowServer::EventNotFound, Backbeat::TransientError => error
+        self.class.info(source: self.class.to_s, id: event_id, name: event.try(:name) || "unknown", message: "#{method_to_call}:#{error.message.to_s}", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
         raise
       rescue Exception => error
         self.class.error(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
         Squash::Ruby.notify error
         raise
-      end
-
-      def before(job, *args)
-        self.class.info(source: self.class.to_s, job: job.id, id: event.id, name: event.name, message: "#{method_to_call}_start_before_hook")
       end
 
       def success(job, *args)
@@ -62,6 +59,7 @@ module WorkflowServer
         # a bad hack, and i might change this to work based off
         # priority. anyways, should work for now)
         unless method_to_call.to_s == 'notify_client'
+          self.class.error(source: self.class.to_s, event: event_id, failed: true, error: "ERROR")
           event.update_status!(:error, :async_job_error)
         end
       rescue Exception => error
@@ -70,6 +68,8 @@ module WorkflowServer
 
       def event
         @event ||= WorkflowServer::Models::Event.find(event_id)
+        raise WorkflowServer::EventNotFound.new("Event with id(#{event_id}) not found") if @event.nil?
+        @event
       end
 
       def self.jobs(event)
