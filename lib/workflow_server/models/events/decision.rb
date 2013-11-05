@@ -186,6 +186,7 @@ module WorkflowServer
         end
       end
 
+      # TODO - add Timer to this list
       def any_incomplete_blocking_activities_branches_or_workflows?
         children.any_in(_type: [Activity, Branch, Workflow]).where(mode: :blocking).not_in(:status => [:complete, :open]).any?
       end
