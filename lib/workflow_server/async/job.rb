@@ -20,16 +20,16 @@ module WorkflowServer
           # if the attempt to use Sidekiq to perform this job fails, we will mimic delayed job
           # behavior and enqueue a reattempt in 5 seconds. DJ implements backoff semantics on future
           # retries. We end up doing 1 extra attempt in this flow, but we don't care
-          event = WorkflowServer::Models::Event.find(job.event_id)
-          schedule({event: event, method: job.method_to_call, args: job.args, max_attempts: job.max_attempts}, Time.now+5)
+          schedule({event_id: job.event_id, method: job.method_to_call, args: job.args, max_attempts: job.max_attempts}, Time.now + 10)
         end
       end
 
       def self.schedule(options = {}, run_at = Time.now)
-        job = new(options[:event].id, options[:method], options[:args], options[:max_attempts])
+        event_id = options[:event_id] || options[:event].id
+        job = new(event_id, options[:method], options[:args], options[:max_attempts])
         job = Delayed::Job.enqueue(job, run_at: run_at)
         # Maintain a list of outstanding delayed jobs on the event
-        options[:event].push(:_delayed_jobs, job.id)
+        options[:event].push(:_delayed_jobs, job.id) if options[:event]
         job
       end
 

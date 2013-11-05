@@ -32,13 +32,11 @@ describe WorkflowServer::Async::Job do
 
         WorkflowServer::Async::Job.any_instance.should_receive(:perform).and_raise('Something')
 
-        WorkflowServer::Models::Event.should_receive(:find).with('12').and_return(event)
-
-        WorkflowServer::Async::Job.should_receive(:schedule).with({ event: event,
+        WorkflowServer::Async::Job.should_receive(:schedule).with({ event_id: '12',
                                                                     method: :a_method_name,
                                                                     args: [:arg1, :arg2],
                                                                     max_attempts: 24},
-                                                                    Time.now + 5)
+                                                                    Time.now + 10)
 
         WorkflowServer::Async::Job.perform('data' => args)
       end
@@ -56,20 +54,20 @@ describe WorkflowServer::Async::Job do
 
   context '#perform' do
     before do
-      @job = WorkflowServer::Async::Job.schedule({event: decision, method: :some_method, args: [1,2,3,4], max_attempts: 100}, Time.now + 2.days)
-      @dec = double('decision', some_method: nil, id: 10, name: :make_payment, pull: nil)
+      @dec = double('decision', some_method: nil, id: 10, name: :make_payment, pull: nil, push: nil)
+      @job = WorkflowServer::Async::Job.schedule({event: @dec, method: :some_method, args: [1,2,3,4], max_attempts: 100}, Time.now + 2.days)
       WorkflowServer::Models::Event.stub(find: @dec)
     end
 
     it 'logs start and succeeded messages' do
-      WorkflowServer::Async::Job.should_receive(:info).with(source: 'WorkflowServer::Async::Job', job: anything, id: 10, name: :make_payment, message: 'some_method_start_before_hook')
-      WorkflowServer::Async::Job.should_receive(:info).with(source: 'WorkflowServer::Async::Job', id: 10, name: :make_payment, message: 'some_method_started')
-      WorkflowServer::Async::Job.should_receive(:info).with(source: 'WorkflowServer::Async::Job', id: 10, name: :make_payment, message: 'some_method_succeeded', duration: 0.0)
+      WorkflowServer::Async::Job.should_receive(:info).with(source: 'WorkflowServer::Async::Job', job: anything, id: 10, name: :make_payment, message: 'some_method_start_before_hook').ordered
+      WorkflowServer::Async::Job.should_receive(:info).with(source: 'WorkflowServer::Async::Job', id: 10, name: :make_payment, message: 'some_method_started').ordered
+      WorkflowServer::Async::Job.should_receive(:info).with(source: 'WorkflowServer::Async::Job', id: 10, name: :make_payment, message: 'some_method_succeeded', duration: 0.0).ordered
       @job.invoke_job
     end
 
     it 'calls the method on the given event' do
-      WorkflowServer::Models::Event.should_receive(:find).with(decision.id)
+      WorkflowServer::Models::Event.should_receive(:find).with(@dec.id)
       @dec.should_receive(:some_method).with(1, 2, 3, 4)
       @job.invoke_job
     end
