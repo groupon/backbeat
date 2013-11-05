@@ -86,17 +86,17 @@ describe WorkflowServer::Async::Job do
       WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_started").ordered
 
       @dec.should_receive(:some_method).and_raise(Backbeat::TransientError.new(Exception.new('test')))
-      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_test", error: anything, backtrace: anything, duration: 0.0).ordered
+      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method:test", error: anything, backtrace: anything, duration: 0.0).ordered
       expect {
         @job.invoke_job
       }.to raise_error(Backbeat::TransientError)
     end
     it 'records exceptions as INFO and reraises if they are NoMethodError' do
       WorkflowServer::Models::Event.should_receive(:find).and_return(nil) # this is the real exception
-      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_undefined method `id' for nil:NilClass", error: anything, backtrace: anything, duration: 0.0).ordered
+      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method:Event with id(10) not found", error: anything, backtrace: anything, duration: 0.0).ordered
       expect {
         @job.invoke_job
-      }.to raise_error(NoMethodError)
+      }.to raise_error(WorkflowServer::EventNotFound)
     end
   end
 

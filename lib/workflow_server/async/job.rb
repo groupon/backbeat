@@ -1,4 +1,5 @@
 require 'workflow_server/logger'
+require 'workflow_server/errors'
 require 'sidekiq'
 
 module WorkflowServer
@@ -38,8 +39,8 @@ module WorkflowServer
         self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_started")
         event.__send__(method_to_call, *args)
         self.class.info(source: self.class.to_s, id: event.id, name: event.name || "unknown", message: "#{method_to_call}_succeeded", duration: Time.now - t0)
-      rescue NoMethodError, Backbeat::TransientError => error
-        self.class.info(source: self.class.to_s, id: event_id, name: event.try(:name), message: "#{method_to_call}_#{error.message.to_s}", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
+      rescue WorkflowServer::EventNotFound, Backbeat::TransientError => error
+        self.class.info(source: self.class.to_s, id: event_id, name: event.try(:name), message: "#{method_to_call}:#{error.message.to_s}", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
         raise
       rescue Exception => error
         self.class.error(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
@@ -67,6 +68,8 @@ module WorkflowServer
 
       def event
         @event ||= WorkflowServer::Models::Event.find(event_id)
+        raise WorkflowServer::EventNotFound.new("Event with id(#{event_id}) not found") if @event.nil?
+        @event
       end
 
       def self.jobs(event)
