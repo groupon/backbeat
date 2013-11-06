@@ -5,7 +5,7 @@ module Reports
     include WorkflowServer::Models
 
     # Picking October 1st randomly.
-    # we need a separate thing to go in the past before this date
+    # We will separately verify everything before that date
     START_TIME = Date.parse("01/10/2013").to_time.freeze
     COLLECTOR  = [:bad_decisions, :bad_activities, :bad_flags, :bad_signals, :bad_timers]
     PLUCK_FIELDS  = [:id, :name, :status, :parent_id, :workflow_id].freeze
@@ -53,7 +53,9 @@ module Reports
     end
 
     def ignore_errors(query)
-      # ignore workflows that have at least one event in error or timeout state or the workflow is paused
+      # ignore workflows that have at least one event in error or timeout state or
+      # the workflow is paused or
+      # the event has a blocking timer underneath that will fire in the future
       query.find_all do |event|
         event.status != :error && event.status != :timeout &&
         !event.workflow.paused? &&
@@ -66,7 +68,7 @@ module Reports
       Mail.deliver do
         from    'financial-engineering+backbeat@groupon.com'
         to      'financial-engineering-alerts@groupon.com'
-        subject 'Backbeat Inconsistent Workflow Report'
+        subject "#{WorkflowServer::Config.environment}: Backbeat Inconsistent Workflow Report"
         body    "#{report_body}"
       end
     end
