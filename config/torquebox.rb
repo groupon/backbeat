@@ -37,5 +37,10 @@ TorqueBox.configure do
       # Every day at midnight
       cron '0 0 12 1/1 * ? *'
     end
+
+    job Reports::BadEvents do
+      # Every day at 10 am
+      cron '0 0 10 1/1 * ? *'
+    end
   end
 end
