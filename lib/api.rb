@@ -2,7 +2,7 @@ require 'workflow_server'
 module Api
   require 'api/log'
   require 'api/health'
-  require 'api/sidekiq_latency'
+  require 'api/sidekiq_stats'
   require 'api/camel_json_formatter'
   require 'api/authenticate'
   require 'api/camel_case'

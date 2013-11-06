@@ -8,7 +8,7 @@ use Api::Log
 
 use Api::Health
 
-use Api::SidekiqLatency
+use Api::SidekiqStats
 
 use Rack::Lint if WorkflowServer::Config.environment == :test
 
