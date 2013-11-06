@@ -48,8 +48,7 @@ module Reports
     end
 
     def bad_timers
-      Timer.where( { "$or" => [ {status: :open, updated_at: (START_TIME..12.hours.ago)}, 
-                   { :status.ne => :complete, :fires_at.lt => Time.now} ] }).only(*PLUCK_FIELDS)
+      Timer.where( :status.ne => :complete, fires_at: (START_TIME..12.hours.ago) ).only(*PLUCK_FIELDS)
     end
 
     def ignore_errors(query)
@@ -89,7 +88,7 @@ module Reports
     end
 
     def file
-      "/tmp/#{self.class.name.gsub('::', '_').downcase}.txt"
+      "/tmp/#{self.class.name.gsub('::', '_').downcase}/#{Date.today}.txt"
     end
 
   end
