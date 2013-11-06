@@ -7,7 +7,7 @@ module Api
     ENDPOINT = '/sidekiq_latency'
     def call(env)
       if env['PATH_INFO'] == ENDPOINT
-        return [ 200, {"Content-Type" => "text/plain"}, [ Sidekiq::Queue.new.latency.to_s ] ]
+        return [ 200, {"Content-Type" => "application/json"}, [ {sidekiq_latency: Sidekiq::Queue.new.latency.to_s}.to_json ] ]
       end
       status, headers, body = @app.call(env)
       [status, headers, body]

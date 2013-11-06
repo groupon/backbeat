@@ -12,7 +12,7 @@ describe Api::SidekiqLatency do
       Sidekiq::Queue.stub_chain(:new, :latency).and_return(666)
       response = get '/sidekiq_latency'
       response.status.should == 200
-      response.body.should == '666'
+      JSON.parse(response.body) == {"sidekiq_latency" => 666}
     end
   end
 end
