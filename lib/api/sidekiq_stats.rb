@@ -12,8 +12,8 @@ module Api
         data = {
           latency: stats.queues.keys.inject({}) {|h,q| h[q] = Sidekiq::Queue.new(q).latency; h },
           today: {
-            processed: history.processed,
-            failed: history.failed
+            processed: history.processed.values[0],
+            failed: history.failed.values[0]
           },
           processed: stats.processed,
           failed: stats.failed,
