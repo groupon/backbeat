@@ -10,7 +10,7 @@ describe Api::SidekiqStats do
   context '/sidekiq_stats' do
     it 'catches the request, returns 200 and queue stats' do
       stats = double(Sidekiq::Stats, processed: 23, failed: 42, enqueued: 666, scheduled_size: 0, retry_size: 123, queues: {"queue1" => 0, "queue2" => 0} )
-      history = double(Sidekiq::Stats::History, processed: 15, failed: 19)
+      history = double(Sidekiq::Stats::History, processed: {"2013-11-08" => 15}, failed: {"2013-11-08" => 19})
 
       q1 = double(Sidekiq::Queue, latency: 10)
       q2 = double(Sidekiq::Queue, latency: 20)
