@@ -6,7 +6,7 @@ module Reports
 
     # Picking October 1st randomly.
     # We will separately verify everything before that date
-    START_TIME = Date.parse("2013/10/01").to_time.freeze
+    START_TIME = Date.parse("2013/11/01").to_time.freeze
     COLLECTOR  = [:bad_decisions, :bad_activities, :bad_flags, :bad_signals, :bad_timers]
     PLUCK_FIELDS  = [:id, :name, :status, :parent_id, :workflow_id].freeze
 
