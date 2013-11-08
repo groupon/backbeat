@@ -75,7 +75,7 @@ end
 namespace :documentation do
   desc "update documentation at https://services.groupondev.com"
   task :update_service_discovery do
-    require "#{File.join(File.expand_path(File.dirname(__FILE__)), '..', 'app')}"
+    require "#{File.join(File.expand_path(File.dirname(__FILE__)), 'app')}"
     require 'service_discovery/generation/generator'
 
     resource_schema = ServiceDiscovery::Generation::Generator.generate_grape_documentation(WorkflowServer::Config.root + "/doc/service-discovery/resources.json", /.*/, File.expand_path("public/resources.json"), Api)

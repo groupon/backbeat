@@ -228,6 +228,40 @@ describe Api::Workflow do
     end
   end
 
+  context "GET /workflows/id/status" do
+    it "returns a 404 if the workflow is not found" do
+      response = get "/workflows/1000/status"
+      response.status.should == 404
+      json_response = JSON.parse(response.body)
+      json_response.should == {"error" => "Workflow with id(1000) not found"}
+    end
+
+    it "returns the workflow status as open" do
+      response = get "/workflows/#{@wf.id}/status"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
+      json_response.should == {'status' => 'open'}
+    end
+
+    it "returns the workflow status as executing" do
+      FactoryGirl.create(:activity, workflow: @wf, status: :executing)
+      response = get "/workflows/#{@wf.id}/status"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
+      json_response.should == {'status' => 'executing'}
+    end
+
+    it "returns the workflow status as error" do
+      FactoryGirl.create(:activity, workflow: @wf, status: :executing)
+      FactoryGirl.create(:activity, workflow: @wf, status: :error)
+      response = get "/workflows/#{@wf.id}/status"
+      response.status.should == 200
+      json_response = JSON.parse(response.body)
+      json_response.should == {'status' => 'error'}
+    end
+
+  end
+
   context "GET /workflows/id/tree" do
     it "returns a tree of the workflow with valid params" do
       response = get "/workflows/#{@wf.id}/tree"

@@ -73,6 +73,19 @@ module Api
 
         result.map { |hash| hash['_id'] }
       end
+
+      def workflow_status(workflow)
+        workflow_status = workflow.status
+
+        errored = workflow.events.and(status: :error).exists?
+        if errored
+          workflow_status = :error
+        else
+          executing = workflow.events.and(status: :executing).exists?
+          workflow_status = :executing if executing
+        end
+        workflow_status
+      end
     end
 
     def self.namespace_desc(description)
@@ -259,6 +272,21 @@ module Api
       get "/:id/tree" do
         wf = find_workflow(params[:id])
         wf.tree
+      end
+
+      desc "Get the workflow status.", {
+        action_descriptor: action_description(:get_workflow_status) do |get_workflow_status|
+          get_workflow_status.parameters do |parameters|
+            parameters.string :id, description: 'the workflow id', required: true, location: 'url'
+          end
+          get_workflow_status.response do |response|
+            response.string :status, description: "the workflow status"
+          end
+        end
+      }
+      get "/:id/status" do
+        status = workflow_status(find_workflow(params[:id]))
+        {status: status}
       end
 
       desc "Get the workflow tree in a pretty print color encoded string format.", {
