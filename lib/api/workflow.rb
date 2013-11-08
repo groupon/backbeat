@@ -75,7 +75,7 @@ module Api
       end
 
       def workflow_status(workflow)
-        workflow_status = :open
+        workflow_status = workflow.status
 
         errored = workflow.events.and(status: :error).exists?
         if errored
