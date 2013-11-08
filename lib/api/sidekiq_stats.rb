@@ -8,8 +8,13 @@ module Api
     def call(env)
       if env['PATH_INFO'] == ENDPOINT
         stats = Sidekiq::Stats.new
+        history = Sidekiq::Stats::History.new(1)
         data = {
           latency: stats.queues.keys.inject({}) {|h,q| h[q] = Sidekiq::Queue.new(q).latency; h },
+          today: {
+            processed: history.processed,
+            failed: history.failed
+          },
           processed: stats.processed,
           failed: stats.failed,
           enqueued: stats.enqueued,
