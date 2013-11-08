@@ -7,12 +7,6 @@ module Reports
       mail_report(generate_body(errored_workflows)) unless errored_workflows.empty?
     end
 
-    # run is so that it can be invoked as a job by TorqueBox
-    def run
-      puts "Running Daily Report at #{Time.now}"
-      perform
-    end
-
     def run_report
       errored_workflows = Hash.new {|h,k| h[k] = []}
       WorkflowServer::Models::Event.where(:status.in => [:error, :timeout]).each do |event|
