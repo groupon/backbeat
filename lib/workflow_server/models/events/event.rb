@@ -64,9 +64,8 @@ module WorkflowServer
         unless new_status == self.status && new_status != :retrying
           status_hash = {from: self.status, to: new_status, at: Time.now.to_datetime.to_s, tid: WorkflowServer::Logger.tid }
           status_hash[:error] = error_hash(error) if error
-          self.status_history << status_hash
-          self.status = new_status
-          self.save!
+          self.push(:status_history, status_hash) # use atomic operation to update status_history
+          self.update_attributes!(status: new_status)
         end
       end
 
