@@ -20,7 +20,14 @@ def start(pidfile)
   Delayed::Worker.lifecycle.after(:perform) { |*args| WorkflowServer::Logger.tid(:clear) }
   Delayed::Worker.default_priority = 2
   Delayed::Worker.max_run_time = 24.hours
+  run_worker_forever
+end
+
+def run_worker_forever
   Delayed::Worker.new.start
+rescue Exception => err
+  Delayed::Worker.logger.error(exception: err.to_s, backtrace: err.backtrace)
+  retry
 end
 
 def stop(pidfile)
