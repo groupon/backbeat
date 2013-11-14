@@ -1,7 +1,6 @@
 environment:
   language: ruby
   language_versions:
-    - 1.9.3_p392
     - jruby-1.7.4
   packages:
     - mongodb-2.2.3
