@@ -1,0 +1,27 @@
+name: backbeat
+title: Backbeat
+description: A RESTful workflow service written in Ruby.
+sre:
+  notify: finance-engineering-alerts@groupon.com
+  dashboards:
+  - https://grapher-snc1.groupondev.com/dashboard/390
+team:
+  name: Finance Engineering
+  owner: jyanowitz
+  url: https://wiki.groupondev.com/Financial_Engineering_Team
+deployments:
+  production:
+    hosts:
+    - accounting-utility2.snc1
+  staging:
+    hosts:
+    - accounting-utility2-staging.snc1
+  uat:
+    hosts:
+    - accounting-utility2-uat.snc1
+dependencies:
+- mongo
+- sidekiq
+- resque
+- jruby
+- jboss
