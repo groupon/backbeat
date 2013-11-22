@@ -15,7 +15,11 @@ module Reports
       errored_workflows = run_report
       unless errored_workflows.empty?
         mail_report(generate_body(errored_workflows, time: Time.now - t0))
-        File.open(file, "w") { |f| f.write(errored_workflows.keys.map(&:id).to_json) }
+        id_hash = {}
+        errored_workflows.each_pair do |workflow, events|
+          id_hash[workflow.id] = events.map(&:id)
+        end
+        File.open(file, "w") { |f| f.write(id_hash.to_json) }
       else
         mail_report("No inconsistent workflows to talk about")
       end
@@ -55,11 +59,12 @@ module Reports
       # ignore workflows that have at least one event in error or timeout state or
       # the workflow is paused or
       # the event has a blocking timer underneath that will fire in the future
-      query.find_all do |event|
-        event.status != :error && event.status != :timeout &&
-        !event.workflow.paused? &&
-        event.workflow.events.where(:status.in => [:error, :timeout]).none? &&
-        event.children.type(Timer).where(status: :scheduled, mode: :blocking, :fires_at.gt => Time.now).none?
+      query.delete_if do |event|
+        event.status == :error || event.status == :timeout ||
+        (event.status == :resolved && event.parent.status == :complete) ||
+        event.workflow.paused? ||
+        event.workflow.events.where(:status.in => [:error, :timeout]).exists? ||
+        event.children.type(Timer).where(status: :scheduled, mode: :blocking, :fires_at.gt => Time.now).exists?
       end
     end
 
