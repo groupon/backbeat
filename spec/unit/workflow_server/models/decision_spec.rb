@@ -89,15 +89,15 @@ describe WorkflowServer::Models::Decision do
     context 'workflow is not paused' do
       it "calls out to workflow async client to perform activity" do
         WorkflowServer::Client.should_receive(:make_decision).with(@d1)
-        WorkflowServer::Models::Watchdog.should_receive(:start).with(@d1, :decision_deciding_time_out, 12.hours)
+        #WorkflowServer::Models::Watchdog.should_receive(:start).with(@d1, :decision_deciding_time_out, 12.hours)
         @d1.send(:send_to_client)
         @d1.status.should == :sent_to_client
       end
       context 'on error' do
         it 'dismisses the watchdog and re-raises the error' do
-          WorkflowServer::Models::Watchdog.should_receive(:start).with(@d1, :decision_deciding_time_out, 12.hours)
+          #WorkflowServer::Models::Watchdog.should_receive(:start).with(@d1, :decision_deciding_time_out, 12.hours)
           WorkflowServer::Client.stub(:make_decision).and_raise('some error')
-          WorkflowServer::Models::Watchdog.should_receive(:dismiss).with(@d1, :decision_deciding_time_out)
+          #WorkflowServer::Models::Watchdog.should_receive(:dismiss).with(@d1, :decision_deciding_time_out)
           expect {
             @d1.send(:send_to_client)
           }.to raise_error("some error")
