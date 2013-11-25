@@ -120,12 +120,13 @@ describe WorkflowServer::Models::Decision do
         options[:user] = user if child == :workflow
         child = FactoryGirl.create(child, options)
         @d1.should_receive(:continue)
-        @d1.child_completed(child)
+        @d1.child_completed(child.id)
       end
       [:flag, :signal].each do |child|
         child = FactoryGirl.create(child, parent: @d1, workflow: @wf)
-        @d1.should_not_receive(:refresh)
-        @d1.child_completed(child)
+        @d1.should_not_receive(:continue)
+        @d1.should_receive(:complete_if_done)
+        @d1.child_completed(child.id)
       end
     end
   end
@@ -246,7 +247,7 @@ describe WorkflowServer::Models::Decision do
       a4 = FactoryGirl.create(:flag, parent: @d1, workflow: @wf)
       @d1.reload
       @d1.__send__ :start_next_action
-
+      WorkflowServer::Workers::SidekiqJobWorker.drain
       a1.reload.status.should == :executing
       a2.reload.status.should == :open
       a3.reload.status.should == :open
@@ -254,6 +255,7 @@ describe WorkflowServer::Models::Decision do
 
       # simulate a1 is done
       a1.completed
+      WorkflowServer::Workers::SidekiqJobWorker.drain
       a1.reload.status.should == :complete
       a2.reload.status.should == :executing
       a3.reload.status.should == :executing

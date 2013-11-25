@@ -78,9 +78,9 @@ module WorkflowServer
         sub_activity
       end
 
-      def child_completed(child)
+      def child_completed(child_id)
         super
-
+        child = Event.find(child_id)
         if child.is_a?(Activity)
           if child.blocking?
             continue
