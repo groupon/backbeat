@@ -87,7 +87,7 @@ module WorkflowServer
         info(id: self.id, name: self.name, type: self.event_type, notification: :complete)
         #notify_of("complete")
         Watchdog.mass_dismiss(self)
-        parent.child_completed(self) if parent
+        parent.enqueue_child_completed(args: [self.id]) if parent
       end
 
       def paused
@@ -114,7 +114,7 @@ module WorkflowServer
         parent.child_timeout(self, timeout) if parent
       end
 
-      def child_completed(child)
+      def child_completed(child_id)
       end
 
       def child_paused(child)

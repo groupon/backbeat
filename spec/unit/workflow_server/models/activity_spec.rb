@@ -120,10 +120,6 @@ describe WorkflowServer::Models::Activity do
     context "no subactivities running" do
       before do
         @a1.stub(subactivities_running?: false)
-
-        WorkflowServer::Async::Job.should_receive(:enqueue)
-          .twice
-          .with({event: kind_of(WorkflowServer::Models::Decision), method: :schedule_next_decision, args: nil, max_attempts: nil})
         @activity = FactoryGirl.create(:activity, parent: FactoryGirl.create(:decision, workflow: @wf), workflow: @wf)
       end
 
@@ -135,6 +131,8 @@ describe WorkflowServer::Models::Activity do
             .with({event: kind_of(WorkflowServer::Models::Decision), method: :send_to_client, args: nil, max_attempts: 25})
           WorkflowServer::Async::Job.should_receive(:enqueue)
             .with({event: kind_of(WorkflowServer::Models::Decision), method: :schedule_next_decision, args: nil, max_attempts: nil})
+          WorkflowServer::Async::Job.should_receive(:enqueue)
+            .with({event: @activity.parent, method: :child_completed, args: [@activity.id], max_attempts: nil})
 
           @activity.completed
           @activity.reload.children.count.should == 1
@@ -270,7 +268,7 @@ describe WorkflowServer::Models::Activity do
       it "goes back into executing state" do
         @a1.update_status!(:running_sub_activity)
         @a1.should_receive(:continue)
-        @a1.child_completed(FactoryGirl.create(:sub_activity, workflow: @wf))
+        @a1.child_completed(FactoryGirl.create(:sub_activity, workflow: @wf).id)
       end
     end
     context "child was non-blocking" do

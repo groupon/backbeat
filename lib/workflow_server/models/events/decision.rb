@@ -68,8 +68,9 @@ module WorkflowServer
         end
       end
 
-      def child_completed(child)
+      def child_completed(child_id)
         super
+        child = Event.find(child_id)
         if child.blocking?
           continue
         else
