@@ -39,7 +39,7 @@ module WorkflowServer
       end
 
       def completed
-        Watchdog.dismiss(self, :timeout)
+        #Watchdog.dismiss(self, :timeout)
 
         if next_decision && next_decision != 'none'
           #only top level activities are allowed to schedule the next decision
@@ -123,7 +123,7 @@ module WorkflowServer
       end
 
       def errored(error)
-        Watchdog.dismiss(self, :timeout)
+        #Watchdog.dismiss(self, :timeout)
         if retry?
           do_retry(error)
         else
@@ -152,7 +152,7 @@ module WorkflowServer
 
       def child_resumed(child)
         unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
-          Watchdog.start(self, :timeout, time_out) if time_out > 0
+          #Watchdog.start(self, :timeout, time_out) if time_out > 0
         end
         super
       end
@@ -198,11 +198,11 @@ module WorkflowServer
           end
         end
         begin
-          Watchdog.start(self, :timeout, time_out) if time_out > 0
+          #Watchdog.start(self, :timeout, time_out) if time_out > 0
           update_status!(:executing)
           WorkflowServer::Client.perform_activity(self)
         rescue => error
-          Watchdog.dismiss(self, :timeout)
+          #Watchdog.dismiss(self, :timeout)
           raise
         end
       end

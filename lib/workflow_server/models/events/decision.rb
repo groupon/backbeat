@@ -19,7 +19,7 @@ module WorkflowServer
 
       def add_decisions(decisions = [])
         raise WorkflowServer::InvalidOperation, "Decisions can only be added to an event in the 'deciding' state" unless status == :deciding
-        Watchdog.feed(self, :decision_deciding_time_out)
+        #Watchdog.feed(self, :decision_deciding_time_out)
 
         new_decisions = decisions.map do |decision|
           new_decision(HashWithIndifferentAccess.new(decision))
@@ -97,7 +97,7 @@ module WorkflowServer
 
       def deciding
         transaction do
-          Watchdog.feed(self, :decision_deciding_time_out)
+          #Watchdog.feed(self, :decision_deciding_time_out)
           update_status!(:deciding)
           self.children.destroy_all
         end
@@ -105,7 +105,7 @@ module WorkflowServer
 
       def deciding_complete
         transaction do
-          Watchdog.dismiss(self, :decision_deciding_time_out)
+          #Watchdog.dismiss(self, :decision_deciding_time_out)
           update_status!(:executing)
           enqueue_work_on_decisions
         end
@@ -212,11 +212,11 @@ module WorkflowServer
           end
         end
         begin
-          Watchdog.start(self, :decision_deciding_time_out, 12.hours)
+          #Watchdog.start(self, :decision_deciding_time_out, 12.hours)
           update_status!(:sent_to_client)
           WorkflowServer::Client.make_decision(self)
         rescue => error
-          Watchdog.dismiss(self, :decision_deciding_time_out)
+          #Watchdog.dismiss(self, :decision_deciding_time_out)
           raise
         end
       end

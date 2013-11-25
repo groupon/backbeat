@@ -85,7 +85,7 @@ describe WorkflowServer::Models::Activity do
       it 'no-op' do
         @a1.update_attributes!(time_out: 10)
         a2 = FactoryGirl.create(:activity, mode: :non_blocking, parent: @a1, workflow: @wf)
-        WorkflowServer::Models::Watchdog.should_receive(:start).with(@a1, :timeout, 10)
+        #WorkflowServer::Models::Watchdog.should_receive(:start).with(@a1, :timeout, 10)
         @a1.child_resumed(a2)
       end
     end
@@ -109,7 +109,7 @@ describe WorkflowServer::Models::Activity do
     context 'workflow is not paused' do
       it "calls out to workflow async client to perform activity" do
         WorkflowServer::Client.should_receive(:perform_activity).with(@a1)
-        WorkflowServer::Models::Watchdog.should_receive(:start).with(@a1, :timeout, 10)
+        #WorkflowServer::Models::Watchdog.should_receive(:start).with(@a1, :timeout, 10)
         @a1.send(:send_to_client)
         @a1.status.should == :executing
       end

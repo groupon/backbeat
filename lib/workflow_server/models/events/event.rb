@@ -245,7 +245,7 @@ module WorkflowServer
               WorkflowServer::Async::Job.schedule(job, fires_at)
             end
           rescue Exception => e
-            error({ id: id, method_name: name, args: args, error: e, backtrace: e.backtrace })
+            error({ id: id, method_name: name, args: args, error: e.message, backtrace: e.backtrace })
             raise
           end
         else
