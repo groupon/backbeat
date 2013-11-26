@@ -62,10 +62,12 @@ module WorkflowServer
 
       def update_status!(new_status, error = nil)
         unless new_status == self.status && new_status != :retrying
-          status_hash = {from: self.status, to: new_status, at: Time.now.to_datetime.to_s, tid: WorkflowServer::Logger.tid }
+          status_hash = {from: self.status, to: new_status, at: Time.now.strftime('%Y-%m-%dT%H:%M:%S.%L'), tid: WorkflowServer::Logger.tid }
           status_hash[:error] = error_hash(error) if error
-          self.push(:status_history, status_hash) # use atomic operation to update status_history
-          self.update_attributes!(status: new_status)
+          query  = { :_id => self.id, status: self.status } # ensures we update it only if it is at the status we think it should be
+          setter = { '$set' => { status: new_status}, '$push' => { status_history: status_hash } }
+          result = self.class.collection.find(query).update(setter)
+          self.reload
         end
       end
 
@@ -86,13 +88,13 @@ module WorkflowServer
         update_status!(:complete)
         info(id: self.id, name: self.name, type: self.event_type, notification: :complete)
         #notify_of("complete")
-        Watchdog.mass_dismiss(self)
+        #Watchdog.mass_dismiss(self)
         parent.enqueue_child_completed(args: [self.id]) if parent
       end
 
       def paused
         update_status!(:pause)
-        Watchdog.mass_dismiss(self)
+        #Watchdog.mass_dismiss(self)
         parent.child_paused(self) if parent
       end
 
@@ -103,14 +105,14 @@ module WorkflowServer
       def errored(error)
         update_status!(:error, error)
         notify_of("error", error)
-        Watchdog.mass_dismiss(self)
+        #Watchdog.mass_dismiss(self)
         parent.child_errored(self, error) if parent
       end
 
       def timeout(timeout)
         update_status!(:timeout, timeout)
         notify_of("timeout", timeout)
-        Watchdog.mass_dismiss(self)
+        #Watchdog.mass_dismiss(self)
         parent.child_timeout(self, timeout) if parent
       end
 
@@ -119,7 +121,7 @@ module WorkflowServer
 
       def child_paused(child)
         unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
-          Watchdog.mass_dismiss(self)
+          #Watchdog.mass_dismiss(self)
           parent.child_paused(child) if parent
         end
       end
@@ -132,14 +134,14 @@ module WorkflowServer
 
       def child_errored(child, error)
         unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
-          Watchdog.mass_dismiss(self)
+          #Watchdog.mass_dismiss(self)
           parent.child_errored(child, error) if parent
         end
       end
 
       def child_timeout(child, timeout_name)
         unless child.respond_to?(:fire_and_forget?) && child.fire_and_forget?
-          Watchdog.mass_dismiss(self)
+          #Watchdog.mass_dismiss(self)
           parent.child_timeout(child, timeout_name) if parent
         end
       end
@@ -199,7 +201,7 @@ module WorkflowServer
 
       def cleanup
         destroy_jobs
-        Watchdog.mass_dismiss(self)
+        #Watchdog.mass_dismiss(self)
       end
 
       def destroy_jobs

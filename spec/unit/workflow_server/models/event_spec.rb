@@ -9,8 +9,8 @@ describe WorkflowServer::Models::Event do
   context '#paused' do
     it 'updates status, dismisses watchdogs and notifies parent' do
       event.update_attributes!(parent: parent)
-      WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(event)
-      event.parent.should_receive(:child_paused).with(event)
+      #WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(event)
+      WorkflowServer::Models::Decision.any_instance.should_receive(:child_paused).with(event)
       event.paused
       event.status.should == :pause
     end
@@ -31,7 +31,7 @@ describe WorkflowServer::Models::Event do
     end
     context 'child is not fire and forget' do
       it 'dismisses watchdogs and notifies parent' do
-        WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(@parent)
+        #WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(@parent)
         parent.should_receive(:child_paused).with(event)
         @parent.child_paused(event)
       end
