@@ -234,4 +234,25 @@ describe WorkflowServer::Models::Event do
       end
     end
   end
+
+  context "#update_status" do
+    it "updates the status and status-history" do
+      event.update_status!(:executing)
+      event.status.should == :executing
+      event.status_history.should == [{"from"=>:open,
+            "to"=>:executing,
+            "at"=>Time.now.strftime('%Y-%m-%dT%H:%M:%S.%L'),
+            "tid"=>nil}]
+    end
+
+    context "stale object" do
+      it "skips updating the status if the current object is stale" do
+        event.update_attributes!(status: :close)
+        event.status = :open # mock as if we have a stale object
+        event.update_status!(:executing)
+        event.status.should_not == :executing
+        event.status_history.should == []
+      end
+    end
+  end
 end
