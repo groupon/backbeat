@@ -10,7 +10,7 @@ gem 'httparty'
 # Database
 gem 'mongoid', :git => 'http://github.com/mongoid/mongoid.git', :branch => '3.1.0-stable'
 gem 'mongoid-locker', :git => 'git://github.com/mooremo/mongoid-locker.git'
-gem 'delayed_job_mongoid'
+gem 'delayed_job_mongoid', git: 'http://github.com/nchainani/delayed_job_mongoid.git', branch: 'replace_find_and_modify'
 gem 'mongoid-indifferent-access'
 gem 'uuidtools'
 
