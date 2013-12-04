@@ -8,9 +8,10 @@ describe WorkflowServer::Models::Event do
 
   context '#paused' do
     it 'updates status, dismisses watchdogs and notifies parent' do
+      event.stub(parent: parent)
       event.update_attributes!(parent: parent)
       #WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(event)
-      WorkflowServer::Models::Decision.any_instance.should_receive(:child_paused).with(event)
+      event.parent.should_receive(:child_paused).with(event)
       event.paused
       event.status.should == :pause
     end
