@@ -32,6 +32,13 @@ end
 mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, 'config', 'mongoid.yml'))
 Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 
+# set default priority to 2, since this is what we do in the delayed job worker.
+# We have a mix of priorities in mongo right now with http and sidekiq workers
+# creating jobs with priority 0 and delayed job worker creating jobs with priorty 2
+# this will ensure all jobs get priority 2 and we will wait for the remaining 2.5 million
+# jobs with priority 0 to slowly phase out. (** Lower numbers have higher priority **)
+Delayed::Worker.default_priority = 2
+
 puts "********** environment is #{WorkflowServer::Config.environment}"
 
 ############################################## MONKEY-PATCH ################################################
