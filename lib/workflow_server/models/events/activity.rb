@@ -118,17 +118,18 @@ module WorkflowServer
           update_attributes!(result: args[:result], next_decision: verify_and_get_next_decision(args[:next_decision]), _client_done_with_activity: true)
           enqueue_complete_if_done
         when :errored
-          errored(args[:error])
+          enqueue_errored(args: [args[:error]])
         end
       end
 
       def errored(error)
         #Watchdog.dismiss(self, :timeout)
         if retry?
+          update_status!(:failed)
           do_retry(error)
         else
-          super
           handle_error(error)
+          super
         end
       end
 
@@ -164,13 +165,12 @@ module WorkflowServer
       end
 
       def do_retry(error)
-        update_status!(:failed, error)
+        update_status!(:retrying)
         if retry_interval > 0
           enqueue_start(max_attempts: 5, fires_at: retry_interval.from_now)
         else
           start
         end
-        update_status!(:retrying)
       end
 
       def create_sub_activity!(options = {})
