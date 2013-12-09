@@ -8,8 +8,9 @@ describe WorkflowServer::Models::Event do
 
   context '#paused' do
     it 'updates status, dismisses watchdogs and notifies parent' do
+      event.stub(parent: parent)
       event.update_attributes!(parent: parent)
-      WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(event)
+      #WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(event)
       event.parent.should_receive(:child_paused).with(event)
       event.paused
       event.status.should == :pause
@@ -31,7 +32,7 @@ describe WorkflowServer::Models::Event do
     end
     context 'child is not fire and forget' do
       it 'dismisses watchdogs and notifies parent' do
-        WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(@parent)
+        #WorkflowServer::Models::Watchdog.should_receive(:mass_dismiss).with(@parent)
         parent.should_receive(:child_paused).with(event)
         @parent.child_paused(event)
       end
@@ -231,6 +232,27 @@ describe WorkflowServer::Models::Event do
         workflow.reload
         workflow._event_sequence.should == 2
         workflow.sequence.should == 1
+      end
+    end
+  end
+
+  context "#update_status" do
+    it "updates the status and status-history" do
+      event.update_status!(:executing)
+      event.status.should == :executing
+      event.status_history.should == [{"from"=>:open,
+            "to"=>:executing,
+            "at"=>Time.now.strftime('%Y-%m-%dT%H:%M:%S.%L'),
+            "tid"=>nil}]
+    end
+
+    context "stale object" do
+      it "skips updating the status if the current object is stale" do
+        event.update_attributes!(status: :close)
+        event.status = :open # mock as if we have a stale object
+        event.update_status!(:executing)
+        event.status.should_not == :executing
+        event.status_history.should == []
       end
     end
   end
