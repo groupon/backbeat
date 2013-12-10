@@ -114,6 +114,7 @@ describe Api::Workflow do
           header "Content-Type", "application/json"
           response = put "/workflows/#{wf.id}/events/#{activity.id}/status/errored", {args: {error: {a: 1, b: 2}}}.to_json
           response.status.should == 200
+          WorkflowServer::Workers::SidekiqJobWorker.drain
           activity.reload
           activity.status.should == :error
           activity.status_history.last["error"].should == {"a"=>1, "b"=>2}

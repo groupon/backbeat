@@ -61,7 +61,7 @@ module WorkflowServer
       end
 
       def update_status!(new_status, error = nil)
-        unless new_status == self.status && new_status != :retrying
+        if new_status != self.status
           status_hash = {from: self.status, to: new_status, at: Time.now.strftime('%Y-%m-%dT%H:%M:%S.%L'), tid: WorkflowServer::Logger.tid }
           status_hash[:error] = error_hash(error) if error
           query  = { :_id => self.id, status: self.status } # ensures we update it only if it is at the status we think it should be
