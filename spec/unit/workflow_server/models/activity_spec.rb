@@ -391,7 +391,7 @@ describe WorkflowServer::Models::Activity do
 
       it "calls errored with the error argument" do
         @a1.update_status!(:executing)
-        @a1.should_receive(:errored).with({message: 100, backtrace: 200})
+        @a1.should_receive(:enqueue_errored).with(args: [{message: 100, backtrace: 200}])
         @a1.change_status(:errored, {error: {message: 100, backtrace: 200}})
       end
     end
