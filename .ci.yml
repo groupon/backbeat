@@ -7,6 +7,7 @@ environment:
     - java-1.7.0_05
     - memcached-1.4.5
     - mysql-5.1.56_percona_server
+    - ruby-1.9.3_p194
   vars:
     PATH: /packages/encap/jruby-1.7.4/lib/jruby/bin:$PATH
     CORE: 8
@@ -20,5 +21,5 @@ build:
   run:
     - jruby -S bundle exec rspec spec
 <% if( DOTCI_BRANCH =~ /deploy/ ) { %>
-  after: export GEM_HOME=/tmp; gem install --no-ri --no-rdoc nokogiri jiraSOAP json google-api-client && ruby /home/builduser/bin/postbuild.rb --deploybot
+  after: export GEM_HOME=/tmp; which ruby; which gem; ruby --version; gem install --no-ri --no-rdoc nokogiri jiraSOAP json google-api-client && ruby /home/builduser/bin/postbuild.rb --deploybot
 <% } %>
