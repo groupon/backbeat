@@ -171,7 +171,7 @@ describe Api::Workflow do
       response = get "/workflows/#{@wf.id}"
       response.status.should == 200
       json_response = JSON.parse(response.body)
-      json_response.should == {"clientData" => {}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "decider"=>"PaymentDecider", "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "status"=>"open", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}, "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>nil, "workflowType"=>"WFType", "id"=>@wf.id, "type"=>"workflow"}
+      json_response.should == {"clientData" => {}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "decider"=>"PaymentDecider", "mode"=>"blocking", "name"=>"WFType", "parentId"=>nil, "status"=>"open", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}, "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>nil, "workflowType"=>"WFType", "id"=>@wf.id, "type"=>"workflow", "clientMetadata" => {}}
       json_response['id'].should == @wf.id.to_s
     end
 
@@ -196,8 +196,8 @@ describe Api::Workflow do
       response = get "/workflows/#{@wf.id}/events"
       response.status.should == 200
       json_response = JSON.parse(response.body)
-      json_response.should == [{"clientData" => {}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>@wf.id, "id"=>@d1.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}},
-                               {"clientData" => {}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>@wf.id, "id"=>@d2.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}]
+      json_response.should == [{"clientData" => {}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>@wf.id, "id"=>@d1.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}, "clientMetadata" => {}},
+                               {"clientData" => {}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>@wf.id, "id"=>@d2.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}, "clientMetadata" => {}}]
       json_response.count.should == 2
       json_response.map {|obj| obj["id"] }.should == [@d1, @d2].map(&:id).map(&:to_s)
     end
@@ -207,7 +207,7 @@ describe Api::Workflow do
       response = get "/workflows/#{@wf.id}/events?status=something_unknown"
       response.status.should == 200
       json_response = JSON.parse(response.body)
-      json_response.should == [{"clientData" => {}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "name"=>"WFDecision", "parentId"=>nil, "status"=>"something_unknown", "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>@wf.id, "id"=>@d1.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}]
+      json_response.should == [{"clientData" => {}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "name"=>"WFDecision", "parentId"=>nil, "status"=>"something_unknown", "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>@wf.id, "id"=>@d1.id, "type"=>"decision", "decider"=>"PaymentDecider", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}, "clientMetadata" => {}}]
       json_response.count.should == 1
       json_response.map {|obj| obj["id"] }.should == [@d1].map(&:id).map(&:to_s)
     end
