@@ -30,7 +30,7 @@ describe Api::Workflow do
         response = get uri(template, @d1)
         response.status.should == 200
         json_response = JSON.parse(response.body)
-        json_response.should == {"clientData"=>{}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "decider" => "PaymentDecider", "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>@d1.workflow.id, "id"=>@d1.id, "type"=>"decision", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}}
+        json_response.should == {"clientData"=>{}, "createdAt"=>FORMAT_TIME.call(Time.now.utc), "decider" => "PaymentDecider", "name"=>"WFDecision", "parentId"=>nil, "status"=>"open", "updatedAt"=>FORMAT_TIME.call(Time.now.utc), "workflowId"=>@d1.workflow.id, "id"=>@d1.id, "type"=>"decision", "subject"=>{"subjectKlass"=>"PaymentTerm", "subjectId"=>"100"}, "clientMetadata" => {}}
         json_response['id'].should == @d1.id.to_s
       end
 
