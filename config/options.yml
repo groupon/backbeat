@@ -25,6 +25,6 @@ production:
   log_level: INFO
 
 squash:
-  api_key:        '9af7f0de-ddb0-4db3-9285-6b93d1dcb743'
-  api_host:       'https://squash.groupondev.com'
+  api_key:        'cb3078c0-ef99-4ec2-8bfe-2716226a4a7c'
+  api_host:       'https://fedsquash.groupondev.com'
   revision_file:  'REVISION'
