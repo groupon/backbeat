@@ -64,10 +64,8 @@ module WorkflowServer
         if new_status != self.status
           status_hash = {from: self.status, to: new_status, at: Time.now.strftime('%Y-%m-%dT%H:%M:%S.%L'), tid: WorkflowServer::Logger.tid }
           status_hash[:error] = error_hash(error) if error
-          query  = { :_id => self.id, status: self.status } # ensures we update it only if it is at the status we think it should be
-          setter = { '$set' => { status: new_status}, '$push' => { status_history: status_hash } }
-          result = self.class.collection.find(query).update(setter)
-          self.reload
+          self.push(:status_history, status_hash) # use atomic operation to update status_history
+          self.update_attributes!(status: new_status)
         end
       end
 
