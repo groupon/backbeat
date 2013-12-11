@@ -21,5 +21,5 @@ build:
   run:
     - jruby -S bundle exec rspec spec
 <% if( DOTCI_BRANCH =~ /deploy/ ) { %>
-  after: export GEM_HOME=/tmp; which ruby; which gem; ruby --version; gem install --no-ri --no-rdoc nokogiri jiraSOAP json google-api-client && ruby /home/builduser/bin/postbuild.rb --deploybot
+  after: export GEM_HOME=/tmp; echo workspace is ENV['WORKSPACE']; ls -l ENV['WORKSPACE']; which ruby; which gem; ruby --version; gem install --no-ri --no-rdoc nokogiri jiraSOAP json google-api-client && ruby /home/builduser/bin/postbuild.rb --deploybot
 <% } %>
