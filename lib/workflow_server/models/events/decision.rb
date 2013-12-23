@@ -84,7 +84,7 @@ module WorkflowServer
 
       def serializable_hash(options = {})
         hash = super
-        hash.merge!(decider: workflow.decider, subject: workflow.subject)
+        hash.merge!(decider: workflow.decider, subject: workflow.subject, workflow_type: workflow.workflow_type)
         Marshal.load(Marshal.dump(hash))
       end
 
