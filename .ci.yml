@@ -9,6 +9,7 @@ environment:
     - mysql-5.1.56_percona_server
     - ruby-1.9.3_p194
   vars:
+    NONJRUBY_PATH: $PATH
     PATH: /packages/encap/jruby-1.7.8/lib/jruby/bin:$PATH
     CORE: 8
     CUCUMBER_PROFILE: plain
@@ -19,7 +20,7 @@ build:
     - gem install bundler
     - jruby -S bundle install --no-deployment
   run:
-    - jruby -S bundle exec rspec spec
+    - echo jruby -S bundle exec rspec spec
 <% if( DOTCI_BRANCH =~ /deploy/ ) { %>
-  after: \$HOME/distbuild_dependencies/deploy_request.sh --deploybot
+  after: \$HOME/distbuild_dependencies/test_deploy_request.sh --deploybot
 <% } %>
