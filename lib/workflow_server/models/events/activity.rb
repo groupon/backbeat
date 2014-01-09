@@ -27,8 +27,8 @@ module WorkflowServer
 
       def start
         super
-        enqueue_send_to_client(max_attempts: 25)
         update_status!(:executing)
+        enqueue_send_to_client(max_attempts: 25, fires_at: Time.now + 1)
       end
       alias_method :continue, :start
 

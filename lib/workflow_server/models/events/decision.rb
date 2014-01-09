@@ -6,8 +6,8 @@ module WorkflowServer
 
       def start
         super
-        enqueue_send_to_client(max_attempts: 25)
         update_status!(:sent_to_client)
+        enqueue_send_to_client(max_attempts: 25, fires_at: Time.now + 1)
       end
 
       def restart

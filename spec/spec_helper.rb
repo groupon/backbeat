@@ -101,7 +101,7 @@ def run_async_jobs
 end
 
 RSpec.configuration.before(:each) do
-  Timecop.freeze(DateTime.now)
+  Timecop.freeze
   response = double('response', code: 200)
   WorkflowServer::Client.stub(post: response)
 end
