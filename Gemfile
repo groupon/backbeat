@@ -42,7 +42,6 @@ group :development do
   gem 'rdoc', '~> 3.4'
 
   platforms :jruby do
-    gem 'torquebox-console'
     gem 'torquebox-capistrano-support'
   end
 end
