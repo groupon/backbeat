@@ -19,9 +19,9 @@ module Reports
         errored_workflows.each_pair do |workflow, events|
           id_hash[workflow.id] = events.map(&:id)
         end
-        File.open(file, "w") { |f| f.write(id_hash.to_json) }
+        File.open(file, 'w') { |f| f.write(id_hash.to_json) }
       else
-        mail_report("No inconsistent workflows to talk about")
+        mail_report('No inconsistent workflows to talk about')
       end
     end
 
@@ -30,7 +30,7 @@ module Reports
       COLLECTOR.each { |collector| events << ignore_errors(send(collector)) }
       events.flatten!
       events.compact!
-      events.group_by(&:workflow)
+      events.group_by(&:workflow).select {|workflow, events| workflow.status == :open}
     end
 
     private
@@ -79,7 +79,7 @@ module Reports
 
     def generate_body(report_results, options = {})
       body = "Report was run at: #{Time.now}\n"
-      body += "#{report_results.count} workflows contain errors.\n"
+      body += "#{report_results.count} workflows contain inconsistencies.\n"
       body += "Total time taken #{options[:time]} seconds\n" if options[:time]
       body += "The workflow ids are stored in #{file}\n"
       body += "--------------------------------------------------------------------------------"
