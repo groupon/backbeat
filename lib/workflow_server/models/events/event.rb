@@ -237,10 +237,10 @@ module WorkflowServer
             max_attempts = options[:max_attempts]
             method_args = options[:args]
             now_time = Time.now
-            fires_at = options[:fires_at] || now_time
+            fires_at = (options[:fires_at] || now_time).to_time
             job = {event: self, method: method_name, args: method_args, max_attempts: max_attempts}
-            if fires_at.to_time <= now_time
-              WorkflowServer::Async::Job.enqueue(job)
+            if fires_at <= now_time || options[:processor] == :sidekiq
+              WorkflowServer::Async::Job.enqueue(job, fires_at)
             else
               WorkflowServer::Async::Job.schedule(job, fires_at)
             end
