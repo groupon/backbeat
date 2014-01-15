@@ -42,13 +42,33 @@ describe WorkflowServer::Async::Job do
       end
     end
 
-    it 'enqueues to Sidekiq' do
-      event = double('event', id: '12')
-      job_data = {event: event, method: :a_method_name, args:[:arg1, :arg2], max_attempts: 24}
+    context '#enqueue' do
+      it 'enqueues to Sidekiq' do
+        event = double('event', id: '12')
+        job_data = {event: event, method: :a_method_name, args:[:arg1, :arg2], max_attempts: 24}
 
-      WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_async).with(data: ['12', :a_method_name, [:arg1, :arg2], 24])
+        WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_async).with(data: ['12', :a_method_name, [:arg1, :arg2], 24])
 
-      WorkflowServer::Async::Job.enqueue(job_data)
+        WorkflowServer::Async::Job.enqueue(job_data)
+      end
+
+      it 'enqueues to Sidekiq immediately if run_at is before now' do
+        event = double('event', id: '12')
+        job_data = {event: event, method: :a_method_name, args:[:arg1, :arg2], max_attempts: 24}
+
+        WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_async).with(data: ['12', :a_method_name, [:arg1, :arg2], 24])
+
+        WorkflowServer::Async::Job.enqueue(job_data, Time.now - 30)
+      end
+
+      it 'enqueues to Sidekiq with a delay if run_at is after now' do
+        event = double('event', id: '12')
+        job_data = {event: event, method: :a_method_name, args:[:arg1, :arg2], max_attempts: 24}
+
+        WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_in).with(30, data: ['12', :a_method_name, [:arg1, :arg2], 24])
+
+        WorkflowServer::Async::Job.enqueue(job_data, Time.now + 30)
+      end
     end
   end
 

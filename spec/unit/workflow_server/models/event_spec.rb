@@ -113,26 +113,59 @@ describe WorkflowServer::Models::Event do
   end
 
   context '#method_missing_with_enqueue' do
-    it "send to sidekiq if run time is nil" do
+    it 'send to sidekiq if fires_at is nil' do
       WorkflowServer::Async::Job.should_receive(:enqueue).with({
         event: subject,
         method: :testing_method_missing,
         args: [:arg1, :arg2],
         max_attempts: anything()
-      })
+      }, Time.now)
 
       subject.enqueue_testing_method_missing(args: [:arg1, :arg2])
     end
 
-    it "sends to sidekiq if run time is now" do
+    it 'sends to sidekiq if fires_at is now' do
       WorkflowServer::Async::Job.should_receive(:enqueue).with({
         event: subject,
         method: :testing_method_missing,
         args: [:arg1, :arg2],
         max_attempts: anything()
-      })
+      }, Time.now)
 
       subject.enqueue_testing_method_missing(args: [:arg1, :arg2], fires_at: Time.now)
+    end
+
+    it 'sends to sidekiq if fires_at is before now' do
+      WorkflowServer::Async::Job.should_receive(:enqueue).with({
+        event: subject,
+        method: :testing_method_missing,
+        args: [:arg1, :arg2],
+        max_attempts: anything()
+      }, Time.now - 30)
+
+      subject.enqueue_testing_method_missing(args: [:arg1, :arg2], fires_at: Time.now - 30)
+    end
+
+    it 'sends to sidekiq if processor is :sidekiq' do
+      WorkflowServer::Async::Job.should_receive(:enqueue).with({
+        event: subject,
+        method: :testing_method_missing,
+        args: [:arg1, :arg2],
+        max_attempts: anything()
+      }, Time.now)
+
+      subject.enqueue_testing_method_missing(args: [:arg1, :arg2], processor: :sidekiq)
+    end
+
+    it 'sends to DelayedJob if processor is not :sidekiq and run time is after now' do
+      WorkflowServer::Async::Job.should_receive(:schedule).with({
+        event: subject,
+        method: :testing_method_missing,
+        args: [:arg1, :arg2],
+        max_attempts: anything()
+      }, Time.now + 30)
+
+      subject.enqueue_testing_method_missing(args: [:arg1, :arg2], fires_at: Time.now + 30)
     end
 
     it 'schedules a job if the method name begins with enqueue_' do

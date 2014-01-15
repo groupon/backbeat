@@ -9,8 +9,15 @@ module WorkflowServer
     class Job < JobStruct
       extend WorkflowServer::Logger
 
-      def self.enqueue(job_data)
-        WorkflowServer::Workers::SidekiqJobWorker.perform_async(data: [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]])
+      def self.enqueue(job_data, run_at = Time.now)
+        delay = run_at - Time.now
+        data = [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]]
+
+        if delay <= 0.0
+          WorkflowServer::Workers::SidekiqJobWorker.perform_async(data: data)
+        else
+          WorkflowServer::Workers::SidekiqJobWorker.perform_in(delay, data: data)
+        end
       end
 
       def self.perform(job_data)
