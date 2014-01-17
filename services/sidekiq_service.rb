@@ -27,6 +27,7 @@ module Services
       Sidekiq.configure_server do |config|
         # We set the namespace to resque so that we can use all of the resque monitoring tools to monitor sidekiq too
         config.redis = { namespace: 'fed_sidekiq', url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
+        config.poll_interval = 5
         config.server_middleware do |chain|
           chain.add WorkflowServer::Middlewares::TransactionId
           chain.add Kiqstand::Middleware
