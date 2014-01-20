@@ -30,7 +30,7 @@ module Reports
       COLLECTOR.each { |collector| events << ignore_errors(send(collector)) }
       events.flatten!
       events.compact!
-      events.group_by(&:workflow).select {|workflow, events| (workflow.status != :complete || workflow.status != :pause)}
+      events.group_by(&:workflow).select {|workflow, events| (workflow.status != :complete && workflow.status != :pause)}
     end
 
     private
