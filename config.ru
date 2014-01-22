@@ -10,6 +10,8 @@ use Api::Health
 
 use Api::SidekiqStats
 
+use Api::DelayedJobStats
+
 use Rack::Lint if WorkflowServer::Config.environment == :test
 
 use Api::CamelCase
