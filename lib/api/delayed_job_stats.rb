@@ -21,7 +21,7 @@ module Api
 
         data = { cutoff_time:   run_at_threshold,
                  job_priority:  priority,
-                 jobs_past_due: Delayed::Job.where(locked_by: nil, priority: Delayed::Worker.default_priority, :run_at.lte => run_at_threshold, failed_at: nil).count }
+                 jobs_past_due: Delayed::Job.where(locked_by: nil, priority: priority, :run_at.lte => run_at_threshold, failed_at: nil).count }
 
         return [ 200, {"Content-Type" => "application/json"}, [ data.to_json ] ]
       end
