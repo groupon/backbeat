@@ -174,12 +174,23 @@ describe WorkflowServer::Models::Event do
     end
 
     context 'on error' do
-      it 'logs the error and backtrace' do
-        WorkflowServer::Async::Job.stub(:schedule).and_raise('some error')
-        event.should_receive(:error).with({ id: event.id, method_name: :enqueue_test, args: [{max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes}], error: anything, backtrace: anything })
-        expect {
-          event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes})
-        }.to raise_error('some error')
+      context 'Redis::CannotConnectError' do
+        it 'schedules the job to try again in 60 seconds' do
+          WorkflowServer::Async::Job.stub(:enqueue).and_raise(Redis::CannotConnectError.new('o shit redis is not working'))
+
+          WorkflowServer::Async::Job.should_receive(:schedule).with({ event: event, method: :test, args: [1, 2, 3, 4], max_attempts: 20}, Time.now + 60)
+
+          event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4]})
+        end
+      end
+      context 'Exception' do
+        it 'logs the error and backtrace' do
+          WorkflowServer::Async::Job.stub(:schedule).and_raise('some error')
+          event.should_receive(:error).with({ id: event.id, method_name: :enqueue_test, args: [{max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes}], error: anything, backtrace: anything })
+          expect {
+            event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now + 10.minutes})
+          }.to raise_error('some error')
+        end
       end
     end
 
