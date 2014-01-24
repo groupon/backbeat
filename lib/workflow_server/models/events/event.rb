@@ -244,7 +244,7 @@ module WorkflowServer
             else
               WorkflowServer::Async::Job.schedule(job, fires_at)
             end
-          rescue Redis::CannotConnectError => e
+          rescue Redis::BaseConnectionError => e
               WorkflowServer::Async::Job.schedule(job, fires_at  + 60)
           rescue Exception => e
             error({ id: id, method_name: name, args: args, error: e.message, backtrace: e.backtrace })
