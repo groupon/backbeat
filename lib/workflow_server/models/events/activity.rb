@@ -102,7 +102,8 @@ module WorkflowServer
 
 
       ALLOWED_TRANSITIONS_TO_FROM = { completed: { executing: true, timeout: true },
-                                      errored:   { executing: true, timeout: true } }
+                                      errored:   { executing: true, timeout: true },
+                                      resolved:  Hash.new(true) }
 
       def change_status(new_status, args = {})
         new_status = new_status.to_sym
@@ -119,6 +120,8 @@ module WorkflowServer
           enqueue_complete_if_done
         when :errored
           enqueue_errored(args: [args[:error]])
+        when :resolved
+          enqueue_resolved(args)
         end
       end
 
@@ -183,7 +186,7 @@ module WorkflowServer
       end
 
       def children_running?
-        children.where(:mode.ne => :fire_and_forget, :status.ne => :complete).any?
+        children.where(:mode.ne => :fire_and_forget, :status.nin => [:complete, :resolved]).any?
       end
 
       def subactivity_handled?(name, client_data)

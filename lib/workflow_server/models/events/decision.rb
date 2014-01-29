@@ -40,6 +40,8 @@ module WorkflowServer
       def change_status(new_status, args = {})
         return if status == new_status.try(:to_sym)
         case new_status.to_sym
+        when :resolved
+          enqueue_resolved
         when :deciding
           raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:sent_to_client, :timeout].include?(status)
           deciding
@@ -194,8 +196,8 @@ module WorkflowServer
 
       def all_children_done?
         children.where(status: :open).none? &&
-        children.not_in(_type: Timer).where({:mode.ne => :fire_and_forget, :status.ne => :complete}).none? &&
-        children.in(_type: Timer).where({mode: :blocking, :status.ne => :complete}).none?
+        children.not_in(_type: Timer).where({:mode.ne => :fire_and_forget, :status.nin => [:complete, :resolved]}).none? &&
+        children.in(_type: Timer).where({mode: :blocking, :status.nin => [:complete, :resolved]}).none?
       end
 
       def schedule_next_decision

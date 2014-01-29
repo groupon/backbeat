@@ -90,6 +90,18 @@ module WorkflowServer
         parent.enqueue_child_completed(args: [self.id]) if parent
       end
 
+      def resolved(options = {})
+        update_status!(:resolved, options[:reason])
+        info(id: self.id, name: self.name, type: self.event_type, notification: :resolve)
+        #notify_of("resolve")
+        #Watchdog.mass_dismiss(self)
+        if options[:continue]
+          parent.enqueue_child_completed(args: [self.id]) if parent
+        elsif options[:complete_workflow]
+          workflow.update_status!(:complete)
+        end
+      end
+
       def paused
         update_status!(:pause)
         #Watchdog.mass_dismiss(self)

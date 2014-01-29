@@ -6,6 +6,35 @@ describe WorkflowServer::Models::Event do
   let(:event) { FactoryGirl.create(:event, workflow: workflow, client_data: {data: 123}, client_metadata: {git_sha: '12de3sdg'}) }
   let(:parent) { FactoryGirl.create(:decision, workflow: workflow) }
 
+  context '#resolved' do
+    it 'updates the status to resolved' do
+      event.resolved
+
+      event.status.should == :resolved
+    end
+
+    it 'sets the reason if passed' do
+      reason = 'Becasue Matt said so!'
+      event.resolved(reason: reason)
+
+      event.status_history.first[:error][:message].should == reason
+    end
+
+    it 'continues on if continue option is set' do
+      event.stub(parent: parent)
+
+      parent.should_receive(:enqueue_child_completed).with(args: [event.id])
+
+      event.resolved(continue: true)
+    end
+
+    it 'completes the workflow if the complete_workflow option is set' do
+      event.workflow.should_receive(:update_status!).with(:complete)
+
+      event.resolved(complete_workflow: true)
+    end
+  end
+
   context '#paused' do
     it 'updates status, dismisses watchdogs and notifies parent' do
       event.stub(parent: parent)
