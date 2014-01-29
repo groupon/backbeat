@@ -1,6 +1,6 @@
 require 'workflow_server/logger'
 require 'workflow_server/errors'
-require 'sidekiq'
+require 'workflow_server/workers'
 
 module WorkflowServer
   module Async
@@ -14,21 +14,9 @@ module WorkflowServer
         data = [job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]]
 
         if delay <= 0.0
-          WorkflowServer::Workers::SidekiqJobWorker.perform_async(data: data)
+          WorkflowServer::Workers::SidekiqJobWorker.perform_async(*data)
         else
-          WorkflowServer::Workers::SidekiqJobWorker.perform_in(delay, data: data)
-        end
-      end
-
-      def self.perform(job_data)
-        job = new(*(job_data['data']))
-        begin
-          job.perform
-        rescue Exception => error
-          # if the attempt to use Sidekiq to perform this job fails, we will mimic delayed job
-          # behavior and enqueue a reattempt in 5 seconds. DJ implements backoff semantics on future
-          # retries. We end up doing 1 extra attempt in this flow, but we don't care
-          schedule({event_id: job.event_id, method: job.method_to_call, args: job.args, max_attempts: job.max_attempts}, Time.now + 10)
+          WorkflowServer::Workers::SidekiqJobWorker.perform_in(delay, *data)
         end
       end
 
@@ -42,17 +30,7 @@ module WorkflowServer
       end
 
       def perform
-        t0 = Time.now
-        self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_started")
-        event.__send__(method_to_call, *args)
-        self.class.info(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_succeeded", duration: Time.now - t0)
-      rescue WorkflowServer::EventNotFound, Backbeat::TransientError => error
-        self.class.info(source: self.class.to_s, id: event_id, name: event.try(:name) || "unknown", message: "#{method_to_call}:#{error.message.to_s}", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
-        raise
-      rescue Exception => error
-        self.class.error(source: self.class.to_s, id: event.id, name: event.name, message: "#{method_to_call}_errored", error: error.to_s, backtrace: error.backtrace, duration: Time.now - t0)
-        Squash::Ruby.notify error
-        raise
+        WorkflowServer::Workers::SidekiqJobWorker.perform_async(event_id, method_to_call, args, max_attempts)
       end
 
       def success(job, *args)
