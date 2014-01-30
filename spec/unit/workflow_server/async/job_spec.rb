@@ -13,62 +13,32 @@ describe WorkflowServer::Async::Job do
     end
   end
 
-  context 'Job.perform' do
-    it 'invokes perform on a new instance' do
-      args = ['12', :a_method_name, [:arg1, :arg2], 24]
-      job  = double('job')
+  context '#enqueue' do
+    it 'enqueues to Sidekiq' do
+      event = double('event', id: '12')
+      job_data = {event: event, method: :a_method_name, args:[:arg1, :arg2], max_attempts: 24}
 
-      WorkflowServer::Async::Job.should_receive(:new).with(*args).and_return(job)
+      WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_async).with('12', :a_method_name, [:arg1, :arg2], 24)
 
-      job.should_receive(:perform)
-
-      WorkflowServer::Async::Job.perform('data' => args)
+      WorkflowServer::Async::Job.enqueue(job_data)
     end
 
-    it 'schedules a delayed job on exception' do
-      Timecop.freeze do
-        args = ['12', :a_method_name, [:arg1, :arg2], 24]
-        event = double('event')
+    it 'enqueues to Sidekiq immediately if run_at is before now' do
+      event = double('event', id: '12')
+      job_data = {event: event, method: :a_method_name, args:[:arg1, :arg2], max_attempts: 24}
 
-        WorkflowServer::Async::Job.any_instance.should_receive(:perform).and_raise('Something')
+      WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_async).with('12', :a_method_name, [:arg1, :arg2], 24)
 
-        WorkflowServer::Async::Job.should_receive(:schedule).with({ event_id: '12',
-                                                                    method: :a_method_name,
-                                                                    args: [:arg1, :arg2],
-                                                                    max_attempts: 24},
-                                                                    Time.now + 10)
-
-        WorkflowServer::Async::Job.perform('data' => args)
-      end
+      WorkflowServer::Async::Job.enqueue(job_data, Time.now - 30)
     end
 
-    context '#enqueue' do
-      it 'enqueues to Sidekiq' do
-        event = double('event', id: '12')
-        job_data = {event: event, method: :a_method_name, args:[:arg1, :arg2], max_attempts: 24}
+    it 'enqueues to Sidekiq with a delay if run_at is after now' do
+      event = double('event', id: '12')
+      job_data = {event: event, method: :a_method_name, args:[:arg1, :arg2], max_attempts: 24}
 
-        WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_async).with(data: ['12', :a_method_name, [:arg1, :arg2], 24])
+      WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_in).with(30, '12', :a_method_name, [:arg1, :arg2], 24)
 
-        WorkflowServer::Async::Job.enqueue(job_data)
-      end
-
-      it 'enqueues to Sidekiq immediately if run_at is before now' do
-        event = double('event', id: '12')
-        job_data = {event: event, method: :a_method_name, args:[:arg1, :arg2], max_attempts: 24}
-
-        WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_async).with(data: ['12', :a_method_name, [:arg1, :arg2], 24])
-
-        WorkflowServer::Async::Job.enqueue(job_data, Time.now - 30)
-      end
-
-      it 'enqueues to Sidekiq with a delay if run_at is after now' do
-        event = double('event', id: '12')
-        job_data = {event: event, method: :a_method_name, args:[:arg1, :arg2], max_attempts: 24}
-
-        WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_in).with(30, data: ['12', :a_method_name, [:arg1, :arg2], 24])
-
-        WorkflowServer::Async::Job.enqueue(job_data, Time.now + 30)
-      end
+      WorkflowServer::Async::Job.enqueue(job_data, Time.now + 30)
     end
   end
 
@@ -79,44 +49,9 @@ describe WorkflowServer::Async::Job do
       WorkflowServer::Models::Event.stub(find: @dec)
     end
 
-    it 'logs start and succeeded messages' do
-      WorkflowServer::Async::Job.should_receive(:info).with(source: 'WorkflowServer::Async::Job', id: 10, name: :make_payment, message: 'some_method_started').ordered
-      WorkflowServer::Async::Job.should_receive(:info).with(source: 'WorkflowServer::Async::Job', id: 10, name: :make_payment, message: 'some_method_succeeded', duration: 0.0).ordered
+    it 'drops the job into sidekiq' do
+      WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_async).with(@dec.id, :some_method, [1,2,3,4], 100)
       @job.invoke_job
-    end
-
-    it 'calls the method on the given event' do
-      WorkflowServer::Models::Event.should_receive(:find).with(@dec.id)
-      @dec.should_receive(:some_method).with(1, 2, 3, 4)
-      @job.invoke_job
-    end
-
-    context '#error' do
-      it 'records exceptions and raises the error if they are NOT Backbeat::TransientError' do
-        @dec.should_receive(:some_method).and_raise('some error')
-        Squash::Ruby.should_receive(:notify)
-        WorkflowServer::Async::Job.should_receive(:error).with(source: 'WorkflowServer::Async::Job', id: 10, name: :make_payment, message: 'some_method_errored', error: anything, backtrace: anything, duration: 0.0)
-        expect {
-          @job.invoke_job
-        }.to raise_error
-      end
-    end
-    it 'records exceptions as INFO and reraises if they are Backbeat::TransientError' do
-      # We have to expect these first two so that we can accurately test the third, but we don't really care about these in this test
-      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method_started").ordered
-
-      @dec.should_receive(:some_method).and_raise(Backbeat::TransientError.new(Exception.new('test')))
-      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method:test", error: anything, backtrace: anything, duration: 0.0).ordered
-      expect {
-        @job.invoke_job
-      }.to raise_error(Backbeat::TransientError)
-    end
-    it 'records exceptions as INFO and reraises if they are NoMethodError' do
-      WorkflowServer::Models::Event.should_receive(:find).and_return(nil) # this is the real exception
-      WorkflowServer::Async::Job.should_receive(:info).with(source: "WorkflowServer::Async::Job", id: 10, name: :make_payment, message: "some_method:Event with id(10) not found", error: anything, backtrace: anything, duration: 0.0).ordered
-      expect {
-        @job.invoke_job
-      }.to raise_error(WorkflowServer::EventNotFound)
     end
   end
 

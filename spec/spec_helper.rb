@@ -95,7 +95,7 @@ FactoryGirl.find_definitions
 
 # should go in unit spec helper
 def run_async_jobs
-  WorkflowServer::Async::Job.stub(:enqueue) { |job_data| WorkflowServer::Async::Job.new(job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]).perform }
+  WorkflowServer::Async::Job.stub(:enqueue) { |job_data| WorkflowServer::Workers::SidekiqJobWorker.new.perform(job_data[:event].id, job_data[:method], job_data[:args], job_data[:max_attempts]) }
   yield
   WorkflowServer::Async::Job.unstub(:enqueue)
 end
