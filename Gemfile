@@ -18,6 +18,7 @@ gem 'uuidtools'
 gem 'awesome_print'
 gem 'mail'
 gem 'sidekiq'
+gem 'sidekiq-failures'
 gem 'kiqstand'
 
 gem 'service-discovery', :git => 'git@github.groupondev.com:groupon-api/service-discovery.git'
