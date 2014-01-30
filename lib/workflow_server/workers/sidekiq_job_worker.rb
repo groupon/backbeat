@@ -1,4 +1,5 @@
 require 'sidekiq'
+require 'sidekiq-failures'
 require 'workflow_server/logger'
 require 'workflow_server/errors'
 require 'workflow_server/config'
@@ -12,6 +13,16 @@ module WorkflowServer
       sidekiq_options retry: 12,
                       backtrace:  true,
                       queue: WorkflowServer::Config.options[:async_queue]
+
+      sidekiq_retries_exhausted do |msg|
+        begin
+          event_id = msg['args'].first
+          WorkflowServer::Models::Event.find(event_id).errored(msg['error_message'])
+          self.error "#{msg['class']} failed with #{msg['args']}: #{msg['error_message']}."
+        rescue Exception => e
+          self.error "#{msg['class']} failed with #{msg['args']}: #{msg['error_message']} and could not mark the Event(#{event_id}) as errored because of #{e.class}:#{e.message}."
+        end
+      end
 
       def perform(event_id, method_to_call, args, max_attempts)
         t0 = Time.now
