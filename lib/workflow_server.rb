@@ -17,7 +17,7 @@ module WorkflowServer
   class << self
 
     def schedule_next_decision(workflow)
-      workflow.with_lock(timeout: 30) do
+      workflow.with_lock(timeout: 120) do
         self.info(id: workflow.id, message: :schedule_next_decision_lock_start, source: self.to_s)
         if workflow.decisions.not_in(:status => [:complete, :open]).empty?
           if (next_decision = workflow.decisions.where(status: :open).first)
