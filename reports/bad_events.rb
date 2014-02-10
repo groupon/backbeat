@@ -6,7 +6,7 @@ module Reports
 
     # Picking October 1st randomly.
     # We will separately verify everything before that date
-    START_TIME = Date.parse("2013/11/01").to_time.freeze
+    START_TIME = Date.parse('2013/11/01').to_time.freeze
     COLLECTOR  = [:bad_decisions, :bad_activities, :bad_flags, :bad_signals, :bad_timers]
     PLUCK_FIELDS  = [:id, :name, :status, :parent_id, :workflow_id].freeze
 
@@ -37,7 +37,7 @@ module Reports
 
     # This method takes unusually long on backbeat prod. Breaking it into individual methods below
     def bad_events
-      Event.not_in(_type: [Timer, Workflow]).where(:status.ne => :complete, updated_at: (START_TIME..12.hours.ago)).only(*PLUCK_FIELDS)
+      Event.not_in(_type: [Timer, Workflow]).where(:status.ne => :complete, updated_at: (START_TIME..1.day.ago)).only(*PLUCK_FIELDS)
     end
 
     {
@@ -47,12 +47,12 @@ module Reports
       signals:    WorkflowServer::Models::Signal
     }.each_pair do |method_name, klass|
       define_method("bad_#{method_name}") do
-        klass.where(:status.ne => :complete, updated_at: (START_TIME..12.hours.ago)).only(*PLUCK_FIELDS)
+        klass.where(:status.ne => :complete, updated_at: (START_TIME..1.day.ago)).only(*PLUCK_FIELDS)
       end
     end
 
     def bad_timers
-      Timer.where( :status.ne => :complete, fires_at: (START_TIME..12.hours.ago) ).only(*PLUCK_FIELDS)
+      Timer.where(:status.ne => :complete, fires_at: (START_TIME..1.day.ago), :updated_at.lt => 1.day.ago).only(*PLUCK_FIELDS)
     end
 
     def ignore_errors(query)
