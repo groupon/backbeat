@@ -121,7 +121,7 @@ module WorkflowServer
         when :errored
           enqueue_errored(args: [args[:error]])
         when :resolved
-          enqueue_resolved(args)
+          resolved(args)
         end
       end
 
