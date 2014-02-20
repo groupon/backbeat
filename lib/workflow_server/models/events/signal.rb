@@ -8,6 +8,10 @@ module WorkflowServer
         completed
       end
 
+      def child_completed(child_id)
+        WorkflowServer.schedule_next_decision(workflow)
+      end
+
     end
   end
 end
