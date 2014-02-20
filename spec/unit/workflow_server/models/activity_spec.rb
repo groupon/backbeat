@@ -332,7 +332,7 @@ describe WorkflowServer::Models::Activity do
 
     context 'resolved' do
       it 'calls resolved' do
-        @event.should_receive(:enqueue_resolved)
+        @event.should_receive(:resolved)
 
         @event.change_status(:resolved)
       end
