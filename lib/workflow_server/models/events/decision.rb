@@ -41,7 +41,7 @@ module WorkflowServer
         return if status == new_status.try(:to_sym)
         case new_status.to_sym
         when :resolved
-          enqueue_resolved
+          resolved(args)
         when :deciding
           raise WorkflowServer::InvalidEventStatus, "Decision #{self.name} can't transition from #{status} to #{new_status}" unless [:sent_to_client, :timeout].include?(status)
           deciding
