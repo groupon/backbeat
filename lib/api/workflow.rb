@@ -488,7 +488,8 @@ module Api
       put "/:id/status/:new_status" do
         raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
         event = find_event(params)
-        event.change_status(params[:new_status], params[:args] || {})
+        args = params[:args] || {}
+        event.change_status(params[:new_status], args.with_indifferent_access)
         {success: true}
       end
 
