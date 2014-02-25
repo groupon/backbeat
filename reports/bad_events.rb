@@ -14,12 +14,18 @@ module Reports
       t0 = Time.now
       errored_workflows = run_report
       unless errored_workflows.empty?
-        mail_report(generate_body(errored_workflows, time: Time.now - t0))
+        # Write to the file first since we claim to have already done it in the email.
         id_hash = {}
         errored_workflows.each_pair do |workflow, events|
-          id_hash[workflow.id] = events.map(&:id)
+          if workflow
+            id_hash[workflow.id] = events.map(&:id)
+          else
+            id_hash[nil] = events.map(&:id)
+          end
         end
         File.open(file, 'w') { |f| f.write(id_hash.to_json) }
+
+        mail_report(generate_body(errored_workflows, time: Time.now - t0))
       else
         mail_report('No inconsistent workflows to talk about')
       end
@@ -30,7 +36,7 @@ module Reports
       COLLECTOR.each { |collector| events << ignore_errors(send(collector)) }
       events.flatten!
       events.compact!
-      events.group_by(&:workflow).select {|workflow, events| (workflow.status != :complete && workflow.status != :pause)}
+      events.group_by(&:workflow).select {|workflow, events| (workflow.nil? || (workflow.status != :complete && workflow.status != :pause))}
     end
 
     private
@@ -61,9 +67,9 @@ module Reports
       # the event has a blocking timer underneath that will fire in the future
       query.delete_if do |event|
         event.status == :error || event.status == :timeout ||
-        (event.status == :resolved && event.parent.status == :complete) ||
-        (event.workflow && event.workflow.events.where(:status.in => [:error, :timeout]).exists?) ||
-        event.children.type(Timer).where(status: :scheduled, mode: :blocking, :fires_at.gt => Time.now).exists?
+          (event.status == :resolved && event.parent.status == :complete) ||
+          (event.workflow && event.workflow.events.where(:status.in => [:error, :timeout]).exists?) ||
+          event.children.type(Timer).where(status: :scheduled, mode: :blocking, :fires_at.gt => Time.now).exists?
       end
     end
 
@@ -83,7 +89,11 @@ module Reports
       body += "The workflow ids are stored in #{file}\n"
       body += "--------------------------------------------------------------------------------"
       report_results.each_pair do |workflow, bad_events|
-        body += "\nWorkflow -- ID: #{workflow.id}, Subject: #{workflow.subject}, Inconsistent Event Count: #{bad_events.count}\n"
+        if workflow
+          body += "\nWorkflow -- ID: #{workflow.id}, Subject: #{workflow.subject}, Inconsistent Event Count: #{bad_events.count}\n"
+        else
+          body += "\nWorkflow Missing, Inconsistent Event Count: #{bad_events.count}\n"
+        end
         bad_events.each do |errored_event|
           body += "\t\t#{errored_event.event_type.capitalize} -- Name: #{errored_event.name}, ID: #{errored_event.id}, Status: #{errored_event.status}\n"
         end
