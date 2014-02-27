@@ -10,6 +10,9 @@ describe WorkflowServer::Workers::SidekiqJobWorker do
   it { should be_retryable 12 }
   it { should be_processed_in :accounting_backbeat_server }
 
+  before(:each) do
+    WorkflowServer::Models::Decision.any_instance.stub(:info)
+  end
 
   context 'retries exhuasted' do
     it 'marks the event in question as errored and logs that it failed' do

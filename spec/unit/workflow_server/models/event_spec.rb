@@ -207,7 +207,7 @@ describe WorkflowServer::Models::Event do
         it 'schedules the job to try again in 60 seconds' do
           WorkflowServer::Async::Job.stub(:enqueue).and_raise(Redis::CannotConnectError.new('o shit redis is not working'))
 
-          WorkflowServer::Async::Job.should_receive(:schedule).with({ event: event, method: :test, args: [1, 2, 3, 4], max_attempts: 20}, Time.now + 60)
+          WorkflowServer::Async::Job.should_receive(:schedule).with({ event: event, method: :test, args: [1, 2, 3, 4], max_attempts: 20}, Time.now + 60).and_return(OpenStruct.new(id: 5))
 
           event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4]})
         end
