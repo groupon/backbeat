@@ -20,6 +20,12 @@ def handle(workflow, events)
       when :failed
         event.enqueue_start
         actions[workflow] << { event_id => "Activity: started" }
+      when :retrying
+        # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
+        if (Time.now - event.updated_at) > (25000 + event.retry_interval)
+          event.enqueue_start
+          actions[workflow] << { event_id => "Activity: retried" }
+        end
       end
     when Decision
       case event.status
@@ -32,6 +38,12 @@ def handle(workflow, events)
       when :open
         WorkflowServer.schedule_next_decision(Workflow.find(workflow))
         actions[workflow] << { event_id => "Decision: schedule_next_decision" }
+      when :retrying
+        # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
+        if (Time.now - event.updated_at) > (25000 + event.retry_interval)
+          event.enqueue_start
+          actions[workflow] << { event_id => "Activity: retried" }
+        end
       end
     when Timer
       case event.status
@@ -49,4 +61,5 @@ def fix(file)
   end
 end
 
+fix('/tmp/reports_badevents/2014-02-27.txt');1
 ap actions

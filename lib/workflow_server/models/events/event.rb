@@ -251,15 +251,20 @@ module WorkflowServer
             now_time = Time.now
             fires_at = (options[:fires_at] || now_time).to_time
             job = {event: self, method: method_name, args: method_args, max_attempts: max_attempts}
+
+            info({name: 'enqueuing_job', job: job, fires_at: fires_at, now_time: now_time, processor_specified: options[:processor]})
+
             if fires_at <= now_time || options[:processor] == :sidekiq
               WorkflowServer::Async::Job.enqueue(job, fires_at)
             else
               WorkflowServer::Async::Job.schedule(job, fires_at)
             end
           rescue Redis::BaseConnectionError => e
-              WorkflowServer::Async::Job.schedule(job, fires_at  + 60)
+            info({name: 'redis_error_enqueuing_dj_start', job: job, delayed_job_time: fires_at + 60})
+            dj =  WorkflowServer::Async::Job.schedule(job, fires_at  + 60)
+            info({name: 'redis_error_enqueuing_dj_succeeded', job: job, delayed_job_time: fires_at + 60, delayed_job_id: dj.id})
           rescue Exception => e
-            error({ id: id, method_name: name, args: args, error: e.message, backtrace: e.backtrace })
+            error({id: id, method_name: name, args: args, error: e.message, backtrace: e.backtrace})
             raise
           end
         else
