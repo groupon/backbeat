@@ -259,6 +259,7 @@ module WorkflowServer
             else
               WorkflowServer::Async::Job.schedule(job, fires_at)
             end
+            info({name: 'enqueuing_job_succeeded', job: job, fires_at: fires_at, now_time: now_time, processor_specified: options[:processor]})
           rescue Redis::BaseConnectionError => e
             info({name: 'redis_error_enqueuing_dj_start', job: job, delayed_job_time: fires_at + 60})
             dj =  WorkflowServer::Async::Job.schedule(job, fires_at  + 60)
