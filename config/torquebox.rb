@@ -27,7 +27,7 @@ TorqueBox.configure do
         concurrency 250
         index i
         # We have to use options here because timeout is an implemented method in this scope and raises an error rather then setting the config value correctly
-        options timeout: 600
+        options timeout: 10
       end
     end
   end
