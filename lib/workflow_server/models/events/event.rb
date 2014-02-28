@@ -32,6 +32,8 @@ module WorkflowServer
       index({ workflow: 1, _type: 1, status: 1 }, { background: true })
       index({ parent: 1, status: 1, mode: 1, _type: 1 }, { background: true })
 
+      searchkick callbacks: false
+
       before_destroy do
         destroy_jobs
       end
