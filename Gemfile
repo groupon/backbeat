@@ -20,7 +20,6 @@ gem 'mail'
 gem 'sidekiq'
 gem 'sidekiq-failures'
 gem 'kiqstand'
-gem 'searchkick'
 
 gem 'service-discovery', :git => 'git@github.groupondev.com:groupon-api/service-discovery.git'
 gem 'squash_ruby', :require => 'squash/ruby'

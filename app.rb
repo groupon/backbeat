@@ -1,5 +1,3 @@
-ENV['ELASTICSEARCH_URL'] = 'http://accounting-ops1.snc1:9200'
-
 require 'rubygems'
 require 'bundler/setup'
 
