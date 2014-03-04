@@ -1,4 +1,5 @@
-source 'http://rubygems.org'
+source 'https://rubygems.org'
+source 'http://a0c0a686:3f046ee6@www.mikeperham.com/rubygems/'
 
 gem 'rake'
 ruby '1.9.3'
@@ -17,7 +18,7 @@ gem 'uuidtools'
 # Utility
 gem 'awesome_print'
 gem 'mail'
-gem 'sidekiq'
+gem 'sidekiq-pro'
 gem 'sidekiq-failures'
 gem 'kiqstand'
 
