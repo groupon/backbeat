@@ -142,13 +142,24 @@ describe WorkflowServer::Models::Event do
   end
 
   context '#method_missing_with_enqueue' do
+    it 'defaults to firing at 2 seconds from now' do
+      WorkflowServer::Async::Job.should_receive(:enqueue).with({
+        event: subject,
+        method: :testing_method_missing,
+        args: [:arg1, :arg2],
+        max_attempts: anything()
+      }, Time.now + 2)
+
+      subject.enqueue_testing_method_missing(args: [:arg1, :arg2])
+    end
+
     it 'send to sidekiq if fires_at is nil' do
       WorkflowServer::Async::Job.should_receive(:enqueue).with({
         event: subject,
         method: :testing_method_missing,
         args: [:arg1, :arg2],
         max_attempts: anything()
-      }, Time.now)
+      }, kind_of(Time))
 
       subject.enqueue_testing_method_missing(args: [:arg1, :arg2])
     end
@@ -181,7 +192,7 @@ describe WorkflowServer::Models::Event do
         method: :testing_method_missing,
         args: [:arg1, :arg2],
         max_attempts: anything()
-      }, Time.now)
+      }, kind_of(Time))
 
       subject.enqueue_testing_method_missing(args: [:arg1, :arg2], processor: :sidekiq)
     end
@@ -209,7 +220,7 @@ describe WorkflowServer::Models::Event do
 
           WorkflowServer::Async::Job.should_receive(:schedule).with({ event: event, method: :test, args: [1, 2, 3, 4], max_attempts: 20}, Time.now + 60).and_return(OpenStruct.new(id: 5))
 
-          event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4]})
+          event.method_missing_with_enqueue(:enqueue_test, {max_attempts: 20, args: [1, 2, 3, 4], fires_at: Time.now})
         end
       end
       context 'Exception' do
