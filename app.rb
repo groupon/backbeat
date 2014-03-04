@@ -25,7 +25,6 @@ Squash::Ruby.configure(WorkflowServer::Config.squash_config)
 redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment.to_s]
 
 Sidekiq.configure_client do |config|
-  require 'sidekiq/pro/reliable_push'
   # We set the namespace to resque so that we can use all of the resque monitoring tools to monitor sidekiq too
   config.redis = { namespace: 'fed_sidekiq', size: 100, url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
 end
