@@ -23,10 +23,9 @@ module Services
       @config = opts.reject { |k, _| CONFIG_OPTIONS_TO_STRIP.include?(k) }.merge(opts['options']).symbolize_keys
       @mutex = Mutex.new
 
-      redis_config = YAML::load_file('./config/redis.yml')[WorkflowServer::Config.environment.to_s]
+      redis_config = YAML::load_file("./config/redis.yml")[WorkflowServer::Config.environment.to_s]
 
       Sidekiq.configure_server do |config|
-        require 'sidekiq/pro/reliable_fetch'
         # We set the namespace to resque so that we can use all of the resque monitoring tools to monitor sidekiq too
         config.redis = { namespace: 'fed_sidekiq', url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
         config.poll_interval = 5
