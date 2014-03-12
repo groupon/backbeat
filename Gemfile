@@ -1,4 +1,4 @@
-source 'http://rubygems.org'
+source ENV.fetch('GEM_SOURCE', 'https://rubygems.org/')
 
 gem 'rake'
 ruby '1.9.3'
@@ -30,7 +30,6 @@ platforms :ruby do
 end
 
 platforms :jruby do
-  gem 'puma'
   gem 'jruby-openssl', :require => false
   #Torquebox
   gem 'torquebox', '3.0.0'

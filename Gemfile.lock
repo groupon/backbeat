@@ -48,7 +48,7 @@ GIT
       mongoid (~> 3.0)
 
 GEM
-  remote: http://rubygems.org/
+  remote: https://rubygems.org/
   specs:
     activemodel (3.2.14)
       activesupport (= 3.2.14)
@@ -76,7 +76,6 @@ GEM
       parslet (~> 1.4.0)
     factory_girl (4.2.0)
       activesupport (>= 3.0.0)
-    ffi (1.9.0)
     ffi (1.9.0-java)
     grape (0.6.0)
       activesupport
@@ -127,10 +126,6 @@ GEM
       method_source (~> 0.8)
       slop (~> 3.4)
       spoon (~> 0.0)
-    puma (2.6.0)
-      rack (>= 1.1, < 2.0)
-    puma (2.6.0-java)
-      rack (>= 1.1, < 2.0)
     rack (1.5.2)
     rack-accept (0.4.5)
       rack (>= 0.4)
@@ -259,7 +254,6 @@ DEPENDENCIES
   mongoid-locker!
   newrelic_rpm
   pry
-  puma
   rack-test
   rake
   rdoc (~> 3.4)
