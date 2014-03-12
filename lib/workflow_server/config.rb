@@ -16,10 +16,6 @@ module WorkflowServer
       @options ||= options_yml[environment]
     end
 
-    def self.squash_config
-      @squash_options ||= options_yml[:squash].merge(environment: environment)
-    end
-
     def self.option(field)
       options[field]
     end

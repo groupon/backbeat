@@ -19,5 +19,4 @@ test/tmp
 test/version_tmp
 tmp
 .DS_store
-squash.failsafe.log
 log/

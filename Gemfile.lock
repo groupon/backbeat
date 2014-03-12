@@ -168,8 +168,6 @@ GEM
     slop (3.4.6)
     spoon (0.0.4)
       ffi
-    squash_ruby (1.2.2)
-      json
     thor (0.18.1)
     timecop (0.6.3)
     timers (1.1.0)
@@ -263,7 +261,6 @@ DEPENDENCIES
   sidekiq
   sidekiq-failures
   simplecov
-  squash_ruby
   timecop
   torquebox (= 3.0.0)
   torquebox-capistrano-support

@@ -47,9 +47,11 @@ describe WorkflowServer::Workers::SidekiqJobWorker do
 
     context 'error' do
       it 'records exceptions and reraises the error if they are NOT Backbeat::TransientError' do
+        # We have to expect these first two so that we can accurately test the third, but we don't really care about these in this test
+        subject.should_receive(:info).with(source: subject.to_s, id: decision.id, name: decision.name, message: "status_started").ordered
+
         WorkflowServer::Models::Decision.any_instance.should_receive(:status).and_raise('some error')
-        subject.should_receive(:error).with(source: subject.to_s, id: decision.id, name: decision.name, message: 'status_errored', error: anything, backtrace: anything, duration: 0.0)
-        Squash::Ruby.should_receive(:notify)
+        subject.should_receive(:info).with(source: subject.to_s, id: decision.id, name: decision.name, message: 'status_errored', error_class: RuntimeError, error: anything, backtrace: anything, duration: 0.0).ordered
         expect {
           subject.new.perform(*job_data)
         }.to raise_error
@@ -60,7 +62,7 @@ describe WorkflowServer::Workers::SidekiqJobWorker do
         subject.should_receive(:info).with(source: subject.to_s, id: decision.id, name: decision.name, message: "status_started").ordered
 
         WorkflowServer::Models::Decision.any_instance.should_receive(:status).and_raise(Backbeat::TransientError.new(Exception.new('test')))
-        subject.should_receive(:info).with(source: subject.to_s, id: decision.id, name: decision.name, message: "status:test", error: anything, backtrace: anything, duration: 0.0).ordered
+        subject.should_receive(:info).with(source: subject.to_s, id: decision.id, name: decision.name, message: "status:test", error_class: Backbeat::TransientError, error: anything, backtrace: anything, duration: 0.0).ordered
         expect {
           subject.new.perform(*job_data)
         }.to raise_error(Backbeat::TransientError)
@@ -68,7 +70,7 @@ describe WorkflowServer::Workers::SidekiqJobWorker do
 
       it 'records exceptions as INFO and reraises if they are EventNotFound' do
         WorkflowServer::Models::Event.should_receive(:find).and_return(nil) # this is the real exception
-        subject.should_receive(:info).with(source: subject.to_s, id: decision.id, name: 'unknown', message: "status:Event with id(#{decision.id}) not found", error: anything, backtrace: anything, duration: 0.0).ordered
+        subject.should_receive(:info).with(source: subject.to_s, id: decision.id, name: 'unknown', message: "status:Event with id(#{decision.id}) not found", error_class: WorkflowServer::EventNotFound, error: anything, backtrace: anything, duration: 0.0).ordered
         expect {
           subject.new.perform(*job_data)
         }.to raise_error(WorkflowServer::EventNotFound)

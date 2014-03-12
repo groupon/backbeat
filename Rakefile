@@ -95,15 +95,6 @@ namespace :documentation do
     raise "looks like the http request failed - code(#{response.code}), body(#{response.body})" if response.code != 200 || response.body != " "
   end
 end
-namespace :squash do
-  desc "Notifies Squash that this server has received a new deploy."
-  task :notify do
-    require 'socket'
-    Squash::Ruby.notify_deploy WorkflowServer::Config.environment,
-                               ENV['REVISION']   || Squash::Ruby.current_revision,
-                               ENV['HOST']       || Socket.gethostname
-  end
-end
 
 namespace :sidekiq do
   desc "configures logging for our sidekiq workers"

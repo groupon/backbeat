@@ -23,8 +23,3 @@ staging:
 production:
   <<: *default
   log_level: INFO
-
-squash:
-  api_key:        'cb3078c0-ef99-4ec2-8bfe-2716226a4a7c'
-  api_host:       'http://accounting-squash1.snc1:5000/'
-  revision_file:  'REVISION'

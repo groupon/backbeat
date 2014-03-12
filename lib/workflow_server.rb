@@ -1,5 +1,4 @@
 # -*- encoding : utf-8 -*-
-require 'squash/ruby'
 require 'workflow_server/config'
 require 'workflow_server/logger'
 require 'workflow_server/helper'
