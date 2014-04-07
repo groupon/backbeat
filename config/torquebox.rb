@@ -15,20 +15,18 @@ TorqueBox.configure do
 
   pool :services do
     type :bounded
-    min 2
-    max 2
+    min 1
+    max 1
   end
 
-  2.times do |i|
-    service Services::SidekiqService do
-      name "backbeat_sidekiq_worker_pool_#{i}"
-      config do
-        queues ['accounting_backbeat_server']
-        concurrency 200
-        index i
-        # We have to use options here because timeout is an implemented method in this scope and raises an error rather then setting the config value correctly
-        options timeout: 10
-      end
+  service Services::SidekiqService do
+    name "backbeat_sidekiq_worker_pool"
+    config do
+      queues ['accounting_backbeat_server']
+      concurrency 400
+      index 1
+      # We have to use options here because timeout is an implemented method in this scope and raises an error rather then setting the config value correctly
+      options timeout: 10
     end
   end
 
