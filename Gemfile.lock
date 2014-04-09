@@ -14,6 +14,15 @@ GIT
       torquespec
 
 GIT
+  remote: git@github.groupondev.com:finance-engineering/application_transaction.git
+  revision: 347f159acbde20d98d7faa9e5dde1fd1f7589767
+  branch: specs
+  specs:
+    application_transaction (0.0.1)
+      activesupport
+      awesome_print
+
+GIT
   remote: git@github.groupondev.com:finance-engineering/external_service.git
   revision: 6063d8f074d7f578bd459f150eaac4fc8703106b
   specs:
@@ -57,14 +66,14 @@ GEM
       i18n (~> 0.6, >= 0.6.4)
       multi_json (~> 1.0)
     addressable (2.3.5)
-    awesome_print (1.1.0)
+    awesome_print (1.2.0)
     backports (3.3.4)
     blankslate (2.1.2.4)
     bouncy-castle-java (1.5.0147)
     builder (3.0.4)
     celluloid (0.15.2)
       timers (~> 1.1.0)
-    coderay (1.0.9)
+    coderay (1.1.0)
     connection_pool (1.2.0)
     crack (0.4.1)
       safe_yaml (~> 0.9.0)
@@ -76,7 +85,8 @@ GEM
       parslet (~> 1.4.0)
     factory_girl (4.2.0)
       activesupport (>= 3.0.0)
-    ffi (1.9.0-java)
+    ffi (1.9.3)
+    ffi (1.9.3-java)
     grape (0.6.0)
       activesupport
       builder
@@ -91,7 +101,7 @@ GEM
     httparty (0.11.0)
       multi_json (~> 1.0)
       multi_xml (>= 0.5.2)
-    i18n (0.6.5)
+    i18n (0.6.9)
     jruby-jars (1.7.8)
     jruby-openssl (0.9.0)
       bouncy-castle-java (>= 1.5.0147)
@@ -110,19 +120,19 @@ GEM
     mongoid-indifferent-access (1.0.0)
       mongoid
     moped (1.5.1)
-    multi_json (1.8.0)
+    multi_json (1.9.2)
     multi_xml (0.5.5)
     newrelic_rpm (3.6.7.152)
     origin (1.1.0)
     parslet (1.4.0)
       blankslate (~> 2.0)
     polyglot (0.3.3)
-    pry (0.9.12.2)
-      coderay (~> 1.0.5)
+    pry (0.9.12.6)
+      coderay (~> 1.0)
       method_source (~> 0.8)
       slop (~> 3.4)
-    pry (0.9.12.2-java)
-      coderay (~> 1.0.5)
+    pry (0.9.12.6-java)
+      coderay (~> 1.0)
       method_source (~> 0.8)
       slop (~> 3.4)
       spoon (~> 0.0)
@@ -165,7 +175,7 @@ GEM
       multi_json (~> 1.0)
       simplecov-html (~> 0.7.1)
     simplecov-html (0.7.1)
-    slop (3.4.6)
+    slop (3.5.0)
     spoon (0.0.4)
       ffi
     thor (0.18.1)
@@ -238,6 +248,7 @@ PLATFORMS
 
 DEPENDENCIES
   accounting_torquespec!
+  application_transaction!
   awesome_print
   delayed_job_mongoid!
   external_service!

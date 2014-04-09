@@ -297,22 +297,7 @@ module WorkflowServer
       end
 
       def self.transaction
-        unless Thread.current['backbeat_db_transaction'] == true
-          Event.collection.database.command(beginTransaction: 1)
-          begin
-            Thread.current['backbeat_db_transaction'] = true
-            yield
-          rescue => error
-            Event.collection.database.command(rollbackTransaction: 1)
-            raise
-          else
-            Event.collection.database.command(commitTransaction: 1)
-          ensure
-            Thread.current['backbeat_db_transaction'] = false
-          end
-        else
-          yield
-        end
+        Mongoid.transaction { yield }
       end
 
       def transaction

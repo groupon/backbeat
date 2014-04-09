@@ -20,6 +20,7 @@ gem 'mail'
 gem 'sidekiq'
 gem 'sidekiq-failures'
 gem 'kiqstand'
+gem 'application_transaction', :git => 'git@github.groupondev.com:finance-engineering/application_transaction.git'
 
 gem 'service-discovery', :git => 'git@github.groupondev.com:groupon-api/service-discovery.git'
 gem 'newrelic_rpm'

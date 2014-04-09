@@ -20,7 +20,7 @@ describe WorkflowServer::Models::Activity do
   context "#start" do
     it "schedules a job to perform_activity and goes into enqueued state" do
       WorkflowServer::Async::Job.should_receive(:enqueue)
-        .with({event: @event, method: :send_to_client, args: nil, max_attempts: 25}, Time.now + 2)
+        .with({event: @event, method: :send_to_client, args: nil, max_attempts: 25}, Time.now)
       @event.start
       @event.status.should == :executing
     end
@@ -44,7 +44,7 @@ describe WorkflowServer::Models::Activity do
 
     it "raises an error if the current status is not either :error or :timeout" do
       WorkflowServer::Async::Job.should_receive(:enqueue)
-        .with({event: @event, method: :send_to_client, args: nil, max_attempts: 25}, Time.now + 2)
+        .with({event: @event, method: :send_to_client, args: nil, max_attempts: 25}, Time.now)
         .exactly(2).times
 
       @event.update_status!(:open)
@@ -127,7 +127,7 @@ describe WorkflowServer::Models::Activity do
           @activity.update_attributes!(next_decision: :decision_blah_blah)
 
           WorkflowServer::Async::Job.should_receive(:enqueue)
-            .with({event: kind_of(WorkflowServer::Models::Decision), method: :send_to_client, args: nil, max_attempts: 25}, Time.now + 2)
+            .with({event: kind_of(WorkflowServer::Models::Decision), method: :send_to_client, args: nil, max_attempts: 25}, Time.now)
           WorkflowServer::Async::Job.should_receive(:enqueue)
             .with({event: kind_of(WorkflowServer::Models::Decision), method: :schedule_next_decision, args: nil, max_attempts: nil}, Time.now)
           WorkflowServer::Async::Job.should_receive(:enqueue)
@@ -181,7 +181,7 @@ describe WorkflowServer::Models::Activity do
         @event.update_status!(:executing)
 
         WorkflowServer::Async::Job.should_receive(:enqueue)
-          .with({event: kind_of(WorkflowServer::Models::Activity), method: :send_to_client, args: nil, max_attempts: 25}, Time.now + 2)
+          .with({event: kind_of(WorkflowServer::Models::Activity), method: :send_to_client, args: nil, max_attempts: 25}, Time.now)
         @event.run_sub_activity(@sub_activity)
         @event.reload.status.should == :running_sub_activity
         @event.children.count.should == 1
@@ -195,7 +195,7 @@ describe WorkflowServer::Models::Activity do
         @event.update_status!(:executing)
 
         WorkflowServer::Async::Job.should_receive(:enqueue)
-          .with({event: kind_of(WorkflowServer::Models::Activity), method: :send_to_client, args: nil, max_attempts: 25}, Time.now + 2)
+          .with({event: kind_of(WorkflowServer::Models::Activity), method: :send_to_client, args: nil, max_attempts: 25}, Time.now)
         @event.run_sub_activity(@sub_activity.dup)
         @event.children.count.should == 1
 
@@ -212,7 +212,7 @@ describe WorkflowServer::Models::Activity do
 
 
         WorkflowServer::Async::Job.should_receive(:enqueue)
-          .with({event: kind_of(WorkflowServer::Models::Activity), method: :send_to_client, args: nil, max_attempts: 25}, Time.now + 2)
+          .with({event: kind_of(WorkflowServer::Models::Activity), method: :send_to_client, args: nil, max_attempts: 25}, Time.now)
         @event.run_sub_activity(@sub_activity)
         @event.reload.status.should == :executing
         @event.children.count.should == 1
@@ -252,7 +252,7 @@ describe WorkflowServer::Models::Activity do
         WorkflowServer::Async::Job.should_receive(:enqueue)
           .with({event: kind_of(WorkflowServer::Models::Decision), method: :schedule_next_decision, args: nil, max_attempts: nil}, Time.now)
         WorkflowServer::Async::Job.should_receive(:enqueue)
-          .with({event: kind_of(WorkflowServer::Models::Decision), method: :send_to_client, args: nil, max_attempts: 25}, Time.now + 2)
+          .with({event: kind_of(WorkflowServer::Models::Decision), method: :send_to_client, args: nil, max_attempts: 25}, Time.now)
         @event.make_decision(:test_decision, false)
         @wf.decisions.count.should == (decisions + 1)
         decision = @wf.decisions.last
