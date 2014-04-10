@@ -30,7 +30,9 @@ TorqueBox.configure do
     end
   end
 
-  if ENV['RACK_ENV'] == 'production'
+  if ENV['RACK_ENV'] == 'production' &&
+    `hostname` =~ /accounting-utility2/
+
     job Reports::DailyReport do
       # Every day at midnight
       cron '0 0 12 1/1 * ? *'
