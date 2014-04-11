@@ -23,7 +23,7 @@ TorqueBox.configure do
     name "backbeat_sidekiq_worker_pool"
     config do
       queues ['accounting_backbeat_server']
-      concurrency 400
+      concurrency 200
       index 1
       # We have to use options here because timeout is an implemented method in this scope and raises an error rather then setting the config value correctly
       options timeout: 10
