@@ -15,11 +15,10 @@ GIT
 
 GIT
   remote: git@github.groupondev.com:finance-engineering/application_transaction.git
-  revision: 347f159acbde20d98d7faa9e5dde1fd1f7589767
-  branch: specs
+  revision: 10e02fd1bfa75c440ced25835cdefe9b307decc2
   specs:
     application_transaction (0.0.1)
-      activesupport
+      activesupport (~> 3.2)
       awesome_print
 
 GIT
