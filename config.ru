@@ -6,6 +6,8 @@ use Api::Log
 
 #use Api::ClearSession
 
+use Api::Heartbeat
+
 use Api::Health
 
 use Api::SidekiqStats

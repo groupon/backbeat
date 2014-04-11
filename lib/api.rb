@@ -2,6 +2,7 @@ require 'workflow_server'
 module Api
   require 'api/log'
   require 'api/health'
+  require 'api/heartbeat'
   require 'api/delayed_job_stats'
   require 'api/sidekiq_stats'
   require 'api/camel_json_formatter'
