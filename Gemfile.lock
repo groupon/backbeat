@@ -15,7 +15,7 @@ GIT
 
 GIT
   remote: git@github.groupondev.com:finance-engineering/application_transaction.git
-  revision: 5a56921c739249622e5d08dc9530f7d8cec3adaa
+  revision: b9dc97ef98bdb1b9d06fd736a3fc727b10a6ffba
   specs:
     application_transaction (0.0.1)
       activesupport (~> 3.2)
