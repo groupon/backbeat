@@ -4,9 +4,9 @@ module Reports
 
     include WorkflowServer::Models
 
-    # Picking October 1st randomly.
+    # Picking April 1st randomly.
     # We will separately verify everything before that date
-    START_TIME = Date.parse('2014/03/01').to_time.freeze
+    START_TIME = Date.parse('2014/04/01').to_time.freeze
     COLLECTOR  = [:bad_decisions, :bad_activities, :bad_flags, :bad_signals, :bad_timers]
     PLUCK_FIELDS  = [:id, :name, :status, :parent_id, :workflow_id].freeze
 
@@ -16,9 +16,9 @@ module Reports
       unless errored_workflows.empty?
         # Write to the file first since we claim to have already done it in the email.
         id_hash = {}
-        errored_workflows.each_pair do |workflow, events|
-          if workflow
-            id_hash[workflow.id] = events.map(&:id)
+        errored_workflows.each_pair do |workflow_id, events|
+          if workflow_id
+            id_hash[workflow_id] = events.map(&:id)
           else
             id_hash[nil] = events.map(&:id)
           end
@@ -36,7 +36,7 @@ module Reports
       COLLECTOR.each { |collector| events << ignore_errors(send(collector)) }
       events.flatten!
       events.compact!
-      events.group_by(&:workflow).select {|workflow, events| (workflow.nil? || (workflow.status != :complete && workflow.status != :pause))}
+      events.group_by(&:workflow_id).select {|workflow_id, events| workflow = Workflow.where(id: workflow_id).only(:id, :status).first; (workflow.nil? || (workflow.status != :complete && workflow.status != :pause))}
     end
 
     private
@@ -68,8 +68,7 @@ module Reports
       query.delete_if do |event|
         event.status == :error || event.status == :timeout ||
           (event.status == :resolved && event.parent.status == :complete) ||
-          (event.workflow && event.workflow.events.where(:status.in => [:error, :timeout]).exists?) ||
-          event.children.type(Timer).where(status: :scheduled, mode: :blocking, :fires_at.gt => Time.now).exists?
+          (event.workflow && event.workflow.events.where(:status.in => [:error, :timeout]).exists?)
       end
     end
 
@@ -87,17 +86,6 @@ module Reports
       body += "#{report_results.count} workflows contain inconsistencies.\n"
       body += "Total time taken #{options[:time]} seconds\n" if options[:time]
       body += "The workflow ids are stored in #{file}\n"
-      body += "--------------------------------------------------------------------------------"
-      report_results.each_pair do |workflow, bad_events|
-        if workflow
-          body += "\nWorkflow -- ID: #{workflow.id}, Subject: #{workflow.subject}, Inconsistent Event Count: #{bad_events.count}\n"
-        else
-          body += "\nWorkflow Missing, Inconsistent Event Count: #{bad_events.count}\n"
-        end
-        bad_events.each do |errored_event|
-          body += "\t\t#{errored_event.event_type.capitalize} -- Name: #{errored_event.name}, ID: #{errored_event.id}, Status: #{errored_event.status}\n"
-        end
-      end
       body
     end
 
