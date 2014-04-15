@@ -68,8 +68,7 @@ module Reports
       query.delete_if do |event|
         event.status == :error || event.status == :timeout ||
           (event.status == :resolved && event.parent.status == :complete) ||
-          (event.workflow && event.workflow.events.where(:status.in => [:error, :timeout]).exists?) ||
-          event.children.type(Timer).where(status: :scheduled, mode: :blocking, :fires_at.gt => Time.now).exists?
+          (event.workflow && event.workflow.events.where(:status.in => [:error, :timeout]).exists?)
       end
     end
 
