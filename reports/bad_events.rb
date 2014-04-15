@@ -10,8 +10,9 @@ module Reports
     COLLECTOR  = [:bad_decisions, :bad_activities, :bad_flags, :bad_signals, :bad_timers]
     PLUCK_FIELDS  = [:id, :name, :status, :parent_id, :workflow_id].freeze
 
-    def perform
+    def perform(auto_fix = true)
       t0 = Time.now
+      d0 = Date.today
       errored_workflows = run_report
       unless errored_workflows.empty?
         # Write to the file first since we claim to have already done it in the email.
@@ -23,9 +24,15 @@ module Reports
             id_hash[nil] = events.map(&:id)
           end
         end
-        File.open(file, 'w') { |f| f.write(id_hash.to_json) }
+        File.open(filename(d0), 'w') { |f| f.write(id_hash.to_json) }
 
-        mail_report(generate_body(errored_workflows, time: Time.now - t0))
+        if auto_fix
+          fix(filename(d0)) # run the fixes
+          sleep 300; # wait for 5 minutes so that the events have a chance to move along
+          perform(false) # run the report again but don't auto fix this time
+        else
+          mail_report(generate_body(errored_workflows, start_time: t0, start_date: d0))
+        end
       else
         mail_report('No inconsistent workflows to talk about')
       end
@@ -38,8 +45,6 @@ module Reports
       events.compact!
       events.group_by(&:workflow_id).select {|workflow_id, events| workflow = Workflow.where(id: workflow_id).only(:id, :status).first; (workflow.nil? || (workflow.status != :complete && workflow.status != :pause))}
     end
-
-    private
 
     # This method takes unusually long on backbeat prod. Breaking it into individual methods below
     def bad_events
@@ -82,15 +87,82 @@ module Reports
     end
 
     def generate_body(report_results, options = {})
-      body = "Report was run at: #{Time.now}\n"
+      body = "Report finished running at: #{Time.now}\n"
       body += "#{report_results.count} workflows contain inconsistencies.\n"
-      body += "Total time taken #{options[:time]} seconds\n" if options[:time]
-      body += "The workflow ids are stored in #{file}\n"
+      body += "Total time taken #{Time.now - options[:start_time]} seconds\n"
+      body += "The workflow ids are stored in #{filename(options[:start_date])}\n"
       body
     end
 
-    def file
-      "/tmp/#{self.class.name.gsub('::', '_').downcase}/#{Date.today}.txt"
+    def filename(date = Date.today)
+      "/tmp/#{self.class.name.gsub('::', '_').downcase}/#{date}.txt"
+    end
+
+    def actions
+      @actions ||= Hash.new {|h,k| h[k] = [] }
+    end
+
+    def fix(report_filename = filename)
+      data = JSON.parse(File.read(report_filename))
+      data.each_pair do |workflow_id, event_ids|
+        workflow = Workflow.find(workflow_id)
+        unless workflow
+          event_ids.each do |event_id|
+            actions[workflow_id] << { event_id => "No action taken. Workflow with id: #{workflow_id} was not found." }
+          end
+          next
+        end
+        event_ids.each do |event_id|
+          event = Event.find event_id
+          next if event.children.where(:_id.in => event_ids, :status.nin => [:open, :complete]).exists? # if there is a stuck child for this event, let's handle the child as it will most likely resolve the parent
+          case event
+          when WorkflowServer::Models::Signal
+            if event.status == :open
+              event.enqueue_start
+              actions[workflow_id] << { event_id => "Signal: started" }
+            end
+          when Activity
+            case event.status
+            when :executing
+              event.enqueue_send_to_client
+              actions[workflow_id] << { event_id => "Activity: sent_to_client" }
+            when :failed
+              event.enqueue_start
+              actions[workflow_id] << { event_id => "Activity: started" }
+            when :retrying
+              # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
+              if (Time.now - event.updated_at) > (25000 + event.retry_interval)
+                event.enqueue_start
+                actions[workflow_id] << { event_id => "Activity: retried" }
+              end
+            end
+          when Decision
+            case event.status
+            when :executing
+              event.enqueue_work_on_decisions
+              actions[workflow_id] << { event_id => "Decision: work_on_decisions" }
+            when :sent_to_client, :deciding
+              event.enqueue_send_to_client
+              actions[workflow_id] << { event_id => "Decision: sent_to_client" }
+            when :open
+              WorkflowServer.schedule_next_decision(workflow)
+              actions[workflow_id] << { event_id => "Decision: schedule_next_decision" }
+            when :retrying
+              # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
+              if (Time.now - event.updated_at) > (25000 + event.retry_interval)
+                event.enqueue_start
+                actions[workflow_id] << { event_id => "Activity: retried" }
+              end
+            end
+          when Timer
+            case event.status
+            when :scheduled
+              event.enqueue_start
+            end
+          end
+        end
+      end
+      actions
     end
 
   end
