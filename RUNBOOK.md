@@ -13,7 +13,6 @@ Written in Ruby, uses Mongo (tokumx) for its db, Sidekiq for async workers and D
 	Database: accounting-tokumx{1-3}.snc1 (tokumx, a mongo replacement)
     Async Jobs: general-redis-vip.snc1
 	VIP: accounting-backbeat-vip.snc1
-![Backbeat Architecture](/sua_architecture.png "SUA Architecture")
 
 ## Runbook (we will keep filling this out as we go)
 
