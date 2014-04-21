@@ -68,7 +68,7 @@ describe Api::Workflow do
       response = put '/workflows'
       response.status.should == 200
       json_response = JSON.parse(response.body)
-      json_response.map{|wf| wf['id'] }.should == [@wf1.id, @wf2.id]
+      json_response.map{|wf| wf['id'] }.should =~ [@wf1.id, @wf2.id]
     end
     [:workflow_type, :decider].each do |filter_field|
       it "filters search by the #{filter_field}" do

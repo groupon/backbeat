@@ -18,6 +18,7 @@ require 'api'
 require 'workflow_server'
 require 'sidekiq'
 require 'kiqstand'
+require 'application_transaction'
 
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
 redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment.to_s]
@@ -38,6 +39,12 @@ Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 Delayed::Worker.default_priority = 2
 
 puts "********** environment is #{WorkflowServer::Config.environment}"
+
+ApplicationTransaction.configure do |config|
+  config.backend = :mongoid
+  config.workers = [:sidekiq]
+  config.logger = WorkflowServer::Logger.logger
+end
 
 ############################################## MONKEY-PATCH ################################################
 ## FIX JRUBY TIME MARSHALLING - SEE https://github.com/rails/rails/issues/10900 ############################
