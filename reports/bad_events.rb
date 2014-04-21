@@ -4,16 +4,27 @@ module Reports
 
     include WorkflowServer::Models
 
-    COLLECTOR  = [:bad_decisions, :bad_activities, :bad_flags, :bad_signals, :bad_timers]
+    BAD_EVENT_FINDERS = [ Decision, Activity, Flag, WorkflowServer::Models::Signal ].map do |klass|
+      Proc.new do |latest_known_good_time, latest_possible_bad_time|
+        klass.where(:status.ne => :complete, updated_at: (latest_known_good_time..latest_possible_bad_time)).only(*PLUCK_FIELDS)
+      end
+    end
+
+    BAD_EVENT_FINDERS << Proc.new do |latest_known_good_time, latest_possible_bad_time|
+      Timer.where(:status.ne => :complete, fires_at: (latest_known_good_time..latest_possible_bad_time), :updated_at.lt => latest_possible_bad_time).only(*PLUCK_FIELDS)
+    end
+
     PLUCK_FIELDS  = [:id, :name, :status, :parent_id, :workflow_id]
 
     def default_options
       {supress_auto_fix: false,
-       latest_known_good_time: Time.parse('2014/04/01'), # Picking April 1st randomly. We will separately verify everything before that date
+       latest_known_good_time: Time.parse('2014/04/01'), # Picking April 1st as last known good date. We will separately verify everything after that date
        latest_possible_bad_time: 1.day.ago, # Nothing modified since this time will be considered bad
        filename: filename(Date.today),
        start_time: Time.now,
-       recurse_level: -1
+       recurse_level: -1,
+       bad_event_finders: BAD_EVENT_FINDERS,
+       time_to_sleep_after_fixing: 3600
       }
     end
 
@@ -21,25 +32,28 @@ module Reports
       options = default_options.merge(options)
       options[:recurse_level] += 1
 
-      errored_workflows = run_report(options[:latest_known_good_time], options[:latest_possible_bad_time])
+      errored_workflows = run_report(options[:latest_known_good_time], options[:latest_possible_bad_time], options[:bad_event_finders])
+      errored_workflow_ids = errored_workflows.keys
+
       unless errored_workflows.empty?
         # Write to the file first since we claim to have already done it in the email.
         id_hash = {}
         errored_workflows.each_pair do |workflow_id, events|
-          if workflow_id
-            id_hash[workflow_id] = events.map(&:id)
-          else
-            id_hash[nil] = events.map(&:id)
-          end
+          id_hash[workflow_id] = events.map(&:id)
         end
+
         File.open(options[:filename], 'w') { |f| f.write(id_hash.to_json) }
 
         if options[:suppress_auto_fix]
           mail_report(generate_body(errored_workflows, start_time: options[:start_time], filename: options[:filename]))
         else
-          fix(options[:filename]) # run the fixes
-          sleep 300; # wait for 5 minutes so that the events have a chance to move along
-          perform(options.merge(filename: "#{options[:filename]}.post_fix", suppress_auto_fix: true)) # run the report again but don't auto fix this time
+          actions_taken = fix(options[:filename]) # run the fixes
+
+          File.open("#{options[:filename]}.fix_results", "wb") { |f| f.write actions_taken.to_json }
+
+          sleep(options[:time_to_sleep_after_fixing]); # wait so that the events have a chance to move along
+
+          perform(options.merge(filename: "#{options[:filename]}.post_fix", suppress_auto_fix: true, bad_event_finders: scope_finders_by_workflow_ids(options[:bad_event_finders],errored_workflow_ids) )) # run the report again but don't auto fix this time
         end
       else
         if options[:recurse_level] > 0
@@ -50,32 +64,18 @@ module Reports
       end
     end
 
-    def run_report(latest_known_good_time, latest_possible_bad_time)
+    def run_report(latest_known_good_time, latest_possible_bad_time, bad_event_finders)
       events = []
-      COLLECTOR.each { |collector| events << ignore_errors(send(collector, latest_known_good_time, latest_possible_bad_time)) }
+      bad_event_finders.each { |collector| events << ignore_errors(collector.call(latest_known_good_time, latest_possible_bad_time)) }
       events.flatten!
       events.compact!
       events.group_by(&:workflow_id).select {|workflow_id, events| workflow = Workflow.where(id: workflow_id).only(:id, :status).first; (workflow.nil? || (workflow.status != :complete && workflow.status != :pause))}
     end
 
-    # This method takes unusually long on backbeat prod. Breaking it into individual methods below
-    def bad_events(latest_known_good_time, latest_possible_bad_time)
-      Event.not_in(_type: [Timer, Workflow]).where(:status.ne => :complete, updated_at: (latest_known_good_time..latest_possible_bad_time)).only(*PLUCK_FIELDS)
-    end
-
-    {
-      decisions:  WorkflowServer::Models::Decision,
-      activities: WorkflowServer::Models::Activity,
-      flags:      WorkflowServer::Models::Flag,
-      signals:    WorkflowServer::Models::Signal
-    }.each_pair do |method_name, klass|
-      define_method("bad_#{method_name}") do |latest_known_good_time, latest_possible_bad_time|
-        klass.where(:status.ne => :complete, updated_at: (latest_known_good_time..latest_possible_bad_time)).only(*PLUCK_FIELDS)
+    def scope_finders_by_workflow_ids( finders, workflow_ids )
+      finders.map do |collector|
+        Proc.new { |latest_known_good_time, latest_possible_bad_time| collector.call(latest_known_good_time, latest_possible_bad_time).where(:workflow_id.in => workflow_ids) }
       end
-    end
-
-    def bad_timers(latest_known_good_time, latest_possible_bad_time)
-      Timer.where(:status.ne => :complete, fires_at: (latest_known_good_time..latest_possible_bad_time), :updated_at.lt => latest_possible_bad_time).only(*PLUCK_FIELDS)
     end
 
     def ignore_errors(query)
@@ -126,7 +126,7 @@ module Reports
         end
         event_ids.each do |event_id|
           event = Event.find event_id
-          next if event.children.where(:_id.in => event_ids, :status.nin => [:open, :complete]).exists? # if there is a stuck child for this event, let's handle the child as it will most likely resolve the parent
+          next if event.children.where(:_id.in => event_ids).exists? # if there is a stuck child for this event, let's handle the child as it will most likely resolve the parent
           case event
           when WorkflowServer::Models::Signal
             if event.status == :open
@@ -157,8 +157,13 @@ module Reports
               event.enqueue_send_to_client
               actions[workflow_id] << { event_id => "Decision: sent_to_client" }
             when :open
-              WorkflowServer.schedule_next_decision(workflow)
-              actions[workflow_id] << { event_id => "Decision: schedule_next_decision" }
+              if event.parent.is_a?(Branch)
+                event.start
+                actions[workflow_id] << { event_id => "Decision: start" }
+              else
+                WorkflowServer.schedule_next_decision(workflow)
+                actions[workflow_id] << { event_id => "Decision: schedule_next_decision" }
+              end
             when :retrying
               # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
               if (Time.now - event.updated_at) > (25000 + event.retry_interval)
