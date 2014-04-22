@@ -9,15 +9,13 @@ describe WorkflowServer::Models::Signal do
   before do
     @event_klass = WorkflowServer::Models::Signal
     @event_data = {name: :test_sig}
-    @event = FactoryGirl.create(:signal, workflow: workflow)
+    @event = FactoryGirl.create(:signal, status: :open, workflow: workflow)
+    @signal = @event
   end
 
   it_should_behave_like 'events'
 
   context "#start" do
-    before do
-      @signal = FactoryGirl.create(:signal, status: :open, workflow: workflow)
-    end
     it "handles start - puts a decision task and goes into completed state" do
       @signal.start
       @signal.reload
@@ -26,6 +24,14 @@ describe WorkflowServer::Models::Signal do
       child = @signal.children.first
       child.should be_instance_of(WorkflowServer::Models::Decision)
       child.name.should == @signal.name
+    end
+  end
+
+  context '#add_decision' do
+    it 'raises an exception if a decision already exists' do
+      @signal.add_decision(:test)
+      @signal.children.count.should == 1
+      expect{ @signal.add_decision(:test2) }.to raise_error('You cannot add a decision to a Signal that already has one!')
     end
   end
 end
