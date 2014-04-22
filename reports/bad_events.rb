@@ -24,7 +24,7 @@ module Reports
        start_time: Time.now,
        recurse_level: -1,
        bad_event_finders: BAD_EVENT_FINDERS,
-       time_to_sleep_after_fixing: 3600
+       time_to_sleep_after_fixing: 360
       }
     end
 
@@ -111,72 +111,78 @@ module Reports
     end
 
     def actions
-      @actions ||= Hash.new {|h,k| h[k] = [] }
+      @actions ||= {}
     end
 
     def fix(report_filename)
       data = JSON.parse(File.read(report_filename))
       data.each_pair do |workflow_id, event_ids|
         workflow = Workflow.find(workflow_id)
+
         unless workflow
           event_ids.each do |event_id|
-            actions[workflow_id] << { event_id => "No action taken. Workflow with id: #{workflow_id} was not found." }
+            actions[workflow_id] = { event_id => "No action taken. Workflow with id: #{workflow_id} was not found." }
           end
           next
         end
+
         event_ids.each do |event_id|
           event = Event.find event_id
           next if event.children.where(:_id.in => event_ids).exists? # if there is a stuck child for this event, let's handle the child as it will most likely resolve the parent
           case event
           when WorkflowServer::Models::Signal
             if event.status == :open
-              event.enqueue_start
-              actions[workflow_id] << { event_id => "Signal: started" }
+              event.start
+              actions[workflow_id] = { event_id => "Signal: started" }
             end
           when Activity
             case event.status
             when :executing
               event.enqueue_send_to_client
-              actions[workflow_id] << { event_id => "Activity: sent_to_client" }
+              actions[workflow_id] = { event_id => "Activity: sent_to_client" }
             when :failed
-              event.enqueue_start
-              actions[workflow_id] << { event_id => "Activity: started" }
+              event.start
+              actions[workflow_id] = { event_id => "Activity: started" }
             when :retrying
               # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
               if (Time.now - event.updated_at) > (25000 + event.retry_interval)
-                event.enqueue_start
-                actions[workflow_id] << { event_id => "Activity: retried" }
+                event.start
+                actions[workflow_id] = { event_id => "Activity: retried" }
               end
             end
           when Decision
             case event.status
             when :executing
-              event.enqueue_work_on_decisions
-              actions[workflow_id] << { event_id => "Decision: work_on_decisions" }
+              event.work_on_decisions
+              actions[workflow_id] = { event_id => "Decision: work_on_decisions" }
             when :sent_to_client, :deciding
               event.enqueue_send_to_client
-              actions[workflow_id] << { event_id => "Decision: sent_to_client" }
+              actions[workflow_id] = { event_id => "Decision: sent_to_client" }
             when :open
               if event.parent.is_a?(Branch)
                 event.start
-                actions[workflow_id] << { event_id => "Decision: start" }
+                actions[workflow_id] = { event_id => "Decision: start" }
               else
                 WorkflowServer.schedule_next_decision(workflow)
-                actions[workflow_id] << { event_id => "Decision: schedule_next_decision" }
+                actions[workflow_id] = { event_id => "Decision: schedule_next_decision" }
               end
             when :retrying
               # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
               if (Time.now - event.updated_at) > (25000 + event.retry_interval)
-                event.enqueue_start
-                actions[workflow_id] << { event_id => "Activity: retried" }
+                event.start
+                actions[workflow_id] = { event_id => "Activity: retried" }
               end
             end
           when Timer
             case event.status
             when :scheduled
-              event.enqueue_start
+              event.start
+              actions[workflow_id] = { event_id => "Timer: start" }
             end
           end
+
+          break if actions[workflow_id]
+
         end
       end
       actions
