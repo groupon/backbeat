@@ -24,7 +24,7 @@ module Reports
        start_time: Time.now,
        recurse_level: -1,
        bad_event_finders: BAD_EVENT_FINDERS,
-       time_to_sleep_after_fixing: 360
+       time_to_sleep_after_fixing: 1800
       }
     end
 
