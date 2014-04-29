@@ -22,6 +22,9 @@ module WorkflowServer
       # This field is required.
       field :notification_endpoint,      type: String
 
+      field :email,                      type: String  # contact email for this api key
+      field :description,                type: String  # some note about this user
+
       ##
       # A user has a relation to all workflows created by that user.
       # A user can only see workflows that belong to them.
