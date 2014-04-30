@@ -2,14 +2,18 @@ require_relative 'report_base'
 module Reports
   class DailyReport < ReportBase
 
-    def perform
-      errored_workflows = run_report
-      mail_report(generate_body(errored_workflows)) unless errored_workflows.empty?
+    def perform( options = {} )
+      options[:users] ||= User.all.to_a
+
+      options[:users].each do |user|
+        errored_workflows = run_report(user)
+        mail_report(generate_body(errored_workflows), user) unless errored_workflows.empty?
+      end
     end
 
-    def run_report
+    def run_report(user)
       errored_workflows = Hash.new {|h,k| h[k] = []}
-      WorkflowServer::Models::Event.where(:status.in => [:error, :timeout]).each do |event|
+      WorkflowServer::Models::Event.where(:user_id => user.id, :status.in => [:error, :timeout]).each do |event|
         next if event.workflow.paused?
         errored_workflows[event.workflow] << event
       end
@@ -17,11 +21,14 @@ module Reports
     end
 
     private
-    def mail_report(report_body)
+    def mail_report(report_body,user)
+      subject = 'Backbeat Error Report'
+      subject << " for #{user.description}" if user.description
+
       Mail.deliver do
         from    'financial-engineering+backbeat@groupon.com'
-        to      'financial-engineering-alerts@groupon.com'
-        subject 'Backbeat Workflow Error Report'
+        to      user.email || 'financial-engineering-alerts@groupon.com'
+        subject subject
         body    "#{report_body}"
       end
     end
