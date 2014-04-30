@@ -126,8 +126,12 @@ module Reports
           next
         end
 
-        event_ids.each do |event_id|
-          event = Event.find event_id
+        # we want to look at events in sequence order (create order), which is what this gives
+        events = workflow.events.where(:id.in => event_ids)
+
+        events.each do |event|
+          event_id = event.id
+
           next if event.children.where(:_id.in => event_ids).exists? # if there is a stuck child for this event, let's handle the child as it will most likely resolve the parent
           case event
           when WorkflowServer::Models::Signal
