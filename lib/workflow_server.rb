@@ -28,6 +28,7 @@ module WorkflowServer
       end
     rescue Timeout::Error => e
        self.info(id: workflow.id, message: :schedule_next_decision_timed_out, source: self.to_s)
+       raise
     end
 
     def find_and_start_next_decision(workflow)      
