@@ -14,17 +14,29 @@ module WorkflowServer
   extend WorkflowServer::Logger
 
   class << self
+    LOCK_TIMEOUT = 160
 
     def schedule_next_decision(workflow)
-      workflow.with_lock(timeout: 120) do
-        self.info(id: workflow.id, message: :schedule_next_decision_lock_start, source: self.to_s)
-        if workflow.decisions.not_in(:status => [:complete, :open, :resolved]).empty?
-          if (next_decision = workflow.decisions.where(status: :open).first)
-            self.info(id: workflow.id, message: :schedule_next_decision_lock_decision, decision: next_decision.id, source: self.to_s)
-            next_decision.start
-          end
+      workflow.with_lock(timeout: LOCK_TIMEOUT) do
+        Timeout::timeout(LOCK_TIMEOUT - 10) do #we give it an extra 10 seconds so we for sure timeout before the DB lock 
+          self.info(id: workflow.id, message: :schedule_next_decision_lock_start, source: self.to_s)
+
+          find_and_start_next_decision(workflow)
+
+          self.info(id: workflow.id, message: :schedule_next_decision_lock_complete, source: self.to_s)
         end
-        self.info(id: workflow.id, message: :schedule_next_decision_lock_complete, source: self.to_s)
+      end
+    rescue Timeout::Error => e
+      self.info(id: workflow.id, message: :schedule_next_decision_timed_out, source: self.to_s)
+      raise Backbeat::TransientError.new(e) 
+    end
+
+    def find_and_start_next_decision(workflow)      
+      if workflow.decisions.not_in(:status => [:complete, :open, :resolved]).empty?
+        if (next_decision = workflow.decisions.where(status: :open).first)
+          self.info(id: workflow.id, message: :schedule_next_decision_lock_decision, decision: next_decision.id, source: self.to_s)
+          next_decision.start
+        end
       end
     end
 
