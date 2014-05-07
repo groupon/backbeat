@@ -6,7 +6,7 @@ module WorkflowServer
 
 
       def add_decision(decision_name, orphan = false)
-        if children.any?
+        if children.any? && decision_name !~ /error/
           raise 'You cannot add a decision to a Branch that already has one!'
         end
         super

@@ -157,7 +157,7 @@ module Reports
           when Decision
             case event.status
             when :executing
-              event.work_on_decisions
+              event.send(:work_on_decisions)
               actions[workflow_id] = { event_id => "Decision: work_on_decisions" }
             when :sent_to_client, :deciding
               event.enqueue_send_to_client

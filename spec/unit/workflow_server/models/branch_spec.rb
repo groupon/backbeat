@@ -12,5 +12,12 @@ describe WorkflowServer::Models::Branch do
       event.children.count.should == 1
       expect{ event.add_decision(:test2) }.to raise_error('You cannot add a decision to a Branch that already has one!')
     end
+
+    it 'allows a error event if a decision already exists' do
+      event.add_decision(:test)
+      event.children.count.should == 1
+      event.add_decision("#{event.name}_error".to_sym)
+      event.reload.children.count.should == 2
+    end
   end
 end
