@@ -31,9 +31,7 @@ module WorkflowServer
           invalid_decisions = new_decisions.select{|d| !d.valid? }
           raise WorkflowServer::InvalidParameters, invalid_decisions.map{|d| {d.event_type => d.errors}}
         else
-          transaction do
-            new_decisions.each{|d| d.save!}
-          end
+          new_decisions.each{|d| d.save!}
         end
       end
 
@@ -98,19 +96,15 @@ module WorkflowServer
       private
 
       def deciding
-        transaction do
-          #Watchdog.feed(self, :decision_deciding_time_out)
-          update_status!(:deciding)
-          self.children.destroy_all
-        end
+        #Watchdog.feed(self, :decision_deciding_time_out)
+        update_status!(:deciding)
+        self.children.destroy_all
       end
 
       def deciding_complete
-        transaction do
-          #Watchdog.dismiss(self, :decision_deciding_time_out)
-          update_status!(:executing)
-          enqueue_work_on_decisions
-        end
+        #Watchdog.dismiss(self, :decision_deciding_time_out)
+        update_status!(:executing)
+        enqueue_work_on_decisions
       end
 
       def work_on_decisions
@@ -177,9 +171,7 @@ module WorkflowServer
       def start_next_action
         open_events do |event|
           break if any_incomplete_blocking_activities_branches_or_workflows?
-          transaction do
-            event.start
-          end
+          event.start
         end
       end
 
