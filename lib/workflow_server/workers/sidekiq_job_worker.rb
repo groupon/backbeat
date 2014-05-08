@@ -19,7 +19,7 @@ module WorkflowServer
           event_id = msg['args'].first
           event = WorkflowServer::Models::Event.find(event_id)
           event.transaction do
-            errored(msg['error_message'])
+            event.errored(msg['error_message'])
           end
           self.error "#{msg['class']} failed with #{msg['args']}: #{msg['error_message']}."
         rescue Exception => e
