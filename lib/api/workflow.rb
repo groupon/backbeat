@@ -155,9 +155,7 @@ module Api
       end
       put "/:id/backfill/timer/:name" do
         workflow = find_workflow(params[:id])
-        workflow.transaction do
-          WorkflowServer::Models::Timer.create!(name: params[:name], workflow: workflow, fires_at: params[:run_at], user: current_user).start
-        end
+        WorkflowServer::Models::Timer.create!(name: params[:name], workflow: workflow, fires_at: params[:run_at], user: current_user).start
         { success: true }
       end
 
@@ -171,10 +169,8 @@ module Api
       }
       put "/:id/backfill/decision/:name" do
         workflow = find_workflow(params[:id])
-        workflow.transaction do
-          signal = WorkflowServer::Models::Signal.create!(name: params[:name], workflow: workflow, status: :complete, user: current_user)
-          decision = WorkflowServer::Models::Decision.create!(name: params[:name], workflow: workflow, status: :complete, parent: signal, user: current_user)
-        end
+        signal = WorkflowServer::Models::Signal.create!(name: params[:name], workflow: workflow, status: :complete, user: current_user)
+        decision = WorkflowServer::Models::Decision.create!(name: params[:name], workflow: workflow, status: :complete, parent: signal, user: current_user)
         { success: true }
       end
 
@@ -339,10 +335,7 @@ module Api
         options = params[:options] || {}
         client_data = options[:client_data] || {}
         client_metadata = options[:client_metadata] || {}
-        signal = nil
-        wf.transaction do
-          signal = wf.signal(params[:name], client_data: client_data, client_metadata: client_metadata)
-        end
+        signal = wf.signal(params[:name], client_data: client_data, client_metadata: client_metadata)
         signal
       end
 
@@ -355,9 +348,7 @@ module Api
       }
       put "/:id/pause" do
         wf = find_workflow(params[:id])
-        wf.transaction do
-          wf.pause
-        end
+        wf.pause
         {success: true}
       end
 
@@ -370,9 +361,7 @@ module Api
       }
       put "/:id/resume" do
         wf = find_workflow(params[:id])
-        wf.transaction do
-          wf.resume
-        end
+        wf.resume
         {success: true}
       end
     end
@@ -407,9 +396,7 @@ module Api
       }
       put "/:id/restart" do
         e = find_event(params)
-        e.transaction do
-          e.restart
-        end
+        e.restart
         {success: true}
       end
 
@@ -483,9 +470,7 @@ module Api
         raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
         raise WorkflowServer::InvalidParameters, "args must include a 'decisions' parameter" if params[:args][:decisions].nil? || params[:args][:decisions].empty?
         event = find_event(params)
-        event.transaction do
-          event.add_decisions(params[:args][:decisions])
-        end
+        event.add_decisions(params[:args][:decisions])
         {success: true}
       end
 
@@ -501,9 +486,7 @@ module Api
         raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
         event = find_event(params)
         args = params[:args] || {}
-        event.transaction do
-          event.change_status(params[:new_status], args.with_indifferent_access)
-        end
+        event.change_status(params[:new_status], args.with_indifferent_access)
         {success: true}
       end
 
@@ -525,12 +508,9 @@ module Api
       end
       put "/:id/run_sub_activity" do
         event = find_event(params, :activities)
-        sub_activity = nil
-        event.transaction do
-          sub_activity = event.run_sub_activity(params[:sub_activity] || {})
-          if sub_activity.try(:blocking?)
-            header("WAIT_FOR_SUB_ACTIVITY", "true")
-          end
+        sub_activity = event.run_sub_activity(params[:sub_activity] || {})
+        if sub_activity.try(:blocking?)
+          header("WAIT_FOR_SUB_ACTIVITY", "true")
         end
         sub_activity
       end
