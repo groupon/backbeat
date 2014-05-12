@@ -127,14 +127,12 @@ module WorkflowServer
 
       def errored(error)
         #Watchdog.dismiss(self, :timeout)
-        transaction do
-          if retry?
-            update_status!(:failed, error)
-            do_retry(error)
-          else
-            handle_error(error)
-            super
-          end
+        if retry?
+          update_status!(:failed, error)
+          do_retry(error)
+        else
+          handle_error(error)
+          super
         end
       end
 

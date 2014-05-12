@@ -18,7 +18,7 @@ module Reports
 
     def default_options
       {supress_auto_fix: false,
-       latest_known_good_time: Time.parse('2014/04/27'), # last known good date. We will separately verify everything after that date
+       latest_known_good_time: Time.parse('2014/05/04'), # last known good date. We will separately verify everything after that date
        latest_possible_bad_time: 1.day.ago, # Nothing modified since this time will be considered bad
        filename: filename(Date.today),
        start_time: Time.now,
