@@ -31,7 +31,7 @@ module WorkflowServer
       raise Backbeat::TransientError.new(e) 
     end
 
-    def find_and_start_next_decision(workflow)      
+    def find_and_start_next_decision(workflow)
       if workflow.decisions.not_in(:status => [:complete, :open, :resolved]).empty?
         if (next_decision = workflow.decisions.where(status: :open).first)
           self.info(id: workflow.id, message: :schedule_next_decision_lock_decision, decision: next_decision.id, source: self.to_s)
