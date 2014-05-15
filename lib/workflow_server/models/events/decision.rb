@@ -32,7 +32,7 @@ module WorkflowServer
           raise WorkflowServer::InvalidParameters, invalid_decisions.map{|d| {d.event_type => d.errors}}
         else
           transaction do
-            new_decisions.each{|d| d.save!}
+            new_decisions.each{|e| e.save!}
           end
         end
       end
