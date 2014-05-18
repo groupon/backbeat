@@ -84,7 +84,7 @@ module Reports
       # the event has a blocking timer underneath that will fire in the future
       query.delete_if do |event|
         event.status == :error || event.status == :timeout ||
-          (event.status == :resolved && event.parent.status == :complete) ||
+          (event.status == :resolved && event.parent.try(:status) == :complete) ||
           (event.workflow && event.workflow.events.where(:status.in => [:error, :timeout]).exists?)
       end
     end
@@ -147,7 +147,7 @@ module Reports
                 event.start
                 actions[workflow_id] = { event_id => "Branch: started" }
               when :executing
-                if( children.count > 0 )
+                if( event.children.count > 0 )
                   event.update_status!(:complete)
                   event.parent.child_completed(event.id)
                   actions[workflow_id] = { event_id => "Branch: marked completed, notified parent" }
