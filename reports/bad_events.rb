@@ -84,7 +84,7 @@ module Reports
       # the event has a blocking timer underneath that will fire in the future
       query.delete_if do |event|
         event.status == :error || event.status == :timeout ||
-          (event.status == :resolved && event.parent.try(:status) == :complete) ||
+          (event.status == :resolved && (event.parent.nil? || event.parent.status == :complete)) ||
           (event.workflow && event.workflow.events.where(:status.in => [:error, :timeout]).exists?)
       end
     end
