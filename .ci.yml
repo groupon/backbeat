@@ -1,10 +1,10 @@
 environment:
   language: ruby
   language_versions:
-    - jruby-1.7.8
+    - jruby-1.7.9_p1
   packages:
     - mongodb-2.2.3
-    - java-1.7.0_05
+    - java-1.7.0_55
     - memcached-1.4.5
     - mysql-5.1.56_percona_server
     - ruby-1.9.3_p194
