@@ -59,9 +59,10 @@ module WorkflowServer
       def complete_if_done
         if self._client_done_with_activity && status != :complete && !children_running?
           with_lock do
-            transaction do
+            # this tx may be huring us
+#            transaction do
               completed if status != :complete
-            end
+#            end
           end
         end
       end
