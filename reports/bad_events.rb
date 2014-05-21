@@ -117,110 +117,117 @@ module Reports
     def fix(report_filename)
       data = JSON.parse(File.read(report_filename))
       data.each_pair do |workflow_id, event_ids|
-        workflow = Workflow.find(workflow_id)
+        begin
+          workflow = Workflow.find(workflow_id)
 
-        unless workflow
-          event_ids.each do |event_id|
-            actions[workflow_id] = { event_id => "No action taken. Workflow with id: #{workflow_id} was not found." }
+          unless workflow
+            event_ids.each do |event_id|
+              actions[workflow_id] = { event_id => "No action taken. Workflow with id: #{workflow_id} was not found." }
+            end
+            next
           end
-          next
-        end
 
-        # we want to look at events in sequence order (create order), which is what this gives
-        events = workflow.events.where(:id.in => event_ids)
+          # we want to look at events in sequence order (create order), which is what this gives
+          events = workflow.events.where(:id.in => event_ids)
 
-        events.each do |event|
-          event.transaction do
-            event_id = event.id
+          events.each do |event|
+            event.transaction do
+              event_id = event.id
 
-            next if event.children.where(:_id.in => event_ids).exists? # if there is a stuck child for this event, let's handle the child as it will most likely resolve the parent
+              next if event.children.where(:_id.in => event_ids).exists? # if there is a stuck child for this event, let's handle the child as it will most likely resolve the parent
 
-            case event
-            when WorkflowServer::Models::Signal
-              if event.status == :open
-                event.start
-                actions[workflow_id] = { event_id => "Signal: started" }
-              end
-            when Branch
-              case event.status
-              when :open
-                event.start
-                actions[workflow_id] = { event_id => "Branch: started" }
-              when :executing
-                if( event.children.count > 0 )
-                  event.update_status!(:complete)
-                  event.parent.child_completed(event.id)
-                  actions[workflow_id] = { event_id => "Branch: marked completed, notified parent" }
-                else
+              case event
+              when WorkflowServer::Models::Signal
+                if event.status == :open
+                  if event.children.count > 0
+                    event.completed
+                    actions[workflow_id] = { event_id => "Signal: completed" }
+                  else
+                    event.start
+                    actions[workflow_id] = { event_id => "Signal: started" }
+                  end
+                end
+              when Branch
+                case event.status
+                when :open
+                  event.start
+                  actions[workflow_id] = { event_id => "Branch: started" }
+                when :executing
+                  if( event.children.count > 0 )
+                    event.update_status!(:complete)
+                    event.parent.child_completed(event.id)
+                    actions[workflow_id] = { event_id => "Branch: marked completed, notified parent" }
+                  else
+                    event.enqueue_send_to_client
+                    actions[workflow_id] = { event_id => "Branch: sent_to_client" }
+                  end
+                when :failed
+                  event.cleanup
+                  event.start
+                  actions[workflow_id] = { event_id => "Branch: started" }
+                when :retrying
+                  # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
+                  if (Time.now - event.updated_at) > (25000 + event.retry_interval)
+                    event.cleanup
+                    event.start
+                    actions[workflow_id] = { event_id => "Branch: retried" }
+                  end
+                end
+              when Activity
+                case event.status
+                when :executing
                   event.enqueue_send_to_client
-                  actions[workflow_id] = { event_id => "Branch: sent_to_client" }
-                end
-              when :failed
-                event.cleanup
-                event.start
-                actions[workflow_id] = { event_id => "Branch: started" }
-              when :retrying
-                # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
-                if (Time.now - event.updated_at) > (25000 + event.retry_interval)
+                  actions[workflow_id] = { event_id => "Activity: sent_to_client" }
+                when :failed
                   event.cleanup
                   event.start
-                  actions[workflow_id] = { event_id => "Branch: retried" }
+                  actions[workflow_id] = { event_id => "Activity: started" }
+                when :retrying
+                  # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
+                  if (Time.now - event.updated_at) > (25000 + event.retry_interval)
+                    event.cleanup
+                    event.start
+                    actions[workflow_id] = { event_id => "Activity: retried" }
+                  end
                 end
-              end
-            when Activity
-              case event.status
-              when :executing
-                event.enqueue_send_to_client
-                actions[workflow_id] = { event_id => "Activity: sent_to_client" }
-              when :failed
-                event.cleanup
-                event.start
-                actions[workflow_id] = { event_id => "Activity: started" }
-              when :retrying
-                # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
-                if (Time.now - event.updated_at) > (25000 + event.retry_interval)
-                  event.cleanup
+              when Decision
+                case event.status
+                when :executing
+                  event.send(:work_on_decisions)
+                  actions[workflow_id] = { event_id => "Decision: work_on_decisions" }
+                when :sent_to_client, :deciding
+                  event.enqueue_send_to_client
+                  actions[workflow_id] = { event_id => "Decision: sent_to_client" }
+                when :open
+                  if event.parent.is_a?(Branch)
+                    event.start
+                    actions[workflow_id] = { event_id => "Decision: start" }
+                  else
+                    WorkflowServer.schedule_next_decision(workflow)
+                    actions[workflow_id] = { event_id => "Decision: schedule_next_decision" }
+                  end
+                when :retrying
+                  # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
+                  if (Time.now - event.updated_at) > (25000 + event.retry_interval)
+                    event.start
+                    actions[workflow_id] = { event_id => "Activity: retried" }
+                  end
+                end
+              when Timer
+                case event.status
+                when :scheduled
                   event.start
-                  actions[workflow_id] = { event_id => "Activity: retried" }
+                  actions[workflow_id] = { event_id => "Timer: start" }
                 end
-              end
-            when Decision
-              case event.status
-              when :executing
-                event.send(:work_on_decisions)
-                actions[workflow_id] = { event_id => "Decision: work_on_decisions" }
-              when :sent_to_client, :deciding
-                event.enqueue_send_to_client
-                actions[workflow_id] = { event_id => "Decision: sent_to_client" }
-              when :open
-                if event.parent.is_a?(Branch)
-                  event.start
-                  actions[workflow_id] = { event_id => "Decision: start" }
-                else
-                  WorkflowServer.schedule_next_decision(workflow)
-                  actions[workflow_id] = { event_id => "Decision: schedule_next_decision" }
-                end
-              when :retrying
-                # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
-                if (Time.now - event.updated_at) > (25000 + event.retry_interval)
-                  event.start
-                  actions[workflow_id] = { event_id => "Activity: retried" }
-                end
-              end
-            when Timer
-              case event.status
-              when :scheduled
-                event.start
-                actions[workflow_id] = { event_id => "Timer: start" }
               end
             end
+
+            break if actions[workflow_id]
           end
-
-          break if actions[workflow_id]
-
+        rescue Exception => e
+          actions[workflow_id] = { "Exception" => e.message, "backtrace" => e.backtrace }
         end
       end
-
       actions
     end
 
