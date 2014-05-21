@@ -138,13 +138,19 @@ module Reports
 
               case event
               when WorkflowServer::Models::Signal
-                if event.status == :open
+                case event.status
+                when :open
                   if event.children.count > 0
                     event.completed
                     actions[workflow_id] = { event_id => "Signal: completed" }
                   else
                     event.start
                     actions[workflow_id] = { event_id => "Signal: started" }
+                  end
+                when :error
+                  if( event.children.count > 0 && event.children.count == event.children.where(status: :complete).count )
+                    event.completed
+                    actions[workflow_id] = { event_id => "Signal: completed" }
                   end
                 end
               when Branch
@@ -160,6 +166,12 @@ module Reports
                   else
                     event.enqueue_send_to_client
                     actions[workflow_id] = { event_id => "Branch: sent_to_client" }
+                  end
+                when :error
+                  if( event.children.count > 0 && event.children.count == event.children.where(status: :complete).count )
+                    event.update_status!(:complete)
+                    event.parent.child_completed(event.id)
+                    actions[workflow_id] = { event_id => "Branch: marked completed, notified parent" }
                   end
                 when :failed
                   event.cleanup
