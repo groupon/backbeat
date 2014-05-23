@@ -1,3 +1,4 @@
+require_relative '../lib/workflow_server/models/user'
 require_relative 'report_base'
 module Reports
   class DailyReport < ReportBase
