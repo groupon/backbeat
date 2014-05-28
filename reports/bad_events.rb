@@ -16,10 +16,6 @@ module Reports
       Timer.where(:status.ne => :complete, fires_at: (latest_known_good_time..latest_possible_bad_time), :updated_at.lt => latest_possible_bad_time).only(*PLUCK_FIELDS)
     end
 
-    BAD_EVENT_FINDERS << Proc.new do |latest_known_good_time, latest_possible_bad_time|
-      Branch.where(status: :error)
-    end
-
     def default_options
       {supress_auto_fix: false,
        latest_known_good_time: Time.parse('2014/04/27'), # last known good date. We will separately verify everything after that date
@@ -192,13 +188,16 @@ module Reports
                 end
               when Activity
                 case event.status
+                when :open
+                  event.start
+                  actions[workflow_id] = { event_id => "Activity: started" }
                 when :executing
                   event.enqueue_send_to_client
                   actions[workflow_id] = { event_id => "Activity: sent_to_client" }
                 when :failed
                   event.cleanup
                   event.start
-                  actions[workflow_id] = { event_id => "Activity: started" }
+                  actions[workflow_id] = { event_id => "Activity: failed to started" }
                 when :retrying
                   # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
                   if (Time.now - event.updated_at) > (25000 + event.retry_interval)
@@ -217,6 +216,7 @@ module Reports
                   actions[workflow_id] = { event_id => "Decision: sent_to_client" }
                 when :open
                   if event.parent.is_a?(Branch)
+                    event.parent.update_status!(:complete) if event.parent.status == :executing
                     event.start
                     actions[workflow_id] = { event_id => "Decision: start" }
                   else
