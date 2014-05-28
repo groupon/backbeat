@@ -131,8 +131,9 @@ module Reports
             next
           end
 
-          # we want to look at events in sequence order (create order), which is what this gives
-          events = workflow.events.where(:id.in => event_ids)
+          # we want to look at events pre-order tree traversal. sadly, this operation sucks atm.  oh well.
+          id_set = Set.new(event_ids)
+          events = workflow.pre_order_tree.find_all {|e| id_set.include?(e.id) }
 
           events.each do |event|
             event.transaction do
@@ -209,16 +210,8 @@ module Reports
               when Decision
                 case event.status
                 when :executing
-                  # 1 day seemed like a reasonably absurd amount of time for an activity to leave the executing state
-                  arel = event.children.where(:status => :executing, :updated_at.lt => 1.day.ago)
-                  if arel.count > 0
-                    children = arel.to_a
-                    children.map(&:start)
-                    actions[workflow_id] = { event_id => "Decision: sent start to executing children (#{children.map(&:id).join(",")})" }
-                  else
-                    event.send(:work_on_decisions)
-                    actions[workflow_id] = { event_id => "Decision: work_on_decisions" }
-                  end
+                  event.send(:work_on_decisions)
+                  actions[workflow_id] = { event_id => "Decision: work_on_decisions" }
                 when :sent_to_client, :deciding
                   event.enqueue_send_to_client
                   actions[workflow_id] = { event_id => "Decision: sent_to_client" }
