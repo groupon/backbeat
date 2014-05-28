@@ -4,6 +4,8 @@ module Reports
 
     include WorkflowServer::Models
 
+    PLUCK_FIELDS  = [:id, :name, :status, :parent_id, :workflow_id]
+
     BAD_EVENT_FINDERS = [ Decision, Activity, Flag, WorkflowServer::Models::Signal ].map do |klass|
       Proc.new do |latest_known_good_time, latest_possible_bad_time|
         klass.where(:status.ne => :complete, updated_at: (latest_known_good_time..latest_possible_bad_time)).only(*PLUCK_FIELDS)
@@ -14,7 +16,9 @@ module Reports
       Timer.where(:status.ne => :complete, fires_at: (latest_known_good_time..latest_possible_bad_time), :updated_at.lt => latest_possible_bad_time).only(*PLUCK_FIELDS)
     end
 
-    PLUCK_FIELDS  = [:id, :name, :status, :parent_id, :workflow_id]
+    BAD_EVENT_FINDERS << Proc.new do |latest_known_good_time, latest_possible_bad_time|
+      Branch.where(status: :error)
+    end
 
     def default_options
       {supress_auto_fix: false,
@@ -205,8 +209,16 @@ module Reports
               when Decision
                 case event.status
                 when :executing
-                  event.send(:work_on_decisions)
-                  actions[workflow_id] = { event_id => "Decision: work_on_decisions" }
+                  # 1 day seemed like a reasonably absurd amount of time for an activity to leave the executing state
+                  arel = event.children.where(:status => :executing, :updated_at.lt => 1.day.ago)
+                  if arel.count > 0
+                    children = arel.to_a
+                    children.map(&:start)
+                    actions[workflow_id] = { event_id => "Decision: sent start to executing children (#{children.map(&:id).join(",")})" }
+                  else
+                    event.send(:work_on_decisions)
+                    actions[workflow_id] = { event_id => "Decision: work_on_decisions" }
+                  end
                 when :sent_to_client, :deciding
                   event.enqueue_send_to_client
                   actions[workflow_id] = { event_id => "Decision: sent_to_client" }
