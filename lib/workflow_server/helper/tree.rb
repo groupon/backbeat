@@ -19,6 +19,16 @@ module Tree
     puts tree_to_s
   end
 
+  def pre_order_tree
+    pre_order = [self]
+
+    get_children.each do |child|
+      pre_order += child.pre_order_tree
+    end
+
+    pre_order
+  end
+
   private
 
   def get_children

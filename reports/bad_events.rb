@@ -4,6 +4,8 @@ module Reports
 
     include WorkflowServer::Models
 
+    PLUCK_FIELDS  = [:id, :name, :status, :parent_id, :workflow_id]
+
     BAD_EVENT_FINDERS = [ Decision, Activity, Flag, WorkflowServer::Models::Signal ].map do |klass|
       Proc.new do |latest_known_good_time, latest_possible_bad_time|
         klass.where(:status.ne => :complete, updated_at: (latest_known_good_time..latest_possible_bad_time)).only(*PLUCK_FIELDS)
@@ -13,8 +15,6 @@ module Reports
     BAD_EVENT_FINDERS << Proc.new do |latest_known_good_time, latest_possible_bad_time|
       Timer.where(:status.ne => :complete, fires_at: (latest_known_good_time..latest_possible_bad_time), :updated_at.lt => latest_possible_bad_time).only(*PLUCK_FIELDS)
     end
-
-    PLUCK_FIELDS  = [:id, :name, :status, :parent_id, :workflow_id]
 
     def default_options
       {supress_auto_fix: false,
@@ -127,8 +127,9 @@ module Reports
             next
           end
 
-          # we want to look at events in sequence order (create order), which is what this gives
-          events = workflow.events.where(:id.in => event_ids)
+          # we want to look at events pre-order tree traversal. sadly, this operation sucks atm.  oh well.
+          id_set = Set.new(event_ids)
+          events = workflow.pre_order_tree.find_all {|e| id_set.include?(e.id) }
 
           events.each do |event|
             event.transaction do
@@ -187,13 +188,16 @@ module Reports
                 end
               when Activity
                 case event.status
+                when :open
+                  event.start
+                  actions[workflow_id] = { event_id => "Activity: started" }
                 when :executing
                   event.enqueue_send_to_client
                   actions[workflow_id] = { event_id => "Activity: sent_to_client" }
                 when :failed
                   event.cleanup
                   event.start
-                  actions[workflow_id] = { event_id => "Activity: started" }
+                  actions[workflow_id] = { event_id => "Activity: failed to started" }
                 when :retrying
                   # 25000 is the largest number of seconds that sidekiq would go between retries with a few minutes of padding added
                   if (Time.now - event.updated_at) > (25000 + event.retry_interval)
@@ -212,6 +216,7 @@ module Reports
                   actions[workflow_id] = { event_id => "Decision: sent_to_client" }
                 when :open
                   if event.parent.is_a?(Branch)
+                    event.parent.update_status!(:complete) if event.parent.status == :executing
                     event.start
                     actions[workflow_id] = { event_id => "Decision: start" }
                   else
