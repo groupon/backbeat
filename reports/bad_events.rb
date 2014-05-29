@@ -1,4 +1,5 @@
 require_relative 'report_base'
+
 module Reports
   class BadEvents < ReportBase
 
@@ -42,6 +43,7 @@ module Reports
           id_hash[workflow_id] = events.map(&:id)
         end
 
+        FileUtils.mkdir_p(File.dirname(options[:filename]))
         File.open(options[:filename], 'w') { |f| f.write(id_hash.to_json) }
 
         if options[:suppress_auto_fix]
@@ -216,7 +218,13 @@ module Reports
                   actions[workflow_id] = { event_id => "Decision: sent_to_client" }
                 when :open
                   if event.parent.is_a?(Branch)
-                    event.parent.update_status!(:complete) if event.parent.status == :executing
+                    branch = event.parent
+                    # if the branch isn't complete but we exist off of it, we have to mark it as complete without forcing a state transition
+                    # otherwise the branch completion state transition code will fire and try to add another decision
+                    # this simulates completed without that piece
+                    branch.update_status!(:complete) if event.parent.status == :executing
+                    branch.parent.child_completed(branch.id) if branch.parent # should always be true, btw
+
                     event.start
                     actions[workflow_id] = { event_id => "Decision: start" }
                   else
