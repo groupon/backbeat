@@ -32,7 +32,7 @@ module WorkflowServer
     end
 
     def find_and_start_next_decision(workflow)
-      if workflow.decisions.not_in(:status => [:complete, :open, :resolved]).empty?
+      if workflow.decisions.where(:status.in => [:sent_to_client, :restarting, :deciding, :executing, :pause, :error, :timeout]).count == 0
         if (next_decision = workflow.decisions.where(status: :open).first)
           self.info(id: workflow.id, message: :schedule_next_decision_lock_decision, decision: next_decision.id, source: self.to_s)
           next_decision.start
