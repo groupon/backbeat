@@ -71,7 +71,15 @@ module Reports
       bad_event_finders.each { |collector| events << ignore_errors(collector.call(latest_known_good_time, latest_possible_bad_time)) }
       events.flatten!
       events.compact!
-      events.group_by(&:workflow_id).select {|workflow_id, events| workflow = Workflow.where(id: workflow_id).only(:id, :status).first; (workflow.nil? || (workflow.status != :complete && workflow.status != :pause))}
+      events.group_by(&:workflow_id).select do |workflow_id, events| 
+        workflow = Workflow.where(id: workflow_id).only(:id, :status).first
+        # we only care about events with nil workflows (those needs to be reasoned about or cleaned up)
+        # or events with workflows that are still running and don't have an activity that's recently in the retry state
+        (workflow.nil? || 
+         (workflow.status != :complete &&
+          workflow.status != :pause &&
+          workflow.activities.where(:status => :retrying, :updated_at.gt => latest_possible_bad_time ).count == 0))
+      end
     end
 
     def scope_finders_by_workflow_ids( finders, workflow_ids )
