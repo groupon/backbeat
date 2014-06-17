@@ -1,12 +1,12 @@
 GIT
-  remote: git://github.com/mooremo/mongoid-locker.git
+  remote: https://github.com/mooremo/mongoid-locker.git
   revision: 50158725657c21d7f7acb4fb22e7f98a5c39b88d
   specs:
     mongoid-locker (0.2.1)
       mongoid (>= 2.4, < 3.2)
 
 GIT
-  remote: git@github.groupondev.com:finance-engineering/accounting_torquespec.git
+  remote: https://github.groupondev.com/finance-engineering/accounting_torquespec.git
   revision: 0535e40a3a7115a4bc575aa86698e97b445388bd
   specs:
     accounting_torquespec (0.0.1)
@@ -14,7 +14,7 @@ GIT
       torquespec
 
 GIT
-  remote: git@github.groupondev.com:finance-engineering/application_transaction.git
+  remote: https://github.groupondev.com/finance-engineering/application_transaction.git
   revision: bc1305be97592df1a6baa5afc39ce298ed74e1c5
   specs:
     application_transaction (0.0.1)
@@ -22,21 +22,21 @@ GIT
       awesome_print
 
 GIT
-  remote: git@github.groupondev.com:finance-engineering/external_service.git
+  remote: https://github.groupondev.com/finance-engineering/external_service.git
   revision: 6063d8f074d7f578bd459f150eaac4fc8703106b
   specs:
     external_service (0.0.1)
       rack
 
 GIT
-  remote: git@github.groupondev.com:groupon-api/service-discovery.git
+  remote: https://github.groupondev.com/groupon-api/service-discovery.git
   revision: 90abd291b4813d609943b4b3759938059d460cdc
   specs:
     service-discovery (0.3.0)
       multi_json
 
 GIT
-  remote: http://github.com/mongoid/mongoid.git
+  remote: https://github.com/mongoid/mongoid.git
   revision: 28ee2d96707f607b12235bddf13f9fbeea310f74
   branch: 3.1.0-stable
   specs:
@@ -47,7 +47,7 @@ GIT
       tzinfo (~> 0.3.29)
 
 GIT
-  remote: http://github.com/nchainani/delayed_job_mongoid.git
+  remote: https://github.com/nchainani/delayed_job_mongoid.git
   revision: 721d5309c322d41a9daa9abaaa8b158ee8f3e6a9
   branch: replace_find_and_modify
   specs:
