@@ -9,7 +9,7 @@ module Reports
 
     BAD_EVENT_FINDERS = [ Decision, Activity, Flag, WorkflowServer::Models::Signal ].map do |klass|
       Proc.new do |latest_known_good_time, latest_possible_bad_time|
-        klass.where(:status.ne => :complete, updated_at: (latest_known_good_time..latest_possible_bad_time)).only(*PLUCK_FIELDS)
+        klass.where(:status.in => [:deciding, :open, :executing, :sent_to_client, :restarting, :retrying], updated_at: (latest_known_good_time..latest_possible_bad_time)).only(*PLUCK_FIELDS)
       end
     end
 
@@ -19,7 +19,7 @@ module Reports
 
     def default_options
       {supress_auto_fix: false,
-       latest_known_good_time: Time.parse('2014/04/27'), # last known good date. We will separately verify everything after that date
+       latest_known_good_time: Time.parse('2014/08/01'), # last known good date. We will separately verify everything after that date
        latest_possible_bad_time: 1.day.ago, # Nothing modified since this time will be considered bad
        filename: filename(Date.today),
        start_time: Time.now,
