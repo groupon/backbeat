@@ -84,7 +84,6 @@ GEM
       parslet (~> 1.4.0)
     factory_girl (4.2.0)
       activesupport (>= 3.0.0)
-    ffi (1.9.3)
     ffi (1.9.3-java)
     grape (0.6.0)
       activesupport
@@ -121,7 +120,6 @@ GEM
     moped (1.5.1)
     multi_json (1.9.2)
     multi_xml (0.5.5)
-    newrelic_rpm (3.6.7.152)
     origin (1.1.0)
     parslet (1.4.0)
       blankslate (~> 2.0)
@@ -260,7 +258,6 @@ DEPENDENCIES
   mongoid!
   mongoid-indifferent-access
   mongoid-locker!
-  newrelic_rpm
   pry
   rack-test
   rake

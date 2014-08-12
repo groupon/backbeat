@@ -1,6 +1,3 @@
-require 'newrelic_rpm'
-require 'new_relic/agent/instrumentation/rack'
-
 module Api
   class Authenticate
     def initialize(app)
@@ -13,7 +10,5 @@ module Api
       return [401, {"Content-Type"=>"text/plain"}, ["Unauthorized"]] unless env['WORKFLOW_CURRENT_USER']
       @app.call(env)
     end
-
-    include ::NewRelic::Agent::Instrumentation::Rack
   end
 end

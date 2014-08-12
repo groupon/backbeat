@@ -23,7 +23,6 @@ gem 'kiqstand'
 gem 'application_transaction', :git => 'https://github.groupondev.com/finance-engineering/application_transaction.git'
 
 gem 'service-discovery', :git => 'https://github.groupondev.com/groupon-api/service-discovery.git'
-gem 'newrelic_rpm'
 
 platforms :ruby do
   gem 'unicorn'
