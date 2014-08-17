@@ -43,8 +43,8 @@ if look at the server logs the last thing it says is stoping hornetq and never s
 
 Backbeat web endpoints are behind a load balancer - accounting-backbeat-vip.snc1. There are multiple hosts behind this vip with an instace of JBoss running on each host. JBoss on an individual host can be restarted without taking backbeat down. Follow these steps to restart JBoss on all hosts with zero downtime
         
-        clone the [spindererlla](https://github.groupondev.com/finance-engineering/spinderella) repo
-        bundle exec cap torquebox:backbeat:production jboss:restart
+        clone the spindererlla repo https://github.groupondev.com/finance-engineering/spinderella
+        run 'bundle exec cap torquebox:backbeat:production jboss:restart'
 
 ### Other Important Links
 - [Splunk Dashboard](https://splunk-snc1.groupondev.com/en-US/app/search/FED)
