@@ -114,23 +114,6 @@ module Api
       end
     }
 
-    desc "Returns basic server status (current time, git SHA of running code)", {
-      action_descriptor: action_description(:status) do |status|
-        status.response do |resp|
-          resp.string "time"
-          resp.string "sha"
-          resp.string "status"
-        end
-      end
-    }
-    get '/status' do
-      {
-        sha: GIT_REVISION,
-        time: Time.now.iso8601,
-        status: 'OK'
-      }
-    end
-
     resource 'workflows' do
       desc "Creates a new workflow. If the workflow with the given parameter already exists, returns the existing workflow.", {
         action_descriptor: action_description(:create) do |create|
