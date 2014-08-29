@@ -7,7 +7,8 @@ module Api
     ENDPOINT = '/health'.freeze
     def call(env)
       if env['PATH_INFO'] == ENDPOINT
-        db_ok = !WorkflowServer::Models::Workflow.last.try(:created_at).nil?
+        db_ok = Mongoid.default_session.cluster.nodes.map(&:connected?).uniq == [true]
+
         result = {
           sha: GIT_REVISION,
           time: Time.now.iso8601,
