@@ -19,6 +19,8 @@ require 'sidekiq'
 require 'kiqstand'
 require 'application_transaction'
 
+GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNKNOWN'
+
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
 redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment.to_s]
 
