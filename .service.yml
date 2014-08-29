@@ -4,24 +4,48 @@ description: A RESTful workflow service written in Ruby.
 sre:
   notify: finance-engineering-alerts@groupon.com
   dashboards:
+  - https://splunk-snc1.groupondev.com/en-US/app/search/FED
   - https://grapher-snc1.groupondev.com/dashboard/390
+  runbook: https://github.groupondev.com/sox-inscope/accounting-service/blob/master/OwnersManual.markdown
+  pagerduty: https://groupon.pagerduty.com/escalation_policies#PSG8PHF
+  hipchat_room_id: 353533
 team:
-  name: Finance Engineering
-  owner: jyanowitz
+  name: FED (Finance Engineering)
+  owner: shane
+  members:
+  - gjasinski
+  - jalons
+  - jbauer
+  - jyanowitz
+  - minostro
+  - naren
+  - shane
+  - twebb
   url: https://wiki.groupondev.com/Financial_Engineering_Team
+  email: fed@groupon.com
 deployments:
   production:
+    endpoints:
+      internal:
+      - "http://accounting-backbeat-vip.snc1"
     hosts:
     - accounting-utility2.snc1
+    - accounting-worker1.snc1
+    - accounting-worker2.snc1
+    - accounting-worker3.snc1
   staging:
+    endpoints:
+      internal:
+      - "http://accounting-utility2-staging.snc1:9000"
     hosts:
     - accounting-utility2-staging.snc1
   uat:
+    endpoints:
+      internal:
+      - "http://accounting-utility2-uat.snc1:9000"
     hosts:
     - accounting-utility2-uat.snc1
-dependencies:
-- mongo
-- sidekiq
-- resque
-- jruby
-- jboss
+status_endpoint: 
+  path: /health
+  sha_key: sha        
+
