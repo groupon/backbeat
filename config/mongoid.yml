@@ -64,6 +64,7 @@ production:
         - accounting-tokumx1.snc1:27017
         - accounting-tokumx2.snc1:27017
         - accounting-tokumx3.snc1:27017
+        - accounting-tokumx4.snc1:27017
       options:
         consistency: :strong
         max_retries: 10
