@@ -8,20 +8,15 @@ describe Api::Health do
   end
 
   context "/health" do
-    it "catches the request and return 200" do
+    it "includes running SHA, current time and status. if this fails locally, run a mongo on port 27018" do
       response = get '/health'
       response.status.should == 200
-      response.headers["Content-Type"].should == "text/plain"
-      response.headers["Content-Length"].should == "0"
-      response.body.should == ""
-    end
-
-    it "includes the date the last workflow was created" do
-      wf = FactoryGirl.create(:workflow)
-      response = get '/health'
-      response.status.should == 200
-      response.headers["Content-Type"].should == "text/plain"
-      response.body.should == wf.created_at.to_s
+      response.headers["Content-Type"].should == "application/json"
+      JSON.parse(response.body).should == {
+        "sha" => GIT_REVISION,
+        "time" => Time.now.iso8601,
+        "status" => "OK"
+      }
     end
   end
 end
