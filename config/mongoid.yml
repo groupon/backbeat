@@ -61,7 +61,6 @@ production:
     default:
       database: workflow_production
       hosts:
-        - accounting-tokumx1.snc1:27017
         - accounting-tokumx2.snc1:27017
         - accounting-tokumx3.snc1:27017
         - accounting-tokumx4.snc1:27017
