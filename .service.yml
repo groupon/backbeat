@@ -1,5 +1,5 @@
 name: backbeat
-title: FED Backbeat
+title: Backbeat
 description: A RESTful workflow service written in Ruby.
 sre:
   notify: finance-engineering-alerts@groupon.com
