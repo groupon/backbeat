@@ -47,5 +47,6 @@ deployments:
     - accounting-utility2-uat.snc1
 status_endpoint: 
   path: /health
-  sha_key: sha        
+  sha_key: sha
+  port: 9000
 
