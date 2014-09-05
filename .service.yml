@@ -1,6 +1,7 @@
 name: backbeat
 title: Backbeat
 description: A RESTful workflow service written in Ruby.
+branch: deploy
 sre:
   notify: finance-engineering-alerts@groupon.com
   dashboards:
