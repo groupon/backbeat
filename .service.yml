@@ -10,7 +10,7 @@ sre:
   pagerduty: https://groupon.pagerduty.com/escalation_policies#PSG8PHF
   hipchat_room_id: 353533
 team:
-  name: FED (Finance Engineering)
+  name: FED
   owner: shane
   members:
   - gjasinski
@@ -45,7 +45,7 @@ deployments:
       - "http://accounting-utility2-uat.snc1:9000"
     hosts:
     - accounting-utility2-uat.snc1
-status_endpoint: 
+status_endpoint:
   prefix: http://
   port: 9000
   path: /health
