@@ -2,12 +2,14 @@ name: backbeat
 title: Backbeat
 description: A RESTful workflow service written in Ruby.
 branch: deploy
+documentation:
+  owners_manual: https://github.groupondev.com/finance-engineering/backbeat/blob/master/OwnersManual.markdown
 sre:
   notify: finance-engineering-alerts@groupon.com
   dashboards:
   - https://splunk-snc1.groupondev.com/en-US/app/search/FED
   - https://grapher-snc1.groupondev.com/dashboard/390
-  runbook: https://github.groupondev.com/sox-inscope/accounting-service/blob/master/OwnersManual.markdown
+  runbook: https://github.groupondev.com/finance-engineering/backbeat/blob/master/OwnersManual.markdown
   pagerduty: https://groupon.pagerduty.com/escalation_policies#PSG8PHF
   hipchat_room_id: 353533
 team:
