@@ -20,27 +20,33 @@ Contents
 <a name="Application_Information"></a>Backbeat
 =======================
 
-Backbeat is a workflow service (a la Amazon Simple Workflow).  It's used by the accounting service and VAT Invoicing service (And maybe other things). Backbeat solves some of the things required by most of the services such as - serialization, auto-retry, error recording and reporting, parallelism.  
+Backbeat is a workflow service (a la Amazon Simple Workflow).  It's used by Accounting Service and VAT Invoicing service (And maybe other things). Backbeat solves some of the things required by most of the services such as - serialization, auto-retry, error recording and reporting, parallelism.  
 
-Written in Ruby, uses Mongo (tokumx) for its db, Sidekiq for async workers and Delayed Job for scheduled tasks (DJ runs on accounting-worker1.snc1).
+Written in Ruby, uses Mongo (tokumx) for its database, Sidekiq for async workers and Delayed Job for scheduled tasks (DJ runs on accounting-worker1.snc1).
 
 <a name="Architecture"></a>Architecture
 =======================
-	Hosts:	accounting-worker{1-3}.snc1 (jruby with grape inside of JBoss)
-	Database: accounting-tokumx{1-3}.snc1 (tokumx, a mongo replacement)
-    Async Jobs: general-redis-vip.snc1
-	VIP: accounting-backbeat-vip.snc1
+```
+Hosts		: accounting-worker{1-3}.snc1 (jruby with grape inside of JBoss)
+Database	: accounting-tokumx{1-3}.snc1 (tokumx, a mongo replacement)
+Async Jobs	: general-redis-vip.snc1
+Load balancer	: accounting-backbeat-vip.snc1
+```
 
 ![Backbeat Architecture](/backbeat_architecture.png "Backbeat Architecture")
 
 <a name="Starting_the_Application"></a>Starting the Application
 =======================
 
-Starting web and sidekiq workers: on accounting-utility2.snc1, accounting-worker[1-3].snc1
- sudo /usr/local/etc/init.d/jboss_backbeat start
+Starting web and sidekiq workers: accounting-utility2.snc1, accounting-worker[1-3].snc1
+```
+  sudo /usr/local/etc/init.d/jboss_backbeat start
+```
 
 Starting delayed job worker: on accounting-worker1.snc1
- sudo /usr/local/etc/init.d/jruby_delayed_job_backbeat start
+```
+  sudo /usr/local/etc/init.d/jruby_delayed_job_backbeat start
+```
 
 <a name="Data_Store"></a>Data store
 =======================
@@ -122,20 +128,23 @@ rs.status() # this will show the new host is initializing
 
 ### Directions to Fix
 <a name="restart_jboss">Restart JBoss</a>
+```
+ssh jboss@accounting-worker{1-3}.snc1
+/usr/local/etc/init.d/something_jboss restart
+```
 
-	ssh jboss@accounting-worker{1-3}.snc1
-	/usr/local/etc/init.d/something_jboss restart
-	
-sometimes during restart it doesn't stop hornetq (it hangs), you can kill -9 it 
+Sometimes during restart it doesn't stop hornetq (it hangs), you can kill -9 it 
 if look at the server logs the last thing it says is stoping hornetq and never says jboss has stopped - /var/groupon/jboss/accounting/logs/server.log (as jboss - can use cdl command to get to directory)
 
 
 <a name="restart_jboss_zero_downtime">Restart JBoss with Zero Downtime</a>
 
 Backbeat web endpoints are behind a load balancer - accounting-backbeat-vip.snc1. There are multiple hosts behind this vip with an instace of JBoss running on each host. JBoss on an individual host can be restarted without taking backbeat down. Follow these steps to restart JBoss on all hosts with zero downtime
-        
-        clone the spindererlla repo https://github.groupondev.com/finance-engineering/spinderella
-        run 'bundle exec cap torquebox:backbeat:production jboss:restart'
+
+```        
+clone the spindererlla repo https://github.groupondev.com/finance-engineering/spinderella
+run 'bundle exec cap torquebox:backbeat:production jboss:restart'
+```
 
 ### Other Important Links
 - [Splunk Dashboard](https://splunk-snc1.groupondev.com/en-US/app/search/FED)
