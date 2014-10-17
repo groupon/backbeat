@@ -38,14 +38,14 @@ Load balancer	: accounting-backbeat-vip.snc1
 <a name="Starting_the_Application"></a>Starting the Application
 =======================
 
-Starting web and sidekiq workers: accounting-utility2.snc1, accounting-worker[1-3].snc1
+1. Clone the [Spinderella](https://github.groupondev.com/finance-engineering/spinderella) repo
+2. start jboss (this should start the web and sidekiq workers)
 ```
-  sudo /usr/local/etc/init.d/jboss_backbeat start
+bundle exec cap torquebox:backbeat:production jboss:start
 ```
-
-Starting delayed job worker: on accounting-worker1.snc1
+3. start the delayed job worker
 ```
-  sudo /usr/local/etc/init.d/jruby_delayed_job_backbeat start
+bundle exec cap torquebox:backbeat:production workers:start
 ```
 
 <a name="Data_Store"></a>Data store
@@ -81,10 +81,9 @@ If you want to revert to a previous release, simply use the "Retry Deploy" insid
 2. Roll the hosts.
 3. Open the console on your machine, open [spinderella](https://github.groupondev.com/finance-engineering/spinderella)
 ```
-    SILENT=true be cap torquebox:backbeat:production immutant:install HOSTS=%host_name%
-    SILENT=true be cap torquebox:backbeat:production deploy:setup HOSTS=%host_name%
-    SILENT=true be cap torquebox:backbeat:production deploy:install HOSTS=%host_name%
-    SILENT=true be cap torquebox:backbeat:production deploy HOSTS=%host_name%
+    SILENT=true bundle exec cap torquebox:backbeat:production immutant:install HOSTS=%host_name%
+    SILENT=true bundle exec cap torquebox:backbeat:production deploy:setup HOSTS=%host_name%
+    SILENT=true bundle exec cap torquebox:backbeat:production deploy:install HOSTS=%host_name%
 ```
 4. Open a JIRA ticket to add the host behind this vip: accounting-backbeat-vip.snc1
 
