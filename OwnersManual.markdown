@@ -152,9 +152,9 @@ run 'bundle exec cap torquebox:backbeat:production jboss:restart'
 	- [accounting-worker1.snc1](https://grapher-snc1.groupondev.com/accounting-snc1/accounting-worker1.snc1)
 	- [accounting-worker2.snc1](https://grapher-snc1.groupondev.com/accounting-snc1/accounting-worker2.snc1)
 	- [accounting-worker3.snc1](https://grapher-snc1.groupondev.com/accounting-snc1/accounting-worker3.snc1)
-	- [accounting-tokumx1.snc1](https://grapher-snc1.groupondev.com/accounting-snc1/accounting-tokumx1.snc1)
 	- [accounting-tokumx2.snc1](https://grapher-snc1.groupondev.com/accounting-snc1/accounting-tokumx2.snc1)
 	- [accounting-tokumx3.snc1](https://grapher-snc1.groupondev.com/accounting-snc1/accounting-tokumx3.snc1)
+	- [accounting-tokumx4.snc1](https://grapher-snc1.groupondev.com/accounting-snc1/accounting-tokumx4.snc1)
     - [general-redis1.snc1](https://grapher-snc1.groupondev.com/redis-snc1/general-redis1.snc1)
     - [general-redis2.snc1](https://grapher-snc1.groupondev.com/redis-snc1/general-redis2.snc1)
 - Service Portal: https://service-portal.groupondev.com/services/backbeat
