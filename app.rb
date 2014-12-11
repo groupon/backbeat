@@ -1,5 +1,7 @@
 require 'rubygems'
 require 'bundler/setup'
+require 'active_record'
+
 
 $: << File.expand_path(File.join(__FILE__, '..', 'lib'))
 
@@ -14,6 +16,7 @@ require 'uuidtools'
 require 'sidekiq'
 require 'kiqstand'
 require 'application_transaction'
+require 'v2'
 
 require 'api'
 require 'workflow_server'
@@ -24,6 +27,8 @@ GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNK
 
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
 redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment.to_s]
+
+ActiveRecord::Base.establish_connection YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")[WorkflowServer::Config.environment.to_s]
 
 Sidekiq.configure_client do |config|
   # We set the namespace to resque so that we can use all of the resque monitoring tools to monitor sidekiq too
@@ -79,3 +84,6 @@ class Time
 end
 
 ############################################### MONKEY-PATCH OVER ############################################
+
+
+

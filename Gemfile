@@ -14,6 +14,14 @@ gem 'delayed_job_mongoid', git: 'https://github.com/nchainani/delayed_job_mongoi
 gem 'mongoid-indifferent-access'
 gem 'uuidtools'
 
+#active record
+gem 'activerecord-jdbc-adapter', platform: :jruby
+gem 'activerecord', require: 'active_record'
+gem 'jdbc-postgres', platform: :jruby
+gem 'uuid-support',                   git: 'git@github.groupondev.com:US/uuid-support-gem.git', require: 'uuid_support'
+gem 'foreigner'
+
+
 # Utility
 gem 'awesome_print'
 gem 'mail'

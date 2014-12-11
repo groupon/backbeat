@@ -104,3 +104,25 @@ namespace :sidekiq do
 end
 
 task "sidekiq:setup" => "sidekiq:logging_setup"
+
+
+require 'bundler/setup'
+ 
+require 'active_record'
+ 
+include ActiveRecord::Tasks
+ 
+db_dir = File.expand_path('../migrations', __FILE__)
+config_dir = File.expand_path('../config', __FILE__)
+ 
+DatabaseTasks.env = ENV['ENV'] || 'development'
+DatabaseTasks.db_dir = db_dir
+DatabaseTasks.database_configuration = YAML.load(File.read(File.join(config_dir, 'database.yml')))
+DatabaseTasks.migrations_paths = db_dir
+ 
+task :environment do
+  ActiveRecord::Base.configurations = DatabaseTasks.database_configuration
+  ActiveRecord::Base.establish_connection DatabaseTasks.env
+end
+ 
+load 'active_record/railties/databases.rake'
