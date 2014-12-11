@@ -1,7 +1,7 @@
 development: 
   reconnect: true
   adapter: postgresql
-  username: backbeat
+  username: backbeat_usr
   password:
-  database: backbeat
+  database: backbeat_dev
   host: localhost

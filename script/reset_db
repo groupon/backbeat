@@ -1,0 +1,6 @@
+
+dropdb backbeat_dev
+createdb backbeat_dev
+psql -d backbeat_dev -c "CREATE ROLE backbeat_usr with LOGIN CREATEDB SUPERUSER;"
+
+bundle exec ruby script/migrate.rb
