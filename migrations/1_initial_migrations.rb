@@ -2,7 +2,6 @@ class InitialMigrations < ActiveRecord::Migration
   def change
     enable_extension 'uuid-ossp'
     enable_extension 'hstore'
-    
 
     create_table :users, id: false do |t|
       t.uuid :id, primary_key: true, null: false
@@ -51,6 +50,7 @@ class InitialMigrations < ActiveRecord::Migration
       t.text :data
       t.text :result
     end
+    add_index(:client_node_details, :node_id, unique: true)
     add_foreign_key(:client_node_details, :nodes)
 
 
@@ -63,6 +63,7 @@ class InitialMigrations < ActiveRecord::Migration
       t.text :result
       t.datetime :created_at
     end
+    add_index(:status_histories, :node_id, unique: false)
     add_foreign_key(:status_histories, :nodes)
 
 
@@ -74,6 +75,7 @@ class InitialMigrations < ActiveRecord::Migration
       t.integer  :retry_interval, null: false,  default: 20
       t.text     :valid_next_events
     end
+    add_index(:node_details, :node_id, unique: true)
     add_foreign_key(:node_details, :nodes)
 
   end

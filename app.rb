@@ -28,7 +28,9 @@ GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNK
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
 redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment.to_s]
 
-ActiveRecord::Base.establish_connection YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")[WorkflowServer::Config.environment.to_s]
+if WorkflowServer::Config.environment.to_s == "development"
+  ActiveRecord::Base.establish_connection YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")[WorkflowServer::Config.environment.to_s]
+end
 
 Sidekiq.configure_client do |config|
   # We set the namespace to resque so that we can use all of the resque monitoring tools to monitor sidekiq too

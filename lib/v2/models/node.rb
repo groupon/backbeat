@@ -1,4 +1,4 @@
-class V2::User < ActiveRecord::Base
+class V2::Node < ActiveRecord::Base
   self.primary_key = 'id'
   belongs_to :workflow
   belongs_to :user
