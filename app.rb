@@ -1,10 +1,8 @@
+$: << File.expand_path(File.join(__FILE__, '..', 'lib'))
+
 require 'rubygems'
 require 'bundler/setup'
 require 'active_record'
-
-
-$: << File.expand_path(File.join(__FILE__, '..', 'lib'))
-
 require 'awesome_print'
 require 'tzinfo'
 require 'mongoid'
@@ -16,20 +14,26 @@ require 'uuidtools'
 require 'sidekiq'
 require 'kiqstand'
 require 'application_transaction'
-require 'v2'
 
 require 'api'
+require 'v2'
 require 'workflow_server'
 
 I18n.enforce_available_locales = false
+
+class App
+  def self.v2?
+    true
+  end
+end
 
 GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNKNOWN'
 
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
 redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment.to_s]
 
-if WorkflowServer::Config.environment.to_s == "development"
-  ActiveRecord::Base.establish_connection YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")[WorkflowServer::Config.environment.to_s]
+if WorkflowServer::Config.environment.to_s == "development" || App.v2?
+  ActiveRecord::Base.establish_connection YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")["development"]
 end
 
 Sidekiq.configure_client do |config|

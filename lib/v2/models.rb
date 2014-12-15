@@ -2,7 +2,7 @@
 
 class ActiveRecord::Base
   before_create do
-    self.id = UUIDTools::UUID.random_create.to_s
+    self.id = UUIDTools::UUID.random_create.to_s if self.id.nil?
   end
 end
 require_relative 'models/user'

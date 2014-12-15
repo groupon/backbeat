@@ -46,10 +46,13 @@ module Api
       }
       post "/" do
         params[:user] = current_user
-        wf = WorkflowServer.find_or_create_workflow(params)
-
+        wf = if App.v2?
+            V2::Server.create_workflow(params, current_user)
+          else
+            WorkflowServer.find_or_create_workflow(params)
+          end
         if wf.valid?
-          wf
+          wf.attributes
         else
           raise WorkflowServer::InvalidParameters, wf.errors.to_hash
         end

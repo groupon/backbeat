@@ -13,8 +13,8 @@ class InitialMigrations < ActiveRecord::Migration
 
     create_table :workflows, id: false do |t|
       t.uuid :id, unique: true, null: false
-      t.string :type, null: false
-      t.hstore :subject, null: false
+      t.string :workflow_type, null: false
+      t.text :subject, null: false
       t.string :decider, null: false
       t.string :initial_signal, null: false
       t.uuid :user_id, null: false
@@ -26,7 +26,8 @@ class InitialMigrations < ActiveRecord::Migration
     create_table :nodes, id: false do |t|
       t.uuid :id, unique: true, null: false
       t.string :mode, null: false
-      t.string :current_status, null: false
+      t.string :current_server_status, null: false
+      t.string :current_client_status, null: false
       t.string :name, null: false
       t.datetime :fires_at, null: false
       t.uuid :parent_id, null: false
