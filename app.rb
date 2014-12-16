@@ -27,12 +27,14 @@ class App
   end
 end
 
+I18n.enforce_available_locales = false
 GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNKNOWN'
 
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
 redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment.to_s]
 
 if WorkflowServer::Config.environment.to_s == "development" || App.v2?
+  ActiveRecord::Base.include_root_in_json = false
   ActiveRecord::Base.establish_connection YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")["development"]
 end
 

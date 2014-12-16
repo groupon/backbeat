@@ -4,15 +4,18 @@ require_relative 'helper'
 module WorkflowServer
   module Client
 
-    def self.perform_activity(activity)
-      if (url = activity.my_user.try(:activity_endpoint))
+    def self.perform_activity(activity, user = nil)
+      user ||= activity.my_user
+      if (url = user.try(:activity_endpoint))
         response = post(url, activity: activity.serializable_hash)
         raise WorkflowServer::HttpError.new("http request to perform_activity failed", response) unless response.code.between?(200, 299)
       end
     end
 
-    def self.make_decision(decision)
-      if (url = decision.my_user.try(:decision_endpoint))
+    def self.make_decision(decision, user = nil)
+      binding.pry
+      user ||= decision.my_user
+      if (url = user.try(:decision_endpoint))
         response = post(url, decision: decision.serializable_hash)
         raise WorkflowServer::HttpError.new("http request to make_decision failed", response) unless response.code.between?(200, 299)
       end

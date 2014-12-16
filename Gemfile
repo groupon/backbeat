@@ -20,7 +20,7 @@ gem 'activerecord', require: 'active_record'
 gem 'jdbc-postgres', platform: :jruby
 gem 'uuid-support',                   git: 'git@github.groupondev.com:US/uuid-support-gem.git', require: 'uuid_support'
 gem 'foreigner'
-
+gem 'enumerize'
 
 # Utility
 gem 'awesome_print'
@@ -47,6 +47,7 @@ end
 group :development do
   # Documentation
   gem 'rdoc', '~> 3.4'
+  gem 'pry'
 
   platforms :jruby do
     gem 'torquebox-capistrano-support'

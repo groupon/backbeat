@@ -52,7 +52,7 @@ module Api
             WorkflowServer.find_or_create_workflow(params)
           end
         if wf.valid?
-          wf.attributes
+          wf
         else
           raise WorkflowServer::InvalidParameters, wf.errors.to_hash
         end
@@ -248,6 +248,19 @@ module Api
         optional :options, type: Hash
       end
       post "/:id/signal/:name" do
+        if App.v2?
+          node = nil
+          workflow = nil
+          workflow = V2::Workflow.find(params[:id])
+          node = V2::Server.add_node(current_user,
+                                     workflow,
+                                     params.merge('legacy_type' => :signal,
+                                                  'mode' => :blocking),
+                                                  nil)
+          V2::Server.fire_event(V2::Server::MarkChildrenReady, node.current_parent)
+
+          return node
+        end
         wf = find_workflow(params[:id])
         options = params[:options] || {}
         client_data = options[:client_data] || {}

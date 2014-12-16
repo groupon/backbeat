@@ -30,10 +30,9 @@ class InitialMigrations < ActiveRecord::Migration
       t.string :current_client_status, null: false
       t.string :name, null: false
       t.datetime :fires_at, null: false
-      t.uuid :parent_id, null: false
+      t.uuid :parent_id
       t.uuid :workflow_id, null: false
       t.uuid :user_id, null: false
-      t.integer :current_delayed_job
       t.timestamps
     end
     add_index(:nodes, :id, unique: true)
@@ -42,6 +41,8 @@ class InitialMigrations < ActiveRecord::Migration
     add_foreign_key(:nodes, :nodes, column: 'parent_id')
 
     execute "alter table nodes add column seq serial not null"
+    add_index(:nodes, :seq, unique: true)
+
 
 
     create_table :client_node_details, id: false do |t|
@@ -55,7 +56,7 @@ class InitialMigrations < ActiveRecord::Migration
     add_foreign_key(:client_node_details, :nodes)
 
 
-    create_table :status_histories do |t|
+    create_table :status_histories, id: false do |t|
       t.uuid :id, unique: true, null: false
       t.uuid :node_id, null: false
       t.string :from_status
@@ -69,11 +70,12 @@ class InitialMigrations < ActiveRecord::Migration
 
 
 
-    create_table :node_details do |t|
+    create_table :node_details, id: false do |t|
       t.uuid :id, unique: true, null: false
       t.uuid :node_id, null: false
-      t.integer  :retry_times_remaining, null: false, default: 3
-      t.integer  :retry_interval, null: false,  default: 20
+      t.integer  :retry_times_remaining, null: false
+      t.integer  :retry_interval, null: false
+      t.string   :legacy_type
       t.text     :valid_next_events
     end
     add_index(:node_details, :node_id, unique: true)
