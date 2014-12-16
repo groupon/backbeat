@@ -52,12 +52,10 @@ module WorkflowServer
 
       def add_interrupt(decision_name, orphan = false)
         decision = add_decision(decision_name, orphan)
-        # adding a decision would immediately trigger schedule_next_decision on the workflow. If the workflow ignores the interrupt, start it here.
-        workflow.with_lock do
-          if decision.reload.status == :open
-            decision.start
-          end
-        end
+        # adding a decision would immediately trigger schedule_next_decision on the workflow.
+        # since we are already executing in a decision context (unless interrupts are added by a fire_and_forget activity)
+        # the workflow must have not scheduled this decision and we can go ahead and start it.
+        decision.start
       end
 
       def update_status!(new_status, error = nil)
