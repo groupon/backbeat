@@ -42,6 +42,7 @@ platforms :jruby do
   gem 'torquebox', '3.0.0'
   gem 'torquebox-messaging', '3.0.0'
   gem 'warbler'
+  gem 'torquebox-server'
 end
 
 group :development do

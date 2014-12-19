@@ -13,7 +13,6 @@ module WorkflowServer
     end
 
     def self.make_decision(decision, user = nil)
-      binding.pry
       user ||= decision.my_user
       if (url = user.try(:decision_endpoint))
         response = post(url, decision: decision.serializable_hash)
@@ -33,7 +32,7 @@ module WorkflowServer
     end
 
     def self.post(url, params = {})
-      params = Marshal.load(Marshal.dump(params))
+      params = params.dup
       body = WorkflowServer::Helper::HashKeyTransformations.camelize_keys(params).to_json
       ::HTTParty.post(url, body: body, headers: {"Content-Type" => "application/json", "Content-Length" => body.size.to_s})
     end
