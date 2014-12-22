@@ -20,9 +20,9 @@ gem 'mail'
 gem 'sidekiq'
 gem 'sidekiq-failures'
 gem 'kiqstand'
-gem 'application_transaction', :git => 'https://github.groupondev.com/finance-engineering/application_transaction.git'
+gem 'application_transaction', :git => 'git@github.groupondev.com:finance-engineering/application_transaction.git'
 
-gem 'service-discovery', :git => 'https://github.groupondev.com/groupon-api/service-discovery.git'
+gem 'service-discovery', :git => 'git@github.groupondev.com:groupon-api/service-discovery.git'
 
 platforms :ruby do
   gem 'unicorn'
@@ -53,13 +53,13 @@ group :test do
   gem 'timecop'
   gem 'webmock'
   gem 'simplecov'
-  gem 'external_service', :git => 'https://github.groupondev.com/finance-engineering/external_service.git'
+  gem 'external_service', :git => 'git@github.groupondev.com:finance-engineering/external_service.git'
   gem 'zip'
   gem 'pry'
 
   platforms :jruby do
     gem 'torquebox-console'
     gem 'torquespec', :require => false
-    gem 'accounting_torquespec', :git => 'https://github.groupondev.com/finance-engineering/accounting_torquespec.git'
+    gem 'accounting_torquespec', :git => 'git@github.groupondev.com:finance-engineering/accounting_torquespec.git'
   end
 end
