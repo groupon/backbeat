@@ -17,7 +17,7 @@ Bundler.setup
 Bundler.require(:default, :test)
 
 require 'app'
-WorkflowServer::Logger.logger(WorkflowServer::Config.log_file)
+WorkflowServer::Logger.disable!
 require_relative '../services/sidekiq_service'
 require_relative '../reports/daily_report'
 

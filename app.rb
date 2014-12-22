@@ -46,7 +46,7 @@ puts "********** environment is #{WorkflowServer::Config.environment}"
 ApplicationTransaction.configure do |config|
   config.backend = :mongoid
   config.workers = [:sidekiq]
-  config.logger = WorkflowServer::Logger.logger
+  config.logger = WorkflowServer::TransactionLogger
 end
 
 ############################################## MONKEY-PATCH ################################################
