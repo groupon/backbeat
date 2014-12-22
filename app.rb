@@ -19,6 +19,8 @@ require 'sidekiq'
 require 'kiqstand'
 require 'application_transaction'
 
+I18n.enforce_available_locales = false
+
 GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNKNOWN'
 
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
