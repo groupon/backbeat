@@ -10,6 +10,20 @@ class V2::Node < ActiveRecord::Base
   has_one :client_node_detail
   has_one :node_detail
 
+
+  def all_children_ready?
+    !children.where(current_server_status: :pending).exists?
+  end
+
+  def not_complete_children
+    children.where("current_server_status != 'complete'")
+  end
+
+  def all_children_complete?
+    !not_complete_children.exists?
+  end
+
+
   def current_parent
     parent || workflow
   end
@@ -24,7 +38,7 @@ class V2::Node < ActiveRecord::Base
 
 
 
-  enumerize :mode, in: [:blocking, :nonblocking, :fire_and_forget]
+  enumerize :mode, in: [:blocking, :non_blocking, :fire_and_forget]
   enumerize :current_server_status, in: [:pending,
                                          :ready,
                                          :started,
@@ -34,10 +48,29 @@ class V2::Node < ActiveRecord::Base
                                          :complete,
                                          :errored,
                                          :retry]
-  enumerize :current_client_status, in: [:pending, :ready, :processing, :complete, :errored ]
+  ValidServerStateChanges = {pending: :ready,
+                       ready: :started,
+                       started: :sent_to_client,
+                       sent_to_client: :recieved_from_client,
+                       processing_children: :complete,
+                       retry: :sent_to_client}
+
+  enumerize :current_client_status, in: [:pending, :ready, :received, :processing, :complete, :errored ]
+  ValidClientStateChanges = { pending: :ready,
+                              ready: :received,
+                              received: [:processing, :complete],
+                              processing: :complete }
+
 
   before_create do
     self.seq ||= ActiveRecord::Base.connection.execute("SELECT nextval('nodes_seq_seq')").first["nextval"]
+  end
+
+
+   def validate(record)
+    unless record.name.starts_with? 'X'
+      record.errors[:name] << 'Need a name starting with X please!'
+    end
   end
 
 end

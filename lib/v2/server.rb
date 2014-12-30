@@ -3,6 +3,13 @@ class V2::Server
   ChildrenReady = :children_ready
   ScheduleNextNode = :schedule_next_node
   StartNode = :start_node
+  ClientComplete = :client_complete
+  ClientProcessing = :client_processing
+  ClientError = :client_error
+  ClientResolved = :client_resolved
+  ProcessChildren = :process_children
+  NodeComplete = :node_complete
+
 
 
 
@@ -20,7 +27,7 @@ class V2::Server
   end
 
   def self.add_node(user, workflow, params, parent_node)
-   value = { mode: :blocking,
+   value = { mode: params['mode'].to_sym,
     current_server_status: :pending,
     current_client_status: :pending,
     name: params['name'],
@@ -28,7 +35,7 @@ class V2::Server
     parent: parent_node,
     workflow_id: workflow.id,
     user_id: user.id}
-
+    ap value
     node = V2::Node.create!(value)
     V2::ClientNodeDetail.create!(node: node,
                                  metadata: params[:options][:client_metadata] || {},
@@ -49,6 +56,14 @@ class V2::Server
         V2::Processors.schedule_next_node(workflow, node)
       when StartNode
         V2::Processors.start_node(workflow, node)
+      when ClientProcessing
+        V2::Processors.client_processing(workflow, node)
+      when ClientComplete
+        V2::Processors.client_complete(workflow, node)
+      when ProcessChildren
+        V2::Processors.schedule_next_node(workflow, node)
+      when NodeComplete
+        V2::Processors.node_complete(workflow, node)
     end
   end
 end

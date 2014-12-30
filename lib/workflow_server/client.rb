@@ -5,6 +5,7 @@ module WorkflowServer
   module Client
 
     def self.perform_activity(activity, user = nil)
+      ap "here"
       user ||= activity.my_user
       if (url = user.try(:activity_endpoint))
         response = post(url, activity: activity.serializable_hash)
@@ -15,7 +16,7 @@ module WorkflowServer
     def self.make_decision(decision, user = nil)
       user ||= decision.my_user
       if (url = user.try(:decision_endpoint))
-        response = post(url, decision: decision.serializable_hash)
+        response = post(url, decision: decision.is_a?(Hash) ?  decision : decision.serializable_hash)
         raise WorkflowServer::HttpError.new("http request to make_decision failed", response) unless response.code.between?(200, 299)
       end
     end
