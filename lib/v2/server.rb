@@ -64,6 +64,8 @@ class V2::Server
         V2::Processors.schedule_next_node(workflow, node)
       when NodeComplete
         V2::Processors.node_complete(workflow, node)
+      when ClientError
+        V2::Processors.client_error(workflow, node)
     end
   end
 end

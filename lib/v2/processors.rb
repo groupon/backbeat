@@ -45,7 +45,8 @@ class V2::Processors
       dec = node.attributes.merge(decider: node.workflow.decider, subject: node.workflow.subject)
       WorkflowServer::Client.make_decision(dec, node.user)
     else
-      WorkflowServer::Client.perform_activity(node, node.user)
+      activity = node.attributes.merge(client_data: node.client_node_detail.data)
+      WorkflowServer::Client.perform_activity(activity, node.user)
     end
    node.update_attributes!(current_server_status: :sent_to_client,
                                    current_client_status: :received) 

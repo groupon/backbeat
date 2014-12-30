@@ -5,10 +5,9 @@ module WorkflowServer
   module Client
 
     def self.perform_activity(activity, user = nil)
-      ap "here"
       user ||= activity.my_user
       if (url = user.try(:activity_endpoint))
-        response = post(url, activity: activity.serializable_hash)
+        response = post(url, activity: activity.is_a?(Hash) ?  activity : activity.serializable_hash)
         raise WorkflowServer::HttpError.new("http request to perform_activity failed", response) unless response.code.between?(200, 299)
       end
     end
