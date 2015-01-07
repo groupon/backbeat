@@ -52,16 +52,16 @@ module WorkflowServer
       @tid ||= {}
     end
 
-    def self.logger(logger_name = 'backbeat_logger')
-      @@logger ||= TorqueBox::Logger.new(logger_name)
+    def self.logger
+      @@logger || set_logger(TorqueBox::Logger.new('backbeat_logger'))
     end
 
-    def self.disable!
-      @@disabled = true
+    def self.set_logger(logger)
+      @@logger = logger
     end
 
     def self.log(level, message)
-      @@logger.__send__(level, message) unless @@disabled
+      @@logger.__send__(level, message)
     end
 
     module ClassMethods
