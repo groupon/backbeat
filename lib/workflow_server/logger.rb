@@ -61,7 +61,7 @@ module WorkflowServer
     end
 
     def self.log(level, message)
-      @@logger.__send__(level, message)
+      logger.__send__(level, message)
     end
 
     module ClassMethods
