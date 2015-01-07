@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Api::Workflow do
+describe Api::Middleware::Log do
   include Rack::Test::Methods
 
   def app

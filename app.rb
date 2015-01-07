@@ -8,16 +8,15 @@ require 'tzinfo'
 require 'mongoid'
 require 'mongoid-locker'
 require 'delayed_job_mongoid'
-require 'delayed_job_monkey_patch'
+require 'workflow_server/helper/delayed_job_monkey_patch'
 require 'mongoid_indifferent_access'
 require 'uuidtools'
-require 'service-discovery'
-require 'grape'
-require 'api'
-require 'workflow_server'
 require 'sidekiq'
 require 'kiqstand'
 require 'application_transaction'
+
+require 'api'
+require 'workflow_server'
 
 I18n.enforce_available_locales = false
 

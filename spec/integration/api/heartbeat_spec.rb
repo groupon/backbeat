@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Api::Heartbeat do
+describe Api::Middleware::Heartbeat do
   include Rack::Test::Methods
 
   def app

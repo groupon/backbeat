@@ -2,22 +2,13 @@ $: << File.expand_path(File.join(__FILE__, "..")) # Hack here since require_rela
 
 require 'app'
 
-use Api::Log
-
-#use Api::ClearSession
-
-use Api::Heartbeat
-
-use Api::Health
-
-use Api::SidekiqStats
-
-use Api::DelayedJobStats
-
+use Api::Middleware::Log
+use Api::Middleware::Heartbeat
+use Api::Middleware::Health
+use Api::Middleware::SidekiqStats
+use Api::Middleware::DelayedJobStats
 use Rack::Lint if WorkflowServer::Config.environment == :test
+use Api::Middleware::CamelCase
+use Api::Middleware::Authenticate
 
-use Api::CamelCase
-
-use Api::Authenticate
-
-run Api::Workflow
+run Api::App
