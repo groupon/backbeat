@@ -1,14 +1,32 @@
 require "grape"
 require "service-discovery"
 require "workflow_server/logger"
-require "api/api_helpers"
+require "api/helpers/current_user_helper"
+require "api/helpers/workflow_helper"
+require "api/helpers/service_discovery_response_creator"
 
 module Api
   class Workflows < Grape::API
     include WorkflowServer::Logger
     extend ServiceDiscovery::Description::Dsl
 
-    helpers ApiHelpers
+    helpers CurrentUserHelper
+    helpers WorkflowHelper
+
+    helpers do
+      def workflow_status(workflow)
+        workflow_status = workflow.status
+
+        errored = workflow.events.and(status: :error).exists?
+        if errored
+          workflow_status = :error
+        else
+          executing = workflow.events.and(status: :executing).exists?
+          workflow_status = :executing if executing
+        end
+        workflow_status
+      end
+    end
 
     resource 'workflows' do
       desc "Creates a new workflow. If the workflow with the given parameter already exists, returns the existing workflow.", {
@@ -22,7 +40,7 @@ module Api
             parameters.string :name, description: "Name of the workflow", required: true, location: 'body'
           end
           create.response do |workflow|
-            ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+            ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Workflow, workflow)
           end
         end
       }
@@ -83,7 +101,7 @@ module Api
           get_workflows.response do |response|
             response.array(:workflows) do |workflows|
               workflows.object do |workflow|
-                ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+                ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Workflow, workflow)
               end
             end
           end
@@ -105,7 +123,7 @@ module Api
             parameters.string :id, description: 'the workflow id', required: true, location: 'url'
           end
           get_workflow.response do |workflow|
-            ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+            ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Workflow, workflow)
           end
         end
       }
@@ -130,7 +148,7 @@ module Api
             event.response do |response|
               response.array(event_type) do |event_object|
                 event_object.object do |object|
-                  ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(model, object)
+                  ServiceDiscoveryResponseCreator.call(model, object)
                 end
               end
             end
@@ -153,10 +171,10 @@ module Api
             parameters.string :id, description: 'the workflow id', required: true, location: 'url'
           end
           tree.response do |response|
-            ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Event, response, [:id, :type, :name, :status])
+            ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Event, response, [:id, :type, :name, :status])
             response.array :children do |children|
               children.object do |child|
-                ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Event, child, [:id, :type, :name, :status])
+                ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Event, child, [:id, :type, :name, :status])
               end
             end
           end
@@ -219,7 +237,7 @@ module Api
             end
           end
           signal.response do |response|
-            ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Signal, response)
+            ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Signal, response)
           end
         end
       }

@@ -1,14 +1,28 @@
 require "grape"
 require "service-discovery"
 require "workflow_server/logger"
-require "api/api_helpers"
+require "api/helpers/current_user_helper"
+require "api/helpers/service_discovery_response_creator"
 
 module Api
   class Debug < Grape::API
     include WorkflowServer::Logger
     extend ServiceDiscovery::Description::Dsl
 
-    helpers ApiHelpers
+    helpers CurrentUserHelper
+
+    helpers do
+      # This takes a leaf out of http://docs.mongodb.org/manual/reference/sql-aggregation-comparison/
+      # We do not have an api to express this query in Mongoid. This goes out directly through the moped api's
+      def group_by_and_having(selector, field, count, greater = true)
+        result = WorkflowServer::Models::Event.collection.aggregate(
+          { '$match' => selector },
+          { '$group' => { '_id' =>  "$#{field}", 'count' => { '$sum' => 1 } } },
+          { '$match' => { 'count' => { greater ? '$gt' : '$lt' => count } } })
+
+        result.map { |hash| hash['_id'] }
+      end
+    end
 
     namespace 'debug' do
       desc 'returns workflows that have something in error or timeout state', {
@@ -19,7 +33,7 @@ module Api
           error_workflows.response do |response|
             response.array(:error_workflows) do |error_workflow|
               error_workflow.object do |workflow|
-                ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+                ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Workflow, workflow)
               end
             end
           end
@@ -38,7 +52,7 @@ module Api
           paused_workflows.response do |response|
             response.array(:paused_workflows) do |paused_workflow|
               paused_workflow.object do |workflow|
-                ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+                ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Workflow, workflow)
               end
             end
           end
@@ -56,7 +70,7 @@ module Api
           stuck_workflows.response do |response|
             response.array(:paused_workflows) do |stuck_workflow|
               stuck_workflow.object do |workflow|
-                ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+                ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Workflow, workflow)
               end
             end
           end
@@ -71,7 +85,7 @@ module Api
           long_running_events.response do |response|
             response.array(:long_running_events) do |stuck_workflow|
               stuck_workflow.object do |workflow|
-                ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+                ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Workflow, workflow)
               end
             end
           end
@@ -90,7 +104,7 @@ module Api
           workflows_with_multiple_executing_decisions.response do |response|
             response.array(:workflow) do |workflow_with_multiple_executing_decision|
               workflow_with_multiple_executing_decision.object do |workflow|
-                ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+                ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Workflow, workflow)
               end
             end
           end
@@ -109,7 +123,7 @@ module Api
           inconsistent_workflows.response do |response|
             response.array(:inconsistent_workflow) do |inconsistent_workflow|
               inconsistent_workflow.object do |workflow|
-                ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Workflow, workflow)
+                ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Workflow, workflow)
               end
             end
           end

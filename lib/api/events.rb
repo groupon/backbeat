@@ -1,14 +1,37 @@
 require 'grape'
 require "service-discovery"
 require "workflow_server/logger"
-require "api/api_helpers"
+require "api/helpers/current_user_helper"
+require "api/helpers/workflow_helper"
+require "api/helpers/service_discovery_response_creator"
 
 module Api
   class Events < Grape::API
     include WorkflowServer::Logger
     extend ServiceDiscovery::Description::Dsl
 
-    helpers ApiHelpers
+    helpers CurrentUserHelper
+    helpers WorkflowHelper
+
+    helpers do
+      def find_event(params, event_type = nil)
+        event = nil
+        event_id = params[:id]
+        workflow_id = params[:workflow_id]
+        if workflow_id
+          wf = find_workflow(workflow_id)
+          event_type ||= :events #all events
+          event = wf.__send__(event_type).find(event_id)
+          raise WorkflowServer::EventNotFound, "Event with id(#{event_id}) not found" unless event
+        else
+          event = WorkflowServer::Models::Event.find(event_id)
+          unless event && event.my_user == current_user
+            raise WorkflowServer::EventNotFound, "Event with id(#{event_id}) not found"
+          end
+        end
+        event
+      end
+    end
 
     # Events can be reached using two url's
     # 1) as a subresource /workflows/<workflow_id>/events/<id>
@@ -22,7 +45,7 @@ module Api
             parameters.string :id, description: 'the event id', required: true, location: 'url'
           end
           get_event.response do |event|
-            ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Event, event)
+            ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Event, event)
           end
         end
       }
@@ -54,7 +77,7 @@ module Api
           history_decisions.response do |response|
             response.array(:decisions) do |event_object|
               event_object.object do |object|
-                ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Decision, object)
+                ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Decision, object)
               end
             end
           end
@@ -72,10 +95,10 @@ module Api
             parameters.string :id, description: 'the event id', required: true, location: 'url'
           end
           tree.response do |response|
-            ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Event, response, [:id, :type, :name, :status])
+            ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Event, response, [:id, :type, :name, :status])
             response.array :children do |children|
               children.object do |child|
-                ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Event, child, [:id, :type, :name, :status])
+                ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Event, child, [:id, :type, :name, :status])
               end
             end
           end
@@ -142,7 +165,7 @@ module Api
           end
           activity.parameters do |parameters|
             parameters.object(:sub_activity, description: "Define the nested activity.", location: 'body') do |sub_activity|
-              ApiHelpers::SERVICE_DISCOVERY_RESPONSE_CREATOR.call(WorkflowServer::Models::Activity, sub_activity, [:name, :client_data, :mode, :always, :retry, :retry_interval, :time_out])
+              ServiceDiscoveryResponseCreator.call(WorkflowServer::Models::Activity, sub_activity, [:name, :client_data, :mode, :always, :retry, :retry_interval, :time_out])
             end
           end
         end

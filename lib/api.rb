@@ -29,6 +29,7 @@ module Api
     end
 
     rescue_from :all do |e|
+      p e
       WorkflowServer::BaseLogger.error({error_type: e.class, error: e.message, backtrace: e.backtrace})
       Rack::Response.new({error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
     end
