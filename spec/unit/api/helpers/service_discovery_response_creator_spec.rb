@@ -25,6 +25,6 @@ describe Api::ServiceDiscoveryResponseCreator do
      :updated_at,
      :workflow_id].each do |attr|
       expect(types[attr]).to eq("string")
-     end
+    end
   end
 end
