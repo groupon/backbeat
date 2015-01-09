@@ -53,7 +53,7 @@ module WorkflowServer
     end
 
     def self.logger
-      @@logger || set_logger(TorqueBox::Logger.new('backbeat_logger'))
+      @@logger ||= TorqueBox::Logger.new('backbeat_logger')
     end
 
     def self.set_logger(logger)
