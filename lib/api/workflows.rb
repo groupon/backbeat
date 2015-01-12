@@ -46,7 +46,7 @@ module Api
       }
       post "/" do
         params[:user] = current_user
-        wf = if ::App.v2?
+        wf = if Backbeat.v2?
             V2::Server.create_workflow(params, current_user)
           else
             WorkflowServer.find_or_create_workflow(params)
@@ -248,7 +248,7 @@ module Api
         optional :options, type: Hash
       end
       post "/:id/signal/:name" do
-        if ::App.v2?
+        if Backbeat.v2?
           node = nil
           workflow = nil
           workflow = V2::Workflow.find(params[:id])

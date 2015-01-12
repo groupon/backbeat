@@ -21,7 +21,7 @@ require 'workflow_server'
 
 I18n.enforce_available_locales = false
 
-class App
+module Backbeat
   def self.v2?
     !!ENV['v2']
   end
@@ -33,7 +33,7 @@ GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNK
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
 redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment.to_s]
 
-if App.v2?
+if Backbeat.v2?
   ActiveRecord::Base.include_root_in_json = false
   ActiveRecord::Base.establish_connection YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")["development"]
 end
@@ -92,6 +92,3 @@ class Time
 end
 
 ############################################### MONKEY-PATCH OVER ############################################
-
-
-

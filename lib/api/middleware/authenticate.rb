@@ -6,7 +6,7 @@ module Api
       end
 
       def user_model
-        if ::App.v2?
+        if Backbeat.v2?
           V2::User
         else
           WorkflowServer::Models::User

@@ -127,16 +127,16 @@ RSpec.configuration.after(:suite) do
 end
 
 RSpec.configure do |config|
-  config.filter_run_excluding v2: true unless App.v2?
+  config.filter_run_excluding v2: true unless Backbeat.v2?
 
   config.before(:suite) do
-    if App.v2?
+    if Backbeat.v2?
       DatabaseCleaner.strategy = :transaction
       DatabaseCleaner.clean_with(:truncation)
     end
   end
 
-  if App.v2?
+  if Backbeat.v2?
     config.around(:each) do |example|
       DatabaseCleaner.cleaning do
         example.run
