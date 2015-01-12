@@ -35,6 +35,7 @@ Mongoid.load!(mongo_path, :test)
 RACK_ROOT = File.expand_path(File.join(__FILE__,'..'))
 ENV['RACK_ROOT'] = RACK_ROOT
 
+require 'database_cleaner'
 
 ###### FOR TRANSACTION SUPPORT #########
 # We need this till we have tokumx 1.2.0 on build and dev machines
@@ -128,6 +129,18 @@ RSpec.configuration.after(:suite) do
 end
 
 RSpec.configure do |config|
+   config.before(:suite) do
+    DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.clean_with(:truncation)
+  end
+
+  config.around(:each) do |example|
+    DatabaseCleaner.cleaning do
+      example.run
+    end
+  end
+
+
   # Use color in STDOUT
   config.color_enabled = true
 

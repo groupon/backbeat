@@ -10,6 +10,9 @@ class V2::Workflow < ActiveRecord::Base
   validates :initial_signal, presence: true
   validates :user_id, presence: true
 
+  def name
+    workflow_type
+  end
 
   def children
     nodes.where(workflow_id: id, parent_id: nil)

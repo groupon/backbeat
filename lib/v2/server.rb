@@ -46,26 +46,26 @@ class V2::Server
     node
   end
 
-  def self.fire_event(event, workflow, node)
+  def self.fire_event(event, node)
     case event
       when MarkChildrenReady
-        V2::Processors.mark_children_ready(workflow, node)
+        V2::Processors.mark_children_ready(node)
       when ChildrenReady
-        V2::Processors.node_ready(workflow, node)
+        V2::Processors.children_ready(node)
       when ScheduleNextNode
-        V2::Processors.schedule_next_node(workflow, node)
+        WorkflowServer::Workers::V2SidekiqWorker.async_event(node, :schedule_next_node)
       when StartNode
-        V2::Processors.start_node(workflow, node)
+        WorkflowServer::Workers::V2SidekiqWorker.async_event(node, :start_node)
       when ClientProcessing
-        V2::Processors.client_processing(workflow, node)
+        V2::Processors.client_processing(node)
       when ClientComplete
-        V2::Processors.client_complete(workflow, node)
+        V2::Processors.client_complete(node)
       when ProcessChildren
-        V2::Processors.schedule_next_node(workflow, node)
+        V2::Processors.schedule_next_node(node)
       when NodeComplete
-        V2::Processors.node_complete(workflow, node)
+        V2::Processors.node_complete(node)
       when ClientError
-        V2::Processors.client_error(workflow, node)
+        V2::Processors.client_error(node)
     end
   end
 end
