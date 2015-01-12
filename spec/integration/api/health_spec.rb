@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Api::Health do
+describe Api::Middleware::Health do
   include Rack::Test::Methods
 
   def app

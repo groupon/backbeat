@@ -90,6 +90,10 @@ module WorkflowServer
     end
   end
 
+  class BaseLogger
+    include WorkflowServer::Logger
+  end
+
   class DelayedJobLogger
     include WorkflowServer::Logger
 

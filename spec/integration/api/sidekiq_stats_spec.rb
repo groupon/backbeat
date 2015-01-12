@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Api::SidekiqStats do
+describe Api::Middleware::SidekiqStats do
   include Rack::Test::Methods
 
   def app

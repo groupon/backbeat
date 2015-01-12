@@ -18,7 +18,7 @@ module WorkflowServer
 
     def schedule_next_decision(workflow)
       workflow.with_lock(timeout: LOCK_TIMEOUT) do
-        Timeout::timeout(LOCK_TIMEOUT - 10) do #we give it an extra 10 seconds so we for sure timeout before the DB lock 
+        Timeout::timeout(LOCK_TIMEOUT - 10) do #we give it an extra 10 seconds so we for sure timeout before the DB lock
           self.info(id: workflow.id, message: :schedule_next_decision_lock_start, source: self.to_s)
 
           find_and_start_next_decision(workflow)
@@ -28,7 +28,7 @@ module WorkflowServer
       end
     rescue Timeout::Error => e
       self.info(id: workflow.id, message: :schedule_next_decision_timed_out, source: self.to_s)
-      raise Backbeat::TransientError.new(e) 
+      raise Backbeat::TransientError.new(e)
     end
 
     def find_and_start_next_decision(workflow)
