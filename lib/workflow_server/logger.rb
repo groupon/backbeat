@@ -24,7 +24,7 @@ module WorkflowServer
         else
           message_to_log = sprintf("%s | %s | %s | %s | %s | %s | %s | %s\n", *message_with_metadata.values)
         end
-        WorkflowServer::Logger.logger.__send__(level, message_to_log)
+        WorkflowServer::Logger.log(level, message_to_log)
       end
     end
 
@@ -52,8 +52,16 @@ module WorkflowServer
       @tid ||= {}
     end
 
-    def self.logger(log_file = nil)
+    def self.logger
       @@logger ||= TorqueBox::Logger.new('backbeat_logger')
+    end
+
+    def self.set_logger(logger)
+      @@logger = logger
+    end
+
+    def self.log(level, message)
+      logger.__send__(level, message)
     end
 
     module ClassMethods
@@ -76,7 +84,7 @@ module WorkflowServer
         else
           message_to_log = sprintf("%s | %s | %s | %s | %s | %s | %s\n", *message_with_metadata.values)
         end
-        WorkflowServer::Logger.logger.__send__(level, message_to_log)
+        WorkflowServer::Logger.log(level, message_to_log)
         end
       end
     end
@@ -94,5 +102,9 @@ module WorkflowServer
     def self.crash(message, exception)
       self.fatal({error: message, backtrace: exception.backtrace})
     end
+  end
+
+  class TransactionLogger
+    include WorkflowServer::Logger
   end
 end

@@ -1,4 +1,34 @@
 GIT
+  remote: git@github.groupondev.com:finance-engineering/accounting_torquespec.git
+  revision: 0535e40a3a7115a4bc575aa86698e97b445388bd
+  specs:
+    accounting_torquespec (0.0.1)
+      rspec
+      torquespec
+
+GIT
+  remote: git@github.groupondev.com:finance-engineering/application_transaction.git
+  revision: 20acb0fabd1d4e0445164fda14e97dca8ff8ef30
+  specs:
+    application_transaction (0.0.1)
+      activesupport
+      awesome_print
+
+GIT
+  remote: git@github.groupondev.com:finance-engineering/external_service.git
+  revision: 6063d8f074d7f578bd459f150eaac4fc8703106b
+  specs:
+    external_service (0.0.1)
+      rack
+
+GIT
+  remote: git@github.groupondev.com:groupon-api/service-discovery.git
+  revision: 90abd291b4813d609943b4b3759938059d460cdc
+  specs:
+    service-discovery (0.3.0)
+      multi_json
+
+GIT
   remote: https://github.com/mongoid/mongoid.git
   revision: 28ee2d96707f607b12235bddf13f9fbeea310f74
   branch: 3.1.0-stable
@@ -24,36 +54,6 @@ GIT
     delayed_job_mongoid (2.0.0)
       delayed_job (~> 3.0)
       mongoid (~> 3.0)
-
-GIT
-  remote: https://github.groupondev.com/finance-engineering/accounting_torquespec.git
-  revision: 0535e40a3a7115a4bc575aa86698e97b445388bd
-  specs:
-    accounting_torquespec (0.0.1)
-      rspec
-      torquespec
-
-GIT
-  remote: https://github.groupondev.com/finance-engineering/application_transaction.git
-  revision: bc1305be97592df1a6baa5afc39ce298ed74e1c5
-  specs:
-    application_transaction (0.0.1)
-      activesupport (~> 3.2)
-      awesome_print
-
-GIT
-  remote: https://github.groupondev.com/finance-engineering/external_service.git
-  revision: 6063d8f074d7f578bd459f150eaac4fc8703106b
-  specs:
-    external_service (0.0.1)
-      rack
-
-GIT
-  remote: https://github.groupondev.com/groupon-api/service-discovery.git
-  revision: 90abd291b4813d609943b4b3759938059d460cdc
-  specs:
-    service-discovery (0.3.0)
-      multi_json
 
 GEM
   remote: https://rubygems.org/

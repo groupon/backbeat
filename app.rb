@@ -19,6 +19,8 @@ require 'sidekiq'
 require 'kiqstand'
 require 'application_transaction'
 
+I18n.enforce_available_locales = false
+
 GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNKNOWN'
 
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
@@ -44,7 +46,7 @@ puts "********** environment is #{WorkflowServer::Config.environment}"
 ApplicationTransaction.configure do |config|
   config.backend = :mongoid
   config.workers = [:sidekiq]
-  config.logger = WorkflowServer::Logger.logger
+  config.logger = WorkflowServer::TransactionLogger
 end
 
 ############################################## MONKEY-PATCH ################################################

@@ -17,7 +17,13 @@ Bundler.setup
 Bundler.require(:default, :test)
 
 require 'app'
-WorkflowServer::Logger.logger(WorkflowServer::Config.log_file)
+
+unless ENV["CONSOLE_LOG"] == "true"
+  log_dir = File.expand_path("../../log", __FILE__)
+  Dir.mkdir(log_dir) unless File.exists?(log_dir)
+  WorkflowServer::Logger.set_logger(Logger.new(File.open(File.expand_path("../../log/test.log", __FILE__), "a+")))
+end
+
 require_relative '../services/sidekiq_service'
 require_relative '../reports/daily_report'
 
