@@ -136,7 +136,7 @@ module Api
       post "/:id/decisions" do
         raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
         raise WorkflowServer::InvalidParameters, "args must include a 'decisions' parameter" if params[:args][:decisions].nil? || params[:args][:decisions].empty?
-        if App.v2?
+        if ::App.v2?
           node = V2::Node.find(params[:id])
           params[:args][:decisions].each do |dec|
             node_to_add = dec.dup
@@ -166,7 +166,7 @@ module Api
       }
       put "/:id/status/:new_status" do
         raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
-        if App.v2?
+        if ::App.v2?
           status_map = {deciding_complete: V2::Server::ClientComplete,
                         deciding:  V2::Server::ClientProcessing,
                         completed: V2::Server::ClientComplete,

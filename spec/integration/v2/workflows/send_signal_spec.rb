@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Api::Workflow do
+describe Api::Workflows do
   include Rack::Test::Methods
 
   deploy BACKBEAT_APP
@@ -10,8 +10,8 @@ describe Api::Workflow do
   end
 
   let(:user) { FactoryGirl.create(:user)  }
-  let(:v2_user) {FactoryGirl.create(:v2_user)}
-  let(:v2_workflow) {FactoryGirl.create(:v2_workflow)}
+  let(:v2_user) { FactoryGirl.create(:v2_user) }
+  let(:v2_workflow) { FactoryGirl.create(:v2_workflow) }
 
   before do
     header 'CLIENT_ID', user.id
@@ -29,7 +29,7 @@ describe Api::Workflow do
       node.attributes.should include( "current_client_status" => "ready",
                                       "current_server_status" => "ready")
 
-       decision_to_make = FactoryGirl.build(:client_decision, 
+       decision_to_make = FactoryGirl.build(:client_decision,
                                           id: node.id,
                                           name: :test,
                                           parentId: node.parent_id,
@@ -38,7 +38,7 @@ describe Api::Workflow do
                                           subject: v2_workflow.subject)
 
         WebMock.stub_request(:post, "http://backbeat-client:9000/decision").
-         with(:body => 
+         with(:body =>
               {decision: decision_to_make}.to_json,
               :headers => {'Content-Length'=>'222', 'content-type'=>'application/json'}).
          to_return(:status => 200, :body => "", :headers => {})

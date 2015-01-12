@@ -23,7 +23,7 @@ I18n.enforce_available_locales = false
 
 class App
   def self.v2?
-    !ENV['v2'].nil?
+    !!ENV['v2']
   end
 end
 
@@ -34,7 +34,6 @@ GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNK
 redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment.to_s]
 
 if App.v2?
-  ap "here"
   ActiveRecord::Base.include_root_in_json = false
   ActiveRecord::Base.establish_connection YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")["development"]
 end

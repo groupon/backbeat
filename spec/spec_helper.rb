@@ -73,12 +73,10 @@ BACKBEAT_APP = <<-DD_END.gsub(/^ {4}/,'')
 ########### MOCK BACKBEAT CLIENT START #################
 BACKBEAT_CLIENT_ENDPOINT = "http://backbeat-client:9000"
 service = nil
-if defined?(JRUBY_VERSION)
-  if FakeTorquebox.run_jboss?
-    require_relative 'service/backbeat_client'
-    service = Service::BackbeatClient.new('backbeat-test')
-    BACKBEAT_CLIENT_ENDPOINT = service.start(3010)
-  end
+if defined?(JRUBY_VERSION) && FakeTorquebox.run_jboss?
+  require_relative 'service/backbeat_client'
+  service = Service::BackbeatClient.new('backbeat-test')
+  BACKBEAT_CLIENT_ENDPOINT = service.start(3010)
 else
   def deploy(*args)
     # no-op on MRI
@@ -129,15 +127,15 @@ RSpec.configuration.after(:suite) do
 end
 
 RSpec.configure do |config|
-   config.before(:suite) do
+  config.before(:suite) do
     if App.v2?
       DatabaseCleaner.strategy = :transaction
       DatabaseCleaner.clean_with(:truncation)
     end
   end
 
-  config.around(:each) do |example|
-    if  App.v2?
+  if App.v2?
+    config.around(:each) do |example|
       DatabaseCleaner.cleaning do
         example.run
       end

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Api::Workflow do
+describe Api::Workflows do
   include Rack::Test::Methods
 
   deploy BACKBEAT_APP
@@ -10,7 +10,7 @@ describe Api::Workflow do
   end
 
   let(:user) { FactoryGirl.create(:user)  }
-  let(:v2_user) {FactoryGirl.create(:v2_user)}
+  let(:v2_user) { FactoryGirl.create(:v2_user) }
 
   before do
     header 'CLIENT_ID', user.id

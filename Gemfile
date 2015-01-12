@@ -48,11 +48,14 @@ end
 group :development do
   # Documentation
   gem 'rdoc', '~> 3.4'
-  gem 'pry'
 
   platforms :jruby do
     gem 'torquebox-capistrano-support'
   end
+end
+
+group :development, :test do
+  gem 'pry'
 end
 
 group :test do
@@ -66,7 +69,6 @@ group :test do
   gem 'simplecov'
   gem 'external_service', :git => 'git@github.groupondev.com:finance-engineering/external_service.git'
   gem 'zip'
-  gem 'pry'
 
   platforms :jruby do
     gem 'torquebox-console'
