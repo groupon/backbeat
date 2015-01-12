@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Api::Workflows do
+describe Api::Workflows, v2: true do
   include Rack::Test::Methods
 
   deploy BACKBEAT_APP
