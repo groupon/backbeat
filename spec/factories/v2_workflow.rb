@@ -4,6 +4,15 @@ FactoryGirl.define do
     subject({'subjectKlass'=>'PaymentTerm', 'subjectId'=>'100'})
     decider 'PaymentDecider'
     initial_signal :start
-    user_id RSPEC_CONSTANT_USER_CLIENT_ID
+
+    factory :v2_workflow_with_node do
+      after(:create) do |workflow|
+        FactoryGirl.create(
+          :v2_node,
+          workflow_id: workflow.id,
+          user_id: workflow.user_id
+        )
+      end
+    end
   end
 end

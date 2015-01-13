@@ -9,14 +9,11 @@ describe Api::Workflows, v2: true do
     FullRackApp
   end
 
-  let(:user) { FactoryGirl.create(:user)  }
   let(:v2_user) { FactoryGirl.create(:v2_user) }
-  let(:v2_workflow) { FactoryGirl.create(:v2_workflow) }
+  let(:v2_workflow) { FactoryGirl.create(:v2_workflow, user: v2_user) }
 
   before do
-    header 'CLIENT_ID', user.id
-    v2_user
-    v2_workflow
+    header 'CLIENT_ID', v2_user.id
     RSpec::Mocks.proxy_for( WorkflowServer::Client).reset
   end
 
@@ -26,7 +23,7 @@ describe Api::Workflows, v2: true do
       response.status.should == 201
       signal = JSON.parse(response.body)
       node = v2_workflow.nodes.where(id: signal['id']).first
-      node.attributes.should include( "current_client_status" => "ready",
+      node.attributes.should include("current_client_status" => "ready",
                                      "current_server_status" => "ready")
 
       decision_to_make = FactoryGirl.build(:client_decision,

@@ -1,5 +1,9 @@
-module V2
+require "workflow_server/logger"
 
+module V2
+  class Logger
+    include WorkflowServer::Logger
+  end
 end
 
 require "v2/models"

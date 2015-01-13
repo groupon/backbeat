@@ -12,9 +12,6 @@ class V2::Server
   ProcessChildren = :process_children
   NodeComplete = :node_complete
 
-
-
-
   def self.create_workflow(params, user)
     value = { workflow_type: params['workflow_type'],
               subject: params['subject'],

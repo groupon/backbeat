@@ -9,12 +9,10 @@ describe Api::Workflows, v2: true do
     FullRackApp
   end
 
-  let(:user) { FactoryGirl.create(:user)  }
   let(:v2_user) { FactoryGirl.create(:v2_user) }
 
   before do
-    header 'CLIENT_ID', user.id
-    v2_user
+    header 'CLIENT_ID', v2_user.id
     WorkflowServer::Client.stub(:make_decision)
   end
 

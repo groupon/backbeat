@@ -65,11 +65,14 @@ class V2::Processors
     V2::Server.fire_event(V2::Server::MarkChildrenReady, node)
   end
 
-   def self.node_complete(node)
+  def self.node_complete(node)
     info(node_complete: {node: node})
     node.update_attributes!(current_server_status: :complete)
     V2::Server.fire_event(V2::Server::ScheduleNextNode, node.current_parent)
   end
 
-
+   def self.client_error(node)
+    info(client_error: {node: node})
+    node.update_attributes!(current_client_status: :errored)
+  end
 end
