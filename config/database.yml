@@ -1,4 +1,4 @@
-development: 
+development:
   reconnect: true
   adapter: postgresql
   username: backbeat_usr

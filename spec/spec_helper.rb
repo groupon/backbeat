@@ -127,7 +127,11 @@ RSpec.configuration.after(:suite) do
 end
 
 RSpec.configure do |config|
-  config.filter_run_excluding v2: true unless Backbeat.v2?
+  if Backbeat.v2?
+    config.filter_run_including v2: true
+  else
+    config.filter_run_excluding v2: true
+  end
 
   config.before(:suite) do
     if Backbeat.v2?

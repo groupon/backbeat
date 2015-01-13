@@ -1,6 +1,5 @@
 class InitialMigrations < ActiveRecord::Migration
   def change
-    enable_extension 'uuid-ossp'
     enable_extension 'hstore'
 
     create_table :users, id: false do |t|
