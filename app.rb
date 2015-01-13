@@ -23,7 +23,7 @@ I18n.enforce_available_locales = false
 
 module Backbeat
   def self.v2?
-    !!ENV['v2']
+    !!ENV['V2']
   end
 end
 
