@@ -2,6 +2,6 @@ module V2
 
 end
 
-require_relative "v2/models"
-require_relative "v2/server"
-require_relative "v2/processors"
+require "v2/models"
+require "v2/server"
+require "v2/processors"

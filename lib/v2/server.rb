@@ -1,3 +1,5 @@
+require "v2/workers/sidekiq_worker"
+
 class V2::Server
   MarkChildrenReady = :mark_children_ready
   ChildrenReady = :children_ready
@@ -35,7 +37,6 @@ class V2::Server
     parent: parent_node,
     workflow_id: workflow.id,
     user_id: user.id}
-    ap value
     node = V2::Node.create!(value)
     V2::ClientNodeDetail.create!(node: node,
                                  metadata: params[:options][:client_metadata] || {},
@@ -53,9 +54,9 @@ class V2::Server
       when ChildrenReady
         V2::Processors.children_ready(node)
       when ScheduleNextNode
-        WorkflowServer::Workers::V2SidekiqWorker.async_event(node, :schedule_next_node)
+        V2::Workers::SidekiqWorker.async_event(node, :schedule_next_node)
       when StartNode
-        WorkflowServer::Workers::V2SidekiqWorker.async_event(node, :start_node)
+        V2::Workers::SidekiqWorker.async_event(node, :start_node)
       when ClientProcessing
         V2::Processors.client_processing(node)
       when ClientComplete

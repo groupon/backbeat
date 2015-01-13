@@ -140,7 +140,6 @@ module Api
           node = V2::Node.find(params[:id])
           params[:args][:decisions].each do |dec|
             node_to_add = dec.dup
-            ap node_to_add
             node_to_add['options'] = {}
             node_to_add['options']['meta_data'] = node_to_add["meta_data"]
             node_to_add['options']['client_data'] = node_to_add["client_data"]

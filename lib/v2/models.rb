@@ -1,5 +1,3 @@
-
-
 class ActiveRecord::Base
   before_create do
     self.id = UUIDTools::UUID.random_create.to_s if self.id.nil?

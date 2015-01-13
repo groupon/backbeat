@@ -4,9 +4,9 @@ require 'workflow_server/logger'
 require 'workflow_server/errors'
 require 'workflow_server/config'
 
-module WorkflowServer
+module V2
   module Workers
-    class V2SidekiqWorker
+    class SidekiqWorker
       include Sidekiq::Worker
       extend WorkflowServer::Logger
 
@@ -15,11 +15,10 @@ module WorkflowServer
                       queue: WorkflowServer::Config.options[:async_queue_v2]
 
       def self.async_event(node, method)
-        WorkflowServer::Workers::V2SidekiqWorker.perform_async(node.class.name, node.id, method)
+        V2::Workers::SidekiqWorker.perform_async(node.class.name, node.id, method)
       end
 
       def perform(node_class, node_id, method)
-        ap [node_class, node_id, method]
         node = node_class.constantize.find(node_id)
         instrument(node, method) do
            V2::Processors.send(method, node)
