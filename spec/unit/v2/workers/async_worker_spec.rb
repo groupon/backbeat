@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe V2::Workers::SidekiqWorker, v2: true do
+describe V2::Workers::AsyncWorker, v2: true do
 
   let(:user) { FactoryGirl.create(:v2_user) }
   let(:workflow) { FactoryGirl.create(:v2_workflow_with_node, user: user) }
@@ -11,7 +11,7 @@ describe V2::Workers::SidekiqWorker, v2: true do
   it "sends a method to the processor" do
     expect(V2::Processors).to receive(:children_ready).with(node)
     described_class.async_event(node, :children_ready)
-    V2::Workers::SidekiqWorker.drain
+    V2::Workers::AsyncWorker.drain
   end
 
   it "sends a client error event when out of retries" do

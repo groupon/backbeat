@@ -4,7 +4,7 @@ require 'workflow_server/config'
 
 module V2
   module Workers
-    class SidekiqWorker
+    class AsyncWorker
       include Sidekiq::Worker
 
       sidekiq_options retry: 12,
@@ -14,17 +14,21 @@ module V2
       sidekiq_retries_exhausted do |msg|
         args = msg['args']
         node = args[0].constantize.find(args[1])
-        V2::Server.fire_event(V2::Server::ClientError, node)
+        Server.fire_event(Server::ClientError, node)
+      end
+
+      def self.schedule_async_event(node, method, time)
+        perform_in(time, node.class.name, node.id, method)
       end
 
       def self.async_event(node, method)
-        V2::Workers::SidekiqWorker.perform_async(node.class.name, node.id, method)
+        perform_async(node.class.name, node.id, method)
       end
 
       def perform(node_class, node_id, method)
         node = node_class.constantize.find(node_id)
         instrument(node, method) do
-           V2::Processors.send(method, node)
+           Processors.send(method, node)
         end
       end
 

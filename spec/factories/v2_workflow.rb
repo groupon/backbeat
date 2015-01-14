@@ -23,18 +23,12 @@ FactoryGirl.define do
                                          current_server_status: :processing_children,
                                          current_client_status: :complete)
 
-        node = FactoryGirl.create(:v2_node,
-                                  workflow_id: workflow.id,
-                                  user_id: workflow.user_id,
-                                  parent_id: signal_node.id,
-                                  current_server_status: :sent_to_client,
-                                  current_client_status: :received)
-
-        FactoryGirl.create(:v2_client_node_detail,
-                           node: node)
-
-        FactoryGirl.create(:v2_node_detail,
-                           node: node)
+        FactoryGirl.create(:v2_node,
+                           workflow_id: workflow.id,
+                           user_id: workflow.user_id,
+                           parent_id: signal_node.id,
+                           current_server_status: :sent_to_client,
+                           current_client_status: :received)
       end
     end
   end

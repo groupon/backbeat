@@ -72,7 +72,7 @@ class InitialMigrations < ActiveRecord::Migration
     create_table :node_details, id: false do |t|
       t.uuid :id, unique: true, null: false
       t.uuid :node_id, null: false
-      t.integer  :retry_times_remaining, null: false
+      t.integer  :retries_remaining, null: false
       t.integer  :retry_interval, null: false
       t.string   :legacy_type
       t.text     :valid_next_events

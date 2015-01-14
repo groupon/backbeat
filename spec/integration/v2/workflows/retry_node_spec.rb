@@ -1,7 +1,9 @@
 require 'spec_helper'
+require "spec/helper/request_helper"
 
 describe Api::Workflows, v2: true do
   include Rack::Test::Methods
+  include RequestHelper
 
   deploy BACKBEAT_APP
 
@@ -24,45 +26,81 @@ describe Api::Workflows, v2: true do
 
   context "client error" do
     it "retries with backoff and then succeeds" do
-      activity_node.reload.attributes.should include("current_client_status" => "received",
-                                                     "current_server_status" => "sent_to_client")
-      activity_node.node_detail.retry_times_remaining.should == 4
+      expect(activity_node.reload.attributes).to include(
+        "current_client_status" => "received",
+        "current_server_status" => "sent_to_client"
+      )
+      expect(activity_node.node_detail.retries_remaining).to eq(4)
 
       response = put "/events/#{activity_node.id}/status/errored"
-      activity_node.reload.attributes.should include("current_client_status" => "errored",
-                                                     "current_server_status" => "retrying")
+      expect(activity_node.reload.attributes).to include(
+        "current_client_status" => "errored",
+        "current_server_status" => "retrying"
+      )
 
-      activity_hash =  {"activity" => { "id" => activity_node.id,
-                                        "mode" => "blocking",
-                                        "name" => activity_node.name,
-                                        "parentId" => activity_node.parent_id,
-                                        "workflowId" => activity_node.workflow_id,
-                                        "userId" => activity_node.user_id,
-                                        "clientData" => {"could" => "be","any" => "thing"}}}
-      WebMock.stub_request(:post, "http://backbeat-client:9000/activity").
-        with(:body => activity_hash.to_json,
-             :headers => {'Content-Length'=>'287', 'Content-Type'=>'application/json'}).
-        to_return(:status => 200, :body => "", :headers => {})
+      WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
+        .with(:body => activity_hash(activity_node).to_json, :headers => {'Content-Length'=>'287', 'Content-Type'=>'application/json'})
+        .to_return(:status => 200, :body => "", :headers => {})
 
-      V2::Workers::SidekiqWorker.drain
+      V2::Workers::AsyncWorker.drain
 
-      activity_node.reload.attributes.should include("current_client_status" => "received",
-                                                     "current_server_status" => "sent_to_client")
-      activity_node.node_detail.retry_times_remaining.should == 3
+      expect(activity_node.reload.attributes).to include(
+        "current_client_status" => "received",
+        "current_server_status" => "sent_to_client"
+      )
+      expect(activity_node.node_detail.retries_remaining).to eq(3)
 
       response = put "/events/#{activity_node.id}/status/completed"
-      activity_node.reload.attributes.should include("current_client_status" => "complete",
-                                                     "current_server_status" => "processing_children")
+      expect(activity_node.reload.attributes).to include(
+        "current_client_status" => "complete",
+        "current_server_status" => "processing_children"
+      )
 
-      V2::Workers::SidekiqWorker.drain
-      activity_node.reload.attributes.should include("current_client_status" => "complete",
-                                                     "current_server_status" => "complete")
+      V2::Workers::AsyncWorker.drain
 
-      activity_node.parent.attributes.should include("current_client_status" => "complete",
-                                                     "current_server_status" => "complete")
+      expect(activity_node.reload.attributes).to include(
+        "current_client_status" => "complete",
+        "current_server_status" => "complete"
+      )
+      expect(activity_node.parent.attributes).to include(
+        "current_client_status" => "complete",
+        "current_server_status" => "complete"
+      )
     end
 
     it "retries full number of retries available and fails" do
+      activity_node.reload.attributes.should include(
+        "current_client_status" => "received",
+        "current_server_status" => "sent_to_client"
+      )
+      activity_node.node_detail.update_attributes(retries_remaining: 2)
+      expect(activity_node.node_detail.retries_remaining).to eq(2)
+
+      WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
+        .with(:body => activity_hash(activity_node).to_json, :headers => {'Content-Length'=>'287', 'Content-Type'=>'application/json'})
+        .to_return(:status => 200, :body => "", :headers => {})
+
+      2.times do |i|
+        response = put "/events/#{activity_node.id}/status/errored"
+        expect(activity_node.reload.attributes).to include(
+          "current_client_status" => "errored",
+          "current_server_status" => "retrying"
+        )
+
+        V2::Workers::AsyncWorker.drain
+
+        expect(activity_node.reload.attributes).to include(
+          "current_client_status" => "received",
+          "current_server_status" => "sent_to_client"
+        )
+        expect(activity_node.node_detail.retries_remaining).to eq(1-i)
+      end
+
+      response = put "/events/#{activity_node.id}/status/errored"
+      expect(activity_node.reload.attributes).to include(
+        "current_client_status" => "errored",
+        "current_server_status" => "errored"
+      )
     end
   end
 end

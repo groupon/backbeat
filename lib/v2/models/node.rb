@@ -55,8 +55,6 @@ class V2::Node < ActiveRecord::Base
     processing: :complete
   }
 
-  STATUS_CHANGE_FIELDS = [:current_server_status, :current_client_status]
-
   before_create do
     self.seq ||= ActiveRecord::Base.connection.execute("SELECT nextval('nodes_seq_seq')").first["nextval"]
   end
@@ -83,17 +81,18 @@ class V2::Node < ActiveRecord::Base
     end
   end
 
-  def update_attributes!(args)
-    args.each do |arg|
-      status_type = arg[0]
-      current_status = arg[1]
-      previous_status = self.attributes[status_type.to_s]
-
-      if current_status != previous_status && STATUS_CHANGE_FIELDS.include?(status_type)
-        V2::StatusChange.create!(node: self, from_status: previous_status, to_status: current_status, status_type: status_type)
+  def update_status(statuses)
+    [:current_client_status, :current_server_status].each do |status_type|
+      new_status = statuses[status_type]
+      current_status = self.send(status_type)
+      if new_status && new_status.to_s != current_status
+        status_changes.create!(
+          from_status: current_status,
+          to_status: new_status,
+          status_type: status_type
+        )
       end
     end
-
-    super(args)
+    update_attributes!(statuses)
   end
 end

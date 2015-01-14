@@ -5,5 +5,10 @@ FactoryGirl.define do
     current_client_status :ready
     name :test_node
     fires_at Time.now
+
+    after(:create) do |node|
+      FactoryGirl.create(:v2_node_detail, node: node)
+      FactoryGirl.create(:v2_client_node_detail, node: node)
+    end
   end
 end
