@@ -28,4 +28,19 @@ describe Api::Workflows, v2: true do
       json_response['id'].should ==  JSON.parse(response.body)['id']
     end
   end
+
+  context "PUT :id/restart" do
+    context "with valid restart state" do
+      it "returns 200" do
+      end
+
+      it "restarts the node" do
+      end
+    end
+
+    context "with invalid restart state" do
+      it "returns 4xx" do
+      end
+    end
+  end
 end

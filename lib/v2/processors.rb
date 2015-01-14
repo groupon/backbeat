@@ -70,13 +70,14 @@ module V2
       Logger.info(client_error: {node: node})
       node.update_status(current_server_status: :errored, current_client_status: :errored)
       retries_remaining = node.node_detail.retries_remaining
-      Server.fire_event(Server::RetryNode, node) if retries_remaining > 0
+      if retries_remaining > 0
+        node.node_detail.update_attributes!(retries_remaining: retries_remaining - 1)
+        Server.fire_event(Server::RetryNodeWithBackoff, node)
+      end
     end
 
     def self.retry_node(node)
       Logger.info(retry_node: {node: node})
-      retries_remaining = node.node_detail.retries_remaining
-      node.node_detail.update_attributes!(retries_remaining: retries_remaining - 1)
       node.update_status(current_server_status: :retrying)
       Server.fire_event(Server::StartNode, node)
     end

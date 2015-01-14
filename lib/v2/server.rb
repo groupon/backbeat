@@ -13,6 +13,7 @@ module V2
     ProcessChildren = :process_children
     NodeComplete = :node_complete
     RetryNode = :retry_node
+    RetryNodeWithBackoff = :retry_node_with_backoff
 
     def self.create_workflow(params, user)
       value = {
@@ -72,6 +73,12 @@ module V2
           Processors.client_error(node)
         when RetryNode
           Processors.retry_node(node)
+        when RetryNodeWithBackoff
+          Workers::AsyncWorker.schedule_async_event(
+            node,
+            :retry_node,
+            node.node_detail.retry_interval
+          )
       end
     end
   end

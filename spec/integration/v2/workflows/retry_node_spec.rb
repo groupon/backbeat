@@ -26,6 +26,10 @@ describe Api::Workflows, v2: true do
 
   context "client error" do
     it "retries with backoff and then succeeds" do
+      WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
+        .with(:body => activity_hash(activity_node).to_json, :headers => {'Content-Length'=>'287', 'Content-Type'=>'application/json'})
+        .to_return(:status => 200, :body => "", :headers => {})
+
       expect(activity_node.reload.attributes).to include(
         "current_client_status" => "received",
         "current_server_status" => "sent_to_client"
@@ -33,14 +37,6 @@ describe Api::Workflows, v2: true do
       expect(activity_node.node_detail.retries_remaining).to eq(4)
 
       response = put "/events/#{activity_node.id}/status/errored"
-      expect(activity_node.reload.attributes).to include(
-        "current_client_status" => "errored",
-        "current_server_status" => "retrying"
-      )
-
-      WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-        .with(:body => activity_hash(activity_node).to_json, :headers => {'Content-Length'=>'287', 'Content-Type'=>'application/json'})
-        .to_return(:status => 200, :body => "", :headers => {})
 
       V2::Workers::AsyncWorker.drain
 
@@ -82,10 +78,6 @@ describe Api::Workflows, v2: true do
 
       2.times do |i|
         response = put "/events/#{activity_node.id}/status/errored"
-        expect(activity_node.reload.attributes).to include(
-          "current_client_status" => "errored",
-          "current_server_status" => "retrying"
-        )
 
         V2::Workers::AsyncWorker.drain
 
