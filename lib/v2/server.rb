@@ -11,6 +11,7 @@ class V2::Server
   ClientResolved = :client_resolved
   ProcessChildren = :process_children
   NodeComplete = :node_complete
+  RetryNode = :retry_node
 
   def self.create_workflow(params, user)
     value = { workflow_type: params['workflow_type'],
@@ -64,6 +65,8 @@ class V2::Server
         V2::Processors.node_complete(node)
       when ClientError
         V2::Processors.client_error(node)
+      when RetryNode
+        V2::Processors.retry_node(node)
     end
   end
 end

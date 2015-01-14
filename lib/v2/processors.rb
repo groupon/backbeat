@@ -50,8 +50,8 @@ class V2::Processors
       activity = node.attributes.merge(client_data: node.client_node_detail.data)
       WorkflowServer::Client.perform_activity(activity.keep_if {|k,_| ActivityWhiteList.include? k.to_sym }, node.user)
     end
-   node.update_attributes!(current_server_status: :sent_to_client,
-                                   current_client_status: :received)
+    node.update_attributes!(current_server_status: :sent_to_client,
+                            current_client_status: :received)
   end
 
   def self.client_processing(node)
@@ -71,8 +71,23 @@ class V2::Processors
     V2::Server.fire_event(V2::Server::ScheduleNextNode, node.current_parent)
   end
 
-   def self.client_error(node)
+  def self.client_error(node)
     info(client_error: {node: node})
-    node.update_attributes!(current_client_status: :errored)
+    node.update_attributes!(current_server_status: :errored, current_client_status: :errored)
+    V2::Server.fire_event(V2::Server::RetryNode, node)
+  end
+
+  def self.retry_node(node)
+    info(retry_node: {node: node})
+    node_detail = node.node_detail
+    retries_remaining = node_detail.retry_times_remaining
+
+    if retries_remaining > 0
+      node_detail.update_attributes!(retry_times_remaining: retries_remaining-1)
+      node.update_attributes!(current_server_status: :retrying)
+      V2::Server.fire_event(V2::Server::StartNode, node)
+    else
+      update_attributes!(current_server_status: :errored, current_client_status: :errored)
+    end
   end
 end

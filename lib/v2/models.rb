@@ -8,5 +8,5 @@ require_relative 'models/workflow'
 require_relative 'models/node'
 require_relative 'models/node_detail'
 require_relative 'models/client_node_detail'
-require_relative 'models/status_history'
+require_relative 'models/status_change'
 

@@ -40,11 +40,11 @@ describe Api::Workflows, v2: true do
         .to_return(:status => 200, :body => "", :headers => {})
 
       V2::Workers::SidekiqWorker.drain
-      node.reload.attributes.should include( "current_client_status" => "received",
+      node.reload.attributes.should include("current_client_status" => "received",
                                             "current_server_status" => "sent_to_client")
 
       response = put "/events/#{node.id}/status/deciding"
-      node.reload.attributes.should include( "current_client_status" => "processing",
+      node.reload.attributes.should include("current_client_status" => "processing",
                                             "current_server_status" => "sent_to_client")
 
       activity= FactoryGirl.build(:client_activity_post_to_decision)
@@ -52,17 +52,17 @@ describe Api::Workflows, v2: true do
       activity_to_post = { "args" => {"decisions" => [activity]}}
 
       response = post "events/#{node.id}/decisions", activity_to_post
-      node.reload.attributes.should include( "current_client_status" => "processing",
+      node.reload.attributes.should include("current_client_status" => "processing",
                                             "current_server_status" => "sent_to_client")
       node.reload.children.count.should == 1
 
       response = put "/events/#{node.id}/status/deciding_complete"
-      node.reload.attributes.should include( "current_client_status" => "complete",
+      node.reload.attributes.should include("current_client_status" => "complete",
                                             "current_server_status" => "processing_children")
 
 
       activity_node = node.children.first
-      activity_node.reload.attributes.should include( "current_client_status" => "ready",
+      activity_node.reload.attributes.should include("current_client_status" => "ready",
                                                      "current_server_status" => "ready")
 
       activity_hash =  {"activity" => { "id" => activity_node.id,
@@ -78,20 +78,19 @@ describe Api::Workflows, v2: true do
              :headers => {'Content-Length'=>'284', 'Content-Type'=>'application/json'}).
         to_return(:status => 200, :body => "", :headers => {})
 
-
       V2::Workers::SidekiqWorker.drain
-      activity_node.reload.attributes.should include( "current_client_status" => "received",
+      activity_node.reload.attributes.should include("current_client_status" => "received",
                                                      "current_server_status" => "sent_to_client")
 
       response = put "/events/#{activity_node.id}/status/completed"
-      activity_node.reload.attributes.should include( "current_client_status" => "complete",
+      activity_node.reload.attributes.should include("current_client_status" => "complete",
                                                      "current_server_status" => "processing_children")
 
       V2::Workers::SidekiqWorker.drain
-      activity_node.reload.attributes.should include( "current_client_status" => "complete",
+      activity_node.reload.attributes.should include("current_client_status" => "complete",
                                                      "current_server_status" => "complete")
 
-      node.reload.attributes.should include( "current_client_status" => "complete",
+      node.reload.attributes.should include("current_client_status" => "complete",
                                             "current_server_status" => "complete")
     end
   end
