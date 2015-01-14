@@ -16,7 +16,6 @@ describe Api::Workflows, v2: true do
 
   before do
     header 'CLIENT_ID', v2_user.id
-    RSpec::Mocks.proxy_for( WorkflowServer::Client).reset
   end
 
   context "POST /workflows/:id/signal" do
@@ -45,8 +44,7 @@ describe Api::Workflows, v2: true do
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
-        .with(:body => {decision: decision_to_make}.to_json,
-              :headers => {'Content-Length'=>'222', 'content-type'=>'application/json'})
+        .with(:body => {decision: decision_to_make}.to_json)
         .to_return(:status => 200, :body => "", :headers => {})
       V2::Workers::AsyncWorker.drain
 
@@ -84,8 +82,7 @@ describe Api::Workflows, v2: true do
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-        .with(:body => activity_hash(activity_node).to_json,
-              :headers => {'Content-Length'=>'284', 'Content-Type'=>'application/json'})
+        .with(:body => activity_hash(activity_node).to_json)
         .to_return(:status => 200, :body => "", :headers => {})
       V2::Workers::AsyncWorker.drain
 

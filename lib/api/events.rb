@@ -62,8 +62,13 @@ module Api
         end
       }
       put "/:id/restart" do
-        e = find_event(params)
-        e.restart
+        if Backbeat.v2?
+          node = V2::Node.find(params[:id])
+          V2::Server.fire_event(V2::Server::RetryNode, node)
+        else
+          e = find_event(params)
+          e.restart
+        end
         {success: true}
       end
 

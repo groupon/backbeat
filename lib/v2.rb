@@ -4,6 +4,8 @@ module V2
   class Logger
     include WorkflowServer::Logger
   end
+
+  class InvalidEventStatusChange < StandardError; end
 end
 
 require "v2/models"

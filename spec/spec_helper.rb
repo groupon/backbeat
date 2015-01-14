@@ -107,8 +107,10 @@ end
 
 RSpec.configuration.before(:each) do
   Timecop.freeze(DateTime.now)
-  response = double('response', code: 200)
-  WorkflowServer::Client.stub(post: response)
+  unless Backbeat.v2?
+    response = double('response', code: 200)
+    WorkflowServer::Client.stub(post: response)
+  end
 end
 
 RSpec.configuration.after(:each) do

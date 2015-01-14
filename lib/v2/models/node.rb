@@ -31,16 +31,6 @@ class V2::Node < ActiveRecord::Base
                                          :errored,
                                          :retrying]
 
-  VALID_SERVER_STATE_CHANGES = {
-    pending: :ready,
-    ready: :started,
-    started: :sent_to_client,
-    sent_to_client: :recieved_from_client,
-    processing_children: :complete,
-    errored: :retrying,
-    retrying: :sent_to_client
-  }
-
   enumerize :current_client_status, in: [:pending,
                                          :ready,
                                          :received,
@@ -48,11 +38,23 @@ class V2::Node < ActiveRecord::Base
                                          :complete,
                                          :errored]
 
-  VALID_CLIENT_STATE_CHANGES = {
-    pending: :ready,
-    ready: :received,
-    received: [:processing, :complete],
-    processing: :complete
+  VALID_STATE_CHANGES = {
+    current_client_status: {
+      pending: [:ready, :errored],
+      ready: [:received, :errored],
+      received: [:processing, :complete, :errored],
+      processing: [:complete],
+      errored: [:received],
+    },
+    current_server_status: {
+      pending: [:ready, :errored],
+      ready: [:started, :errored],
+      started: [:sent_to_client, :errored],
+      sent_to_client: [:processing_children, :recieved_from_client, :errored],
+      processing_children: [:complete],
+      errored: [:retrying],
+      retrying: [:sent_to_client]
+    }
   }
 
   before_create do
@@ -84,15 +86,26 @@ class V2::Node < ActiveRecord::Base
   def update_status(statuses)
     [:current_client_status, :current_server_status].each do |status_type|
       new_status = statuses[status_type]
-      current_status = self.send(status_type)
-      if new_status && new_status.to_s != current_status
+      next unless new_status
+      if valid_status_change?(new_status, status_type)
         status_changes.create!(
-          from_status: current_status,
+          from_status: self.send(status_type),
           to_status: new_status,
           status_type: status_type
+        )
+      else
+        raise V2::InvalidEventStatusChange.new(
+          "Cannot transition #{status_type} to #{new_status} from #{self.send(status_type)}"
         )
       end
     end
     update_attributes!(statuses)
+  end
+
+  private
+
+  def valid_status_change?(new_status, status_type)
+    valid_state_changes = VALID_STATE_CHANGES[status_type.to_sym][self.send(status_type).to_sym]
+    new_status && valid_state_changes.include?(new_status)
   end
 end

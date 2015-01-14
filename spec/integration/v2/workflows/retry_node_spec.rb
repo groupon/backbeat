@@ -17,17 +17,12 @@ describe Api::Workflows, v2: true do
 
   before do
     header 'CLIENT_ID', v2_user.id
-    RSpec::Mocks.proxy_for( WorkflowServer::Client).reset
-  end
-
-  context "client connection timeout" do
-
   end
 
   context "client error" do
     it "retries with backoff and then succeeds" do
       WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-        .with(:body => activity_hash(activity_node).to_json, :headers => {'Content-Length'=>'287', 'Content-Type'=>'application/json'})
+        .with(:body => activity_hash(activity_node).to_json)
         .to_return(:status => 200, :body => "", :headers => {})
 
       expect(activity_node.reload.attributes).to include(
@@ -73,7 +68,7 @@ describe Api::Workflows, v2: true do
       expect(activity_node.node_detail.retries_remaining).to eq(2)
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-        .with(:body => activity_hash(activity_node).to_json, :headers => {'Content-Length'=>'287', 'Content-Type'=>'application/json'})
+        .with(:body => activity_hash(activity_node).to_json)
         .to_return(:status => 200, :body => "", :headers => {})
 
       2.times do |i|

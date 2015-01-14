@@ -42,6 +42,13 @@ describe V2::Server, v2: true do
   end
 
   context "retry_node" do
+    before do
+      node.update_attributes(
+        current_server_status: :errored,
+        current_client_status: :errored
+      )
+    end
+
     context "with backoff" do
       it "schedules the retry with the node retry interval" do
         expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(

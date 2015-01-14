@@ -16,8 +16,10 @@ describe V2::Node, v2: true do
       expect(server_status.status_type).to eq("current_server_status")
     end
 
-    it "does not create a status change when the status is not different" do
-      node.update_status(current_client_status: node.current_client_status)
+    it "raised an error if invalid status change" do
+      expect {
+        node.update_status(current_client_status: node.current_client_status)
+      }.to raise_error(V2::InvalidEventStatusChange)
       expect(node.status_changes.count).to eq(0)
     end
   end
