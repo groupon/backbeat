@@ -18,6 +18,10 @@ class V2::Workflow < ActiveRecord::Base
     nodes.where(workflow_id: id, parent_id: nil)
   end
 
+  def ready_children
+    children.where("current_server_status = 'ready'")
+  end
+
   def all_children_ready?
     !children.where(current_server_status: :pending).exists?
   end

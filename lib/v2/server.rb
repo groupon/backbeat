@@ -3,14 +3,12 @@ require "v2/workers/async_worker"
 module V2
   class Server
     MarkChildrenReady = :mark_children_ready
-    ChildrenReady = :children_ready
     ScheduleNextNode = :schedule_next_node
     StartNode = :start_node
     ClientComplete = :client_complete
     ClientProcessing = :client_processing
     ClientError = :client_error
     ClientResolved = :client_resolved
-    ProcessChildren = :process_children
     NodeComplete = :node_complete
     RetryNode = :retry_node
     RetryNodeWithBackoff = :retry_node_with_backoff
@@ -57,8 +55,6 @@ module V2
       case event
         when MarkChildrenReady
           Processors.mark_children_ready(node)
-        when ChildrenReady
-          Processors.children_ready(node)
         when ScheduleNextNode
           Workers::AsyncWorker.async_event(node, :schedule_next_node)
         when StartNode
@@ -67,8 +63,6 @@ module V2
           Processors.client_processing(node)
         when ClientComplete
           Processors.client_complete(node)
-        when ProcessChildren
-          Processors.schedule_next_node(node)
         when NodeComplete
           Processors.node_complete(node)
         when ClientError

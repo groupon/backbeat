@@ -4,9 +4,12 @@ class V2::Node < ActiveRecord::Base
   extend ::Enumerize
 
   self.primary_key = 'id'
+
+  default_scope { order("seq asc") }
+
   belongs_to :workflow
   belongs_to :user
-  has_many :children,  class_name: "V2::Node", foreign_key: "parent_id"
+  has_many :children, class_name: "V2::Node", foreign_key: "parent_id"
   belongs_to :parent, inverse_of: :children, class_name: "V2::Node", foreign_key: "parent_id"
   has_one :client_node_detail
   has_one :node_detail
@@ -71,12 +74,24 @@ class V2::Node < ActiveRecord::Base
     children.where("current_server_status != 'complete'")
   end
 
+  def ready_children
+    children.where("current_server_status = 'ready'")
+  end
+
   def all_children_complete?
     !not_complete_children.exists?
   end
 
   def current_parent
     parent || workflow
+  end
+
+  def blocking?
+    mode.to_sym == :blocking
+  end
+
+  def started?
+    current_server_status.to_sym == :started
   end
 
   def validate(record)

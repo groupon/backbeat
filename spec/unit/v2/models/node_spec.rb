@@ -33,4 +33,45 @@ describe V2::Node, v2: true do
       expect(node.reload.retries_remaining).to eq(3)
     end
   end
+
+  context "started?" do
+    it "returns true if nodes server status is started" do
+      node.current_server_status = :started
+      expect(node.started?).to eq(true)
+    end
+
+    it "returns false if server status not started" do
+      expect(node.started?).to eq(false)
+    end
+  end
+
+  context "ready_children" do
+    it "returns all child nodes marked as ready" do
+      child_node = FactoryGirl.create(
+        :v2_node,
+        workflow: v2_workflow,
+        user: v2_user,
+        parent: node,
+        current_server_status: :ready
+      )
+      expect(node.ready_children.count).to eq(1)
+      expect(node.ready_children.first).to eq(child_node)
+    end
+  end
+
+  context "blocking?" do
+    it "returns true if the mode is blocking" do
+      expect(node.blocking?).to be_true
+    end
+
+    it "returns false if the mode is non-blocking" do
+      node.mode = :non_blocking
+      expect(node.blocking?).to be_false
+    end
+
+    it "returns false if the mode is fire_and_forget" do
+      node.mode = :fire_and_forget
+      expect(node.blocking?).to be_false
+    end
+  end
 end

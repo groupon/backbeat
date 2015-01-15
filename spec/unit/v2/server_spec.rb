@@ -11,6 +11,78 @@ describe V2::Server, v2: true do
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
   end
 
+  def add_node(parent_node, mode, server_status = :pending)
+    FactoryGirl.create(
+      :v2_node,
+      parent: parent_node,
+      workflow: workflow,
+      user: user,
+      mode: mode,
+      current_server_status: server_status,
+      current_client_status: :pending
+    )
+  end
+
+  context "mark_children_ready" do
+    it "marks all children ready if all non-blocking" do
+      3.times do
+        add_node(node, :non_blocking)
+      end
+
+      V2::Server.fire_event(:mark_children_ready, node)
+
+      node.reload.children.each do |child_node|
+        expect(child_node.current_server_status).to eq("ready")
+        expect(child_node.current_client_status).to eq("ready")
+      end
+    end
+
+    it "marks first child ready if it is blocking" do
+      add_node(node, :blocking)
+      add_node(node, :non_blocking)
+      add_node(node, :non_blocking)
+
+      V2::Server.fire_event(:mark_children_ready, node)
+
+      children = node.reload.children
+      expect(children.first.current_server_status).to eq("ready")
+      expect(children.first.current_client_status).to eq("ready")
+      expect(children[1].current_server_status).to eq("pending")
+      expect(children[1].current_client_status).to eq("pending")
+      expect(children[2].current_server_status).to eq("pending")
+      expect(children[2].current_client_status).to eq("pending")
+    end
+
+    it "does not set a started node back to ready" do
+      add_node(node, :blocking, :started)
+      add_node(node, :non_blocking)
+
+      V2::Server.fire_event(:mark_children_ready, node)
+
+      children = node.reload.children
+      expect(children.first.current_server_status).to eq("started")
+      expect(children.first.current_client_status).to eq("pending")
+      expect(children[1].current_server_status).to eq("pending")
+      expect(children[1].current_client_status).to eq("pending")
+    end
+
+    it "marks nodes ready up to first blocking child" do
+      add_node(node, :non_blocking)
+      add_node(node, :blocking)
+      add_node(node, :non_blocking)
+
+      V2::Server.fire_event(:mark_children_ready, node)
+
+      children = node.reload.children
+      expect(children.first.current_server_status).to eq("ready")
+      expect(children.first.current_client_status).to eq("ready")
+      expect(children[1].current_server_status).to eq("ready")
+      expect(children[1].current_client_status).to eq("ready")
+      expect(children[2].current_server_status).to eq("pending")
+      expect(children[2].current_client_status).to eq("pending")
+    end
+  end
+
   context "client_error" do
     it "marks the status as errored" do
       V2::Server.fire_event(V2::Server::ClientError, node)
