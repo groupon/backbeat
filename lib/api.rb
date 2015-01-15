@@ -55,8 +55,18 @@ module Api
       Rack::Response.new({error: e.message }.to_json, 400, { "Content-type" => "application/json" }).finish
     end
 
-    mount Api::Workflows
-    mount Api::Events
-    mount Api::Debug
+    if Backbeat.v2?
+      mount V2::Api::Workflows
+      mount V2::Api::Events
+      resource 'worfklows' do
+        segment '/:workflow_id' do
+          mount V2::Api::WorkflowEvents
+        end
+      end
+    else
+      mount Api::Workflows
+      mount Api::Events
+      mount Api::Debug
+    end
   end
 end

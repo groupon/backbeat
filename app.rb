@@ -15,17 +15,17 @@ require 'sidekiq'
 require 'kiqstand'
 require 'application_transaction'
 
-require 'api'
-require 'v2'
-require 'workflow_server'
-
-I18n.enforce_available_locales = false
-
 module Backbeat
   def self.v2?
     !!ENV['V2']
   end
 end
+
+require 'api'
+require 'v2'
+require 'workflow_server'
+
+I18n.enforce_available_locales = false
 
 I18n.enforce_available_locales = false
 GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNKNOWN'

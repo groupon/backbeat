@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'spec/helper/request_helper'
 
-describe Api::Workflows, v2: true do
+describe V2::Api, v2: true do
   include Rack::Test::Methods
   include RequestHelper
 
