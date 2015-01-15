@@ -14,7 +14,7 @@ module V2
       sidekiq_retries_exhausted do |msg|
         args = msg['args']
         node = args[0].constantize.find(args[1])
-        Server.fire_event(Server::ClientError, node)
+        Server.fire_event(Server::ClientError, node, { error_message: msg["error_message"] })
       end
 
       def self.schedule_async_event(node, method, number_of_minutes)

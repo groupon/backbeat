@@ -8,6 +8,10 @@ describe V2::Workers::AsyncWorker, v2: true do
 
   it { should be_retryable 12 }
 
+  before do
+    WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
+  end
+
   context "async_event" do
     it "sends a method to the processor" do
       expect(V2::Processors).to receive(:children_ready).with(node)

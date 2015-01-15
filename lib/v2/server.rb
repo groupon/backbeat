@@ -56,7 +56,7 @@ module V2
       node
     end
 
-    def self.fire_event(event, node)
+    def self.fire_event(event, node, args = {})
       case event
         when MarkChildrenReady
           Processors.mark_children_ready(node)
@@ -75,7 +75,7 @@ module V2
         when NodeComplete
           Processors.node_complete(node)
         when ClientError
-          Processors.client_error(node)
+          Processors.client_error(node, args)
         when RetryNode
           Processors.retry_node(node)
         when RetryNodeWithBackoff

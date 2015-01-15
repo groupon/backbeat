@@ -6,6 +6,10 @@ describe V2::Server, v2: true do
   let(:workflow) { FactoryGirl.create(:v2_workflow_with_node, user: user) }
   let(:node) { workflow.nodes.first }
 
+  before do
+    WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
+  end
+
   context "client_error" do
     it "marks the status as errored" do
       V2::Server.fire_event(V2::Server::ClientError, node)

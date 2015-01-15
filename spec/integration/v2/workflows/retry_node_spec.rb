@@ -17,6 +17,7 @@ describe V2::Api, v2: true do
 
   before do
     header 'CLIENT_ID', v2_user.id
+    WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
   end
 
   context "client error" do

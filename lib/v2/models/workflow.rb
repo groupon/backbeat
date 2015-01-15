@@ -30,7 +30,6 @@ class V2::Workflow < ActiveRecord::Base
     !not_complete_children.exists?
   end
 
-
   def serializable_hash(options = {})
     self.attributes
   end

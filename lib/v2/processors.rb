@@ -66,8 +66,9 @@ module V2
       Server.fire_event(Server::ScheduleNextNode, node.current_parent)
     end
 
-    def self.client_error(node)
+    def self.client_error(node, args)
       Logger.info(client_error: {node: node})
+      Client.notify_of(node, "error", args[:error_mesage])
       node.update_status(current_server_status: :errored, current_client_status: :errored)
       retries_remaining = node.node_detail.retries_remaining
       if retries_remaining > 0
