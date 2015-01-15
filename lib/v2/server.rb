@@ -23,11 +23,8 @@ module V2
         initial_signal: params['sinitial_signal'] || :start,
         user_id: user.id
       }
-      if workflow = Workflow.where(subject:  params['subject'].to_json).first
-        workflow
-      else
-        Workflow.create!(value)
-      end
+      subject = params['subject'].to_json
+      Workflow.where(subject: subject).first || Workflow.create!(value)
     end
 
     def self.add_node(user, workflow, params, parent_node)

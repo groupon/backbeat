@@ -39,9 +39,9 @@ module V2
       Logger.info(start_node: { node:  node})
       return if node.current_server_status.ready?
 
-      if node.node_detail.legacy_type == 'signal'
-        dec = node.attributes.merge(decider: node.workflow.decider, subject: node.workflow.subject)
-        WorkflowServer::Client.make_decision(dec.keep_if {|k,_| DECISION_WHITE_LIST.include? k.to_sym }, node.user)
+      if node.legacy_type == 'signal'
+        decision = node.attributes.merge(decider: node.workflow.decider, subject: node.workflow.subject)
+        WorkflowServer::Client.make_decision(decision.keep_if {|k,_| DECISION_WHITE_LIST.include? k.to_sym }, node.user)
       else
         activity = node.attributes.merge(client_data: node.client_node_detail.data)
         WorkflowServer::Client.perform_activity(activity.keep_if {|k,_| ACTIVITY_WHITE_LIST.include? k.to_sym }, node.user)
@@ -70,9 +70,8 @@ module V2
       Logger.info(client_error: {node: node})
       Client.notify_of(node, "error", args[:error_mesage])
       node.update_status(current_server_status: :errored, current_client_status: :errored)
-      retries_remaining = node.node_detail.retries_remaining
-      if retries_remaining > 0
-        node.node_detail.update_attributes!(retries_remaining: retries_remaining - 1)
+      if node.retries_remaining > 0
+        node.mark_retried!
         Server.fire_event(Server::RetryNodeWithBackoff, node)
       end
     end

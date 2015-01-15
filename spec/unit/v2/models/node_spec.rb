@@ -23,4 +23,14 @@ describe V2::Node, v2: true do
       expect(node.status_changes.count).to eq(0)
     end
   end
+
+  context "mark_retried!" do
+    it "decrements the retries remaining" do
+      expect(node.retries_remaining).to eq(4)
+
+      node.mark_retried!
+
+      expect(node.reload.retries_remaining).to eq(3)
+    end
+  end
 end

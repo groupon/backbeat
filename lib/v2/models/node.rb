@@ -61,6 +61,8 @@ class V2::Node < ActiveRecord::Base
     self.seq ||= ActiveRecord::Base.connection.execute("SELECT nextval('nodes_seq_seq')").first["nextval"]
   end
 
+  delegate :retries_remaining, :legacy_type, to: :node_detail
+
   def all_children_ready?
     !children.where(current_server_status: :pending).exists?
   end
@@ -100,6 +102,10 @@ class V2::Node < ActiveRecord::Base
       end
     end
     update_attributes!(statuses)
+  end
+
+  def mark_retried!
+    node_detail.update_attributes!(retries_remaining: retries_remaining - 1)
   end
 
   private

@@ -7,7 +7,7 @@ module V2
     class AsyncWorker
       include Sidekiq::Worker
 
-      sidekiq_options retry: 12,
+      sidekiq_options retry: 4,
                       backtrace: true,
                       queue: WorkflowServer::Config.options[:async_queue_v2]
 
