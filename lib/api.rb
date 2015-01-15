@@ -58,11 +58,7 @@ module Api
     if Backbeat.v2?
       mount V2::Api::Workflows
       mount V2::Api::Events
-      resource 'worfklows' do
-        segment '/:workflow_id' do
-          mount V2::Api::WorkflowEvents
-        end
-      end
+      mount V2::Api::WorkflowEvents => 'workflows/:workflow_id'
     else
       mount Api::Workflows
       mount Api::Events
