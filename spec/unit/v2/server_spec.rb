@@ -1,4 +1,5 @@
 require "spec_helper"
+require "webmock/rspec"
 
 describe V2::Server, v2: true do
 
@@ -33,14 +34,20 @@ describe V2::Server, v2: true do
     end
 
     context "with no remaining retries" do
+      before { node.node_detail.update_attributes(retries_remaining: 0) }
+
       it "does not retry" do
-        node.node_detail.update_attributes(retries_remaining: 0)
         allow(V2::Server).to receive(:fire_event).with(
           V2::Server::ClientError,
           node
         ).and_call_original
         expect(V2::Server).to_not receive(:fire_event).with(V2::Server::RetryNodeWithBackoff, node)
         V2::Server.fire_event(V2::Server::ClientError, node)
+      end
+
+      it "notifies the client" do
+        V2::Server.fire_event(V2::Server::ClientError, node)
+        expect(WebMock).to have_requested(:post, "http://backbeat-client:9000/notifications")
       end
     end
   end

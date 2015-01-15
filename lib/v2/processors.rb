@@ -68,11 +68,12 @@ module V2
 
     def self.client_error(node, args)
       Logger.info(client_error: {node: node})
-      Client.notify_of(node, "error", args[:error_mesage])
       node.update_status(current_server_status: :errored, current_client_status: :errored)
       if node.retries_remaining > 0
         node.mark_retried!
         Server.fire_event(Server::RetryNodeWithBackoff, node)
+      else
+        Client.notify_of(node, "error", args[:error_mesage])
       end
     end
 
