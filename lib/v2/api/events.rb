@@ -37,10 +37,10 @@ module V2
           put "/:id/status/:new_status" do
             raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
             status_map = {deciding_complete: V2::Server::ClientComplete,
-                          deciding:  V2::Server::ClientProcessing,
+                          deciding: V2::Server::ClientProcessing,
                           completed: V2::Server::ClientComplete,
-                          errored:  V2::Server::ClientError,
-                          resolved:  V2::Server::ClientResolved}
+                          errored: V2::Server::ClientError,
+                          resolved: V2::Server::ClientResolved}
             node = V2::Node.find(params[:id])
             V2::Server.fire_event(status_map[params[:new_status].to_sym], node)
           end

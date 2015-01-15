@@ -76,4 +76,21 @@ describe V2::Api, v2: true do
       end
     end
   end
+
+  context "POST /:id/decisions" do
+    it "creates the node detail with retry data" do
+      parent_node = v2_workflow.nodes.first
+
+      activity = FactoryGirl.build(:client_activity_post_to_decision).merge(
+        retry: 20,
+        retry_interval: 50
+      )
+      activity_to_post = { "args" => { "decisions" => [activity] }}
+      post "events/#{parent_node.id}/decisions", activity_to_post
+      activity_node = parent_node.children.first
+
+      expect(activity_node.node_detail.retry_interval).to eq(50)
+      expect(activity_node.node_detail.retries_remaining).to eq(20)
+    end
+  end
 end

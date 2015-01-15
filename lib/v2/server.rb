@@ -47,7 +47,12 @@ module V2
         metadata: params[:options][:client_metadata] || {},
         data: params[:options][:client_data] || {}
       )
-      NodeDetail.create!(node: node, legacy_type: params['legacy_type'])
+      NodeDetail.create!(
+        node: node,
+        legacy_type: params['legacy_type'],
+        retry_interval: params['retry_interval'],
+        retries_remaining: params['retry']
+      )
       node
     end
 
