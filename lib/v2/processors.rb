@@ -2,26 +2,32 @@ module V2
   class Processors
     def self.mark_children_ready(node)
       Logger.info(mark_children_ready: {node:  node})
-      node.not_complete_children.each do |child_node|
-        child_node.update_status(
-          current_server_status: :ready,
-          current_client_status: :ready
-        ) unless child_node.started?
-        break if child_node.blocking?
+      node.children.each do |child_node|
+        child_node.update_status(current_server_status: :ready, current_client_status: :ready)
       end
-      Server::fire_event(Server::ScheduleNextNode,  node)
+      Server::fire_event(Server::ChildrenReady,  node)
     end
 
-    def self.schedule_next_node(node)
+    def self.children_ready(node)
+      Logger.info(node_ready: { node:  node})
+
+      if node.all_children_ready?
+        Server::fire_event(Server::ScheduleNextNode,  node)
+      end
+    end
+
+    def self.schedule_next_node( node)
       Logger.info(schedule_next_node: {node:  node})
       if node.all_children_complete?
         if !node.is_a?(Workflow)
           Server::fire_event(Server::NodeComplete,  node)
         end
       else
-        node.ready_children.each do |child_node|
-          child_node.update_status(current_server_status: :started)
-          Server::fire_event(Server::StartNode,  child_node)
+        node.not_complete_children.each do |child_node|
+          if child_node.current_server_status.ready?
+            child_node.update_status(current_server_status: :started)
+            Server::fire_event(Server::StartNode,  child_node)
+          end
         end
       end
     end
