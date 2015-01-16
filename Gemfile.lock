@@ -6,14 +6,6 @@ GIT
       uuidtools
 
 GIT
-  remote: git@github.groupondev.com:finance-engineering/accounting_torquespec.git
-  revision: 0535e40a3a7115a4bc575aa86698e97b445388bd
-  specs:
-    accounting_torquespec (0.0.1)
-      rspec
-      torquespec
-
-GIT
   remote: git@github.groupondev.com:finance-engineering/application_transaction.git
   revision: 20acb0fabd1d4e0445164fda14e97dca8ff8ef30
   specs:
@@ -218,7 +210,6 @@ GEM
     torquebox-capistrano-support (3.0.0)
     torquebox-configure (3.0.0-java)
       blankslate (= 2.1.2.4)
-    torquebox-console (0.3.0)
     torquebox-core (3.0.0-java)
       edn (= 1.0.0)
     torquebox-messaging (3.0.0-java)
@@ -238,9 +229,6 @@ GEM
     torquebox-transactions (3.0.0)
       torquebox-core (= 3.0.0)
     torquebox-web (3.0.0-java)
-    torquespec (0.6.0)
-      json
-      rspec
     treetop (1.4.15)
       polyglot
       polyglot (>= 0.3.1)
@@ -268,7 +256,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  accounting_torquespec!
   activerecord
   activerecord-jdbc-adapter
   application_transaction!
@@ -301,10 +288,8 @@ DEPENDENCIES
   timecop
   torquebox (= 3.0.0)
   torquebox-capistrano-support
-  torquebox-console
   torquebox-messaging (= 3.0.0)
   torquebox-server
-  torquespec
   unicorn
   uuid-support!
   uuidtools

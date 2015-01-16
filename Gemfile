@@ -18,7 +18,7 @@ gem 'uuidtools'
 gem 'activerecord-jdbc-adapter', platform: :jruby
 gem 'activerecord', require: 'active_record'
 gem 'jdbc-postgres', platform: :jruby
-gem 'uuid-support',                   git: 'git@github.groupondev.com:US/uuid-support-gem.git', require: 'uuid_support'
+gem 'uuid-support', git: 'git@github.groupondev.com:US/uuid-support-gem.git', require: 'uuid_support'
 gem 'foreigner'
 gem 'enumerize'
 
@@ -69,10 +69,4 @@ group :test do
   gem 'simplecov'
   gem 'external_service', :git => 'git@github.groupondev.com:finance-engineering/external_service.git'
   gem 'zip'
-
-  platforms :jruby do
-    gem 'torquebox-console'
-    gem 'torquespec', :require => false
-    gem 'accounting_torquespec', :git => 'git@github.groupondev.com:finance-engineering/accounting_torquespec.git'
-  end
 end

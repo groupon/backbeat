@@ -5,8 +5,6 @@ describe V2::Api, v2: true do
   include Rack::Test::Methods
   include RequestHelper
 
-  deploy BACKBEAT_APP
-
   def app
     FullRackApp
   end

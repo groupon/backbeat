@@ -3,8 +3,6 @@ require 'spec_helper'
 describe Api::Workflows do
   include Rack::Test::Methods
 
-  deploy BACKBEAT_APP
-
   def app
     FullRackApp
   end
@@ -53,46 +51,42 @@ describe Api::Workflows do
           activity.status.should_not == :complete
         end
 
-        remote_describe "inside jboss container" do
-          it "returns 200 if the next decision is valid and the activity succeeds" do
-            decision = FactoryGirl.create(:decision)
-            activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow, valid_next_decisions: ['test_decision'])
-            wf = activity.workflow
-            user = wf.user
+        it "returns 200 if the next decision is valid and the activity succeeds" do
+          decision = FactoryGirl.create(:decision)
+          activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow, valid_next_decisions: ['test_decision'])
+          wf = activity.workflow
+          user = wf.user
 
-            response = put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
-            response.status.should == 200
-            activity.reload
-            activity.result.should == 'i_was_successful'
-            activity.children.count.should == 0
+          response = put "/workflows/#{wf.id}/events/#{activity.id}/status/completed", {args: {next_decision: :test_decision, result: :i_was_successful }}
+          response.status.should == 200
+          activity.reload
+          activity.result.should == 'i_was_successful'
+          activity.children.count.should == 0
 
-            WorkflowServer::Workers::SidekiqJobWorker.drain
+          WorkflowServer::Workers::SidekiqJobWorker.drain
 
-            activity.reload
-            activity.children.count.should == 1
-            child = activity.children.first
-            child.name.should == :test_decision
-            activity.status.should == :complete
-          end
+          activity.reload
+          activity.children.count.should == 1
+          child = activity.children.first
+          child.name.should == :test_decision
+          activity.status.should == :complete
         end
 
-        remote_describe "inside jboss container" do
-          it "returns 200 if no next decision is present" do
-            start = Time.now
-            decision = FactoryGirl.create(:decision)
-            activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow)
-            wf = activity.workflow
-            user = wf.user
+        it "returns 200 if no next decision is present" do
+          start = Time.now
+          decision = FactoryGirl.create(:decision)
+          activity = FactoryGirl.create(:activity, status: :executing, parent: decision, workflow: decision.workflow)
+          wf = activity.workflow
+          user = wf.user
 
-            response = put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
-            response.status.should == 200
+          response = put "/workflows/#{wf.id}/events/#{activity.id}/status/completed"
+          response.status.should == 200
 
-            WorkflowServer::Workers::SidekiqJobWorker.drain
+          WorkflowServer::Workers::SidekiqJobWorker.drain
 
-            activity.reload
-            activity.status.should == :complete
+          activity.reload
+          activity.status.should == :complete
 
-          end
         end
       end
 
@@ -164,45 +158,43 @@ describe Api::Workflows do
       response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
 
-    remote_describe "inside jboss container" do
-      it "doesn't run the same sub-activity twice" do
-        activity = FactoryGirl.create(:activity, status: :executing)
-        wf = activity.workflow
-        user = wf.user
-        sub_activity = { :name => :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, client_data: {arguments: [1,2,3]}}
-        header "Content-Type", "application/json"
+    it "doesn't run the same sub-activity twice" do
+      activity = FactoryGirl.create(:activity, status: :executing)
+      wf = activity.workflow
+      user = wf.user
+      sub_activity = { :name => :make_initial_payment, actor_klass: "LineItem", actor_id: 100, retry: 100, retry_interval: 5, client_data: {arguments: [1,2,3]}}
+      header "Content-Type", "application/json"
 
-        response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
-        response.status.should == 200
-        response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
+      response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      response.status.should == 200
+      response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
 
-        response = put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
-        response.status.should == 200
+      response = put "/workflows/#{wf.id}/events/#{activity.reload.children.first.id}/status/completed"
+      response.status.should == 200
 
-        WorkflowServer::Workers::SidekiqJobWorker.drain
+      WorkflowServer::Workers::SidekiqJobWorker.drain
 
-        response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
-        response.status.should == 200
-        response.headers.should_not include("WAIT_FOR_SUB_ACTIVITY")
+      response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      response.status.should == 200
+      response.headers.should_not include("WAIT_FOR_SUB_ACTIVITY")
 
-        # change the name
-        sub_activity[:name] = :make_initial_payment_SOMETHING_ELSE
-        response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
-        response.status.should == 200
-        response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
-        sa = JSON.parse(response.body)
+      # change the name
+      sub_activity[:name] = :make_initial_payment_SOMETHING_ELSE
+      response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      response.status.should == 200
+      response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
+      sa = JSON.parse(response.body)
 
-        response = put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
-        response.status.should == 200
+      response = put "/workflows/#{wf.id}/events/#{sa['id']}/status/completed"
+      response.status.should == 200
 
-        WorkflowServer::Workers::SidekiqJobWorker.drain
+      WorkflowServer::Workers::SidekiqJobWorker.drain
 
-        # change the arguments this time
-        sub_activity[:client_data][:arguments] = [1,2,3,4]
-        response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
-        response.status.should == 200
-        response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
-      end
+      # change the arguments this time
+      sub_activity[:client_data][:arguments] = [1,2,3,4]
+      response = put "/workflows/#{wf.id}/events/#{activity.id}/run_sub_activity", {sub_activity: sub_activity}.to_json
+      response.status.should == 200
+      response["WAIT_FOR_SUB_ACTIVITY"].should == "true"
     end
 
     it "runs the sub-activity with camel-case input" do
