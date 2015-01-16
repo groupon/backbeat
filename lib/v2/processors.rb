@@ -1,7 +1,7 @@
 module V2
   class Processors
     def self.mark_children_ready(node)
-      Logger.info(mark_children_ready: {node:  node})
+      Logger.info(mark_children_ready: {node: node})
       node.children.each do |child_node|
         child_node.update_status(current_server_status: :ready, current_client_status: :ready)
       end
@@ -9,7 +9,7 @@ module V2
     end
 
     def self.children_ready(node)
-      Logger.info(node_ready: { node:  node})
+      Logger.info(node_ready: { node: node })
 
       if node.all_children_ready?
         Server::fire_event(Server::ScheduleNextNode,  node)
@@ -27,6 +27,7 @@ module V2
           if child_node.current_server_status.ready?
             child_node.update_status(current_server_status: :started)
             Server::fire_event(Server::StartNode,  child_node)
+            break if child_node.blocking?
           end
         end
       end

@@ -3,7 +3,7 @@ module RequestHelper
     {
       "activity" => {
         "id" => activity_node.id,
-        "mode" => "blocking",
+        "mode" => activity_node.mode,
         "name" => activity_node.name,
         "parentId" => activity_node.parent_id,
         "workflowId" => activity_node.workflow_id,

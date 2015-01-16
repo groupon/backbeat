@@ -48,6 +48,7 @@ class V2::Node < ActiveRecord::Base
       received: [:processing, :complete, :errored],
       processing: [:complete],
       errored: [:received],
+      complete: [:complete]
     },
     current_server_status: {
       pending: [:ready, :errored],
@@ -56,7 +57,8 @@ class V2::Node < ActiveRecord::Base
       sent_to_client: [:processing_children, :recieved_from_client, :errored],
       processing_children: [:complete],
       errored: [:retrying],
-      retrying: [:sent_to_client]
+      retrying: [:sent_to_client],
+      complete: [:complete]
     }
   }
 
@@ -75,11 +77,11 @@ class V2::Node < ActiveRecord::Base
   end
 
   def ready_children
-    children.where("current_server_status = 'ready'")
+    children.where(current_server_status: :ready)
   end
 
   def all_children_complete?
-    !not_complete_children.exists?
+    !not_complete_children.where("mode != 'fire_and_forget'").exists?
   end
 
   def current_parent
