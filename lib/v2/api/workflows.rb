@@ -29,7 +29,8 @@ module V2
                                      params.merge('legacy_type' => :signal,
                                                   'mode' => :blocking),
                                                   nil)
-          V2::Server.fire_event(V2::Server::MarkChildrenReady, node.current_parent)
+
+          V2::Server.fire_event(V2::Server::MarkSignalReady, node)
           node
         end
       end

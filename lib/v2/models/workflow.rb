@@ -19,7 +19,16 @@ class V2::Workflow < ActiveRecord::Base
   end
 
   def ready_children
-    children.where("current_server_status = 'ready'")
+    ready_decision = children.where(current_server_status: :ready).first
+    if other_decision_running?(ready_decision)
+      []
+    else
+      [ready_decision]
+    end
+  end
+
+  def other_decision_running?(decision)
+    children.where("seq < #{decision.seq} AND current_server_status <> 'complete'").exists?
   end
 
   def all_children_ready?

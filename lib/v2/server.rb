@@ -2,6 +2,7 @@ require "v2/workers/async_worker"
 
 module V2
   class Server
+    MarkSignalReady = :mark_signal_ready
     MarkChildrenReady = :mark_children_ready
     ChildrenReady = :children_ready
     ScheduleNextNode = :schedule_next_node
@@ -55,6 +56,8 @@ module V2
 
     def self.fire_event(event, node, args = {})
       case event
+        when MarkSignalReady
+          Processors.mark_signal_ready(node)
         when MarkChildrenReady
           Processors.mark_children_ready(node)
         when ChildrenReady

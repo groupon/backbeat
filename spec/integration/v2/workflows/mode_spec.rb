@@ -25,18 +25,18 @@ describe V2::Api, v2: true do
       expect(response.status).to eq(201)
       signal = JSON.parse(response.body)
 
-      node = v2_workflow.nodes.where(id: signal['id']).first
-      expect(node.attributes).to include(
+      signal_node = v2_workflow.nodes.where(id: signal['id']).first
+      expect(signal_node.attributes).to include(
         "current_client_status" => "ready",
         "current_server_status" => "ready"
       )
 
       decision_to_make = FactoryGirl.build(
         :client_decision,
-        id: node.id,
+        id: signal_node.id,
         name: :test,
-        parentId: node.parent_id,
-        userId: node.user_id,
+        parentId: signal_node.parent_id,
+        userId: signal_node.user_id,
         decider: v2_workflow.decider,
         subject: v2_workflow.subject
       )
@@ -46,14 +46,14 @@ describe V2::Api, v2: true do
         .to_return(:status => 200, :body => "", :headers => {})
       V2::Workers::AsyncWorker.drain
 
-      expect(node.reload.attributes).to include(
+      expect(signal_node.reload.attributes).to include(
         "current_client_status" => "received",
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "/events/#{node.id}/status/deciding"
+      response = put "/events/#{signal_node.id}/status/deciding"
 
-      expect(node.reload.attributes).to include(
+      expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
         "current_server_status" => "sent_to_client"
       )
@@ -65,22 +65,22 @@ describe V2::Api, v2: true do
 
       activities_to_post = { "args" => { "decisions" => [activity_1, activity_2, activity_3, activity_4] }}
 
-      response = post "events/#{node.id}/decisions", activities_to_post
+      response = post "events/#{signal_node.id}/decisions", activities_to_post
 
-      expect(node.reload.attributes).to include(
+      expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
         "current_server_status" => "sent_to_client"
       )
-      expect(node.reload.children.count).to eq(4)
+      expect(signal_node.reload.children.count).to eq(4)
 
-      response = put "/events/#{node.id}/status/deciding_complete"
+      response = put "/events/#{signal_node.id}/status/deciding_complete"
 
-      expect(node.reload.attributes).to include(
+      expect(signal_node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"
       )
 
-      activity_nodes = node.children
+      activity_nodes = signal_node.children
       expect(activity_nodes[0].reload.attributes).to include(
         "current_client_status" => "ready",
         "current_server_status" => "ready"
@@ -159,7 +159,7 @@ describe V2::Api, v2: true do
         "current_client_status" => "received",
         "current_server_status" => "sent_to_client"
       )
-      expect(node.reload.attributes).to include(
+      expect(signal_node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"
       )
@@ -170,7 +170,7 @@ describe V2::Api, v2: true do
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"
       )
-      expect(node.reload.attributes).to include(
+      expect(signal_node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"
       )
@@ -181,7 +181,7 @@ describe V2::Api, v2: true do
         "current_client_status" => "complete",
         "current_server_status" => "complete"
       )
-      expect(node.reload.attributes).to include(
+      expect(signal_node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "complete"
       )
@@ -203,14 +203,13 @@ describe V2::Api, v2: true do
         "current_client_status" => "complete",
         "current_server_status" => "complete"
       )
-      expect(node.reload.attributes).to include(
+      expect(signal_node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "complete"
       )
     end
 
-    xit "completes a workflow with two signals and with blocking and non_blocking nodes" do
-      # Sending First Signal
+    it "completes a workflow with two signals" do
       response = post "/workflows/#{v2_workflow.id}/signal/test", options: {
         client_data: { data: '123' },
           client_metadata: { metadata: '456'}
@@ -218,13 +217,12 @@ describe V2::Api, v2: true do
       expect(response.status).to eq(201)
       signal = JSON.parse(response.body)
 
-      node = v2_workflow.nodes.where(id: signal['id']).first
-      expect(node.attributes).to include(
+      signal_node = v2_workflow.nodes.where(id: signal['id']).first
+      expect(signal_node.attributes).to include(
         "current_client_status" => "ready",
         "current_server_status" => "ready"
       )
 
-      # Sending Second Signal
       response_2 = post "/workflows/#{v2_workflow.id}/signal/test_2", options: {
         client_data: { data: '124' },
           client_metadata: { metadata: '457'}
@@ -233,19 +231,19 @@ describe V2::Api, v2: true do
       expect(response_2.status).to eq(201)
 
       signal_2 = JSON.parse(response_2.body)
-      node_2 = v2_workflow.nodes.where(id: signal_2['id']).first
+      signal_node_2 = v2_workflow.nodes.where(id: signal_2['id']).first
 
-      expect(node_2.attributes).to include(
-        "current_client_status" => "pending",
-        "current_server_status" => "pending"
+      expect(signal_node_2.attributes).to include(
+        "current_client_status" => "ready",
+        "current_server_status" => "ready"
       )
 
       decision_to_make = FactoryGirl.build(
         :client_decision,
-        id: node.id,
+        id: signal_node.id,
         name: :test,
-        parentId: node.parent_id,
-        userId: node.user_id,
+        parentId: signal_node.parent_id,
+        userId: signal_node.user_id,
         decider: v2_workflow.decider,
         subject: v2_workflow.subject
       )
@@ -253,39 +251,39 @@ describe V2::Api, v2: true do
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
         .with(:body => {decision: decision_to_make}.to_json)
         .to_return(:status => 200, :body => "", :headers => {})
+
       V2::Workers::AsyncWorker.drain
 
-      expect(node.reload.attributes).to include(
+
+      expect(signal_node.reload.attributes).to include(
         "current_client_status" => "received",
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "/events/#{node.id}/status/deciding"
-      expect(node.reload.attributes).to include(
+      response = put "/events/#{signal_node.id}/status/deciding"
+      expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
         "current_server_status" => "sent_to_client"
       )
 
-      activity_1= FactoryGirl.build(:client_activity_post_to_decision)
+      activity = FactoryGirl.build(:client_activity_post_to_decision)
+      activities_to_post = { "args" => { "decisions" => [activity] }}
+      response = post "events/#{signal_node.id}/decisions", activities_to_post
 
-      activities_to_post = { "args" => { "decisions" => [activity_1] }}
-      # posting list of activities
-      response = post "events/#{node.id}/decisions", activities_to_post
-
-      expect(node.reload.attributes).to include(
+      expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
         "current_server_status" => "sent_to_client"
       )
-      expect(node.reload.children.count).to eq(1)
+      expect(signal_node.reload.children.count).to eq(1)
 
-      response = put "/events/#{node.id}/status/deciding_complete"
-      expect(node.reload.attributes).to include(
+      response = put "/events/#{signal_node.id}/status/deciding_complete"
+      expect(signal_node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"
       )
 
-      activity_node = node.children.first
-      expect(node.children[0].reload.attributes).to include(
+      activity_node = signal_node.children.first
+      expect(signal_node.children[0].reload.attributes).to include(
         "current_client_status" => "ready",
         "current_server_status" => "ready"
       )
@@ -308,10 +306,10 @@ describe V2::Api, v2: true do
 
       decision_to_make_2 = FactoryGirl.build(
         :client_decision,
-        id: node_2.id,
+        id: signal_node_2.id,
         name: :test_2,
-        parentId: node_2.parent_id,
-        userId: node_2.user_id,
+        parentId: signal_node_2.parent_id,
+        userId: signal_node_2.user_id,
         decider: v2_workflow.decider,
         subject: v2_workflow.subject
       )
@@ -325,38 +323,38 @@ describe V2::Api, v2: true do
         "current_client_status" => "complete",
         "current_server_status" => "complete"
       )
-      expect(node.reload.attributes).to include(
+      expect(signal_node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "complete"
       )
-      expect(node_2.reload.attributes).to include(
+      expect(signal_node_2.reload.attributes).to include(
         "current_client_status" => "received",
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "/events/#{node_2.id}/status/deciding"
-      expect(node_2.reload.attributes).to include(
+      response = put "/events/#{signal_node_2.id}/status/deciding"
+      expect(signal_node_2.reload.attributes).to include(
         "current_client_status" => "processing",
         "current_server_status" => "sent_to_client"
       )
 
       activity = FactoryGirl.build(:client_activity_post_to_decision)
       activity_to_post_signal_2 = { "args" => { "decisions" => [activity] }}
-      response = post "events/#{node_2.id}/decisions", activity_to_post_signal_2
+      response = post "events/#{signal_node_2.id}/decisions", activity_to_post_signal_2
 
-      expect(node_2.reload.attributes).to include(
+      expect(signal_node_2.reload.attributes).to include(
         "current_client_status" => "processing",
         "current_server_status" => "sent_to_client"
       )
-      expect(node_2.reload.children.count).to eq(1)
+      expect(signal_node_2.reload.children.count).to eq(1)
 
-      response = put "/events/#{node_2.id}/status/deciding_complete"
-      expect(node_2.reload.attributes).to include(
+      response = put "/events/#{signal_node_2.id}/status/deciding_complete"
+      expect(signal_node_2.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"
       )
 
-      activity_node_signal_2 = node_2.children.first
+      activity_node_signal_2 = signal_node_2.children.first
       expect(activity_node_signal_2.reload.attributes).to include(
         "current_client_status" => "ready",
         "current_server_status" => "ready"
@@ -380,7 +378,7 @@ describe V2::Api, v2: true do
         "current_client_status" => "complete",
         "current_server_status" => "complete"
       )
-      expect(node_2.reload.attributes).to include(
+      expect(signal_node_2.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "complete"
       )

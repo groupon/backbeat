@@ -1,34 +1,41 @@
 module V2
   class Processors
+
+    # we can have this method or perform a no op when moving to ready if already past ready
+    def self.mark_signal_ready(node)
+      Logger.info(mark_signal_ready: {node: node})
+
+      node.update_status(current_server_status: :ready, current_client_status: :ready)
+      Server::fire_event(Server::ScheduleNextNode, node.workflow)
+    end
+
     def self.mark_children_ready(node)
       Logger.info(mark_children_ready: {node: node})
       node.children.each do |child_node|
         child_node.update_status(current_server_status: :ready, current_client_status: :ready)
       end
-      Server::fire_event(Server::ChildrenReady,  node)
+      Server::fire_event(Server::ChildrenReady, node)
     end
 
     def self.children_ready(node)
       Logger.info(node_ready: { node: node })
 
       if node.all_children_ready?
-        Server::fire_event(Server::ScheduleNextNode,  node)
+        Server::fire_event(Server::ScheduleNextNode, node)
       end
     end
 
-    def self.schedule_next_node( node)
-      Logger.info(schedule_next_node: {node:  node})
+    def self.schedule_next_node(node)
+      Logger.info(schedule_next_node: {node: node})
       if node.all_children_complete?
         if !node.is_a?(Workflow)
-          Server::fire_event(Server::NodeComplete,  node)
+          Server::fire_event(Server::NodeComplete, node)
         end
       else
-        node.not_complete_children.each do |child_node|
-          if child_node.current_server_status.ready?
-            child_node.update_status(current_server_status: :started)
-            Server::fire_event(Server::StartNode,  child_node)
-            break if child_node.blocking?
-          end
+        node.ready_children.each do |child_node|
+          child_node.update_status(current_server_status: :started)
+          Server::fire_event(Server::StartNode, child_node)
+          break if child_node.blocking?
         end
       end
     end
@@ -37,7 +44,7 @@ module V2
     ACTIVITY_WHITE_LIST = [:id, :mode, :name, :name, :parent_id, :workflow_id, :user_id, :client_data]
 
     def self.start_node(node)
-      Logger.info(start_node: { node:  node})
+      Logger.info(start_node: { node: node})
       return if node.current_server_status.ready?
 
       if node.legacy_type == 'signal'
@@ -56,7 +63,7 @@ module V2
     end
 
     def self.client_complete(node)
-      Logger.info(client_complete: {node:  node})
+      Logger.info(client_complete: {node: node})
       node.update_status(current_client_status: :complete, current_server_status: :processing_children)
       Server.fire_event(Server::MarkChildrenReady, node)
     end
