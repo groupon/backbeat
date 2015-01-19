@@ -76,7 +76,7 @@ class V2::Node < ActiveRecord::Base
     children.where("current_server_status != 'complete'")
   end
 
-  def ready_children
+  def children_ready_to_start
     children.where(current_server_status: :ready)
   end
 

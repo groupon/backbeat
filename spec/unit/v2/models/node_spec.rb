@@ -45,7 +45,7 @@ describe V2::Node, v2: true do
     end
   end
 
-  context "ready_children" do
+  context "children_ready_to_start" do
     it "returns all child nodes marked as ready" do
       child_node = FactoryGirl.create(
         :v2_node,
@@ -54,8 +54,8 @@ describe V2::Node, v2: true do
         parent: node,
         current_server_status: :ready
       )
-      expect(node.ready_children.count).to eq(1)
-      expect(node.ready_children.first).to eq(child_node)
+      expect(node.children_ready_to_start.count).to eq(1)
+      expect(node.children_ready_to_start.first).to eq(child_node)
     end
   end
 

@@ -18,7 +18,7 @@ class V2::Workflow < ActiveRecord::Base
     nodes.where(workflow_id: id, parent_id: nil)
   end
 
-  def ready_children
+  def children_ready_to_start
     ready_decision = children.where(current_server_status: :ready).first
     if other_decision_running?(ready_decision)
       []

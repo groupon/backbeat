@@ -32,7 +32,7 @@ module V2
           Server::fire_event(Server::NodeComplete, node)
         end
       else
-        node.ready_children.each do |child_node|
+        node.children_ready_to_start.each do |child_node|
           child_node.update_status(current_server_status: :started)
           Server::fire_event(Server::StartNode, child_node)
           break if child_node.blocking?
