@@ -46,11 +46,7 @@ module Api
       }
       post "/" do
         params[:user] = current_user
-        wf = if Backbeat.v2?
-            V2::Server.create_workflow(params, current_user)
-          else
-            WorkflowServer.find_or_create_workflow(params)
-          end
+        wf = WorkflowServer.find_or_create_workflow(params)
         if wf.valid?
           wf
         else
@@ -248,19 +244,6 @@ module Api
         optional :options, type: Hash
       end
       post "/:id/signal/:name" do
-        if Backbeat.v2?
-          node = nil
-          workflow = nil
-          workflow = V2::Workflow.find(params[:id])
-          node = V2::Server.add_node(current_user,
-                                     workflow,
-                                     params.merge('legacy_type' => :signal,
-                                                  'mode' => :blocking),
-                                                  nil)
-          V2::Server.fire_event(V2::Server::MarkChildrenReady, node.current_parent)
-
-          return node
-        end
         wf = find_workflow(params[:id])
         options = params[:options] || {}
         client_data = options[:client_data] || {}

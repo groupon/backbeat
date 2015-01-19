@@ -136,23 +136,8 @@ module Api
       post "/:id/decisions" do
         raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
         raise WorkflowServer::InvalidParameters, "args must include a 'decisions' parameter" if params[:args][:decisions].nil? || params[:args][:decisions].empty?
-        if Backbeat.v2?
-          node = V2::Node.find(params[:id])
-          params[:args][:decisions].each do |dec|
-            node_to_add = dec.dup
-            ap node_to_add
-            node_to_add['options'] = {}
-            node_to_add['options']['meta_data'] = node_to_add["meta_data"]
-            node_to_add['options']['client_data'] = node_to_add["client_data"]
-            V2::Server.add_node(current_user,
-                                node.workflow,
-                                node_to_add.merge('legacy_type' => node_to_add['type']),
-                                node)
-          end
-        else
-          event = find_event(params)
-          event.add_decisions(params[:args][:decisions])
-        end
+        event = find_event(params)
+        event.add_decisions(params[:args][:decisions])
         {success: true}
       end
 
@@ -166,20 +151,10 @@ module Api
       }
       put "/:id/status/:new_status" do
         raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
-        if Backbeat.v2?
-          status_map = {deciding_complete: V2::Server::ClientComplete,
-                        deciding:  V2::Server::ClientProcessing,
-                        completed: V2::Server::ClientComplete,
-                        errored:  V2::Server::ClientError,
-                        resolved:  V2::Server::ClientResolved}
-          node = V2::Node.find(params[:id])
-          V2::Server.fire_event(status_map[params[:new_status].to_sym], node)
-        else
-          event = find_event(params)
-          args = params[:args] || {}
-          event.change_status(params[:new_status], args.with_indifferent_access)
-          {success: true}
-        end
+        event = find_event(params)
+        args = params[:args] || {}
+        event.change_status(params[:new_status], args.with_indifferent_access)
+        {success: true}
       end
 
       desc "Run a nested activity from inside an activity.", {

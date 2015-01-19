@@ -13,6 +13,7 @@ require 'api/middleware/camel_json_formatter'
 require 'api/middleware/authenticate'
 require 'api/middleware/camel_case'
 require 'api/middleware/clear_session'
+require 'v2'
 
 module Api
   class App < Grape::API
@@ -33,12 +34,13 @@ module Api
       Rack::Response.new({error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
     end
 
-    rescue_from WorkflowServer::EventNotFound do |e|
+    rescue_from WorkflowServer::EventNotFound, ActiveRecord::RecordNotFound do |e|
       WorkflowServer::BaseLogger.info(e)
       Rack::Response.new({error: e.message }.to_json, 404, { "Content-type" => "application/json" }).finish
     end
 
     RESCUED_ERRORS = [
+      V2::InvalidEventStatusChange,
       WorkflowServer::EventComplete,
       WorkflowServer::InvalidParameters,
       WorkflowServer::InvalidEventStatus,
@@ -53,8 +55,14 @@ module Api
       Rack::Response.new({error: e.message }.to_json, 400, { "Content-type" => "application/json" }).finish
     end
 
-    mount Api::Workflows
-    mount Api::Events
-    mount Api::Debug
+    if Backbeat.v2?
+      mount V2::Api::Workflows
+      mount V2::Api::Events
+      mount V2::Api::WorkflowEvents => 'workflows/:workflow_id'
+    else
+      mount Api::Workflows
+      mount Api::Events
+      mount Api::Debug
+    end
   end
 end

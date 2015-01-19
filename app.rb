@@ -15,36 +15,46 @@ require 'sidekiq'
 require 'kiqstand'
 require 'application_transaction'
 
-require 'api'
-require 'v2'
-require 'workflow_server'
-
-I18n.enforce_available_locales = false
-
 module Backbeat
   def self.v2?
-    !!ENV['v2']
+    !!ENV['V2']
   end
 end
 
+require 'api'
+require 'workflow_server'
+require 'v2'
+
 I18n.enforce_available_locales = false
+
 GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNKNOWN'
+
+if Backbeat.v2?
+  ActiveRecord::Base.include_root_in_json = false
+  ActiveRecord::Base.establish_connection(YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")["development"])
+else
+  mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, 'config', 'mongoid.yml'))
+  Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
+
+  ApplicationTransaction.configure do |config|
+    config.backend = :mongoid
+    config.workers = [:sidekiq]
+    config.logger = WorkflowServer::TransactionLogger
+  end
+end
 
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
 redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment.to_s]
 
-if Backbeat.v2?
-  ActiveRecord::Base.include_root_in_json = false
-  ActiveRecord::Base.establish_connection YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")["development"]
-end
-
 Sidekiq.configure_client do |config|
-  # We set the namespace to resque so that we can use all of the resque monitoring tools to monitor sidekiq too
-  config.redis = { namespace: 'fed_sidekiq', size: 100, url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
+  # We set the namespace to resque so that we can use all of the resque
+  # monitoring tools to monitor sidekiq too
+  config.redis = {
+    namespace: 'fed_sidekiq',
+    size: 100,
+    url: "redis://#{redis_config['host']}:#{redis_config['port']}"
+  }
 end
-
-mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, 'config', 'mongoid.yml'))
-Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 
 # set default priority to 2, since this is what we do in the delayed job worker.
 # We have a mix of priorities in mongo right now with http and sidekiq workers
@@ -54,12 +64,6 @@ Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
 Delayed::Worker.default_priority = 2
 
 puts "********** environment is #{WorkflowServer::Config.environment}"
-
-ApplicationTransaction.configure do |config|
-  config.backend = :mongoid
-  config.workers = [:sidekiq]
-  config.logger = WorkflowServer::TransactionLogger
-end
 
 ############################################## MONKEY-PATCH ################################################
 ## FIX JRUBY TIME MARSHALLING - SEE https://github.com/rails/rails/issues/10900 ############################

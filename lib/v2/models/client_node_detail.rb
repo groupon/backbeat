@@ -5,5 +5,4 @@ class V2::ClientNodeDetail < ActiveRecord::Base
   serialize :metadata, JSON
   serialize :data, JSON
   serialize :result, JSON
-
 end

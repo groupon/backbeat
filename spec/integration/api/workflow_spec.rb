@@ -3,8 +3,6 @@ require 'spec_helper'
 describe Api::Workflows do
   include Rack::Test::Methods
 
-  deploy BACKBEAT_APP
-
   def app
     FullRackApp
   end
@@ -121,25 +119,23 @@ describe Api::Workflows do
       json_response.should == {"error" => "Workflow with id(1000) not found"}
     end
 
-    remote_describe "inside jboss container" do
-      it "returns 201 and the signal json if workflow exists" do
-        wf = FactoryGirl.create(:workflow, user: user)
+    it "returns 201 and the signal json if workflow exists" do
+      wf = FactoryGirl.create(:workflow, user: user)
 
-        response = post "/workflows/#{wf.id}/signal/test", options: { client_data: {data: '123'}, client_metadata: {metadata: '456'} }
+      response = post "/workflows/#{wf.id}/signal/test", options: { client_data: {data: '123'}, client_metadata: {metadata: '456'} }
 
-        WorkflowServer::Workers::SidekiqJobWorker.drain
+      WorkflowServer::Workers::SidekiqJobWorker.drain
 
-        response.status.should == 201
-        signal = JSON.parse(response.body)
+      response.status.should == 201
+      signal = JSON.parse(response.body)
 
-        wf.reload
-        wf.signals.first.id.to_s.should == signal['id']
-        wf.signals.first.client_data.should == {'data' => '123'}
-        wf.signals.first.client_metadata.should == {'metadata' => '456'}
-        decision = wf.signals.first.children.first
-        decision.name.should == :test
-        decision.status.should == :sent_to_client
-      end
+      wf.reload
+      wf.signals.first.id.to_s.should == signal['id']
+      wf.signals.first.client_data.should == {'data' => '123'}
+      wf.signals.first.client_metadata.should == {'metadata' => '456'}
+      decision = wf.signals.first.children.first
+      decision.name.should == :test
+      decision.status.should == :sent_to_client
     end
 
     it "returns 400 if the workflow is closed for events" do

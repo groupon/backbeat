@@ -7,5 +7,4 @@ class V2::User < ActiveRecord::Base
   validates :decision_endpoint, presence: true
   validates :activity_endpoint, presence: true
   validates :notification_endpoint, presence: true
-
 end

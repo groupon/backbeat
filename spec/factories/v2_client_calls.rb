@@ -25,8 +25,8 @@ FactoryGirl.define do
      always false
      retry_interval 6.hours
      time_out 3.hours
-    valid_next_decisions [:some, :thing]
-    orphan_decision false
-    initialize_with { attributes }
+     valid_next_decisions [:some, :thing]
+     orphan_decision false
+     initialize_with { attributes }
   end
 end
