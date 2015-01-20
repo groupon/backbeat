@@ -10,39 +10,27 @@ class InitialMigrations < ActiveRecord::Migration
     end
     add_index(:users, :id, unique: true)
 
-    create_table :workflows, id: false do |t|
-      t.uuid :id, unique: true, null: false
-      t.string :workflow_type, null: false
-      t.text :subject, null: false
-      t.string :decider, null: false
-      t.string :initial_signal, null: false
-      t.uuid :user_id, null: false
-      t.timestamps
-    end
-    add_index(:workflows, :id, unique: true)
-    add_foreign_key(:workflows, :users)
-
     create_table :nodes, id: false do |t|
       t.uuid :id, unique: true, null: false
       t.string :mode, null: false
       t.string :current_server_status, null: false
       t.string :current_client_status, null: false
       t.string :name, null: false
-      t.datetime :fires_at, null: false
+      t.string :decider
+      t.text :subject
+      t.datetime :fires_at
       t.uuid :parent_id
-      t.uuid :workflow_id, null: false
+      t.uuid :workflow_id
       t.uuid :user_id, null: false
       t.timestamps
     end
     add_index(:nodes, :id, unique: true)
-    add_foreign_key(:nodes, :workflows)
+    add_index(:nodes, :workflow_id)
     add_foreign_key(:nodes, :users)
     add_foreign_key(:nodes, :nodes, column: 'parent_id')
 
     execute "alter table nodes add column seq serial not null"
     add_index(:nodes, :seq, unique: true)
-
-
 
     create_table :client_node_details, id: false do |t|
       t.uuid :id, unique: true, null: false
@@ -53,7 +41,6 @@ class InitialMigrations < ActiveRecord::Migration
     end
     add_index(:client_node_details, :node_id, unique: true)
     add_foreign_key(:client_node_details, :nodes)
-
 
     create_table :status_changes, id: false do |t|
       t.uuid :id, unique: true, null: false
@@ -67,8 +54,6 @@ class InitialMigrations < ActiveRecord::Migration
     add_index(:status_changes, :node_id, unique: false)
     add_foreign_key(:status_changes, :nodes)
 
-
-
     create_table :node_details, id: false do |t|
       t.uuid :id, unique: true, null: false
       t.uuid :node_id, null: false
@@ -79,6 +64,5 @@ class InitialMigrations < ActiveRecord::Migration
     end
     add_index(:node_details, :node_id, unique: true)
     add_foreign_key(:node_details, :nodes)
-
   end
 end

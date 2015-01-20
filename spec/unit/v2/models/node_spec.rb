@@ -2,9 +2,19 @@ require "spec_helper"
 
 describe V2::Node, v2: true do
 
-  let(:v2_user) { FactoryGirl.create(:v2_user) }
-  let(:v2_workflow) { FactoryGirl.create(:v2_workflow_with_node, user: v2_user) }
-  let(:node) { v2_workflow.nodes.first }
+  let(:user) { FactoryGirl.create(:v2_user) }
+  let(:workflow) { FactoryGirl.create(:v2_workflow_with_node, user: user) }
+  let(:node) { workflow.children.first }
+
+  context "workflow_id" do
+    it "is set to the node id if there is not a parent node" do
+      expect(workflow.workflow_id).to eq(workflow.id)
+    end
+
+    it "is set to the parent workflow id if there is a parent node" do
+      expect(node.workflow_id).to eq(workflow.workflow_id)
+    end
+  end
 
   context "update_status" do
     it "creates a status change when the client status has changed" do
@@ -31,31 +41,6 @@ describe V2::Node, v2: true do
       node.mark_retried!
 
       expect(node.reload.retries_remaining).to eq(3)
-    end
-  end
-
-  context "started?" do
-    it "returns true if nodes server status is started" do
-      node.current_server_status = :started
-      expect(node.started?).to eq(true)
-    end
-
-    it "returns false if server status not started" do
-      expect(node.started?).to eq(false)
-    end
-  end
-
-  context "children_ready_to_start" do
-    it "returns all child nodes marked as ready" do
-      child_node = FactoryGirl.create(
-        :v2_node,
-        workflow: v2_workflow,
-        user: v2_user,
-        parent: node,
-        current_server_status: :ready
-      )
-      expect(node.children_ready_to_start.count).to eq(1)
-      expect(node.children_ready_to_start.first).to eq(child_node)
     end
   end
 

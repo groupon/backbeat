@@ -18,29 +18,35 @@ module V2
           end
 
           post "/:id/decisions" do
-            raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
-            raise WorkflowServer::InvalidParameters, "args must include a 'decisions' parameter" if params[:args][:decisions].nil? || params[:args][:decisions].empty?
+            if params[:args] && !params[:args].is_a?(Hash)
+              raise WorkflowServer::InvalidParameters, "args parameter is invalid"
+            end
+            if params[:args][:decisions].nil? || params[:args][:decisions].empty?
+              raise WorkflowServer::InvalidParameters, "args must include a 'decisions' parameter"
+            end
             node = V2::Node.find(params[:id])
             params[:args][:decisions].each do |dec|
               node_to_add = dec.dup
               node_to_add['options'] = {}
               node_to_add['options']['meta_data'] = node_to_add["meta_data"]
               node_to_add['options']['client_data'] = node_to_add["client_data"]
-              V2::Server.add_node(current_user,
-                                  node.workflow,
-                                  node_to_add.merge('legacy_type' => node_to_add['type']),
-                                  node)
+              node_to_add[:legacy_type] = node_to_add['type']
+              V2::Server.add_node(current_user, node, node_to_add)
             end
             {success: true}
           end
 
           put "/:id/status/:new_status" do
-            raise WorkflowServer::InvalidParameters, "args parameter is invalid" if params[:args] && !params[:args].is_a?(Hash)
-            status_map = {deciding_complete: V2::Server::ClientComplete,
-                          deciding: V2::Server::ClientProcessing,
-                          completed: V2::Server::ClientComplete,
-                          errored: V2::Server::ClientError,
-                          resolved: V2::Server::ClientResolved}
+            if params[:args] && !params[:args].is_a?(Hash)
+              raise WorkflowServer::InvalidParameters, "args parameter is invalid"
+            end
+            status_map = {
+              deciding_complete: V2::Server::ClientComplete,
+              deciding: V2::Server::ClientProcessing,
+              completed: V2::Server::ClientComplete,
+              errored: V2::Server::ClientError,
+              resolved: V2::Server::ClientResolved
+            }
             node = V2::Node.find(params[:id])
             V2::Server.fire_event(status_map[params[:new_status].to_sym], node)
           end

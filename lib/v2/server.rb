@@ -2,7 +2,6 @@ require "v2/workers/async_worker"
 
 module V2
   class Server
-    MarkSignalReady = :mark_signal_ready
     MarkChildrenReady = :mark_children_ready
     ChildrenReady = :children_ready
     ScheduleNextNode = :schedule_next_node
@@ -17,29 +16,33 @@ module V2
     RetryNodeWithBackoff = :retry_node_with_backoff
 
     def self.create_workflow(params, user)
-      value = {
-        workflow_type: params['workflow_type'],
+      subject = params['subject'].to_json
+
+      Node.where(subject: subject).first || Node.create!(
+        name: params['workflow_type'],
         subject: params['subject'],
         decider: params['decider'],
-        initial_signal: params['sinitial_signal'] || :start,
+        fires_at: Time.now,
+        mode: :non_blocking,
+        current_server_status: :ready,
+        current_client_status: :ready,
         user_id: user.id
-      }
-      subject = params['subject'].to_json
-      Workflow.where(subject: subject).first || Workflow.create!(value)
+      )
     end
 
-    def self.add_node(user, workflow, params, parent_node)
-      value = {
-        mode: params['mode'].to_sym,
-        current_server_status: :pending,
-        current_client_status: :pending,
+    def self.add_node(user, parent_node, params)
+      node = Node.create!(
+        mode: params[:mode].to_sym,
+        current_server_status: params[:current_server_status] || :pending,
+        current_client_status: params[:current_client_status] || :pending,
         name: params['name'],
-        fires_at: params['fires_at'] || Time.now - 1.second, #not a huge fan of this but would like it to fire imediatly
+        fires_at: params['fires_at'] || Time.now - 1.second,
         parent: parent_node,
-        workflow_id: workflow.id,
+        workflow_id: parent_node.workflow_id,
+        subject: parent_node.subject,
+        decider: parent_node.decider,
         user_id: user.id
-      }
-      node = Node.create!(value)
+      )
       ClientNodeDetail.create!(
         node: node,
         metadata: params[:options][:client_metadata] || {},
@@ -47,7 +50,7 @@ module V2
       )
       NodeDetail.create!(
         node: node,
-        legacy_type: params['legacy_type'],
+        legacy_type: params[:legacy_type],
         retry_interval: params['retry_interval'],
         retries_remaining: params['retry']
       )
@@ -56,8 +59,6 @@ module V2
 
     def self.fire_event(event, node, args = {})
       case event
-        when MarkSignalReady
-          Processors.mark_signal_ready(node)
         when MarkChildrenReady
           Processors.mark_children_ready(node)
         when ChildrenReady

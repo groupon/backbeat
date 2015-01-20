@@ -7,7 +7,6 @@ class V2::Node < ActiveRecord::Base
 
   default_scope { order("seq asc") }
 
-  belongs_to :workflow
   belongs_to :user
   has_many :children, class_name: "V2::Node", foreign_key: "parent_id"
   belongs_to :parent, inverse_of: :children, class_name: "V2::Node", foreign_key: "parent_id"
@@ -20,10 +19,12 @@ class V2::Node < ActiveRecord::Base
   validates :current_client_status, presence: true
   validates :name, presence: true
   validates :fires_at, presence: true
-  validates :workflow_id, presence: true
   validates :user_id, presence: true
 
+  serialize :subject, JSON
+
   enumerize :mode, in: [:blocking, :non_blocking, :fire_and_forget]
+
   enumerize :current_server_status, in: [:pending,
                                          :ready,
                                          :started,
@@ -57,13 +58,18 @@ class V2::Node < ActiveRecord::Base
       sent_to_client: [:processing_children, :errored],
       processing_children: [:complete],
       errored: [:retrying],
-      retrying: [:sent_to_client],
+      retrying: [:started, :sent_to_client],
       complete: [:complete]
     }
   }
 
   before_create do
     self.seq ||= ActiveRecord::Base.connection.execute("SELECT nextval('nodes_seq_seq')").first["nextval"]
+  end
+
+  after_create do
+    self.workflow_id ||= parent ? parent.workflow_id : id
+    save
   end
 
   delegate :retries_remaining, :legacy_type, to: :node_detail
@@ -76,24 +82,12 @@ class V2::Node < ActiveRecord::Base
     children.where("current_server_status != 'complete'")
   end
 
-  def children_ready_to_start
-    children.where(current_server_status: :ready)
-  end
-
   def all_children_complete?
     !not_complete_children.where("mode != 'fire_and_forget'").exists?
   end
 
-  def current_parent
-    parent || workflow
-  end
-
   def blocking?
     mode.to_sym == :blocking
-  end
-
-  def started?
-    current_server_status.to_sym == :started
   end
 
   def validate(record)

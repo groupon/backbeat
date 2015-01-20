@@ -25,7 +25,7 @@ describe V2::Api, v2: true do
       expect(response.status).to eq(201)
       signal = JSON.parse(response.body)
 
-      signal_node = v2_workflow.nodes.where(id: signal['id']).first
+      signal_node = v2_workflow.children.where(id: signal['id']).first
       expect(signal_node.attributes).to include(
         "current_client_status" => "ready",
         "current_server_status" => "ready"
@@ -34,16 +34,17 @@ describe V2::Api, v2: true do
       decision_to_make = FactoryGirl.build(
         :client_decision,
         id: signal_node.id,
-        name: :test,
+        name: 'test',
         parentId: signal_node.parent_id,
         userId: signal_node.user_id,
-        decider: v2_workflow.decider,
-        subject: v2_workflow.subject
+        decider: signal_node.decider,
+        subject: signal_node.subject
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
-        .with(:body => {decision: decision_to_make}.to_json)
+        .with(:body => {decision: decision_to_make})
         .to_return(:status => 200, :body => "", :headers => {})
+
       V2::Workers::AsyncWorker.drain
 
       expect(signal_node.reload.attributes).to include(
@@ -100,7 +101,7 @@ describe V2::Api, v2: true do
 
       activity_nodes[0..1].each do |activity_node|
         WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-          .with(:body => activity_hash(activity_node).to_json)
+          .with(:body => activity_hash(activity_node))
           .to_return(:status => 200, :body => "", :headers => {})
       end
 
@@ -134,7 +135,7 @@ describe V2::Api, v2: true do
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"
       )
-      
+
       activity_nodes[2..3].each do |activity_node|
         WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
           .with(:body => activity_hash(activity_node).to_json)
@@ -212,12 +213,12 @@ describe V2::Api, v2: true do
     it "completes a workflow with two signals" do
       response = post "/workflows/#{v2_workflow.id}/signal/test", options: {
         client_data: { data: '123' },
-          client_metadata: { metadata: '456'}
+        client_metadata: { metadata: '456'}
       }
       expect(response.status).to eq(201)
       signal = JSON.parse(response.body)
 
-      signal_node = v2_workflow.nodes.where(id: signal['id']).first
+      signal_node = v2_workflow.children.where(id: signal['id']).first
       expect(signal_node.attributes).to include(
         "current_client_status" => "ready",
         "current_server_status" => "ready"
@@ -225,13 +226,13 @@ describe V2::Api, v2: true do
 
       response_2 = post "/workflows/#{v2_workflow.id}/signal/test_2", options: {
         client_data: { data: '124' },
-          client_metadata: { metadata: '457'}
+        client_metadata: { metadata: '457'}
       }
 
       expect(response_2.status).to eq(201)
 
       signal_2 = JSON.parse(response_2.body)
-      signal_node_2 = v2_workflow.nodes.where(id: signal_2['id']).first
+      signal_node_2 = v2_workflow.children.where(id: signal_2['id']).first
 
       expect(signal_node_2.attributes).to include(
         "current_client_status" => "ready",
@@ -241,19 +242,17 @@ describe V2::Api, v2: true do
       decision_to_make = FactoryGirl.build(
         :client_decision,
         id: signal_node.id,
-        name: :test,
+        name: 'test',
         parentId: signal_node.parent_id,
         userId: signal_node.user_id,
-        decider: v2_workflow.decider,
-        subject: v2_workflow.subject
+        decider: signal_node.decider,
+        subject: signal_node.subject
       )
-
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
-        .with(:body => {decision: decision_to_make}.to_json)
+        .with(:body => {decision: decision_to_make})
         .to_return(:status => 200, :body => "", :headers => {})
 
       V2::Workers::AsyncWorker.drain
-
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "received",
@@ -289,8 +288,9 @@ describe V2::Api, v2: true do
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-        .with(:body => activity_hash(activity_node).to_json)
+        .with(:body => activity_hash(activity_node))
         .to_return(:status => 200, :body => "", :headers => {})
+
       V2::Workers::AsyncWorker.drain
 
       expect(activity_node.reload.attributes).to include(
@@ -307,14 +307,14 @@ describe V2::Api, v2: true do
       decision_to_make_2 = FactoryGirl.build(
         :client_decision,
         id: signal_node_2.id,
-        name: :test_2,
+        name: 'test_2',
         parentId: signal_node_2.parent_id,
         userId: signal_node_2.user_id,
-        decider: v2_workflow.decider,
-        subject: v2_workflow.subject
+        decider: signal_node_2.decider,
+        subject: signal_node_2.subject
       )
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
-        .with(:body => {decision: decision_to_make_2}.to_json)
+        .with(:body => {decision: decision_to_make_2})
         .to_return(:status => 200, :body => "", :headers => {})
 
       V2::Workers::AsyncWorker.drain
@@ -361,7 +361,7 @@ describe V2::Api, v2: true do
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-        .with(:body => activity_hash(activity_node_signal_2).to_json)
+        .with(:body => activity_hash(activity_node_signal_2))
         .to_return(:status => 200, :body => "", :headers => {})
       V2::Workers::AsyncWorker.drain
 
