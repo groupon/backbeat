@@ -7,12 +7,28 @@ describe V2::Node, v2: true do
   let(:node) { workflow.children.first }
 
   context "workflow_id" do
-    it "is set to the node id if there is not a parent node" do
-      expect(workflow.workflow_id).to eq(workflow.id)
+    it "is set to the parent workflow id" do
+      expect(node.workflow_id).to eq(workflow.workflow_id)
+    end
+  end
+
+  context "parent" do
+    it "assigns the parent_id if the parent node is not a workflow node" do
+      node.update_attributes(parent: workflow)
+      expect(node.parent_id).to be_nil
     end
 
-    it "is set to the parent workflow id if there is a parent node" do
-      expect(node.workflow_id).to eq(workflow.workflow_id)
+    it "returns the workflow if there is not a parent node" do
+      expect(node.parent).to eq(workflow)
+    end
+
+    it "returns the parent node if there is one" do
+      new_node = FactoryGirl.create(
+        :v2_node,
+        user: user,
+        parent: node
+      )
+      expect(new_node.parent).to eq(node)
     end
   end
 

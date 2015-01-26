@@ -24,7 +24,7 @@ describe V2::Api, v2: true do
       expect(response.status).to eq(201)
 
       json_response = JSON.parse(response.body)
-      wf_in_db = V2::Node.find(json_response['id'])
+      wf_in_db = V2::Workflow.find(json_response['id'])
 
       expect(wf_in_db).to_not be_nil
       expect(wf_in_db.subject).to eq({"subject_klass" => "PaymentTerm", "subject_id" => "100"})

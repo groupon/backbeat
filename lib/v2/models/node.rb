@@ -8,8 +8,9 @@ class V2::Node < ActiveRecord::Base
   default_scope { order("seq asc") }
 
   belongs_to :user
+  belongs_to :workflow
   has_many :children, class_name: "V2::Node", foreign_key: "parent_id"
-  belongs_to :parent, inverse_of: :children, class_name: "V2::Node", foreign_key: "parent_id"
+  belongs_to :parent_node, inverse_of: :children, class_name: "V2::Node", foreign_key: "parent_id"
   has_one :client_node_detail
   has_one :node_detail
   has_many :status_changes
@@ -44,14 +45,18 @@ class V2::Node < ActiveRecord::Base
 
   before_create do
     self.seq ||= ActiveRecord::Base.connection.execute("SELECT nextval('nodes_seq_seq')").first["nextval"]
-  end
-
-  after_create do
-    self.workflow_id ||= parent ? parent.workflow_id : id
-    save
+    self.workflow_id ||= parent.workflow_id
   end
 
   delegate :retries_remaining, :legacy_type, to: :node_detail
+
+  def parent=(node)
+    self.parent_id = node.id if node.parent
+  end
+
+  def parent
+    parent_node || workflow
+  end
 
   def all_children_ready?
     !children.where(current_server_status: :pending).exists?

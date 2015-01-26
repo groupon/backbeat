@@ -18,14 +18,10 @@ module V2
     def self.create_workflow(params, user)
       subject = params['subject'].to_json
 
-      Node.where(subject: subject).first || Node.create!(
+      Workflow.where(subject: subject).first || Workflow.create!(
         name: params['workflow_type'],
         subject: params['subject'],
         decider: params['decider'],
-        fires_at: Time.now,
-        mode: :non_blocking,
-        current_server_status: :ready,
-        current_client_status: :ready,
         user_id: user.id
       )
     end

@@ -1,12 +1,8 @@
 FactoryGirl.define do
-  factory :v2_workflow, class: V2::Node do
+  factory :v2_workflow, class: V2::Workflow do
     name 'WFType'
     subject({'subjectKlass'=>'PaymentTerm', 'subjectId'=>'100'})
     decider 'PaymentDecider'
-    fires_at Time.now
-    current_server_status :pending
-    current_client_status :pending
-    mode :blocking
 
     factory :v2_workflow_with_node do
       after(:create) do |workflow|

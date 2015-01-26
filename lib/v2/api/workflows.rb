@@ -21,7 +21,7 @@ module V2
         end
 
         post "/:id/signal/:name" do
-          workflow = V2::Node.find(params[:id])
+          workflow = V2::Workflow.find(params[:id])
           node = V2::Server.add_node(
             current_user,
             workflow,

@@ -10,6 +10,17 @@ class InitialMigrations < ActiveRecord::Migration
     end
     add_index(:users, :id, unique: true)
 
+    create_table :workflows, id: false do |t|
+      t.uuid :id, unique: true, null: false
+      t.string :name, null: false
+      t.string :decider
+      t.text :subject
+      t.uuid :user_id, null: false
+      t.timestamps
+    end
+    add_index(:workflows, :id, unique: true)
+    add_foreign_key(:workflows, :users)
+
     create_table :nodes, id: false do |t|
       t.uuid :id, unique: true, null: false
       t.string :mode, null: false
