@@ -69,12 +69,6 @@ class V2::Node < ActiveRecord::Base
     mode.to_sym == :blocking
   end
 
-  def validate(record)
-    unless record.name.starts_with? 'X'
-      record.errors[:name] << 'Need a name starting with X please!'
-    end
-  end
-
   def mark_retried!
     node_detail.update_attributes!(retries_remaining: retries_remaining - 1)
   end
