@@ -47,7 +47,6 @@ module Api
       post "/" do
         params[:user] = current_user
         wf = WorkflowServer.find_or_create_workflow(params)
-
         if wf.valid?
           wf
         else

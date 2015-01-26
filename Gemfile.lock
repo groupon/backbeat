@@ -1,10 +1,9 @@
 GIT
-  remote: git@github.groupondev.com:finance-engineering/accounting_torquespec.git
-  revision: 0535e40a3a7115a4bc575aa86698e97b445388bd
+  remote: git@github.groupondev.com:US/uuid-support-gem.git
+  revision: a4ca0762ad6e505165738d5f11b91fb7e6af3edf
   specs:
-    accounting_torquespec (0.0.1)
-      rspec
-      torquespec
+    uuid-support (1.2.0)
+      uuidtools
 
 GIT
   remote: git@github.groupondev.com:finance-engineering/application_transaction.git
@@ -61,10 +60,18 @@ GEM
     activemodel (3.2.14)
       activesupport (= 3.2.14)
       builder (~> 3.0.0)
+    activerecord (3.2.14)
+      activemodel (= 3.2.14)
+      activesupport (= 3.2.14)
+      arel (~> 3.0.2)
+      tzinfo (~> 0.3.29)
+    activerecord-jdbc-adapter (1.3.13)
+      activerecord (>= 2.2)
     activesupport (3.2.14)
       i18n (~> 0.6, >= 0.6.4)
       multi_json (~> 1.0)
     addressable (2.3.5)
+    arel (3.0.3)
     awesome_print (1.2.0)
     backports (3.3.4)
     blankslate (2.1.2.4)
@@ -76,15 +83,21 @@ GEM
     connection_pool (1.2.0)
     crack (0.4.1)
       safe_yaml (~> 0.9.0)
+    database_cleaner (1.4.0)
     delayed_job (3.0.5)
       activesupport (~> 3.0)
     descendants_tracker (0.0.1)
     diff-lcs (1.2.5)
     edn (1.0.0)
       parslet (~> 1.4.0)
+    enumerize (0.9.0)
+      activesupport (>= 3.2)
     factory_girl (4.2.0)
       activesupport (>= 3.0.0)
+    ffi (1.9.3)
     ffi (1.9.3-java)
+    foreigner (1.7.1)
+      activerecord (>= 3.0.0)
     grape (0.6.0)
       activesupport
       builder
@@ -100,6 +113,7 @@ GEM
       multi_json (~> 1.0)
       multi_xml (>= 0.5.2)
     i18n (0.6.9)
+    jdbc-postgres (9.3.1102)
     jruby-jars (1.7.8)
     jruby-openssl (0.9.0)
       bouncy-castle-java (>= 1.5.0147)
@@ -196,7 +210,6 @@ GEM
     torquebox-capistrano-support (3.0.0)
     torquebox-configure (3.0.0-java)
       blankslate (= 2.1.2.4)
-    torquebox-console (0.3.0)
     torquebox-core (3.0.0-java)
       edn (= 1.0.0)
     torquebox-messaging (3.0.0-java)
@@ -208,15 +221,14 @@ GEM
       rake (>= 0.8.7)
     torquebox-security (3.0.0-java)
       torquebox-core (= 3.0.0)
+    torquebox-server (3.0.0-java)
+      torquebox (= 3.0.0)
     torquebox-stomp (3.0.0)
       torquebox-core (= 3.0.0)
       torquebox-messaging (= 3.0.0)
     torquebox-transactions (3.0.0)
       torquebox-core (= 3.0.0)
     torquebox-web (3.0.0-java)
-    torquespec (0.6.0)
-      json
-      rspec
     treetop (1.4.15)
       polyglot
       polyglot (>= 0.3.1)
@@ -244,14 +256,19 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  accounting_torquespec!
+  activerecord
+  activerecord-jdbc-adapter
   application_transaction!
   awesome_print
+  database_cleaner
   delayed_job_mongoid!
+  enumerize
   external_service!
   factory_girl
+  foreigner
   grape
   httparty
+  jdbc-postgres
   jruby-openssl
   kiqstand
   mail
@@ -271,10 +288,10 @@ DEPENDENCIES
   timecop
   torquebox (= 3.0.0)
   torquebox-capistrano-support
-  torquebox-console
   torquebox-messaging (= 3.0.0)
-  torquespec
+  torquebox-server
   unicorn
+  uuid-support!
   uuidtools
   warbler
   webmock

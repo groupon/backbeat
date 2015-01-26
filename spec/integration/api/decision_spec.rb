@@ -3,8 +3,6 @@ require 'spec_helper'
 describe Api::Workflows do
   include Rack::Test::Methods
 
-  deploy BACKBEAT_APP
-
   def app
     FullRackApp
   end
@@ -85,32 +83,30 @@ describe Api::Workflows do
       decision.children.count.should == 6
     end
 
-    remote_describe "inside jboss container" do
-      it 'continue_as_new_workflow decision marks the old events as inactive and resets the past of the workflow' do
-        decision = FactoryGirl.create(:decision, status: :deciding)
-        wf = decision.workflow
-        user = wf.user
-        args = [
-          {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
-        ]
-        header "Content-Type", "application/json"
-        response = post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: args}}.to_json
-        response.status.should == 201
-        decision.reload
-        decision.children.count.should == 1
+    it 'continue_as_new_workflow decision marks the old events as inactive and resets the past of the workflow' do
+      decision = FactoryGirl.create(:decision, status: :deciding)
+      wf = decision.workflow
+      user = wf.user
+      args = [
+        {type: :timer, name: :wTimer, fires_at: Time.now + 1000.seconds},
+      ]
+      header "Content-Type", "application/json"
+      response = post "/workflows/#{wf.id}/events/#{decision.id}/decisions", {args: {decisions: args}}.to_json
+      response.status.should == 201
+      decision.reload
+      decision.children.count.should == 1
 
-        response = put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
+      response = put "/workflows/#{wf.id}/events/#{decision.id}/status/deciding_complete"
 
-        WorkflowServer::Workers::SidekiqJobWorker.drain
+      WorkflowServer::Workers::SidekiqJobWorker.drain
 
-        timer = decision.children.first
-        timer.async_jobs.count.should == 1
-        flag = FactoryGirl.create(:continue_as_new_workflow_flag, workflow: wf)
-        flag.start
-        wf.reload
-        wf.events.each { |e| e.reload.async_jobs.count.should == 0 unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
-        wf.events.each { |e| e.inactive.should == true unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
-      end
+      timer = decision.children.first
+      timer.async_jobs.count.should == 1
+      flag = FactoryGirl.create(:continue_as_new_workflow_flag, workflow: wf)
+      flag.start
+      wf.reload
+      wf.events.each { |e| e.reload.async_jobs.count.should == 0 unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
+      wf.events.each { |e| e.inactive.should == true unless e._type == 'WorkflowServer::Models::ContinueAsNewWorkflowFlag' }
     end
 
     it "raises 400 if decision is not in deciding state" do

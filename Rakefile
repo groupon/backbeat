@@ -104,3 +104,30 @@ namespace :sidekiq do
 end
 
 task "sidekiq:setup" => "sidekiq:logging_setup"
+
+namespace :pg do
+  desc "setup the postgres db"
+  task :setup do
+    require 'active_record'
+    require 'foreigner'
+
+    `dropdb --if-exists backbeat_dev`
+    `createdb backbeat_dev`
+    `psql -d backbeat_dev -c "CREATE ROLE backbeat_usr with LOGIN CREATEDB SUPERUSER;"`
+
+    config = YAML::load(IO.read('config/database.yml'))
+    ActiveRecord::Base.establish_connection config['development']
+    Foreigner.load
+    ActiveRecord::Migrator.migrate('migrations', nil)
+  end
+end
+
+namespace :app do
+  task :routes do
+    Api::App.routes.each do |api|
+      method = api.route_method.ljust(10)
+      path = api.route_path
+      puts "     #{method} #{path}"
+    end
+  end
+end

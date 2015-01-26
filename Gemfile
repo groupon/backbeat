@@ -14,6 +14,14 @@ gem 'delayed_job_mongoid', git: 'https://github.com/nchainani/delayed_job_mongoi
 gem 'mongoid-indifferent-access'
 gem 'uuidtools'
 
+#active record
+gem 'activerecord-jdbc-adapter', platform: :jruby
+gem 'activerecord', require: 'active_record'
+gem 'jdbc-postgres', platform: :jruby
+gem 'uuid-support', git: 'git@github.groupondev.com:US/uuid-support-gem.git', require: 'uuid_support'
+gem 'foreigner'
+gem 'enumerize'
+
 # Utility
 gem 'awesome_print'
 gem 'mail'
@@ -34,6 +42,7 @@ platforms :jruby do
   gem 'torquebox', '3.0.0'
   gem 'torquebox-messaging', '3.0.0'
   gem 'warbler'
+  gem 'torquebox-server'
 end
 
 group :development do
@@ -45,7 +54,12 @@ group :development do
   end
 end
 
+group :development, :test do
+  gem 'pry'
+end
+
 group :test do
+  gem 'database_cleaner'
   gem 'rack-test'
   gem 'rspec'
   gem 'rspec-sidekiq'
@@ -55,11 +69,4 @@ group :test do
   gem 'simplecov'
   gem 'external_service', :git => 'git@github.groupondev.com:finance-engineering/external_service.git'
   gem 'zip'
-  gem 'pry'
-
-  platforms :jruby do
-    gem 'torquebox-console'
-    gem 'torquespec', :require => false
-    gem 'accounting_torquespec', :git => 'git@github.groupondev.com:finance-engineering/accounting_torquespec.git'
-  end
 end

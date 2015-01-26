@@ -5,9 +5,17 @@ module Api
         @app = app
       end
 
+      def user_model
+        if Backbeat.v2?
+          V2::User
+        else
+          WorkflowServer::Models::User
+        end
+      end
+
       def call(env)
         client_id = env['HTTP_CLIENT_ID']
-        env['WORKFLOW_CURRENT_USER'] = WorkflowServer::Models::User.where(id: client_id).first
+        env['WORKFLOW_CURRENT_USER'] = user_model.where(id: client_id).first
         return [401, {"Content-Type"=>"text/plain"}, ["Unauthorized"]] unless env['WORKFLOW_CURRENT_USER']
         @app.call(env)
       end

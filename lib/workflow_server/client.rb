@@ -4,16 +4,18 @@ require_relative 'helper'
 module WorkflowServer
   module Client
 
-    def self.perform_activity(activity)
-      if (url = activity.my_user.try(:activity_endpoint))
-        response = post(url, activity: activity.serializable_hash)
+    def self.perform_activity(activity, user = nil)
+      user ||= activity.my_user
+      if (url = user.try(:activity_endpoint))
+        response = post(url, activity: activity.is_a?(Hash) ?  activity : activity.serializable_hash)
         raise WorkflowServer::HttpError.new("http request to perform_activity failed", response) unless response.code.between?(200, 299)
       end
     end
 
-    def self.make_decision(decision)
-      if (url = decision.my_user.try(:decision_endpoint))
-        response = post(url, decision: decision.serializable_hash)
+    def self.make_decision(decision, user = nil)
+      user ||= decision.my_user
+      if (url = user.try(:decision_endpoint))
+        response = post(url, decision: decision.is_a?(Hash) ?  decision : decision.serializable_hash)
         raise WorkflowServer::HttpError.new("http request to make_decision failed", response) unless response.code.between?(200, 299)
       end
     end
@@ -30,7 +32,7 @@ module WorkflowServer
     end
 
     def self.post(url, params = {})
-      params = Marshal.load(Marshal.dump(params))
+      params = params.dup
       body = WorkflowServer::Helper::HashKeyTransformations.camelize_keys(params).to_json
       ::HTTParty.post(url, body: body, headers: {"Content-Type" => "application/json", "Content-Length" => body.size.to_s})
     end
