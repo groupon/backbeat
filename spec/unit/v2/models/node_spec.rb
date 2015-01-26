@@ -13,7 +13,13 @@ describe V2::Node, v2: true do
   end
 
   context "parent" do
-    it "assigns the parent_id if the parent node is not a workflow node" do
+    it "assigns the parent_id if the parent node is a Node" do
+      new_node = FactoryGirl.create(:v2_node, user: user, workflow: workflow)
+      node.update_attributes(parent: new_node)
+      expect(node.parent_id).to eq(new_node.id)
+    end
+
+    it "does not assign the parent_id if the parent node is a Workflow" do
       node.update_attributes(parent: workflow)
       expect(node.parent_id).to be_nil
     end

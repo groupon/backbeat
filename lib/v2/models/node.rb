@@ -51,7 +51,7 @@ class V2::Node < ActiveRecord::Base
   delegate :retries_remaining, :legacy_type, to: :node_detail
 
   def parent=(node)
-    self.parent_id = node.id if node.parent
+    self.parent_id = node.id if node.is_a?(V2::Node)
   end
 
   def parent
