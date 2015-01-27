@@ -1,0 +1,25 @@
+@startuml
+[*] --> Pending
+Pending --> Ready
+Ready --> Started
+Started --> SentToClient
+Started --> Errored
+
+state SentToClient {
+  [*] -->  ClientReceived
+  ClientReceived -->  ClientProcessing
+  ClientRecieved -->  ClientErrored
+  ClientProcessing -->  ClientErrored
+  ClientProcessing -->  ClientComplete
+  ClientRecieved -->  ClientComplete
+  ClientErrored -->  ClientReceived
+  ClientComplete --> [*]
+}
+SentToClient --> ProcessingChildren
+ProcessingChildren -> Complete
+
+Errored --> Retrying
+Retrying --> SentToClient
+
+Complete --> [*]
+@enduml
