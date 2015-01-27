@@ -54,7 +54,7 @@ class V2::Node < ActiveRecord::Base
       pending: [:ready, :errored],
       ready: [:started, :errored],
       started: [:sent_to_client, :errored],
-      sent_to_client: [:processing_children, :recieved_from_client, :errored],
+      sent_to_client: [:processing_children, :errored],
       processing_children: [:complete],
       errored: [:retrying],
       retrying: [:sent_to_client],
