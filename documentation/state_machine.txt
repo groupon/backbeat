@@ -8,13 +8,14 @@ Started --> Errored
 state SentToClient {
   [*] -->  ClientReceived
   ClientReceived -->  ClientProcessing
-  ClientRecieved -->  ClientErrored
+  ClientReceived -->  ClientErrored
   ClientProcessing -->  ClientErrored
   ClientProcessing -->  ClientComplete
-  ClientRecieved -->  ClientComplete
+  ClientReceived -->  ClientComplete
   ClientErrored -->  ClientReceived
   ClientComplete --> [*]
 }
+SentToClient --> Errored
 SentToClient --> ProcessingChildren
 ProcessingChildren -> Complete
 
