@@ -22,6 +22,10 @@ module V2
       }
     }
 
+    def self.call(node, statuses = {})
+      new(node).update_status(statuses)
+    end
+
     def initialize(node)
       @node = node
     end

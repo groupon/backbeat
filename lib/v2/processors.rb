@@ -3,7 +3,7 @@ module V2
     def self.mark_children_ready(node)
       Logger.info(mark_children_ready: { node: node })
       node.children.each do |child_node|
-        StateManager.new(child_node).update_status(
+        StateManager.call(child_node,
           current_server_status: :ready,
           current_client_status: :ready
         )
@@ -21,7 +21,7 @@ module V2
       node.not_complete_children.each do |child_node|
         if child_node.current_server_status.ready?
           Server::fire_event(Server::StartNode, child_node)
-          StateManager.new(child_node).update_status(current_server_status: :started)
+          StateManager.call(child_node, current_server_status: :started)
         end
         break if child_node.blocking?
       end
@@ -31,7 +31,7 @@ module V2
     def self.start_node(node)
       Logger.info(start_node: { node: node })
       Client.perform_action(node)
-      StateManager.new(node).update_status(
+      StateManager.call(node,
         current_server_status: :sent_to_client,
         current_client_status: :received
       )
@@ -39,12 +39,12 @@ module V2
 
     def self.client_processing(node)
       Logger.info(client_processing: { node: node })
-      StateManager.new(node).update_status(current_client_status: :processing)
+      StateManager.call(node, current_client_status: :processing)
     end
 
     def self.client_complete(node)
       Logger.info(client_complete: { node: node })
-      StateManager.new(node).update_status(
+      StateManager.call(node,
         current_client_status: :complete,
         current_server_status: :processing_children
       )
@@ -54,14 +54,14 @@ module V2
     def self.node_complete(node)
       if node.parent
         Logger.info(node_complete: { node: node })
-        StateManager.new(node).update_status(current_server_status: :complete)
+        StateManager.call(node, current_server_status: :complete)
         Server.fire_event(Server::ScheduleNextNode, node.parent)
       end
     end
 
     def self.client_error(node, args)
       Logger.info(client_error: { node: node })
-      StateManager.new(node).update_status(
+      StateManager.call(node,
         current_server_status: :errored,
         current_client_status: :errored
       )
@@ -75,7 +75,7 @@ module V2
 
     def self.retry_node(node)
       Logger.info(retry_node: { node: node })
-      StateManager.new(node).update_status(current_server_status: :retrying)
+      StateManager.call(node, current_server_status: :retrying)
       Server.fire_event(Server::StartNode, node)
     end
   end
