@@ -29,7 +29,7 @@ class InitialMigrations < ActiveRecord::Migration
       t.string :name, null: false
       t.datetime :fires_at
       t.uuid :parent_id
-      t.uuid :workflow_id
+      t.uuid :workflow_id, null: false
       t.uuid :user_id, null: false
       t.timestamps
     end

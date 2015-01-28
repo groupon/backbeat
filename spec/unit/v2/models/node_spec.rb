@@ -32,6 +32,7 @@ describe V2::Node, v2: true do
       new_node = FactoryGirl.create(
         :v2_node,
         user: user,
+        workflow: workflow,
         parent: node
       )
       expect(new_node.parent).to eq(node)

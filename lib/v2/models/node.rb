@@ -23,6 +23,7 @@ module V2
     validates :name, presence: true
     validates :fires_at, presence: true
     validates :user_id, presence: true
+    validates :workflow_id, presence: true
 
     enumerize :mode, in: [:blocking, :non_blocking, :fire_and_forget]
 
@@ -45,7 +46,6 @@ module V2
 
     before_create do
       self.seq ||= ActiveRecord::Base.connection.execute("SELECT nextval('nodes_seq_seq')").first["nextval"]
-      self.workflow_id ||= parent.workflow_id
     end
 
     delegate :retries_remaining, :legacy_type, to: :node_detail
