@@ -21,16 +21,18 @@ module V2
         end
 
         post "/:id/signal/:name" do
-          node = nil
-          workflow = nil
           workflow = V2::Workflow.find(params[:id])
-          node = V2::Server.add_node(current_user,
-                                     workflow,
-                                     params.merge('legacy_type' => :signal,
-                                                  'mode' => :blocking),
-                                                  nil)
-
-          V2::Server.fire_event(V2::Server::MarkSignalReady, node)
+          node = V2::Server.add_node(
+            current_user,
+            workflow,
+            params.merge(
+              current_server_status: :ready,
+              current_client_status: :ready,
+              legacy_type: 'signal',
+              mode: :blocking
+            )
+          )
+          V2::Server.fire_event(V2::Server::ScheduleNextNode, workflow)
           node
         end
       end

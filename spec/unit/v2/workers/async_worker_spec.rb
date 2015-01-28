@@ -4,7 +4,7 @@ describe V2::Workers::AsyncWorker, v2: true do
 
   let(:user) { FactoryGirl.create(:v2_user) }
   let(:workflow) { FactoryGirl.create(:v2_workflow_with_node, user: user) }
-  let(:node) { workflow.nodes.first }
+  let(:node) { workflow.children.first }
 
   it { should be_retryable 4 }
 

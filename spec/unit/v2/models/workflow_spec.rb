@@ -3,35 +3,25 @@ require "spec_helper"
 describe V2::Workflow, v2: true do
 
   let(:user) { FactoryGirl.create(:v2_user) }
-  let(:workflow) { FactoryGirl.create(:v2_workflow, user: user) }
-  let(:node) { v2_workflow.nodes.first }
+  let(:workflow) { FactoryGirl.create(:v2_workflow_with_node, user: user) }
 
-  context "children_ready_to_start" do
-    it "returns a child node that are ready and do not have a previous node running" do
-      child_node = FactoryGirl.create(
-        :v2_node,
-        workflow: workflow,
-        user: user,
-        current_server_status: :ready
-      )
-      expect(workflow.children_ready_to_start.count).to eq(1)
-      expect(workflow.children_ready_to_start.first).to eq(child_node)
+  context "workflow_id" do
+    it "returns the id" do
+      expect(workflow.workflow_id).to eq(workflow.id)
     end
+  end
 
-    it "returns no child node if a previous node is not complete" do
+  context "children" do
+    it "returns nodes with the same workflow_id and no parent node" do
+      node = workflow.nodes.first
       FactoryGirl.create(
         :v2_node,
-        workflow: workflow,
         user: user,
-        current_server_status: :sent_to_client
+        workflow_id: workflow.id,
+        parent_id: node.id
       )
-      child_node = FactoryGirl.create(
-        :v2_node,
-        workflow: workflow,
-        user: user,
-        current_server_status: :ready
-      )
-      expect(workflow.children_ready_to_start.count).to eq(0)
+      expect(workflow.children.count).to eq(1)
+      expect(workflow.children.first).to eq(node)
     end
   end
 end

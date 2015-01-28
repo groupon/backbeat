@@ -11,7 +11,7 @@ describe V2::Api, v2: true do
 
   let(:v2_user) { FactoryGirl.create(:v2_user) }
   let(:v2_workflow) { FactoryGirl.create(:v2_workflow_with_node_running, user: v2_user) }
-  let(:activity_node) { v2_workflow.nodes.where("parent_id IS NOT NULL").first }
+  let(:activity_node) { v2_workflow.children.first.children.first }
 
   before do
     header 'CLIENT_ID', v2_user.id
@@ -21,7 +21,7 @@ describe V2::Api, v2: true do
   context "client error" do
     it "retries with backoff and then succeeds" do
       WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-        .with(:body => activity_hash(activity_node).to_json)
+        .with(:body => activity_hash(activity_node))
         .to_return(:status => 200, :body => "", :headers => {})
 
       expect(activity_node.reload.attributes).to include(
@@ -67,7 +67,7 @@ describe V2::Api, v2: true do
       expect(activity_node.node_detail.retries_remaining).to eq(2)
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-        .with(:body => activity_hash(activity_node).to_json)
+        .with(:body => activity_hash(activity_node))
         .to_return(:status => 200, :body => "", :headers => {})
 
       2.times do |i|

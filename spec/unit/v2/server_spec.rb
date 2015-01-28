@@ -5,7 +5,7 @@ describe V2::Server, v2: true do
 
   let(:user) { FactoryGirl.create(:v2_user) }
   let(:workflow) { FactoryGirl.create(:v2_workflow_with_node, user: user) }
-  let(:node) { workflow.nodes.first }
+  let(:node) { workflow.children.first }
 
   before do
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
@@ -15,9 +15,10 @@ describe V2::Server, v2: true do
     FactoryGirl.create(
       :v2_node,
       parent: parent_node,
-      workflow: workflow,
+      workflow_id: parent_node.workflow_id,
       user: user,
       mode: mode,
+      fires_at: Time.now,
       current_server_status: server_status,
       current_client_status: :pending
     )

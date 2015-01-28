@@ -20,18 +20,22 @@ describe V2::Api, v2: true do
   context "POST /workflows" do
     it "returns 201 and creates a new workflow when all parameters present" do
       response = post '/workflows', {workflow_type: "WFType", subject: {subject_klass: "PaymentTerm", subject_id: 100}, decider: "PaymentDecider"}
+
+      expect(response.status).to eq(201)
+
       json_response = JSON.parse(response.body)
       wf_in_db = V2::Workflow.find(json_response['id'])
-      wf_in_db.should_not be_nil
-      wf_in_db.subject.should == {"subject_klass" => "PaymentTerm", "subject_id" => "100"}
+
+      expect(wf_in_db).to_not be_nil
+      expect(wf_in_db.subject).to eq({"subject_klass" => "PaymentTerm", "subject_id" => "100"})
 
       response = post '/workflows', {workflow_type: "WFType", subject: {subject_klass: "PaymentTerm", subject_id: 100}, decider: "PaymentDecider"}
-      json_response['id'].should ==  JSON.parse(response.body)['id']
+      expect(json_response['id']).to eq(JSON.parse(response.body)['id'])
     end
   end
 
   context "PUT :id/restart" do
-    let(:node) { v2_workflow.nodes.first }
+    let(:node) { v2_workflow.children.first }
 
     context "with valid restart state" do
       before do
@@ -77,7 +81,7 @@ describe V2::Api, v2: true do
 
   context "POST /:id/decisions" do
     it "creates the node detail with retry data" do
-      parent_node = v2_workflow.nodes.first
+      parent_node = v2_workflow.children.first
 
       activity = FactoryGirl.build(:client_activity_post_to_decision).merge(
         retry: 20,
