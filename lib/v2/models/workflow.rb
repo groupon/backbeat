@@ -1,35 +1,29 @@
-class V2::Workflow < ActiveRecord::Base
-  self.primary_key = 'id'
+require 'v2/models/child_status_methods'
 
-  belongs_to :user
-  has_many :nodes
-  serialize :subject, JSON
+module V2
+  class Workflow < ActiveRecord::Base
+    self.primary_key = 'id'
 
-  validates :subject, presence: true
-  validates :decider, presence: true
-  validates :user_id, presence: true
+    belongs_to :user
+    has_many :nodes
+    serialize :subject, JSON
 
-  def parent
-    nil
-  end
+    validates :subject, presence: true
+    validates :decider, presence: true
+    validates :user_id, presence: true
 
-  def children
-    nodes.where(parent_id: nil)
-  end
+    include ChildStatusMethods
 
-  def workflow_id
-    id
-  end
+    def parent
+      nil
+    end
 
-  def all_children_ready?
-    !children.where(current_server_status: :pending).exists?
-  end
+    def children
+      nodes.where(parent_id: nil)
+    end
 
-  def not_complete_children
-    children.where("current_server_status != 'complete'")
-  end
-
-  def all_children_complete?
-    !not_complete_children.exists?
+    def workflow_id
+      id
+    end
   end
 end
