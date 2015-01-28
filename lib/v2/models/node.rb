@@ -22,8 +22,6 @@ class V2::Node < ActiveRecord::Base
   validates :fires_at, presence: true
   validates :user_id, presence: true
 
-  serialize :subject, JSON
-
   enumerize :mode, in: [:blocking, :non_blocking, :fire_and_forget]
 
   enumerize :current_server_status, in: [:pending,
@@ -49,6 +47,8 @@ class V2::Node < ActiveRecord::Base
   end
 
   delegate :retries_remaining, :legacy_type, to: :node_detail
+  delegate :complete?, :processing_children?, :ready?, to: :current_server_status
+  delegate :subject, :decider, to: :workflow
 
   def parent=(node)
     self.parent_id = node.id if node.is_a?(V2::Node)

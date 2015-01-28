@@ -9,7 +9,6 @@ FactoryGirl.define do
         FactoryGirl.create(
           :v2_node,
           parent: workflow,
-          subject: workflow.subject,
           workflow_id: workflow.workflow_id,
           user_id: workflow.user_id
         )

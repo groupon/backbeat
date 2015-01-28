@@ -35,8 +35,6 @@ module V2
         fires_at: params['fires_at'] || Time.now - 1.second,
         parent: parent_node,
         workflow_id: parent_node.workflow_id,
-        subject: parent_node.subject,
-        decider: parent_node.decider,
         user_id: user.id
       )
       ClientNodeDetail.create!(

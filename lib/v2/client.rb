@@ -23,8 +23,12 @@ module V2
 
     def self.perform_action(node)
       if node.legacy_type == 'signal'
+        decision = node.attributes.merge(
+          subject: node.subject,
+          decider: node.decider
+        )
         WorkflowServer::Client.make_decision(
-          node.attributes.keep_if { |k, _| DECISION_WHITE_LIST.include? k.to_sym },
+          decision.keep_if { |k, _| DECISION_WHITE_LIST.include? k.to_sym },
           node.user
         )
       else

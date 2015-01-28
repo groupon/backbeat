@@ -27,8 +27,6 @@ class InitialMigrations < ActiveRecord::Migration
       t.string :current_server_status, null: false
       t.string :current_client_status, null: false
       t.string :name, null: false
-      t.string :decider
-      t.text :subject
       t.datetime :fires_at
       t.uuid :parent_id
       t.uuid :workflow_id
