@@ -1,7 +1,26 @@
-development:
+common: &common
   reconnect: true
   adapter: mysql2
   username: root
   password:
   database: backbeat_dev
-  socket: /tmp/mysql.sock
+
+development:
+  <<: *common
+  database: backbeat_dev
+
+uat:
+  <<: *common
+  database: backbeat_uat
+  username: backbeat
+  hostname: gds-snc1-backbeat-uat-rw-vip.snc1
+  url: jdbc:mysql://gds-snc1-backbeat-uat-rw-vip.snc1/backbeat_uat
+  password: tbd
+
+staging:
+  <<: *common
+  database: backbeat_staging
+  username: backbeat
+  hostname: gds-snc1-backbeat-stg-rw-vip.snc1
+  url: jdbc:mysql://gds-snc1-backbeat-stg-rw-vip.snc1/backbeat_staging
+  password: tbd
