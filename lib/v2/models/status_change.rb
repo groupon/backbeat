@@ -1,4 +1,7 @@
 class V2::StatusChange < ActiveRecord::Base
-  self.primary_key = 'id'
+  include UUIDSupport
+
+  uuid_column :uuid
+
   belongs_to :node
 end

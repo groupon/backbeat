@@ -4,10 +4,11 @@ require 'v2/models/child_status_methods'
 module V2
   class Node < ActiveRecord::Base
     extend ::Enumerize
+    include UUIDSupport
 
-    self.primary_key = 'id'
+    uuid_column :uuid
 
-    default_scope { order("seq asc") }
+    default_scope { order("id asc") }
 
     belongs_to :user
     belongs_to :workflow
@@ -43,10 +44,6 @@ module V2
                                            :processing,
                                            :complete,
                                            :errored]
-
-    before_create do
-      self.seq ||= ActiveRecord::Base.connection.execute("SELECT nextval('nodes_seq_seq')").first["nextval"]
-    end
 
     delegate :retries_remaining, :legacy_type, to: :node_detail
     delegate :complete?, :processing_children?, :ready?, to: :current_server_status

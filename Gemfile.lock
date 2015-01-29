@@ -65,8 +65,11 @@ GEM
       activesupport (= 3.2.14)
       arel (~> 3.0.2)
       tzinfo (~> 0.3.29)
-    activerecord-jdbc-adapter (1.3.13)
+    activerecord-jdbc-adapter (1.3.14)
       activerecord (>= 2.2)
+    activerecord-jdbcmysql-adapter (1.3.14)
+      activerecord-jdbc-adapter (~> 1.3.14)
+      jdbc-mysql (>= 5.1.22)
     activesupport (3.2.14)
       i18n (~> 0.6, >= 0.6.4)
       multi_json (~> 1.0)
@@ -94,7 +97,6 @@ GEM
       activesupport (>= 3.2)
     factory_girl (4.2.0)
       activesupport (>= 3.0.0)
-    ffi (1.9.3)
     ffi (1.9.3-java)
     foreigner (1.7.1)
       activerecord (>= 3.0.0)
@@ -113,7 +115,7 @@ GEM
       multi_json (~> 1.0)
       multi_xml (>= 0.5.2)
     i18n (0.6.9)
-    jdbc-postgres (9.3.1102)
+    jdbc-mysql (5.1.33)
     jruby-jars (1.7.8)
     jruby-openssl (0.9.0)
       bouncy-castle-java (>= 1.5.0147)
@@ -257,7 +259,7 @@ PLATFORMS
 
 DEPENDENCIES
   activerecord
-  activerecord-jdbc-adapter
+  activerecord-jdbcmysql-adapter
   application_transaction!
   awesome_print
   database_cleaner
@@ -268,13 +270,13 @@ DEPENDENCIES
   foreigner
   grape
   httparty
-  jdbc-postgres
   jruby-openssl
   kiqstand
   mail
   mongoid!
   mongoid-indifferent-access
   mongoid-locker!
+  mysql2
   pry
   rack-test
   rake

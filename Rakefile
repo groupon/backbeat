@@ -105,20 +105,55 @@ end
 
 task "sidekiq:setup" => "sidekiq:logging_setup"
 
-namespace :pg do
-  desc "setup the postgres db"
-  task :setup do
-    require 'active_record'
-    require 'foreigner'
+require "active_record"
+require "foreigner"
 
-    `dropdb --if-exists backbeat_dev`
-    `createdb backbeat_dev`
-    `psql -d backbeat_dev -c "CREATE ROLE backbeat_usr with LOGIN CREATEDB SUPERUSER;"`
+module DB
+  def self.config
+    @config ||= YAML::load(IO.read('config/database.yml'))[Backbeat.env]
+  end
 
-    config = YAML::load(IO.read('config/database.yml'))
-    ActiveRecord::Base.establish_connection config['development']
-    Foreigner.load
-    ActiveRecord::Migrator.migrate('migrations', nil)
+  def self.with_connection(options = {})
+    ActiveRecord::Base.establish_connection(config.merge(options))
+    yield ActiveRecord::Base.connection
+  end
+end
+
+namespace :db do
+  desc "drops and recreates the db"
+  task :reset do
+    DB.with_connection('database' => nil) do |connection|
+      connection.recreate_database(DB.config['database'])
+    end
+  end
+
+  desc "drop the db"
+  task :drop do
+    DB.with_connection('database' => nil) do |connection|
+      connection.drop_database(DB.config['database'])
+    end
+  end
+
+  desc "create the db"
+  task :create do
+    DB.with_connection('database' => nil) do |connection|
+      connection.create_database(DB.config['database'])
+    end
+  end
+
+  desc "create the db if it doesn't already exist"
+  task :create_if_not_exists do
+    DB.with_connection('database' => nil) do |connection|
+      connection.execute("CREATE DATABASE IF NOT EXISTS #{DB.config['database']}")
+    end
+  end
+
+  desc "migrate the db"
+  task :migrate do
+    DB.with_connection do |c|
+      Foreigner.load
+      ActiveRecord::Migrator.migrate('migrations', nil)
+    end
   end
 end
 
