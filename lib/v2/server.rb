@@ -60,7 +60,11 @@ module V2
         when ScheduleNextNode
           Workers::AsyncWorker.async_event(node, :schedule_next_node)
         when StartNode
-          Workers::AsyncWorker.async_event(node, :start_node)
+          Workers::AsyncWorker.schedule_async_event(
+            node,
+            :start_node,
+            node.fires_at
+          )
         when ClientProcessing
           Processors.client_processing(node)
         when ClientComplete
@@ -77,7 +81,7 @@ module V2
           Workers::AsyncWorker.schedule_async_event(
             node,
             :retry_node,
-            node.node_detail.retry_interval
+            Time.now + node.node_detail.retry_interval.minutes
           )
       end
     end

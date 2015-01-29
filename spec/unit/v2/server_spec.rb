@@ -24,6 +24,17 @@ describe V2::Server, v2: true do
     )
   end
 
+  context "start_node" do
+    it "schedules a timed node" do
+      Timecop.freeze
+      node.update_attributes(fires_at: Time.now + 10.minutes)
+      V2::Server.fire_event(V2::Server::StartNode, node)
+      jobs = V2::Workers::AsyncWorker.jobs
+      expect(jobs.count).to eq(1)
+      expect(jobs.first["at"]).to eq(Time.now.to_f + 10.minutes.to_f)
+    end
+  end
+
   context "client_error" do
     it "marks the status as errored" do
       V2::Server.fire_event(V2::Server::ClientError, node)
@@ -75,10 +86,11 @@ describe V2::Server, v2: true do
 
     context "with backoff" do
       it "schedules the retry with the node retry interval" do
+        Timecop.freeze
         expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(
           node,
           :retry_node,
-          node.node_detail.retry_interval
+          Time.now + node.node_detail.retry_interval.minutes
         )
         V2::Server.fire_event(V2::Server::RetryNodeWithBackoff, node)
         V2::Workers::AsyncWorker.drain

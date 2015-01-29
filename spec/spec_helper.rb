@@ -12,6 +12,7 @@ require 'database_cleaner'
 require 'timecop'
 require 'webmock'
 require 'rspec-sidekiq'
+require 'pry'
 
 if ENV["SIMPLE_COV"]
   require "simplecov"

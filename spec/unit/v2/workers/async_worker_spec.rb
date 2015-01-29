@@ -24,11 +24,4 @@ describe V2::Workers::AsyncWorker, v2: true do
       expect(node.reload.current_client_status).to eq("errored")
     end
   end
-
-  context "schedule_async_event" do
-    it "it calls perform_in with the correct params" do
-      expect(V2::Workers::AsyncWorker).to receive(:perform_in).with(600, "V2::Node", node.id,:retry_node)
-      V2::Workers::AsyncWorker.schedule_async_event(node, :retry_node, 10)
-    end
-  end
 end
