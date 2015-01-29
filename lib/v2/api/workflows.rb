@@ -9,6 +9,12 @@ module V2
     class Workflows < Grape::API
       helpers ::Api::CurrentUserHelper
 
+      helpers do
+        def workflow
+          Workflow.where(user_id: current_user.id).find(params[:id])
+        end
+      end
+
       resource 'workflows' do
         post "/" do
           params[:user] = current_user
@@ -21,7 +27,6 @@ module V2
         end
 
         post "/:id/signal/:name" do
-          workflow = V2::Workflow.find(params[:id])
           node = V2::Server.add_node(
             current_user,
             workflow,
@@ -34,6 +39,14 @@ module V2
           )
           V2::Server.fire_event(V2::Server::ScheduleNextNode, workflow)
           node
+        end
+
+        get "/:id/tree" do
+          WorkflowTree.to_hash(workflow)
+        end
+
+        get "/:id/tree/print" do
+          { print: WorkflowTree.to_string(workflow) }
         end
       end
     end

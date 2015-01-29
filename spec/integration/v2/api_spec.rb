@@ -9,11 +9,11 @@ describe V2::Api, v2: true do
     FullRackApp
   end
 
-  let(:v2_user) { FactoryGirl.create(:v2_user) }
-  let(:v2_workflow) { FactoryGirl.create(:v2_workflow_with_node, user: v2_user) }
+  let(:user) { FactoryGirl.create(:v2_user) }
+  let(:workflow) { FactoryGirl.create(:v2_workflow_with_node, user: user) }
 
   before do
-    header 'CLIENT_ID', v2_user.uuid
+    header 'CLIENT_ID', user.uuid
     WorkflowServer::Client.stub(:make_decision)
   end
 
@@ -35,7 +35,7 @@ describe V2::Api, v2: true do
   end
 
   context "PUT :id/restart" do
-    let(:node) { v2_workflow.children.first }
+    let(:node) { workflow.children.first }
 
     context "with valid restart state" do
       before do
@@ -81,7 +81,7 @@ describe V2::Api, v2: true do
 
   context "POST /:id/decisions" do
     it "creates the node detail with retry data" do
-      parent_node = v2_workflow.children.first
+      parent_node = workflow.children.first
 
       activity = FactoryGirl.build(:client_activity_post_to_decision).merge(
         retry: 20,
@@ -93,6 +93,24 @@ describe V2::Api, v2: true do
 
       expect(activity_node.node_detail.retry_interval).to eq(50)
       expect(activity_node.node_detail.retries_remaining).to eq(20)
+    end
+  end
+
+  context "GET /workflows/:id/tree" do
+    it "returns the workflow tree as a hash" do
+      response = get "workflows/#{workflow.id}/tree"
+      body = JSON.parse(response.body)
+
+      expect(body["id"]).to eq(workflow.id)
+    end
+  end
+
+  context "GET /workflows/:id/tree/print" do
+    it "returns the workflow tree as a string" do
+      response = get "workflows/#{workflow.id}/tree/print"
+      body = JSON.parse(response.body)
+
+      expect(body["print"]).to include(workflow.name)
     end
   end
 end

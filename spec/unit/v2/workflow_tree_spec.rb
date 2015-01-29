@@ -81,7 +81,7 @@ describe V2::WorkflowTree, v2: true do
 
       expect(V2::WorkflowTree.to_string(workflow)).to eq(
         "\n#{workflow.id}|--#{workflow.name}"\
-        "\n#{child.id}   |--#{child.name} - #{child.current_server_status}"\
+        "\n#{child.id}   |--#{child.name} - #{child.current_server_status}"
       )
     end
 
@@ -94,7 +94,7 @@ describe V2::WorkflowTree, v2: true do
         "\n#{workflow.id}|--#{workflow.name}"\
         "\n#{child_1.id}   |--#{child_1.name} - #{child_1.current_server_status}"\
         "\n#{child_3.id}      |--#{child_3.name} - #{child_3.current_server_status}"\
-        "\n#{child_2.id}   |--#{child_2.name} - #{child_2.current_server_status}"\
+        "\n#{child_2.id}   |--#{child_2.name} - #{child_2.current_server_status}"
       )
     end
   end
