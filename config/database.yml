@@ -1,7 +1,7 @@
 development:
   reconnect: true
-  adapter: postgresql
-  username: backbeat_usr
+  adapter: mysql2
+  username: root
   password:
   database: backbeat_dev
-  host: localhost
+  socket: /tmp/mysql.sock

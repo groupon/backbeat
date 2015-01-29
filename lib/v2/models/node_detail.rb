@@ -1,5 +1,4 @@
 class V2::NodeDetail < ActiveRecord::Base
-  self.primary_key = 'id'
   belongs_to :node
 
   validates :retries_remaining, numericality: { greater_than_or_equal_to: 0 }

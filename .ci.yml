@@ -18,8 +18,8 @@ build:
   before:
     - gem install bundler
     - jruby -S bundle install --no-deployment
-    - psql -U postgres template1 -c "CREATE ROLE $USER WITH LOGIN CREATEDB SUPERUSER;" || echo "... continue"
-    - jruby -S bundle exec rake pg:setup
+    - jruby -S bundle exec rake db:reset
+    - jruby -S bundle exec rake db:migrate
   run:
     - jruby -S bundle exec rspec
     - V2=true jruby -S bundle exec rspec

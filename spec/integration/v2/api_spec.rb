@@ -13,7 +13,7 @@ describe V2::Api, v2: true do
   let(:v2_workflow) { FactoryGirl.create(:v2_workflow_with_node, user: v2_user) }
 
   before do
-    header 'CLIENT_ID', v2_user.id
+    header 'CLIENT_ID', v2_user.uuid
     WorkflowServer::Client.stub(:make_decision)
   end
 

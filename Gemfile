@@ -15,9 +15,9 @@ gem 'mongoid-indifferent-access'
 gem 'uuidtools'
 
 #active record
-gem 'activerecord-jdbc-adapter', platform: :jruby
 gem 'activerecord', require: 'active_record'
-gem 'jdbc-postgres', platform: :jruby
+gem 'activerecord-jdbcmysql-adapter', platform: :jruby
+gem 'mysql2', platform: :ruby
 gem 'uuid-support', git: 'git@github.groupondev.com:US/uuid-support-gem.git', require: 'uuid_support'
 gem 'foreigner'
 gem 'enumerize'

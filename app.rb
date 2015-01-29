@@ -19,6 +19,10 @@ module Backbeat
   def self.v2?
     !!ENV['V2']
   end
+
+  def self.env
+    ENV['BACKBEAT_ENV'] || 'development'
+  end
 end
 
 require 'api'
