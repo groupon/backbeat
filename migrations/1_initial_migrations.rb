@@ -1,7 +1,7 @@
 class InitialMigrations < ActiveRecord::Migration
   def change
     create_table :users do |t|
-      t.string :uuid,                  null: false
+      t.binary :uuid,                  null: false, limit: 16
       t.string :decision_endpoint,     null: false
       t.string :activity_endpoint,     null: false
       t.string :notification_endpoint, null: false
@@ -10,7 +10,7 @@ class InitialMigrations < ActiveRecord::Migration
     add_index(:users, :id, unique: true)
 
     create_table :workflows do |t|
-      t.string  :uuid,    null: false
+      t.binary  :uuid,    null: false,    limit: 16
       t.string  :name,    null: false
       t.string  :decider
       t.text    :subject
@@ -22,7 +22,7 @@ class InitialMigrations < ActiveRecord::Migration
     add_foreign_key(:workflows, :users)
 
     create_table :nodes do |t|
-      t.string   :uuid,                  null: false
+      t.binary   :uuid,                  null: false, limit: 16
       t.string   :mode,                  null: false
       t.string   :current_server_status, null: false
       t.string   :current_client_status, null: false
@@ -39,7 +39,7 @@ class InitialMigrations < ActiveRecord::Migration
     add_foreign_key(:nodes, :nodes, column: 'parent_id')
 
     create_table :client_node_details do |t|
-      t.string  :uuid,     null: false
+      t.binary  :uuid,     null: false, limit: 16
       t.integer :node_id,  null: false
       t.text    :metadata
       t.text    :data
@@ -50,7 +50,7 @@ class InitialMigrations < ActiveRecord::Migration
     add_foreign_key(:client_node_details, :nodes)
 
     create_table :status_changes do |t|
-      t.string   :uuid,       null: false
+      t.binary   :uuid,       null: false, limit: 16
       t.integer  :node_id,    null: false
       t.string   :from_status
       t.string   :to_status
@@ -63,6 +63,7 @@ class InitialMigrations < ActiveRecord::Migration
     add_foreign_key(:status_changes, :nodes)
 
     create_table :node_details do |t|
+      t.binary  :uuid,              null: false, limit: 16
       t.string  :uuid,              null: false
       t.integer :node_id,           null: false
       t.integer :retries_remaining, null: false
