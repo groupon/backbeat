@@ -4,6 +4,7 @@ require "v2/models"
 require "v2/processors"
 require "v2/server"
 require "v2/state_manager"
+require "v2/workflow_tree"
 require "workflow_server/logger"
 
 module V2
