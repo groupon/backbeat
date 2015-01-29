@@ -1,6 +1,6 @@
 require "grape"
 require "v2/server"
-require "v2/models/node"
+require "v2/models/workflow"
 require "workflow_server/errors"
 require "api/helpers/current_user_helper"
 
