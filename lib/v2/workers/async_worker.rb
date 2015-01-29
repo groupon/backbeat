@@ -17,8 +17,8 @@ module V2
         Server.fire_event(Server::ClientError, node, { error_message: msg["error_message"] })
       end
 
-      def self.schedule_async_event(node, method, number_of_minutes)
-        perform_in(number_of_minutes.minutes, node.class.name, node.id, method)
+      def self.schedule_async_event(node, method, time)
+        perform_at(time, node.class.name, node.id, method)
       end
 
       def self.async_event(node, method)
