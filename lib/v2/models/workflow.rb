@@ -2,6 +2,10 @@ require 'v2/models/child_status_methods'
 
 module V2
   class Workflow < ActiveRecord::Base
+    include UUIDSupport
+
+    uuid_column :uuid
+
     belongs_to :user
     has_many :nodes
     serialize :subject, JSON

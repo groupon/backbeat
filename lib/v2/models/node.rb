@@ -4,6 +4,9 @@ require 'v2/models/child_status_methods'
 module V2
   class Node < ActiveRecord::Base
     extend ::Enumerize
+    include UUIDSupport
+
+    uuid_column :uuid
 
     default_scope { order("id asc") }
 
