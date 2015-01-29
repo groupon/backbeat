@@ -18,6 +18,7 @@ describe V2::WorkflowTree, v2: true do
     it "returns the tree as a hash with no children" do
       expect(V2::WorkflowTree.to_hash(workflow)).to eq({
         id: workflow.id,
+        status: nil,
         name: workflow.name,
         children: []
       })
@@ -28,10 +29,12 @@ describe V2::WorkflowTree, v2: true do
 
       expect(V2::WorkflowTree.to_hash(workflow)).to eq({
         id: workflow.id,
+        status: nil,
         name: workflow.name,
         children: [
           {
             id: workflow.children.first.id,
+            status: "pending",
             name: "Workflow child",
             children: []
           }
@@ -46,14 +49,17 @@ describe V2::WorkflowTree, v2: true do
 
       expect(V2::WorkflowTree.to_hash(workflow)).to eq({
         id: workflow.id,
+        status: nil,
         name: workflow.name,
         children: [
           {
             id: workflow.children.first.id,
+            status: "pending",
             name: "Workflow child",
             children: [
               {
                 id: workflow.children.first.children.first.id,
+                status: "pending",
                 name: "Nested child",
                 children: []
               }
@@ -61,6 +67,7 @@ describe V2::WorkflowTree, v2: true do
           },
           {
             id: workflow.children.last.id,
+            status: "pending",
             name: "Another Workflow child",
             children: []
           }

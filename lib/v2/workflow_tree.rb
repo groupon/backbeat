@@ -4,6 +4,7 @@ module V2
       {
         id: node.id,
         name: node.name,
+        status: node.parent ? node.current_server_status : nil,
         children: node.children.map { |child| to_hash(child) }
       }
     end
