@@ -18,7 +18,7 @@ module V2
       resource 'workflows' do
         post "/" do
           params[:user] = current_user
-          wf = V2::Server.create_workflow(params, current_user)
+          wf = Server.create_workflow(params, current_user)
           if wf.valid?
             wf
           else
@@ -28,7 +28,7 @@ module V2
 
         post "/:id/signal/:name" do
           workflow = find_workflow
-          node = V2::Server.add_node(
+          node = Server.add_node(
             current_user,
             workflow,
             params.merge(
@@ -38,7 +38,7 @@ module V2
               mode: :blocking
             )
           )
-          V2::Server.fire_event(V2::Server::ScheduleNextNode, workflow)
+          Server.fire_event(Server::ScheduleNextNode, workflow)
           node
         end
 

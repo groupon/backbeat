@@ -25,7 +25,7 @@ module V2
 
           put "/:id/restart" do
             node = find_node
-            V2::Server.fire_event(V2::Server::RetryNode, node)
+            Server.fire_event(Server::RetryNode, node)
             {success: true}
           end
 
@@ -43,7 +43,7 @@ module V2
               node_to_add['options']['meta_data'] = node_to_add["meta_data"]
               node_to_add['options']['client_data'] = node_to_add["client_data"]
               node_to_add[:legacy_type] = node_to_add['type']
-              V2::Server.add_node(current_user, node, node_to_add)
+              Server.add_node(current_user, node, node_to_add)
             end
             {success: true}
           end
@@ -53,14 +53,14 @@ module V2
               raise WorkflowServer::InvalidParameters, "args parameter is invalid"
             end
             status_map = {
-              deciding_complete: V2::Server::ClientComplete,
-              deciding: V2::Server::ClientProcessing,
-              completed: V2::Server::ClientComplete,
-              errored: V2::Server::ClientError,
-              resolved: V2::Server::ClientResolved
+              deciding_complete: Server::ClientComplete,
+              deciding: Server::ClientProcessing,
+              completed: Server::ClientComplete,
+              errored: Server::ClientError,
+              resolved: Server::ClientResolved
             }
             node = find_node
-            V2::Server.fire_event(status_map[params[:new_status].to_sym], node)
+            Server.fire_event(status_map[params[:new_status].to_sym], node)
           end
         end
       end
