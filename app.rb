@@ -36,7 +36,7 @@ GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNK
 
 if Backbeat.v2?
   ActiveRecord::Base.include_root_in_json = false
-  ActiveRecord::Base.establish_connection(YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")["development"])
+  ActiveRecord::Base.establish_connection(YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")[Backbeat.env])
 else
   mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, 'config', 'mongoid.yml'))
   Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
