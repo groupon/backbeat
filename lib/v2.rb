@@ -5,7 +5,6 @@ require "v2/processors"
 require "v2/server"
 require "v2/state_manager"
 require "v2/workflow_tree"
-require "v2/colorize"
 require "workflow_server/logger"
 
 module V2

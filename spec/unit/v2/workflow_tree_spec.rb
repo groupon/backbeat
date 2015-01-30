@@ -1,8 +1,7 @@
 require "spec_helper"
+require "v2/helpers/colorize"
 
 describe V2::WorkflowTree, v2: true do
-  include Colorize
-
   let(:user) { FactoryGirl.create(:v2_user) }
   let(:workflow) { FactoryGirl.create(:v2_workflow, user: user) }
 
@@ -77,6 +76,8 @@ describe V2::WorkflowTree, v2: true do
       })
     end
   end
+
+  include Colorize
 
   context "to_string" do
     it "returns the tree as a string with no children" do

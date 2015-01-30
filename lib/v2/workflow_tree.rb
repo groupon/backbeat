@@ -1,6 +1,7 @@
+require "v2/helpers/colorize"
+
 module V2
   class WorkflowTree
-    extend Colorize
     def self.to_hash(node)
       {
         id: node.uuid,
@@ -15,32 +16,52 @@ module V2
         to_string(child, depth + 1)
       end.join
 
-      "\n#{node.uuid}#{spacer(depth)}#{node_display(node)}" + children
+      NodeString.build(node, depth) + children
     end
 
-    def self.spacer(depth)
-      cyan("#{('   ' * depth)}\|--")
-    end
+    class NodeString
+      include Colorize
 
-    def self.node_display(node)
-      node_details = "#{node.name}"
-      if node.parent
-        node_details += " - #{node.current_server_status}"
-        node_details = color_details(node.current_server_status.to_sym, node_details)
+      def self.build(node, depth)
+        new(node, depth).build
       end
-      node_details
-    end
 
-    def self.color_details(server_status, node_details)
-      case server_status
-      when :started, :sent_to_client, :received_from_client, :processing_children, :retrying
-        yellow(node_details)
-      when :complete
-        green(node_details)
-      when :errored
-        red(node_details)
-      else
-        white(node_details)
+      def initialize(node, depth)
+        @node = node
+        @depth = depth
+      end
+
+      def build
+        "\n#{node.uuid}#{spacer}#{node_display}"
+      end
+
+      private
+
+      attr_reader :node, :depth
+
+      def spacer
+        cyan("#{('   ' * depth)}\|--")
+      end
+
+      def node_display
+        if node.parent
+          colorize_details("#{node.name} - #{node.current_server_status}")
+        else
+          node.name
+        end
+      end
+
+      def colorize_details(node_details)
+        case node.current_server_status.to_sym
+        when :started, :sent_to_client, :received_from_client, :processing_children, :retrying
+          yellow(node_details)
+        when :complete
+          green(node_details)
+        when :errored
+          red(node_details)
+        else
+          white(node_details)
+        end
       end
     end
   end
