@@ -10,7 +10,7 @@ module V2
       helpers ::Api::CurrentUserHelper
 
       helpers do
-        def workflow
+        def find_workflow
           Workflow.where(user_id: current_user.id).find(params[:id])
         end
       end
@@ -27,6 +27,7 @@ module V2
         end
 
         post "/:id/signal/:name" do
+          workflow = find_workflow
           node = V2::Server.add_node(
             current_user,
             workflow,
@@ -42,10 +43,12 @@ module V2
         end
 
         get "/:id/tree" do
+          workflow = find_workflow
           WorkflowTree.to_hash(workflow)
         end
 
         get "/:id/tree/print" do
+          workflow = find_workflow
           { print: WorkflowTree.to_string(workflow) }
         end
       end

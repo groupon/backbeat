@@ -10,9 +10,21 @@ module V2
       def define_routes
         helpers ::Api::CurrentUserHelper
 
+        helpers do
+          def find_node
+            query = { user_id: current_user.id }
+            query[:workflow_id] = params[:workflow_id] if params[:workflow_id]
+            Node.where(query).find(params[:id])
+          end
+        end
+
         resource 'events' do
+          get "/:id" do
+            find_node
+          end
+
           put "/:id/restart" do
-            node = V2::Node.find(params[:id])
+            node = find_node
             V2::Server.fire_event(V2::Server::RetryNode, node)
             {success: true}
           end
@@ -24,7 +36,7 @@ module V2
             if params[:args][:decisions].nil? || params[:args][:decisions].empty?
               raise WorkflowServer::InvalidParameters, "args must include a 'decisions' parameter"
             end
-            node = V2::Node.find(params[:id])
+            node = find_node
             params[:args][:decisions].each do |dec|
               node_to_add = dec.dup
               node_to_add['options'] = {}
@@ -47,7 +59,7 @@ module V2
               errored: V2::Server::ClientError,
               resolved: V2::Server::ClientResolved
             }
-            node = V2::Node.find(params[:id])
+            node = find_node
             V2::Server.fire_event(status_map[params[:new_status].to_sym], node)
           end
         end

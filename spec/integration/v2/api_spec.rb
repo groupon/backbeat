@@ -34,7 +34,7 @@ describe V2::Api, v2: true do
     end
   end
 
-  context "PUT :id/restart" do
+  context "PUT /events/:id/restart" do
     let(:node) { workflow.children.first }
 
     context "with valid restart state" do
@@ -79,7 +79,7 @@ describe V2::Api, v2: true do
     end
   end
 
-  context "POST /:id/decisions" do
+  context "POST /events/:id/decisions" do
     it "creates the node detail with retry data" do
       parent_node = workflow.children.first
 
@@ -93,6 +93,46 @@ describe V2::Api, v2: true do
 
       expect(activity_node.node_detail.retry_interval).to eq(50)
       expect(activity_node.node_detail.retries_remaining).to eq(20)
+    end
+  end
+
+  context "GET /events/:id" do
+    it "returns the node data" do
+      node = workflow.children.first
+      response = get "workflows/#{workflow.id}/events/#{node.id}"
+      body = JSON.parse(response.body)
+
+      expect(body["id"]).to eq(node.id)
+    end
+
+    it "returns 404 if the node does not belong to the user" do
+      node = FactoryGirl.create(
+        :v2_workflow_with_node,
+        user: FactoryGirl.create(:v2_user)
+      ).children.first
+
+      response = get "workflows/#{node.workflow_id}/events/#{node.id}"
+
+      expect(response.status).to eq(404)
+    end
+
+    it "finds the node by id when no workflow id is provided" do
+      node = workflow.children.first
+      response = get "events/#{node.id}"
+      body = JSON.parse(response.body)
+
+      expect(body["id"]).to eq(node.id)
+    end
+
+    it "returns 404 if the node does not belong to the workflow" do
+      node = FactoryGirl.create(
+        :v2_workflow_with_node,
+        user: user
+      ).children.first
+
+      response = get "workflows/#{workflow.id}/events/#{node.id}"
+
+      expect(response.status).to eq(404)
     end
   end
 
