@@ -101,7 +101,7 @@ describe V2::Api, v2: true do
       response = get "workflows/#{workflow.id}/tree"
       body = JSON.parse(response.body)
 
-      expect(body["id"]).to eq(workflow.id)
+      expect(body["id"]).to eq(workflow.uuid)
     end
   end
 

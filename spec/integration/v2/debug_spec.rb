@@ -9,11 +9,11 @@ describe V2::Api, v2: true do
     FullRackApp
   end
 
-  let(:v2_user) { FactoryGirl.create(:v2_user) }
-  let(:v2_workflow) { FactoryGirl.create(:v2_workflow_with_node, user: v2_user) }
+  let(:user) { FactoryGirl.create(:v2_user) }
+  let(:workflow) { FactoryGirl.create(:v2_workflow_with_node, user: user) }
 
   before do
-    header 'CLIENT_ID', v2_user.id
+    header 'CLIENT_ID', user.uuid
   end
 
   def do_get(path)
@@ -23,11 +23,11 @@ describe V2::Api, v2: true do
 
   context "GET /debug/error_workflows" do
     it "returns workflows with nodes in error state" do
-      not_errored_workflow = v2_workflow
+      not_errored_workflow = workflow
 
       errored_workflow = FactoryGirl.create(
         :v2_workflow_with_node,
-        user: v2_user
+        user: user
       )
       errored_workflow.children.first.update_attributes(
         current_server_status: :errored
