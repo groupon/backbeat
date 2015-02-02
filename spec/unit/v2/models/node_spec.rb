@@ -64,4 +64,16 @@ describe V2::Node, v2: true do
       expect(node.blocking?).to be_false
     end
   end
+
+  include Colorize
+
+  context "print_tree" do
+    it "prints the tree of the node" do
+      output = capture(:stdout) do
+        node.print_tree
+      end
+
+      expect(output).to eq(V2::WorkflowTree.to_string(node) + "\n")
+    end
+  end
 end

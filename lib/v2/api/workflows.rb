@@ -1,6 +1,6 @@
 require "grape"
 require "v2/server"
-require "v2/models/node"
+require "v2/models/workflow"
 require "workflow_server/errors"
 require "api/helpers/current_user_helper"
 
@@ -9,10 +9,16 @@ module V2
     class Workflows < Grape::API
       helpers ::Api::CurrentUserHelper
 
+      helpers do
+        def find_workflow
+          Workflow.where(user_id: current_user.id).find(params[:id])
+        end
+      end
+
       resource 'workflows' do
         post "/" do
           params[:user] = current_user
-          wf = V2::Server.create_workflow(params, current_user)
+          wf = Server.create_workflow(params, current_user)
           if wf.valid?
             wf
           else
@@ -21,8 +27,8 @@ module V2
         end
 
         post "/:id/signal/:name" do
-          workflow = V2::Workflow.find(params[:id])
-          node = V2::Server.add_node(
+          workflow = find_workflow
+          node = Server.add_node(
             current_user,
             workflow,
             params.merge(
@@ -32,8 +38,18 @@ module V2
               mode: :blocking
             )
           )
-          V2::Server.fire_event(V2::Server::ScheduleNextNode, workflow)
+          Server.fire_event(Server::ScheduleNextNode, workflow)
           node
+        end
+
+        get "/:id/tree" do
+          workflow = find_workflow
+          WorkflowTree.to_hash(workflow)
+        end
+
+        get "/:id/tree/print" do
+          workflow = find_workflow
+          { print: WorkflowTree.to_string(workflow) }
         end
       end
     end

@@ -14,7 +14,7 @@ module V2
     validates :decider, presence: true
     validates :user_id, presence: true
 
-    include ChildStatusMethods
+    include SharedNodeMethods
 
     def parent
       nil

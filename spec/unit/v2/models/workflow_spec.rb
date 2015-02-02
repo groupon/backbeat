@@ -24,4 +24,16 @@ describe V2::Workflow, v2: true do
       expect(workflow.children.first).to eq(node)
     end
   end
+
+  include Colorize
+
+  context "print_tree" do
+    it "prints the tree of the node" do
+      output = capture(:stdout) do
+        workflow.print_tree
+      end
+
+      expect(output).to eq(V2::WorkflowTree.to_string(workflow) + "\n")
+    end
+  end
 end

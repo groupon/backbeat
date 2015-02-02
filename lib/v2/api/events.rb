@@ -10,10 +10,22 @@ module V2
       def define_routes
         helpers ::Api::CurrentUserHelper
 
+        helpers do
+          def find_node
+            query = { user_id: current_user.id }
+            query[:workflow_id] = params[:workflow_id] if params[:workflow_id]
+            Node.where(query).find(params[:id])
+          end
+        end
+
         resource 'events' do
+          get "/:id" do
+            find_node
+          end
+
           put "/:id/restart" do
-            node = V2::Node.find(params[:id])
-            V2::Server.fire_event(V2::Server::RetryNode, node)
+            node = find_node
+            Server.fire_event(Server::RetryNode, node)
             {success: true}
           end
 
@@ -24,14 +36,14 @@ module V2
             if params[:args][:decisions].nil? || params[:args][:decisions].empty?
               raise WorkflowServer::InvalidParameters, "args must include a 'decisions' parameter"
             end
-            node = V2::Node.find(params[:id])
+            node = find_node
             params[:args][:decisions].each do |dec|
               node_to_add = dec.dup
               node_to_add['options'] = {}
               node_to_add['options']['meta_data'] = node_to_add["meta_data"]
               node_to_add['options']['client_data'] = node_to_add["client_data"]
               node_to_add[:legacy_type] = node_to_add['type']
-              V2::Server.add_node(current_user, node, node_to_add)
+              Server.add_node(current_user, node, node_to_add)
             end
             {success: true}
           end
@@ -41,14 +53,14 @@ module V2
               raise WorkflowServer::InvalidParameters, "args parameter is invalid"
             end
             status_map = {
-              deciding_complete: V2::Server::ClientComplete,
-              deciding: V2::Server::ClientProcessing,
-              completed: V2::Server::ClientComplete,
-              errored: V2::Server::ClientError,
-              resolved: V2::Server::ClientResolved
+              deciding_complete: Server::ClientComplete,
+              deciding: Server::ClientProcessing,
+              completed: Server::ClientComplete,
+              errored: Server::ClientError,
+              resolved: Server::ClientResolved
             }
-            node = V2::Node.find(params[:id])
-            V2::Server.fire_event(status_map[params[:new_status].to_sym], node)
+            node = find_node
+            Server.fire_event(status_map[params[:new_status].to_sym], node)
           end
         end
       end

@@ -9,11 +9,11 @@ describe V2::Api, v2: true do
     FullRackApp
   end
 
-  let(:v2_user) { FactoryGirl.create(:v2_user) }
-  let(:v2_workflow) { FactoryGirl.create(:v2_workflow_with_node, user: v2_user) }
+  let(:user) { FactoryGirl.create(:v2_user) }
+  let(:workflow) { FactoryGirl.create(:v2_workflow_with_node, user: user) }
 
   before do
-    header 'CLIENT_ID', v2_user.uuid
+    header 'CLIENT_ID', user.uuid
     WorkflowServer::Client.stub(:make_decision)
   end
 
@@ -34,8 +34,8 @@ describe V2::Api, v2: true do
     end
   end
 
-  context "PUT :id/restart" do
-    let(:node) { v2_workflow.children.first }
+  context "PUT /events/:id/restart" do
+    let(:node) { workflow.children.first }
 
     context "with valid restart state" do
       before do
@@ -79,9 +79,9 @@ describe V2::Api, v2: true do
     end
   end
 
-  context "POST /:id/decisions" do
+  context "POST /events/:id/decisions" do
     it "creates the node detail with retry data" do
-      parent_node = v2_workflow.children.first
+      parent_node = workflow.children.first
 
       activity = FactoryGirl.build(:client_activity_post_to_decision).merge(
         retry: 20,
@@ -93,6 +93,64 @@ describe V2::Api, v2: true do
 
       expect(activity_node.node_detail.retry_interval).to eq(50)
       expect(activity_node.node_detail.retries_remaining).to eq(20)
+    end
+  end
+
+  context "GET /events/:id" do
+    it "returns the node data" do
+      node = workflow.children.first
+      response = get "workflows/#{workflow.id}/events/#{node.id}"
+      body = JSON.parse(response.body)
+
+      expect(body["id"]).to eq(node.id)
+    end
+
+    it "returns 404 if the node does not belong to the user" do
+      node = FactoryGirl.create(
+        :v2_workflow_with_node,
+        user: FactoryGirl.create(:v2_user)
+      ).children.first
+
+      response = get "workflows/#{node.workflow_id}/events/#{node.id}"
+
+      expect(response.status).to eq(404)
+    end
+
+    it "finds the node by id when no workflow id is provided" do
+      node = workflow.children.first
+      response = get "events/#{node.id}"
+      body = JSON.parse(response.body)
+
+      expect(body["id"]).to eq(node.id)
+    end
+
+    it "returns 404 if the node does not belong to the workflow" do
+      node = FactoryGirl.create(
+        :v2_workflow_with_node,
+        user: user
+      ).children.first
+
+      response = get "workflows/#{workflow.id}/events/#{node.id}"
+
+      expect(response.status).to eq(404)
+    end
+  end
+
+  context "GET /workflows/:id/tree" do
+    it "returns the workflow tree as a hash" do
+      response = get "workflows/#{workflow.id}/tree"
+      body = JSON.parse(response.body)
+
+      expect(body["id"]).to eq(workflow.uuid)
+    end
+  end
+
+  context "GET /workflows/:id/tree/print" do
+    it "returns the workflow tree as a string" do
+      response = get "workflows/#{workflow.id}/tree/print"
+      body = JSON.parse(response.body)
+
+      expect(body["print"]).to include(workflow.name)
     end
   end
 end

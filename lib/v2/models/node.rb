@@ -49,7 +49,7 @@ module V2
     delegate :complete?, :processing_children?, :ready?, to: :current_server_status
     delegate :subject, :decider, to: :workflow
 
-    include ChildStatusMethods
+    include SharedNodeMethods
 
     def parent=(node)
       self.parent_id = node.id if node.is_a?(V2::Node)
