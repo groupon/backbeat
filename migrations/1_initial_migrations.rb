@@ -35,6 +35,7 @@ class InitialMigrations < ActiveRecord::Migration
     end
     add_index(:nodes, :uuid)
     add_index(:nodes, :workflow_id)
+    add_index(:nodes, :parent_id)
     add_foreign_key(:nodes, :users)
     add_foreign_key(:nodes, :nodes, column: 'parent_id')
 

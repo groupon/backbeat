@@ -3,20 +3,47 @@ require "v2/helpers/colorize"
 module V2
   class WorkflowTree
     def self.to_hash(node)
+      new(node).to_hash
+    end
+
+    def self.to_string(node)
+      new(node).to_string
+    end
+
+    def initialize(root)
+      @root = root
+    end
+
+    def to_hash(node = root)
       {
         id: node.uuid,
         name: node.name,
-        status: node.parent ? node.current_server_status : nil,
-        children: node.children.map { |child| to_hash(child) }
+        status: node.is_a?(Node) ? node.current_server_status : nil,
+        children: children(node).map { |child| to_hash(child) }
       }
     end
 
-    def self.to_string(node, depth = 0)
-      children = node.children.map do |child|
+    def to_string(node = root, depth = 0)
+      child_strings = children(node).map do |child|
         to_string(child, depth + 1)
       end.join
 
-      NodeString.build(node, depth) + children
+      NodeString.build(node, depth) + child_strings
+    end
+
+    private
+
+    attr_reader :root
+
+    def children(node)
+      parent_id = node.is_a?(Node) ? node.id : nil
+      tree[parent_id] || []
+    end
+
+    def tree
+      @tree ||= Node.where(
+        workflow_id: root.workflow_id
+      ).group_by(&:parent_id)
     end
 
     class NodeString
@@ -44,7 +71,7 @@ module V2
       end
 
       def node_display
-        if node.parent
+        if node.is_a?(Node)
           colorize_details("#{node.name} - #{node.current_server_status}")
         else
           node.name
