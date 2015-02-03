@@ -19,12 +19,13 @@ module V2
       raise WorkflowServer::HttpError.new("http request to notify_of failed", response) unless response.code.between?(200, 299)
     end
 
-    DECISION_WHITE_LIST = [:decider, :subject, :id, :name, :parent_id, :user_id]
+    DECISION_WHITE_LIST = [:decider, :subject, :id, :name, :parent_id, :user_id, :client_data]
     ACTIVITY_WHITE_LIST = [:id, :mode, :name, :name, :parent_id, :workflow_id, :user_id, :client_data]
 
     def self.perform_action(node)
-      if node.legacy_type == 'signal' || node.legacy_type == 'timer'
-        decision = node.attributes.merge(
+      params = node.attributes.merge(client_data: node.client_node_detail.data)
+      if node.legacy_type == 'signal' || node.legacy_type == 'timer' 
+        decision = params.merge(
           subject: node.subject,
           decider: node.decider
         )
@@ -33,9 +34,8 @@ module V2
           node.user
         )
       else
-        activity = node.attributes.merge(client_data: node.client_node_detail.data)
         WorkflowServer::Client.perform_activity(
-          activity.keep_if { |k, _| ACTIVITY_WHITE_LIST.include? k.to_sym },
+          params.keep_if { |k, _| ACTIVITY_WHITE_LIST.include? k.to_sym },
           node.user
         )
       end

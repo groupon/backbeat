@@ -44,7 +44,14 @@ describe V2::Client, v2: true do
   context "perform_action" do
     it "sends a call to make decision if the node is a legacy signal" do
       node.node_detail.legacy_type = 'signal'
-      expect(WorkflowServer::Client).to receive(:make_decision)
+      expect(WorkflowServer::Client).to receive(:make_decision) do |params, user|
+        expect(params).to include(
+          subject: node.subject,
+          decider: node.decider,
+          client_data: node.client_node_detail.data
+        )
+        expect(user).to eq(node.user)
+      end
       V2::Client.perform_action(node)
     end
 
@@ -56,7 +63,12 @@ describe V2::Client, v2: true do
 
     it "sends a call to perform activity if the node is a legacy activity" do
       node.node_detail.legacy_type = 'activity'
-      expect(WorkflowServer::Client).to receive(:perform_activity)
+      expect(WorkflowServer::Client).to receive(:perform_activity) do |params, user|
+        expect(params).to include(
+          client_data: node.client_node_detail.data
+        )
+        expect(user).to eq(node.user)
+      end
       V2::Client.perform_action(node)
     end
   end
