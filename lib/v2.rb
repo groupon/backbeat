@@ -1,3 +1,4 @@
+require "v2/helpers/instrument"
 require "v2/api"
 require "v2/client"
 require "v2/models"
