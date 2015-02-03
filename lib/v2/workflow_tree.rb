@@ -18,7 +18,8 @@ module V2
       {
         id: node.uuid,
         name: node.name,
-        status: node.is_a?(Node) ? node.current_server_status : nil,
+        current_server_status: node.is_a?(Node) ? node.current_server_status : nil,
+        current_client_status: node.is_a?(Node) ? node.current_client_status : nil,
         children: children(node).map { |child| to_hash(child) }
       }
     end
@@ -72,7 +73,11 @@ module V2
 
       def node_display
         if node.is_a?(Node)
-          colorize_details("#{node.name} - #{node.current_server_status}")
+          colorize_details(
+            "#{node.name} - "\
+            "server: #{node.current_server_status}, "\
+            "client: #{node.current_client_status}"
+          )
         else
           node.name
         end
