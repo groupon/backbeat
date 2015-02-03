@@ -11,7 +11,7 @@ module V2
       get "/error_workflows" do
         workflow_ids = Node.where(
           user_id: current_user.id,
-          current_server_status: :errored
+          current_client_status: :errored
         ).pluck(:workflow_id).uniq
 
         Workflow.where("id IN (?)", workflow_ids)

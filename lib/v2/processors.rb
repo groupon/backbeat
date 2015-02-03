@@ -69,7 +69,7 @@ module V2
         node.mark_retried!
         Server.fire_event(Server::RetryNodeWithBackoff, node)
       else
-        Client.notify_of(node, "error", args[:error_mesage])
+        Client.notify_of(node, "error", args[:error_message])
       end
     end
 

@@ -16,13 +16,18 @@ describe V2::Api, v2: true do
     header 'CLIENT_ID', user.uuid
   end
 
-  def do_get(path)
-    response = get(path)
-    JSON.parse(response.body)
-  end
-
   context "GET /debug/error_workflows" do
-    it "returns workflows with nodes in error state" do
+    it "returns an empty collection if there are no error nodes" do
+      workflow
+
+      response = get("/debug/error_workflows")
+      body = JSON.parse(response.body)
+
+      expect(response.status).to eq(200)
+      expect(body.size).to eq(0)
+    end
+
+    it "returns workflows with nodes in client error state" do
       not_errored_workflow = workflow
 
       errored_workflow = FactoryGirl.create(
@@ -30,13 +35,35 @@ describe V2::Api, v2: true do
         user: user
       )
       errored_workflow.children.first.update_attributes(
-        current_server_status: :errored
+        current_client_status: :errored,
       )
 
-      response = do_get("/debug/error_workflows")
+      response = get("/debug/error_workflows")
+      body = JSON.parse(response.body)
 
-      expect(response.size).to eq(1)
-      expect(response.first["id"]).to eq(errored_workflow.id)
+      expect(body.size).to eq(1)
+      expect(body.first["id"]).to eq(errored_workflow.id)
+    end
+
+    it "returns workflows scoped to the user" do
+      user_workflow = workflow
+      user_workflow.children.first.update_attributes(
+        current_client_status: :errored,
+      )
+
+      other_user_workflow = FactoryGirl.create(
+        :v2_workflow_with_node,
+        user: FactoryGirl.create(:v2_user)
+      )
+      other_user_workflow.children.first.update_attributes(
+        current_client_status: :errored,
+      )
+
+      response = get("/debug/error_workflows")
+      body = JSON.parse(response.body)
+
+      expect(body.size).to eq(1)
+      expect(body.first["id"]).to eq(user_workflow.id)
     end
   end
 end
