@@ -39,10 +39,10 @@ module V2
           current_server_status: :sent_to_client,
           current_client_status: :received
         )
-        if node.legacy_type.to_sym == :flag
-          client_complete(node)
-        else
+        if node.perform_client_action?
           Client.perform_action(node)
+        else
+          Server.fire_event(Server::ClientComplete, node)
         end
       end
     end
