@@ -70,8 +70,19 @@ describe V2::Server, v2: true do
       end
 
       it "notifies the client" do
-        V2::Server.fire_event(V2::Server::ClientError, node)
-        expect(WebMock).to have_requested(:post, "http://backbeat-client:9000/notifications")
+        V2::Server.fire_event(V2::Server::ClientError, node, error_message: "Error message")
+        expect(WebMock).to have_requested(:post, "http://backbeat-client:9000/notifications").with(
+          body: {
+            "notification" => {
+              "type" => "V2::Node",
+              "id" => node.id,
+              "name" => node.name,
+              "subject" => node.subject,
+              "message" => "error",
+              "error" => "Error message"
+            }
+          }
+        )
       end
     end
   end
