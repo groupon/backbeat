@@ -5,9 +5,9 @@ module V2
       Instrument.instrument(node, :mark_children_ready) do
         node.children.each do |child_node|
           StateManager.call(child_node,
-                            current_server_status: :ready,
-                            current_client_status: :ready
-                           )
+            current_server_status: :ready,
+            current_client_status: :ready
+          )
         end
         Server::fire_event(Server::ChildrenReady, node)
       end 
@@ -36,9 +36,9 @@ module V2
       Instrument.instrument(node, :start_node) do
         Client.perform_action(node)
         StateManager.call(node,
-                          current_server_status: :sent_to_client,
-                          current_client_status: :received
-                         )
+          current_server_status: :sent_to_client,
+          current_client_status: :received
+        )
       end
     end
 
@@ -53,9 +53,9 @@ module V2
       Instrument.instrument(node, :client_complete) do
         Logger.info(client_complete: { node: node })
         StateManager.call(node,
-                          current_client_status: :complete,
-                          current_server_status: :processing_children
-                         )
+          current_client_status: :complete,
+          current_server_status: :processing_children
+        )
         Server.fire_event(Server::MarkChildrenReady, node)
       end
     end
@@ -80,7 +80,7 @@ module V2
           node.mark_retried!
           Server.fire_event(Server::RetryNodeWithBackoff, node)
         else
-          Client.notify_of(node, "error", args[:error_mesage])
+          Client.notify_of(node, "error", args[:error_message])
         end
       end 
     end

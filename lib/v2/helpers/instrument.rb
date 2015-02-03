@@ -1,4 +1,5 @@
 module Instrument
+  include WorkflowServer::Logger
   def self.instrument(node, event)
     t0 = Time.now
     log_msg(node, "#{event}_started")
@@ -17,7 +18,7 @@ module Instrument
   end
 
   def self.log_msg(node, message, options = {})
-    Logger.info({
+    info({
       source: self.class.to_s,
       id: node.id,
       name: node.name,
