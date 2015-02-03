@@ -80,7 +80,10 @@ describe V2::Server, v2: true do
               "subject" => node.subject,
               "message" => "error"
             },
-            "error" => "Error message"
+            "error" => {
+              "errorKlass" => "String",
+              "message" => "Error message"
+            }
           }
         )
       end
