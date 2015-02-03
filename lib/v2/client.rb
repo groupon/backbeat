@@ -10,9 +10,9 @@ module V2
           id: node.id,
           name: node.name,
           subject: node.subject,
-          message: message,
-          error: error
-        }
+          message: message
+        },
+        error: error
       }
       response = WorkflowServer::Client.post(node.user.notification_endpoint, notification_hash)
       raise WorkflowServer::HttpError.new("http request to notify_of failed", response) unless response.code.between?(200, 299)

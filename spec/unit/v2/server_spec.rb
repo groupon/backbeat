@@ -78,9 +78,9 @@ describe V2::Server, v2: true do
               "id" => node.id,
               "name" => node.name,
               "subject" => node.subject,
-              "message" => "error",
-              "error" => "Error message"
-            }
+              "message" => "error"
+            },
+            "error" => "Error message"
           }
         )
       end

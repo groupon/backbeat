@@ -18,8 +18,8 @@ describe V2::Client, v2: true do
             "name" => node.name,
             "subject" => node.subject,
             "message" => "error",
-            "error" => error
-          }
+          },
+          "error" => error
         }
       )
       WebMock.stub_request(:post, "http://notifications.com/api/v1/workflows/notify_of")
