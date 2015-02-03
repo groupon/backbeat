@@ -46,6 +46,7 @@ module V2
                                            :errored]
 
     delegate :retries_remaining, :legacy_type, to: :node_detail
+    delegate :data, to: :client_node_detail, prefix: :client
     delegate :complete?, :processing_children?, :ready?, to: :current_server_status
     delegate :subject, :decider, to: :workflow
 
