@@ -19,7 +19,8 @@ describe V2::WorkflowTree, v2: true do
     it "returns the tree as a hash with no children" do
       expect(V2::WorkflowTree.to_hash(workflow)).to eq({
         id: workflow.uuid,
-        status: nil,
+        current_server_status: nil,
+        current_client_status: nil,
         name: workflow.name,
         children: []
       })
@@ -30,12 +31,14 @@ describe V2::WorkflowTree, v2: true do
 
       expect(V2::WorkflowTree.to_hash(workflow)).to eq({
         id: workflow.uuid,
-        status: nil,
+        current_server_status: nil,
+        current_client_status: nil,
         name: workflow.name,
         children: [
           {
             id: workflow.children.first.uuid,
-            status: "pending",
+            current_server_status: "pending",
+            current_client_status: "ready",
             name: "Workflow child",
             children: []
           }
@@ -50,17 +53,20 @@ describe V2::WorkflowTree, v2: true do
 
       expect(V2::WorkflowTree.to_hash(workflow)).to eq({
         id: workflow.uuid,
-        status: nil,
+        current_server_status: nil,
+        current_client_status: nil,
         name: workflow.name,
         children: [
           {
             id: workflow.children.first.uuid,
-            status: "pending",
+            current_server_status: "pending",
+            current_client_status: "ready",
             name: "Workflow child",
             children: [
               {
                 id: workflow.children.first.children.first.uuid,
-                status: "pending",
+                current_server_status: "pending",
+                current_client_status: "ready",
                 name: "Nested child",
                 children: []
               }
@@ -68,7 +74,8 @@ describe V2::WorkflowTree, v2: true do
           },
           {
             id: workflow.children.last.uuid,
-            status: "pending",
+            current_server_status: "pending",
+            current_client_status: "ready",
             name: "Another Workflow child",
             children: []
           }
@@ -92,7 +99,7 @@ describe V2::WorkflowTree, v2: true do
 
       expect(V2::WorkflowTree.to_string(workflow)).to eq(
         "\n#{workflow.uuid}#{cyan("|--")}#{workflow.name}"\
-        "\n#{child.uuid}#{cyan("   |--")}#{red("#{child.name} - #{child.current_server_status}")}"
+        "\n#{child.uuid}#{cyan("   |--")}#{red("#{child.name} - server: #{child.current_server_status}, client: #{child.current_client_status}")}"
       )
     end
 
@@ -107,9 +114,9 @@ describe V2::WorkflowTree, v2: true do
 
       expect(V2::WorkflowTree.to_string(workflow)).to eq(
         "\n#{workflow.uuid}#{cyan("|--")}#{workflow.name}"\
-        "\n#{child_1.uuid}#{cyan("   |--")}#{yellow("#{child_1.name} - #{child_1.current_server_status}")}"\
-        "\n#{child_3.uuid}#{cyan("      |--")}#{yellow("#{child_3.name} - #{child_3.current_server_status}")}"\
-        "\n#{child_2.uuid}#{cyan("   |--")}#{green("#{child_2.name} - #{child_2.current_server_status}")}"
+        "\n#{child_1.uuid}#{cyan("   |--")}#{yellow("#{child_1.name} - server: #{child_1.current_server_status}, client: #{child_1.current_client_status}")}"\
+        "\n#{child_3.uuid}#{cyan("      |--")}#{yellow("#{child_3.name} - server: #{child_3.current_server_status}, client: #{child_3.current_client_status}")}"\
+        "\n#{child_2.uuid}#{cyan("   |--")}#{green("#{child_2.name} - server: #{child_2.current_server_status}, client: #{child_2.current_client_status}")}"
       )
     end
   end
