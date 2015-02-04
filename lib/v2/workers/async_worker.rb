@@ -27,9 +27,7 @@ module V2
 
       def perform(node_class, node_id, method)
         node = node_class.constantize.find(node_id)
-        Instrument.instrument(node, method) do
-          Processors.send(method, node)
-        end
+        V2::Processors.perform(method, node)
       end
     end
   end

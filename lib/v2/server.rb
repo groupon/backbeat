@@ -53,9 +53,9 @@ module V2
     def self.fire_event(event, node, args = {})
       case event
         when MarkChildrenReady
-          Processors.mark_children_ready(node)
+          Processors.perform(:mark_children_ready, node)
         when ChildrenReady
-          Processors.children_ready(node)
+          Processors.perform(:children_ready, node)
         when ScheduleNextNode
           Workers::AsyncWorker.async_event(node, :schedule_next_node)
         when StartNode
@@ -65,15 +65,15 @@ module V2
             node.fires_at
           )
         when ClientProcessing
-          Processors.client_processing(node)
+          Processors.perform(:client_processing, node)
         when ClientComplete
-          Processors.client_complete(node)
+          Processors.perform(:client_complete, node)
         when NodeComplete
-          Processors.node_complete(node)
+          Processors.perform(:node_complete, node)
         when ClientError
-          Processors.client_error(node, args)
+          Processors.perform(:client_error, node, args)
         when RetryNode
-          Processors.retry_node(node)
+          Processors.perform(:retry_node, node)
         when RetryNodeWithBackoff
           Workers::AsyncWorker.schedule_async_event(
             node,
