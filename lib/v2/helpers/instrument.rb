@@ -8,14 +8,15 @@ module Instrument
     log_msg(node, "#{event}_succeeded", args, duration: Time.now - t0)
     return result
   rescue Exception => error
-    log_msg(node, 
-            "#{event}_errored",
-            args,
-            error_class: error.class,
-            error: error.to_s,
-            backtrace: error.backtrace,
-            duration: Time.now - t0
-           )
+    log_msg(
+      node,
+      "#{event}_errored",
+      args,
+      error_class: error.class,
+      error: error.to_s,
+      backtrace: error.backtrace,
+      duration: Time.now - t0
+    )
     raise error
   end
 
@@ -29,5 +30,3 @@ module Instrument
     }.merge(options))
   end
 end
-
-

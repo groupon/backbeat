@@ -1,10 +1,12 @@
 require 'spec_helper'
 require "spec/helper/request_helper"
 require 'sidekiq/testing'
+require "spec/helper/sidekiq_helper"
 
 describe V2::Api, v2: true do
   include Rack::Test::Methods
   include RequestHelper
+  include SidekiqHelper
 
   def app
     FullRackApp
@@ -17,22 +19,6 @@ describe V2::Api, v2: true do
     header 'CLIENT_ID', user.uuid
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
     Sidekiq::Testing.fake!
-  end
-
-  # Acknowledges perform_in time and does not drain jobs that a drained job enqueues
-  def soft_drain
-    jobs = V2::Workers::AsyncWorker.jobs
-    0.upto(jobs.count - 1) do |i|
-      job = jobs[i]
-      if !job["at"] || Time.now.to_f > job["at"]
-        worker = V2::Workers::AsyncWorker.new
-        worker.jid = job['jid']
-        args = job['args']
-        worker.perform(*args)
-        jobs[i] = nil
-      end
-    end
-    jobs.compact!
   end
 
   context "nodes with fires_at" do

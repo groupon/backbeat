@@ -50,7 +50,21 @@ module V2
       node
     end
 
-    def self.fire_event(event, node, args = {})
+    def self.server_error(node, args)
+      if args.fetch(:server_retries_remaining, 0) > 0
+        Workers::AsyncWorker.schedule_async_event(
+          node,
+          args[:method],
+          Time.now + 30.seconds,
+          args[:server_retries_remaining] - 1
+        )
+      else
+        StateManager.call(node, current_server_status: :errored)
+        Client.notify_of(node, "error", args[:error])
+      end
+    end
+
+    def self.fire_event(event, node)
       case event
         when MarkChildrenReady
           Processors.perform(:mark_children_ready, node)
@@ -71,7 +85,7 @@ module V2
         when NodeComplete
           Processors.perform(:node_complete, node)
         when ClientError
-          Processors.perform(:client_error, node, args)
+          Processors.perform(:client_error, node)
         when RetryNode
           Processors.perform(:retry_node, node)
         when RetryNodeWithBackoff

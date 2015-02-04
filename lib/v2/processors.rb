@@ -1,8 +1,13 @@
 module V2
   class Processors
-    def self.perform(method, node, *args)
-      Instrument.instrument(node, method, *args) do
-        self.send(method, node, *args)
+    def self.perform(method, node, args = {})
+      Instrument.instrument(node, method, args) do
+        begin
+          self.send(method, node)
+        rescue StandardError => e
+          Server.server_error(node, args.merge({ error: e, method: method }))
+          raise e
+        end
       end
     end
 
@@ -68,7 +73,7 @@ module V2
       end
     end
 
-    def self.client_error(node, args)
+    def self.client_error(node)
       StateManager.call(node,
         current_server_status: :errored,
         current_client_status: :errored
@@ -77,7 +82,7 @@ module V2
         node.mark_retried!
         Server.fire_event(Server::RetryNodeWithBackoff, node)
       else
-        Client.notify_of(node, "error", args[:error_message])
+        Client.notify_of(node, "error", "Client Errored")
       end
     end
 
