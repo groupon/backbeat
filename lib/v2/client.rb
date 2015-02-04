@@ -23,7 +23,7 @@ module V2
     ACTIVITY_WHITE_LIST = [:id, :mode, :name, :name, :parent_id, :workflow_id, :user_id, :client_data]
 
     def self.perform_action(node)
-      if node.legacy_type == 'signal'
+      if node.legacy_type == 'signal' || node.legacy_type == 'timer'
         decision = node.attributes.merge(
           subject: node.subject,
           decider: node.decider
