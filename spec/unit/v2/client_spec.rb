@@ -48,6 +48,12 @@ describe V2::Client, v2: true do
       V2::Client.perform_action(node)
     end
 
+    it "sends a call to make decision if the node is a legacy timer" do
+      node.node_detail.legacy_type = 'timer'
+      expect(WorkflowServer::Client).to receive(:make_decision)
+      V2::Client.perform_action(node)
+    end
+
     it "sends a call to perform activity if the node is a legacy activity" do
       node.node_detail.legacy_type = 'activity'
       expect(WorkflowServer::Client).to receive(:perform_activity)
