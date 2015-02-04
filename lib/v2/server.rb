@@ -28,7 +28,7 @@ module V2
 
     def self.add_node(user, parent_node, params)
       node = Node.create!(
-        mode: params[:mode].to_sym,
+        mode: params.fetch(:mode, :blocking).to_sym,
         current_server_status: params[:current_server_status] || :pending,
         current_client_status: params[:current_client_status] || :pending,
         name: params['name'],

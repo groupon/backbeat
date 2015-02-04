@@ -10,7 +10,7 @@ module V2
           )
         end
         Server::fire_event(Server::ChildrenReady, node)
-      end 
+      end
     end
 
     def self.children_ready(node)
@@ -34,11 +34,16 @@ module V2
 
     def self.start_node(node)
       Instrument.instrument(node, :start_node) do
-        Client.perform_action(node)
-        StateManager.call(node,
+        StateManager.call(
+          node,
           current_server_status: :sent_to_client,
           current_client_status: :received
         )
+        if node.perform_client_action?
+          Client.perform_action(node)
+        else
+          Server.fire_event(Server::ClientComplete, node)
+        end
       end
     end
 
@@ -82,7 +87,7 @@ module V2
         else
           Client.notify_of(node, "error", args[:error_message])
         end
-      end 
+      end
     end
 
     def self.retry_node(node)

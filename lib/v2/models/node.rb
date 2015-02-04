@@ -66,5 +66,9 @@ module V2
     def mark_retried!
       node_detail.update_attributes!(retries_remaining: retries_remaining - 1)
     end
+
+    def perform_client_action?
+      legacy_type.to_sym != :flag
+    end
   end
 end
