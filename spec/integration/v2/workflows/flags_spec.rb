@@ -38,7 +38,8 @@ describe V2::Api, v2: true do
         parentId: signal_node.parent_id,
         userId: signal_node.user_id,
         decider: signal_node.decider,
-        subject: signal_node.subject
+        subject: signal_node.subject,
+        clientData: signal_node.client_data
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
@@ -61,7 +62,7 @@ describe V2::Api, v2: true do
 
       flag = {name: "my_flag", type: "flag"}
       activity = FactoryGirl.build(:client_activity_post_to_decision).merge(mode: :non_blocking)
-      
+
       children_to_post = { "args" => { "decisions" => [flag, activity] }}
 
       response = post "events/#{signal_node.id}/decisions", children_to_post
