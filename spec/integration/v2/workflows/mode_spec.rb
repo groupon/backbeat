@@ -38,6 +38,7 @@ describe V2::Api, v2: true do
         parentId: signal_node.parent_id,
         userId: signal_node.user_id,
         decider: signal_node.decider,
+        clientData: signal_node.client_node_detail.data,
         subject: signal_node.subject
       )
 
@@ -246,6 +247,7 @@ describe V2::Api, v2: true do
         parentId: signal_node.parent_id,
         userId: signal_node.user_id,
         decider: signal_node.decider,
+        clientData: signal_node.client_node_detail.data,
         subject: signal_node.subject
       )
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
@@ -311,6 +313,7 @@ describe V2::Api, v2: true do
         parentId: signal_node_2.parent_id,
         userId: signal_node_2.user_id,
         decider: signal_node_2.decider,
+        clientData: signal_node_2.client_node_detail.data,
         subject: signal_node_2.subject
       )
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")

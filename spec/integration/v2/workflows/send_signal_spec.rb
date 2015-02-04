@@ -37,6 +37,7 @@ describe V2::Api, v2: true do
         name: 'test',
         parentId: node.parent_id,
         userId: node.user_id,
+        clientData: node.client_node_detail.data,
         decider: node.decider,
         subject: node.subject
       )
