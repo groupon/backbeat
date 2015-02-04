@@ -18,11 +18,12 @@ require 'uuid_support'
 
 module Backbeat
   def self.v2?
-    !!ENV['V2']
+   !!ENV['V2'] || env == "staging"
   end
 
   def self.env
-    ENV['BACKBEAT_ENV'] || 'development'
+    env = WorkflowServer::Config.environment.to_s
+    env == "test" ? "development" : env
   end
 end
 
