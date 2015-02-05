@@ -34,6 +34,16 @@ describe V2::Api, v2: true do
     end
   end
 
+  context "GET /workflow/:id" do
+    it "returns a workflow given an id" do
+      response = get "/workflows/#{workflow.id}"
+      expect(response.status).to eq(200)
+      json_response = JSON.parse(response.body)
+
+      expect(json_response["id"]).to eq(workflow.id)
+    end
+  end
+
   context "PUT /events/:id/restart" do
     let(:node) { workflow.children.first }
 

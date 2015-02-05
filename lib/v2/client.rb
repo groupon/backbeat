@@ -11,7 +11,7 @@ module V2
     end
 
     def self.perform_action(node)
-      if node.legacy_type == 'signal' || node.legacy_type == 'timer' 
+      if node.legacy_type == 'signal'
         WorkflowServer::Client.make_decision(Client::DecisionSerializer.call(node), node.user)
       else
         WorkflowServer::Client.perform_activity(Client::ActivitySerializer.call(node), node.user)
