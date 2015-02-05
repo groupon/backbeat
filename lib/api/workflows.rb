@@ -9,7 +9,6 @@ module Api
   class Workflows < Grape::API
     include WorkflowServer::Logger
     extend ServiceDiscovery::Description::Dsl
-    version 'v2', using: :path
 
     helpers CurrentUserHelper
     helpers WorkflowHelper
