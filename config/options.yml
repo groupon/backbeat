@@ -2,6 +2,7 @@ default: &default
   log_level: DEBUG
   log_format: json
   async_queue: 'accounting_backbeat_server'
+  async_queue_v2: 'accounting_backbeat_server_v2'
   log: /var/groupon/backbeat/shared/log/backbeat.log
 
 test:

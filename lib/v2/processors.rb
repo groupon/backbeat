@@ -28,8 +28,8 @@ module V2
     def self.schedule_next_node(node)
       node.not_complete_children.each do |child_node|
         if child_node.current_server_status.ready?
-          Server::fire_event(Server::StartNode, child_node)
           StateManager.call(child_node, current_server_status: :started)
+          Server::fire_event(Server::StartNode, child_node)
         end
         break if child_node.blocking?
       end
@@ -38,7 +38,11 @@ module V2
 
     def self.start_node(node)
       node.with_lock do
-        return if node.already_performed?
+        Logger.info(message: "Gained start node lock", node: node)
+        if node.already_performed?
+          Logger.info(message: "Node already started", node: node)
+          return
+        end
         StateManager.call(
           node,
           current_server_status: :sent_to_client,

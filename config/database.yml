@@ -4,6 +4,7 @@ common: &common
   username: root
   password:
   database: backbeat_dev
+  pool: 200
 
 development:
   <<: *common
