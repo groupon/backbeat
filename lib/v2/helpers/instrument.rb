@@ -23,8 +23,7 @@ module Instrument
   def self.log_msg(node, message, args, options = {})
     info({
       source: self.class.to_s,
-      id: node.id,
-      name: node.name,
+      node: node,
       message: message,
       args: args
     }.merge(options))

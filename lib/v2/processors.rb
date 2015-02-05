@@ -4,7 +4,7 @@ module V2
       Instrument.instrument(node, method, args) do
         begin
           self.send(method, node)
-        rescue StandardError => e
+        rescue => e
           Server.server_error(node, args.merge({ error: e, method: method }))
           raise e
         end
