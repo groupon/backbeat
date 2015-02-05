@@ -73,6 +73,7 @@ module V2
     end
 
     class Events < Grape::API
+      version 'v2', using: :path
       extend EventEndpoints
     end
 

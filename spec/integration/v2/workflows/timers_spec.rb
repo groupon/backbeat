@@ -69,7 +69,7 @@ describe V2::Api, v2: true do
       soft_drain
       expect(activity_node.reload.current_server_status).to eq("sent_to_client")
 
-      put "/events/#{activity_node.id}/status/completed"
+      put "v2/events/#{activity_node.id}/status/completed"
       soft_drain
       expect(activity_node.reload.current_server_status).to eq("complete")
 
@@ -89,7 +89,7 @@ describe V2::Api, v2: true do
       soft_drain
 
       expect(timed_activity_node.reload.current_server_status).to eq("sent_to_client")
-      put "/events/#{timed_activity_node.id}/status/completed"
+      put "v2/events/#{timed_activity_node.id}/status/completed"
 
       soft_drain
       expect(timed_activity_node.reload.current_server_status).to eq("complete")

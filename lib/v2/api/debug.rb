@@ -7,8 +7,9 @@ module V2
   module Api
     class Debug < Grape::API
       helpers ::Api::CurrentUserHelper
+      version 'v2', using: :path
 
-      get "/error_workflows" do
+      get "/debug/error_workflows" do
         workflow_ids = Node.where(
           user_id: current_user.id,
           current_client_status: :errored

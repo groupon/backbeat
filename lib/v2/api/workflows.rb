@@ -8,6 +8,7 @@ module V2
   module Api
     class Workflows < Grape::API
       helpers ::Api::CurrentUserHelper
+      version 'v2', using: :path
 
       helpers do
         def find_workflow

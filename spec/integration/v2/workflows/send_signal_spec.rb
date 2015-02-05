@@ -18,7 +18,7 @@ describe V2::Api, v2: true do
 
   context "POST /workflows/:id/signal" do
     it "returns 201 and creates a new workflow when all parameters present" do
-      response = post "/workflows/#{v2_workflow.id}/signal/test", options: {
+      response = post "v2/workflows/#{v2_workflow.id}/signal/test", options: {
         client_data: { data: '123' },
         client_metadata: { metadata: '456'}
       }
@@ -53,7 +53,7 @@ describe V2::Api, v2: true do
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "/events/#{node.id}/status/deciding"
+      response = put "v2/events/#{node.id}/status/deciding"
       expect(node.reload.attributes).to include(
         "current_client_status" => "processing",
         "current_server_status" => "sent_to_client"
@@ -61,7 +61,7 @@ describe V2::Api, v2: true do
 
       activity= FactoryGirl.build(:client_activity_post_to_decision)
       activity_to_post = { "args" => { "decisions" => [activity] }}
-      response = post "events/#{node.id}/decisions", activity_to_post
+      response = post "v2/events/#{node.id}/decisions", activity_to_post
 
       expect(node.reload.attributes).to include(
         "current_client_status" => "processing",
@@ -69,7 +69,7 @@ describe V2::Api, v2: true do
       )
       expect(node.reload.children.count).to eq(1)
 
-      response = put "/events/#{node.id}/status/deciding_complete"
+      response = put "v2/events/#{node.id}/status/deciding_complete"
       expect(node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"
@@ -92,7 +92,7 @@ describe V2::Api, v2: true do
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "/events/#{activity_node.id}/status/completed"
+      response = put "v2/events/#{activity_node.id}/status/completed"
       expect(activity_node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"

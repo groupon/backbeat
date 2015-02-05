@@ -20,7 +20,7 @@ describe V2::Api, v2: true do
 
   context "POST /workflows" do
     it "returns 201 and creates a new workflow when all parameters present" do
-      response = post '/workflows', {workflow_type: "WFType", subject: {subject_klass: "PaymentTerm", subject_id: 100}, decider: "PaymentDecider"}
+      response = post 'v2/workflows', {workflow_type: "WFType", subject: {subject_klass: "PaymentTerm", subject_id: 100}, decider: "PaymentDecider"}
 
       expect(response.status).to eq(201)
 
@@ -30,7 +30,7 @@ describe V2::Api, v2: true do
       expect(wf_in_db).to_not be_nil
       expect(wf_in_db.subject).to eq({"subject_klass" => "PaymentTerm", "subject_id" => "100"})
 
-      response = post '/workflows', {workflow_type: "WFType", subject: {subject_klass: "PaymentTerm", subject_id: 100}, decider: "PaymentDecider"}
+      response = post 'v2/workflows', {workflow_type: "WFType", subject: {subject_klass: "PaymentTerm", subject_id: 100}, decider: "PaymentDecider"}
       expect(json_response['id']).to eq(JSON.parse(response.body)['id'])
     end
   end
@@ -61,12 +61,12 @@ describe V2::Api, v2: true do
       end
 
       it "returns 200" do
-        response = put "events/#{node.id}/restart"
+        response = put "v2/events/#{node.id}/restart"
         expect(response.status).to eq(200)
       end
 
       it "restarts the node" do
-        response = put "events/#{node.id}/restart"
+        response = put "v2/events/#{node.id}/restart"
 
         V2::Workers::AsyncWorker.drain
 
@@ -77,14 +77,14 @@ describe V2::Api, v2: true do
 
     context "with invalid restart state" do
       it "returns 400" do
-        response = put "events/#{node.id}/restart"
+        response = put "v2/events/#{node.id}/restart"
         expect(response.status).to eq(400)
       end
     end
 
     context "when no node found for id" do
       it "returns a 404" do
-        response = put "events/#{SecureRandom.uuid}/restart"
+        response = put "v2/events/#{SecureRandom.uuid}/restart"
         expect(response.status).to eq(404)
       end
     end
@@ -99,7 +99,7 @@ describe V2::Api, v2: true do
         retry_interval: 50
       )
       activity_to_post = { "args" => { "decisions" => [activity] }}
-      post "events/#{parent_node.id}/decisions", activity_to_post
+      post "v2/events/#{parent_node.id}/decisions", activity_to_post
       activity_node = parent_node.children.first
 
       expect(activity_node.node_detail.retry_interval).to eq(50)
@@ -110,7 +110,7 @@ describe V2::Api, v2: true do
   context "GET /events/:id" do
     it "returns the node data" do
       node = workflow.children.first
-      response = get "workflows/#{workflow.id}/events/#{node.id}"
+      response = get "v2/workflows/#{workflow.id}/events/#{node.id}"
       body = JSON.parse(response.body)
 
       expect(body["id"]).to eq(node.id)
@@ -122,14 +122,14 @@ describe V2::Api, v2: true do
         user: FactoryGirl.create(:v2_user)
       ).children.first
 
-      response = get "workflows/#{node.workflow_id}/events/#{node.id}"
+      response = get "v2/workflows/#{node.workflow_id}/events/#{node.id}"
 
       expect(response.status).to eq(404)
     end
 
     it "finds the node by id when no workflow id is provided" do
       node = workflow.children.first
-      response = get "events/#{node.id}"
+      response = get "v2/events/#{node.id}"
       body = JSON.parse(response.body)
 
       expect(body["id"]).to eq(node.id)
@@ -141,7 +141,7 @@ describe V2::Api, v2: true do
         user: user
       ).children.first
 
-      response = get "workflows/#{workflow.id}/events/#{node.id}"
+      response = get "v2/workflows/#{workflow.id}/events/#{node.id}"
 
       expect(response.status).to eq(404)
     end
@@ -149,7 +149,7 @@ describe V2::Api, v2: true do
 
   context "GET /workflows/:id/tree" do
     it "returns the workflow tree as a hash" do
-      response = get "workflows/#{workflow.id}/tree"
+      response = get "v2/workflows/#{workflow.id}/tree"
       body = JSON.parse(response.body)
 
       expect(body["id"]).to eq(workflow.uuid)
@@ -158,7 +158,7 @@ describe V2::Api, v2: true do
 
   context "GET /workflows/:id/tree/print" do
     it "returns the workflow tree as a string" do
-      response = get "workflows/#{workflow.id}/tree/print"
+      response = get "v2/workflows/#{workflow.id}/tree/print"
       body = JSON.parse(response.body)
 
       expect(body["print"]).to include(workflow.name)
