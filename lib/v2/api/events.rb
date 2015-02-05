@@ -7,7 +7,7 @@ require "api/helpers/current_user_helper"
 module V2
   module Api
     module EventEndpoints
-      def define_routes
+      def event_api
         helpers ::Api::CurrentUserHelper
 
         helpers do
@@ -64,21 +64,20 @@ module V2
           end
         end
       end
-
-      def self.extended(klass)
-        klass.class_eval do
-          define_routes
-        end
-      end
     end
 
     class Events < Grape::API
-      version 'v2', using: :path
       extend EventEndpoints
+      version 'v2', using: :path
+      event_api
     end
 
     class WorkflowEvents < Grape::API
       extend EventEndpoints
+      version 'v2', using: :path
+      resource 'workflows/:workflow_id' do
+        event_api
+      end
     end
   end
 end

@@ -58,7 +58,7 @@ module Api
     if Backbeat.v2?
       mount V2::Api::Workflows
       mount V2::Api::Events
-      mount V2::Api::WorkflowEvents => 'v2/workflows/:workflow_id'
+      mount V2::Api::WorkflowEvents
       mount V2::Api::Debug
     else
       mount Api::Workflows
