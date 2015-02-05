@@ -72,7 +72,12 @@ module V2
       legacy_type.to_sym != :flag
     end
 
+    def decision?
+      legacy_type.to_sym == :signal
+    end
+
     PERFORMED_STATES = [:sent_to_client, :complete, :processing_children]
+
     def already_performed?
       PERFORMED_STATES.include?(current_server_status.to_sym)
     end
