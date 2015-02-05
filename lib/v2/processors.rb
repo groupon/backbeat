@@ -34,11 +34,15 @@ module V2
 
     def self.start_node(node)
       Instrument.instrument(node, :start_node) do
-        StateManager.call(
-          node,
-          current_server_status: :sent_to_client,
-          current_client_status: :received
-        )
+        node.with_lock do
+          return if node.already_performed?
+          StateManager.call(
+            node,
+            current_server_status: :sent_to_client,
+            current_client_status: :received
+          )
+        end
+
         if node.perform_client_action?
           Client.perform_action(node)
         else

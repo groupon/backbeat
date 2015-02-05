@@ -25,13 +25,46 @@ describe V2::Server, v2: true do
   end
 
   context "start_node" do
+    before do
+      node.update_attributes(current_server_status: :started)
+    end
+
     it "schedules a timed node" do
       Timecop.freeze
       node.update_attributes(fires_at: Time.now + 10.minutes)
       V2::Server.fire_event(V2::Server::StartNode, node)
       jobs = V2::Workers::AsyncWorker.jobs
+
       expect(jobs.count).to eq(1)
       expect(jobs.first["at"]).to eq(Time.now.to_f + 10.minutes.to_f)
+    end
+
+    it "returns if already performed" do
+      expect(node).to_not receive(:perform_client_action?)
+
+      node.update_attributes(current_server_status: :sent_to_client)
+      V2::Server.fire_event(V2::Server::StartNode, node)
+      V2::Workers::AsyncWorker.drain
+    end
+
+    it "performs client action unless its a flag" do
+      expect(V2::Client).to receive(:perform_action).with(node)
+
+      V2::Server.fire_event(V2::Server::StartNode, node)
+      V2::Workers::AsyncWorker.drain
+    end
+
+    it "performs no client action if a flag" do
+      node.node_detail.update_attributes(legacy_type: :flag)
+      allow(V2::Server).to receive(:fire_event).with(
+        V2::Server::StartNode,
+        node
+      ).and_call_original
+
+      expect(V2::Server).to receive(:fire_event).with(V2::Server::ClientComplete, node)
+
+      V2::Server.fire_event(V2::Server::StartNode, node)
+      V2::Workers::AsyncWorker.drain
     end
   end
 
