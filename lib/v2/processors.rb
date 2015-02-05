@@ -34,24 +34,19 @@ module V2
 
     def self.start_node(node)
       Instrument.instrument(node, :start_node) do
-        ignore_event_states = [:sent_to_client, :complete, :processing_children]
         node.with_lock do
-          return if ignore_event_states.include?(node.current_server_status.to_sym)
-          if node.legacy_type.to_sym == :flag
-            StateManager.call(
-              node,
-              current_server_status: :sent_to_client,
-              current_client_status: :received
-            )
-            client_complete(node)
-          else
-            StateManager.call(
-              node,
-              current_server_status: :sent_to_client,
-              current_client_status: :received
-            )
-            Client.perform_action(node)
-          end
+          return if node.already_performed?
+          StateManager.call(
+            node,
+            current_server_status: :sent_to_client,
+            current_client_status: :received
+          )
+        end
+
+        if node.perform_client_action?
+          Client.perform_action(node)
+        else
+          Server.fire_event(Server::ClientComplete, node)
         end
       end
     end
