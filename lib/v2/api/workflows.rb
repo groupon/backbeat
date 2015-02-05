@@ -42,6 +42,10 @@ module V2
           node
         end
 
+        get "/:id" do
+          find_workflow
+        end
+
         get "/:id/tree" do
           workflow = find_workflow
           WorkflowTree.to_hash(workflow)
