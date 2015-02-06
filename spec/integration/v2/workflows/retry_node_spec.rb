@@ -1,9 +1,11 @@
 require 'spec_helper'
 require "spec/helper/request_helper"
+require "spec/helper/sidekiq_helper"
 
 describe V2::Api, v2: true do
   include Rack::Test::Methods
   include RequestHelper
+  include SidekiqHelper
 
   def app
     FullRackApp
@@ -87,6 +89,27 @@ describe V2::Api, v2: true do
         "current_client_status" => "errored",
         "current_server_status" => "errored"
       )
+    end
+  end
+
+  context "server error" do
+    it "sends a message to the client after a set number of retries fails" do
+      Timecop.freeze
+      expect(V2::Processors).to receive(:start_node).exactly(5).times do
+        raise StandardError.new("start node failed")
+      end
+
+      V2::Server.fire_event(V2::Server::StartNode, activity_node)
+
+      4.times do
+        Timecop.travel(Time.now + 31.seconds)
+        expect { soft_drain }.to raise_error
+        expect(activity_node.current_server_status).to eq("sent_to_client")
+      end
+
+      Timecop.travel(Time.now + 31.seconds)
+      expect { soft_drain }.to raise_error
+      expect(activity_node.reload.current_server_status).to eq("errored")
     end
   end
 end

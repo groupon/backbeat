@@ -24,6 +24,30 @@ describe V2::Server, v2: true do
     )
   end
 
+  context "perform" do
+    it "logs the node, method name, and args" do
+      expect(Instrument).to receive(:instrument).with(node, :mark_children_ready, { message: "Message" }) 
+      V2::Processors.perform(:mark_children_ready, node, { message: "Message" })
+    end
+
+    it "calls the processor method with the node" do
+      expect(V2::Processors).to receive(:mark_children_ready)
+      V2::Processors.perform(:mark_children_ready, node)
+    end
+
+    it "fires server error event when an error is raised" do
+      error = StandardError.new
+      expect(V2::Processors).to receive(:mark_children_ready).with(node) do
+        raise error
+      end
+      expect(V2::Server).to receive(:server_error).with(
+        node,
+        { error: error, method: :mark_children_ready, message: "message"}
+      )
+      expect { V2::Processors.perform(:mark_children_ready, node, { message: "message" }) }.to raise_error(error)
+    end
+  end
+
   context "start_node" do
     before do
       node.update_attributes(current_server_status: :started)
@@ -103,7 +127,7 @@ describe V2::Server, v2: true do
       end
 
       it "notifies the client" do
-        V2::Server.fire_event(V2::Server::ClientError, node, error_message: "Error message")
+        V2::Server.fire_event(V2::Server::ClientError, node)
         expect(WebMock).to have_requested(:post, "http://backbeat-client:9000/notifications").with(
           body: {
             "notification" => {
@@ -115,11 +139,29 @@ describe V2::Server, v2: true do
             },
             "error" => {
               "errorKlass" => "String",
-              "message" => "Error message"
+              "message" => "Client Errored"
             }
           }
         )
       end
+    end
+  end
+
+  context "server_error" do
+    it "schedules the task with a delay with one less retry" do
+      Timecop.freeze
+      expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(node, :blah, Time.now + 30.seconds, 1) 
+      V2::Server.server_error(node, { method: :blah, server_retries_remaining: 2})
+    end
+
+    it "marks the node as errored if server_retries_remaining does not exists" do
+      V2::Server.server_error(node, { method: :blah })
+      expect(node.current_server_status).to eq("errored")
+    end
+
+    it "notifies the client if there are no remaining retries" do
+      expect(V2::Client).to receive(:notify_of).with(node, "error", "Server Error")
+      V2::Server.server_error(node, { method: :blah, server_retries_remaining: 0, error: "Server Error"})
     end
   end
 
