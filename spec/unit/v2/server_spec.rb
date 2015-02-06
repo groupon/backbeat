@@ -26,7 +26,7 @@ describe V2::Server, v2: true do
 
   context "perform" do
     it "logs the node, method name, and args" do
-      expect(Instrument).to receive(:instrument).with(node, :mark_children_ready, { message: "Message" }) 
+      expect(Instrument).to receive(:instrument).with(node, :mark_children_ready, { message: "Message" })
       V2::Processors.perform(:mark_children_ready, node, { message: "Message" })
     end
 
@@ -61,14 +61,6 @@ describe V2::Server, v2: true do
 
       expect(jobs.count).to eq(1)
       expect(jobs.first["at"]).to eq(Time.now.to_f + 10.minutes.to_f)
-    end
-
-    it "returns if already performed" do
-      expect(node).to_not receive(:perform_client_action?)
-
-      node.update_attributes(current_server_status: :sent_to_client)
-      V2::Server.fire_event(V2::Server::StartNode, node)
-      V2::Workers::AsyncWorker.drain
     end
 
     it "performs client action unless its a flag" do
@@ -150,7 +142,7 @@ describe V2::Server, v2: true do
   context "server_error" do
     it "schedules the task with a delay with one less retry" do
       Timecop.freeze
-      expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(node, :blah, Time.now + 30.seconds, 1) 
+      expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(node, :blah, Time.now + 30.seconds, 1)
       V2::Server.server_error(node, { method: :blah, server_retries_remaining: 2})
     end
 
@@ -191,10 +183,11 @@ describe V2::Server, v2: true do
         V2::Server::RetryNode,
         node
       ).and_call_original
-      allow(V2::Server).to receive(:fire_event).with(V2::Server::StartNode, node)
+      allow(V2::Server).to receive(:fire_event).with(V2::Server::ScheduleNextNode, node.parent)
       V2::Server.fire_event(V2::Server::RetryNode, node)
       V2::Workers::AsyncWorker.drain
-      expect(node.reload.current_server_status).to eq("retrying")
+      expect(node.status_changes.first.to_status).to eq("retrying")
+      expect(node.status_changes.second.to_status).to eq("ready")
     end
   end
 end

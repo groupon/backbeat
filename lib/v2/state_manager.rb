@@ -17,7 +17,7 @@ module V2
         sent_to_client: [:processing_children, :recieved_from_client, :errored],
         processing_children: [:complete],
         errored: [:retrying],
-        retrying: [:started, :sent_to_client],
+        retrying: [:ready],
         complete: [:complete]
       }
     }
