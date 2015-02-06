@@ -7,21 +7,16 @@ module V2
     class AsyncWorker
       include Sidekiq::Worker
 
-      sidekiq_options retry: false,
-        backtrace: true,
-        queue: WorkflowServer::Config.options[:async_queue_v2]
+      sidekiq_options retry: false, backtrace: true, queue: WorkflowServer::Config.options[:async_queue_v2]
 
-      def self.schedule_async_event(node, method, time, retries_remaining = 4)
-        perform_at(time, node.class.name, node.id, method, retries_remaining)
+      def self.schedule_async_event(event, node, time, retries_remaining = 4)
+        perform_at(time, event.name, node.class.name, node.id, retries_remaining)
       end
 
-      def self.async_event(node, method, retries_remaining = 4)
-        perform_async(node.class.name, node.id, method, retries_remaining)
-      end
-
-      def perform(node_class, node_id, method, retries_remaining = 0)
+      def perform(event, node_class, node_id, retries_remaining)
+        event = event.constantize
         node = node_class.constantize.find(node_id)
-        V2::Processors.perform(method.to_sym, node, server_retries_remaining: retries_remaining)
+        Server.fire_event(event, node, Schedulers::NowScheduler.new(retries_remaining))
       end
     end
   end

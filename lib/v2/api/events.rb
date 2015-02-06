@@ -25,7 +25,7 @@ module V2
 
           put "/:id/restart" do
             node = find_node
-            Server.fire_event(Server::RetryNode, node)
+            Server.fire_event(V2::Events::RetryNode, node, Schedulers::NowScheduler)
             {success: true}
           end
 
@@ -53,11 +53,10 @@ module V2
               raise WorkflowServer::InvalidParameters, "args parameter is invalid"
             end
             status_map = {
-              deciding_complete: Server::ClientComplete,
-              deciding: Server::ClientProcessing,
-              completed: Server::ClientComplete,
-              errored: Server::ClientError,
-              resolved: Server::ClientResolved
+              deciding_complete: V2::Events::ClientComplete,
+              deciding: V2::Events::ClientProcessing,
+              completed: V2::Events::ClientComplete,
+              errored: V2::Events::ClientError
             }
             node = find_node
             Server.fire_event(status_map[params[:new_status].to_sym], node)

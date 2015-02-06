@@ -1,7 +1,7 @@
 module Instrument
   include WorkflowServer::Logger
 
-  def self.instrument(node, event, *args)
+  def self.instrument(node, event, args = {})
     t0 = Time.now
     log_msg(node, "#{event}_started", args)
     result = yield
@@ -12,7 +12,7 @@ module Instrument
       node,
       "#{event}_errored",
       args,
-      error_class: error.class,
+      error_class: error.class.name,
       error: error.to_s,
       backtrace: error.backtrace,
       duration: Time.now - t0

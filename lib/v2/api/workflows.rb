@@ -39,7 +39,7 @@ module V2
               mode: :blocking
             )
           )
-          Server.fire_event(Server::ScheduleNextNode, workflow)
+          Server.fire_event(V2::Events::ScheduleNextNode, workflow)
           node
         end
 
