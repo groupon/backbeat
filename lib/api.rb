@@ -56,10 +56,10 @@ module Api
     end
 
     if Backbeat.v2?
-      mount V2::Api::Workflows
-      mount V2::Api::Events
-      mount V2::Api::WorkflowEvents
-      mount V2::Api::Debug
+      mount V2::Api::WorkflowsApi
+      mount V2::Api::EventsApi
+      mount V2::Api::WorkflowEventsApi
+      mount V2::Api::DebugApi
     end
     mount Api::Workflows
     mount Api::Events

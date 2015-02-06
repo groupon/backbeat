@@ -5,7 +5,7 @@ require "api/helpers/current_user_helper"
 
 module V2
   module Api
-    class Debug < Grape::API
+    class DebugApi < Grape::API
       helpers ::Api::CurrentUserHelper
       version 'v2', using: :path
 
