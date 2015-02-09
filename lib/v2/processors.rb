@@ -27,9 +27,11 @@ module V2
 
     def self.schedule_next_node(node)
       node.not_complete_children.each do |child_node|
-        if child_node.current_server_status.ready?
-          Server::fire_event(Server::StartNode, child_node)
-          StateManager.call(child_node, current_server_status: :started)
+        child_node.with_lock do
+          if child_node.current_server_status.ready?
+            StateManager.call(child_node, current_server_status: :started)
+            Server::fire_event(Server::StartNode, child_node)
+          end
         end
         break if child_node.blocking?
       end
@@ -37,14 +39,11 @@ module V2
     end
 
     def self.start_node(node)
-      node.with_lock do
-        return if node.already_performed?
-        StateManager.call(
-          node,
-          current_server_status: :sent_to_client,
-          current_client_status: :received
-        )
-      end
+      StateManager.call(
+        node,
+        current_server_status: :sent_to_client,
+        current_client_status: :received
+      )
 
       if node.perform_client_action?
         Client.perform_action(node)
@@ -88,7 +87,8 @@ module V2
 
     def self.retry_node(node)
       StateManager.call(node, current_server_status: :retrying)
-      Server.fire_event(Server::StartNode, node)
+      StateManager.call(node, current_server_status: :ready)
+      Server.fire_event(Server::ScheduleNextNode, node.parent)
     end
   end
 end
