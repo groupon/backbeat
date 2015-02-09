@@ -60,10 +60,9 @@ module Api
       mount V2::Api::Events
       mount V2::Api::WorkflowEvents
       mount V2::Api::Debug
-    else
-      mount Api::Workflows
-      mount Api::Events
-      mount Api::Debug
     end
+    mount Api::Workflows
+    mount Api::Events
+    mount Api::Debug
   end
 end

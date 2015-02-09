@@ -37,7 +37,7 @@ describe V2::Api, v2: true do
 
   context "GET /workflow/:id" do
     it "returns a workflow given an id" do
-      response = get "/workflows/#{workflow.id}"
+      response = get "v2/workflows/#{workflow.id}"
       expect(response.status).to eq(200)
       json_response = JSON.parse(response.body)
 

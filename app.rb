@@ -18,7 +18,7 @@ require 'uuid_support'
 
 module Backbeat
   def self.v2?
-    true 
+    !!ENV['V2']
   end
 
   def self.env
@@ -38,15 +38,15 @@ GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNK
 if Backbeat.v2?
   ActiveRecord::Base.include_root_in_json = false
   ActiveRecord::Base.establish_connection(YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")[Backbeat.env])
-else
-  mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, 'config', 'mongoid.yml'))
-  Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
+end
 
-  ApplicationTransaction.configure do |config|
-    config.backend = :mongoid
-    config.workers = [:sidekiq]
-    config.logger = WorkflowServer::TransactionLogger
-  end
+mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, 'config', 'mongoid.yml'))
+Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
+
+ApplicationTransaction.configure do |config|
+  config.backend = :mongoid
+  config.workers = [:sidekiq]
+  config.logger = WorkflowServer::TransactionLogger
 end
 
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis

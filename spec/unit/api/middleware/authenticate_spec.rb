@@ -40,4 +40,12 @@ describe Api::Middleware::Authenticate do
     @env['WORKFLOW_CURRENT_USER'].should_not be_nil
     @env['WORKFLOW_CURRENT_USER'].should == user
   end
+
+  it "looks up the user by v1 api version" do
+    user = FactoryGirl.create(:user)
+    request = Rack::MockRequest.new(Api::Middleware::Authenticate.new(@mock_app))
+    response = request.post("/workflows", {"HTTP_CLIENT_ID" => user.id})
+    response.status.should == 200
+    @env['WORKFLOW_CURRENT_USER'].should eq(user)
+  end
 end
