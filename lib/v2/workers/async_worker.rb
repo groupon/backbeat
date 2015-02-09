@@ -13,8 +13,8 @@ module V2
         perform_at(time, event.name, node.class.name, node.id, retries_remaining)
       end
 
-      def perform(event, node_class, node_id, retries_remaining)
-        event = event.constantize
+      def perform(event_class, node_class, node_id, retries_remaining)
+        event = event_class.constantize
         node = node_class.constantize.find(node_id)
         Server.fire_event(event, node, Schedulers::NowScheduler.new(retries_remaining))
       end
