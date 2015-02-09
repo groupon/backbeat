@@ -18,7 +18,7 @@ describe V2::Api, v2: true do
 
   context "flags" do
     it "completes a workflow with a flag" do
-      response = post "/workflows/#{v2_workflow.id}/signal/test", options: {
+      response = post "v2/workflows/#{v2_workflow.id}/signal/test", options: {
         client_data: { data: '123' },
           client_metadata: { metadata: '456'}
       }
@@ -27,8 +27,8 @@ describe V2::Api, v2: true do
 
       signal_node = v2_workflow.children.where(id: signal['id']).first
       expect(signal_node.attributes).to include(
-        "current_client_status" => "ready",
-        "current_server_status" => "ready"
+        "current_server_status"=>"ready",
+        "current_client_status"=>"ready"
       )
 
       decision_to_make = FactoryGirl.build(
@@ -53,7 +53,7 @@ describe V2::Api, v2: true do
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "/events/#{signal_node.id}/status/deciding"
+      response = put "v2/events/#{signal_node.id}/status/deciding"
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
@@ -65,7 +65,7 @@ describe V2::Api, v2: true do
 
       children_to_post = { "args" => { "decisions" => [flag, activity] }}
 
-      response = post "events/#{signal_node.id}/decisions", children_to_post
+      response = post "v2/events/#{signal_node.id}/decisions", children_to_post
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
@@ -74,7 +74,7 @@ describe V2::Api, v2: true do
       expect(signal_node.reload.children.count).to eq(2)
 
 
-      response = put "/events/#{signal_node.id}/status/deciding_complete"
+      response = put "v2/events/#{signal_node.id}/status/deciding_complete"
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "complete",

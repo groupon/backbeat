@@ -20,7 +20,7 @@ describe V2::Api, v2: true do
     it "returns an empty collection if there are no error nodes" do
       workflow
 
-      response = get("/debug/error_workflows")
+      response = get("v2/debug/error_workflows")
       body = JSON.parse(response.body)
 
       expect(response.status).to eq(200)
@@ -38,7 +38,7 @@ describe V2::Api, v2: true do
         current_client_status: :errored,
       )
 
-      response = get("/debug/error_workflows")
+      response = get("v2/debug/error_workflows")
       body = JSON.parse(response.body)
 
       expect(body.size).to eq(1)
@@ -59,7 +59,7 @@ describe V2::Api, v2: true do
         current_client_status: :errored,
       )
 
-      response = get("/debug/error_workflows")
+      response = get("v2/debug/error_workflows")
       body = JSON.parse(response.body)
 
       expect(body.size).to eq(1)
