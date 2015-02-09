@@ -42,6 +42,7 @@ module V2
           end
           break if child_node.blocking?
         end
+        Server.fire_event(NodeComplete, node) if node.all_children_complete?
       end
     end
 
