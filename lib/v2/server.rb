@@ -24,7 +24,7 @@ module V2
       )
       ClientNodeDetail.create!(
         node: node,
-        metadata: params[:options][:client_metadata] || {},
+        metadata: params[:options][:metadata] || {},
         data: params[:options][:client_data] || {}
       )
       NodeDetail.create!(

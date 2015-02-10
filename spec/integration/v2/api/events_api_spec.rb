@@ -77,6 +77,8 @@ describe V2::Api::EventsApi, v2: true do
 
       expect(activity_node.node_detail.retry_interval).to eq(50)
       expect(activity_node.node_detail.retries_remaining).to eq(20)
+      expect(activity_node.client_metadata).to eq({"version"=>"v2"})
+      expect(activity_node.client_data).to eq({"could"=>"be", "any"=>"thing"})
     end
   end
 

@@ -39,7 +39,8 @@ describe V2::Api, v2: true do
         userId: signal_node.user_id,
         decider: signal_node.decider,
         subject: signal_node.subject,
-        clientData: signal_node.client_data
+        clientData: signal_node.client_data,
+        metadata: signal_node.client_metadata
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")

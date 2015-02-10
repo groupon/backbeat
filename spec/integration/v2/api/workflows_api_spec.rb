@@ -40,7 +40,7 @@ describe V2::Api::WorkflowsApi, v2: true do
     let(:signal_params) {{
       options: {
         client_data: { data: '123' },
-        client_metadata: { metadata: '456'}
+        metadata: { metadata: '456'}
       }
     }}
 
@@ -49,6 +49,13 @@ describe V2::Api::WorkflowsApi, v2: true do
 
       expect(response.status).to eq(201)
       expect(workflow.children.count).to eq(2)
+    end
+
+    it "adds node nad calls schedule next node on the workflow" do
+      response = post "v2/workflows/#{workflow.id}/signal/test", signal_params
+
+      expect(workflow.nodes.last.client_data).to eq({ 'data' => '123' })
+      expect(workflow.nodes.last.client_metadata).to eq({ 'metadata' => '456' })
     end
 
     it "returns a 400 response if the workflow is complete" do

@@ -8,10 +8,8 @@ module RequestHelper
         "parentId" => activity_node.parent_id,
         "workflowId" => activity_node.workflow_id,
         "userId" => activity_node.user_id,
-        "clientData" => {
-          "could" => "be",
-          "any" => "thing"
-        }
+        "clientData" => activity_node.client_data,
+        "metadata" => activity_node.client_metadata
       }
     }
   end

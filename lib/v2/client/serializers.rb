@@ -9,7 +9,8 @@ module V2
           parent_id: node.parent_id,
           workflow_id: node.workflow_id,
           user_id: node.user_id,
-          client_data: node.client_data
+          client_data: node.client_data,
+          metadata: node.client_metadata
         }
       end
     end
@@ -22,6 +23,7 @@ module V2
           parent_id: node.parent_id,
           user_id: node.user_id,
           client_data: node.client_data,
+          metadata: node.client_metadata,
           subject: node.subject,
           decider: node.decider
         }

@@ -20,7 +20,7 @@ describe V2::Api, v2: true do
     it "completes a workflow with blocking, non_blocking and fire_and_forget nodes" do
       response = post "v2/workflows/#{v2_workflow.id}/signal/test", options: {
         client_data: { data: '123' },
-          client_metadata: { metadata: '456'}
+        client_metadata: { metadata: '456'}
       }
       expect(response.status).to eq(201)
       signal = JSON.parse(response.body)
@@ -30,7 +30,6 @@ describe V2::Api, v2: true do
         "current_client_status" => "ready",
         "current_server_status" => "ready"
       )
-
       decision_to_make = FactoryGirl.build(
         :client_decision,
         id: signal_node.id,
@@ -39,6 +38,7 @@ describe V2::Api, v2: true do
         userId: signal_node.user_id,
         decider: signal_node.decider,
         clientData: signal_node.client_node_detail.data,
+        metadata: signal_node.client_node_detail.metadata,
         subject: signal_node.subject
       )
 
@@ -248,6 +248,7 @@ describe V2::Api, v2: true do
         userId: signal_node.user_id,
         decider: signal_node.decider,
         clientData: signal_node.client_node_detail.data,
+        metadata: signal_node.client_node_detail.metadata,
         subject: signal_node.subject
       )
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
@@ -314,6 +315,7 @@ describe V2::Api, v2: true do
         userId: signal_node_2.user_id,
         decider: signal_node_2.decider,
         clientData: signal_node_2.client_node_detail.data,
+        metadata: signal_node_2.client_node_detail.metadata,
         subject: signal_node_2.subject
       )
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")

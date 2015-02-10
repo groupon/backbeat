@@ -35,10 +35,8 @@ I18n.enforce_available_locales = false
 
 GIT_REVISION = File.read("#{File.dirname(__FILE__)}/REVISION").chomp rescue 'UNKNOWN'
 
-if Backbeat.v2?
-  ActiveRecord::Base.include_root_in_json = false
-  ActiveRecord::Base.establish_connection(YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")[Backbeat.env])
-end
+ActiveRecord::Base.include_root_in_json = false
+ActiveRecord::Base.establish_connection(YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")[Backbeat.env])
 
 mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, 'config', 'mongoid.yml'))
 Mongoid.load!(mongo_path, WorkflowServer::Config.environment)

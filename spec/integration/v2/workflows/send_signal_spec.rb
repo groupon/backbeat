@@ -38,6 +38,7 @@ describe V2::Api, v2: true do
         parentId: node.parent_id,
         userId: node.user_id,
         clientData: node.client_node_detail.data,
+        metadata: node.client_node_detail.metadata,
         decider: node.decider,
         subject: node.subject
       )

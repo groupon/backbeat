@@ -55,7 +55,7 @@ module V2
             params[:args][:decisions].each do |dec|
               node_to_add = dec.dup
               node_to_add['options'] = {}
-              node_to_add['options']['meta_data'] = node_to_add["meta_data"]
+              node_to_add['options']['metadata'] = node_to_add["metadata"]
               node_to_add['options']['client_data'] = node_to_add["client_data"]
               node_to_add[:legacy_type] = node_to_add['type']
               Server.add_node(current_user, node, node_to_add)
