@@ -1,5 +1,3 @@
-require "v2/workers/async_worker"
-
 module V2
   class Server
     def self.create_workflow(params, user)
@@ -48,8 +46,14 @@ module V2
       end
     end
 
+    STRATEGIES = {
+      Events::ScheduleNextNode => Schedulers::AsyncScheduler,
+      Events::StartNode => Schedulers::AtScheduler,
+      Events::RetryNode => Schedulers::IntervalScheduler
+    }
+
     def self.fire_event(event, node, scheduler = nil)
-      scheduler ||= event.scheduler
+      scheduler ||= STRATEGIES.fetch(event, Schedulers::NowScheduler)
       scheduler.schedule(event, node)
     end
   end

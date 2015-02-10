@@ -1,10 +1,6 @@
 module V2
   module Events
     class MarkChildrenReady
-      def self.scheduler
-        Schedulers::NowScheduler
-      end
-
       def self.call(node)
         node.children.each do |child_node|
           StateManager.call(
@@ -18,20 +14,12 @@ module V2
     end
 
     class ChildrenReady
-      def self.scheduler
-        Schedulers::NowScheduler
-      end
-
       def self.call(node)
         Server::fire_event(ScheduleNextNode, node) if node.all_children_ready?
       end
     end
 
     class ScheduleNextNode
-      def self.scheduler
-        Schedulers::AsyncScheduler
-      end
-
       def self.call(node)
         node.not_complete_children.each do |child_node|
           child_node.with_lock do
@@ -47,10 +35,6 @@ module V2
     end
 
     class StartNode
-      def self.scheduler
-        Schedulers::AtScheduler
-      end
-
       def self.call(node)
         StateManager.call(node,
           current_server_status: :sent_to_client,
@@ -66,20 +50,12 @@ module V2
     end
 
     class ClientProcessing
-      def self.scheduler
-        Schedulers::NowScheduler
-      end
-
       def self.call(node)
         StateManager.call(node, current_client_status: :processing)
       end
     end
 
     class ClientComplete
-      def self.scheduler
-        Schedulers::NowScheduler
-      end
-
       def self.call(node)
         StateManager.call(
           node,
@@ -91,10 +67,6 @@ module V2
     end
 
     class NodeComplete
-      def self.scheduler
-        Schedulers::NowScheduler
-      end
-
       def self.call(node)
         if node.parent
           Logger.info(node_complete: { node: node })
@@ -105,10 +77,6 @@ module V2
     end
 
     class ClientError
-      def self.scheduler
-        Schedulers::NowScheduler
-      end
-
       def self.call(node)
         StateManager.call(
           node,
@@ -125,10 +93,6 @@ module V2
     end
 
     class RetryNode
-      def self.scheduler
-        Schedulers::IntervalScheduler
-      end
-
       def self.call(node)
         StateManager.call(node, current_server_status: :retrying)
         StateManager.call(node, current_server_status: :ready)

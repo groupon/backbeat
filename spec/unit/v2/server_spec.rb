@@ -12,29 +12,19 @@ describe V2::Server, v2: true do
     end
   end
 
-  class NewScheduler
-    def self.schedule(event, node)
-      event.call(node.to_s + "_called_again")
-    end
-  end
-
   class MockEvent
     def self.call(node)
       node
-    end
-
-    def self.scheduler
-      MockScheduler
     end
   end
 
   context "fire_event" do
     it "schedules the event with the node" do
-      expect(V2::Server.fire_event(MockEvent, :node)).to eq("node_called")
+      expect(V2::Server.fire_event(MockEvent, :node, MockScheduler)).to eq("node_called")
     end
 
-    it "uses a provided scheduler" do
-      expect(V2::Server.fire_event(MockEvent, :node, NewScheduler)).to eq("node_called_again")
+    it "defaults to the NowScheduler" do
+      expect(V2::Server.fire_event(MockEvent, :node)).to eq(:node)
     end
   end
 
