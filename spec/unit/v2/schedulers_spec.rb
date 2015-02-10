@@ -85,7 +85,8 @@ describe V2::Schedulers, v2: true do
       expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(
         MockEvent,
         node,
-        Time.now + 20.days
+        Time.now + 20.days,
+        4
       )
       V2::Schedulers::AtScheduler.schedule(MockEvent, node)
     end
@@ -96,7 +97,8 @@ describe V2::Schedulers, v2: true do
       expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(
         MockEvent,
         node,
-        Time.now + 60.minutes
+        Time.now + 60.minutes,
+        4
       )
       V2::Schedulers::IntervalScheduler.schedule(MockEvent, node)
     end
@@ -107,7 +109,8 @@ describe V2::Schedulers, v2: true do
       expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(
         MockEvent,
         node,
-        Time.now
+        Time.now,
+        4
       )
       V2::Schedulers::AsyncScheduler.schedule(MockEvent, node)
     end

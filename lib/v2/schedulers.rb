@@ -41,9 +41,11 @@ module V2
       end
     end
 
+    DEFAULT_RETRIES = 4
+
     class AtScheduler
       def self.schedule(event, node)
-        Workers::AsyncWorker.schedule_async_event(event, node, node.fires_at)
+        Workers::AsyncWorker.schedule_async_event(event, node, node.fires_at, DEFAULT_RETRIES)
       end
     end
 
@@ -52,14 +54,15 @@ module V2
         Workers::AsyncWorker.schedule_async_event(
           event,
           node,
-          Time.now + node.retry_interval.minutes
+          Time.now + node.retry_interval.minutes,
+          DEFAULT_RETRIES
         )
       end
     end
 
     class AsyncScheduler
       def self.schedule(event, node)
-        Workers::AsyncWorker.schedule_async_event(event, node, Time.now)
+        Workers::AsyncWorker.schedule_async_event(event, node, Time.now, DEFAULT_RETRIES)
       end
     end
   end

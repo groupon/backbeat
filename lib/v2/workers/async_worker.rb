@@ -9,7 +9,7 @@ module V2
 
       sidekiq_options retry: false, backtrace: true, queue: WorkflowServer::Config.options[:async_queue_v2]
 
-      def self.schedule_async_event(event, node, time, retries_remaining = 4)
+      def self.schedule_async_event(event, node, time, retries_remaining)
         perform_at(time, event.name, node.class.name, node.id, retries_remaining)
       end
 
