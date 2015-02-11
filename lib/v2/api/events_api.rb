@@ -48,19 +48,18 @@ module V2
             {success: true}
           end
 
+          STATUS_MAP = {
+            deciding_complete: Events::ClientComplete,
+            deciding: Events::ClientProcessing,
+            completed: Events::ClientComplete,
+            errored: Events::ClientError
+            deactivated: Events::DeactivateNode
+          }
+
           put "/:id/status/:new_status" do
-            if params[:args] && !params[:args].is_a?(Hash)
-              raise WorkflowServer::InvalidParameters, "args parameter is invalid"
-            end
-            status_map = {
-              deciding_complete: Events::ClientComplete,
-              deciding: Events::ClientProcessing,
-              completed: Events::ClientComplete,
-              errored: Events::ClientError,
-              deactivated: Events::DeactivateNode
-            }
             node = find_node
-            Server.fire_event(status_map[params[:new_status].to_sym], node)
+            new_status = params[:new_status].to_sym
+            Server.fire_event(STATUS_MAP[new_status], node)
           end
         end
       end
