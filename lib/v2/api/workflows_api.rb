@@ -56,6 +56,12 @@ module V2
           workflow = find_workflow
           { print: WorkflowTree.to_string(workflow) }
         end
+
+        put "/:id/deactivated" do
+          workflow = find_workflow
+
+          Server.fire_event(Events::DeactivateNode, workflow)
+        end
       end
     end
   end

@@ -56,7 +56,8 @@ module V2
               deciding_complete: Events::ClientComplete,
               deciding: Events::ClientProcessing,
               completed: Events::ClientComplete,
-              errored: Events::ClientError
+              errored: Events::ClientError,
+              deactivated: Events::DeactivateNode
             }
             node = find_node
             Server.fire_event(status_map[params[:new_status].to_sym], node)

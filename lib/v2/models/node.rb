@@ -36,6 +36,7 @@ module V2
                                            :processing_children,
                                            :complete,
                                            :errored,
+                                           :deactivated,
                                            :retrying]
 
     enumerize :current_client_status, in: [:pending,

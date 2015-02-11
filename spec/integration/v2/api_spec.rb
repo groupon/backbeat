@@ -11,6 +11,8 @@ describe V2::Api, v2: true do
 
   let(:user) { FactoryGirl.create(:v2_user) }
   let(:workflow) { FactoryGirl.create(:v2_workflow_with_node, user: user) }
+  let(:node) { workflow.children.first }
+
 
   before do
     header 'CLIENT_ID', user.uuid
@@ -46,8 +48,6 @@ describe V2::Api, v2: true do
   end
 
   context "PUT /events/:id/restart" do
-    let(:node) { workflow.children.first }
-
     context "with valid restart state" do
       before do
         node.update_attributes(
@@ -144,6 +144,22 @@ describe V2::Api, v2: true do
       response = get "v2/workflows/#{workflow.id}/events/#{node.id}"
 
       expect(response.status).to eq(404)
+    end
+  end
+
+  context "PUT /workflows/:id/deactivated" do
+    it "fires the DeactivateNode event" do
+      expect(V2::Server).to receive(:fire_event).with(V2::Events::DeactivateNode, workflow)
+
+      put "v2/workflows/#{workflow.id}/deactivated"
+    end
+  end
+
+  context "PUT /events/:id/status/deactivated" do
+    it "fires the DeactivateNode event" do
+      expect(V2::Server).to receive(:fire_event).with(V2::Events::DeactivateNode, node)
+
+      put "v2/events/#{node.id}/status/deactivated"
     end
   end
 

@@ -42,9 +42,7 @@ module V2
     end
 
     def tree
-      @tree ||= Node.where(
-        workflow_id: root.workflow_id
-      ).group_by(&:parent_id)
+      @tree ||= Workflow.find(root.workflow_id).nodes_by_parent
     end
 
     class NodeString

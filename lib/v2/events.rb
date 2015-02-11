@@ -99,5 +99,20 @@ module V2
         Server.fire_event(ScheduleNextNode, node.parent)
       end
     end
+
+    class DeactivateNode
+      def self.call(node)
+        update_status(node)
+      end
+
+      def self.update_status(node, tree = nil)
+        StateManager.call(node, current_server_status: :deactivated) if node.parent
+        tree ||= Workflow.find(node.workflow_id).nodes_by_parent
+        parent_id = node.is_a?(Node) ? node.id : nil
+        children = tree[parent_id] || []
+        children.each { |child| update_status(child, tree) }
+      end
+      private_class_method :update_status
+    end
   end
 end
