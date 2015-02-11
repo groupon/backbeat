@@ -23,7 +23,7 @@ describe V2::Workers::AsyncWorker, v2: true do
       expect(V2::Server).to receive(:fire_event) do |event, event_node, scheduler|
         expect(event).to eq(V2::Events::MarkChildrenReady)
         expect(event_node).to eq(node)
-        expect(scheduler).to be_a(V2::Schedulers::NowScheduler)
+        expect(scheduler).to be_a(V2::Schedulers::PerformEvent)
       end
 
       V2::Workers::AsyncWorker.new.perform(

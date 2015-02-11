@@ -1,68 +1,58 @@
 module V2
   module Schedulers
-    class NowScheduler
+    class BaseAsyncEvent
+      DEFAULT_RETRIES = 4
+
+      def initialize(&timer)
+        @timer = timer
+      end
+
+      def call(event, node, retries = DEFAULT_RETRIES)
+        time = @timer.call(node)
+        Workers::AsyncWorker.schedule_async_event(event, node, time, retries)
+      end
+    end
+
+    AsyncEvent = BaseAsyncEvent.new { Time.now }
+    AsyncEventAt = BaseAsyncEvent.new { |node| node.fires_at }
+    AsyncEventBackoff = BaseAsyncEvent.new { Time.now + 30.seconds }
+    AsyncEventInterval = BaseAsyncEvent.new { |node| Time.now + node.retry_interval.minutes }
+
+    class PerformEvent
       def initialize(retries)
         @retries = retries
       end
 
-      def self.schedule(event, node)
-        new(0).schedule(event, node)
+      def self.call(event, node)
+        new(0).call(event, node)
       end
 
-      def schedule(event, node)
-        message = { server_retries_remaining: @retries }
+      def call(event, node)
         Instrument.instrument(node, event.name, message) do
           begin
             event.call(node)
           rescue => e
-            Server.server_error(event, node, message.merge(error: e))
+            handle_error(event, node, e)
             raise e
           end
         end
       end
-    end
 
-    class RetryScheduler
-      def initialize(retries)
-        @retries = retries
+      private
+
+      attr_reader :retries
+
+      def handle_error(event, node, error)
+        if retries > 0
+          AsyncEventBackoff.call(event, node, retries - 1)
+        else
+          StateManager.call(node, current_server_status: :errored)
+          Client.notify_of(node, "error", error)
+        end
       end
 
-      def self.schedule(event, node)
-        new(0).schedule(event, node)
-      end
-
-      def schedule(event, node)
-        Workers::AsyncWorker.schedule_async_event(
-          event,
-          node,
-          Time.now + 30.seconds,
-          @retries
-        )
-      end
-    end
-
-    DEFAULT_RETRIES = 4
-
-    class AtScheduler
-      def self.schedule(event, node)
-        Workers::AsyncWorker.schedule_async_event(event, node, node.fires_at, DEFAULT_RETRIES)
-      end
-    end
-
-    class IntervalScheduler
-      def self.schedule(event, node)
-        Workers::AsyncWorker.schedule_async_event(
-          event,
-          node,
-          Time.now + node.retry_interval.minutes,
-          DEFAULT_RETRIES
-        )
-      end
-    end
-
-    class AsyncScheduler
-      def self.schedule(event, node)
-        Workers::AsyncWorker.schedule_async_event(event, node, Time.now, DEFAULT_RETRIES)
+      def message
+        { server_retries_remaining: retries }
       end
     end
   end

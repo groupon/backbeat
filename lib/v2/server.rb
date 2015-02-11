@@ -36,25 +36,15 @@ module V2
       node
     end
 
-    def self.server_error(event, node, args = {})
-      if args.fetch(:server_retries_remaining, 0) > 0
-        scheduler = Schedulers::RetryScheduler.new(args[:server_retries_remaining] - 1)
-        fire_event(event, node, scheduler)
-      else
-        StateManager.call(node, current_server_status: :errored)
-        Client.notify_of(node, "error", args[:error])
-      end
-    end
-
     STRATEGIES = {
-      Events::ScheduleNextNode => Schedulers::AsyncScheduler,
-      Events::StartNode => Schedulers::AtScheduler,
-      Events::RetryNode => Schedulers::IntervalScheduler
+      Events::ScheduleNextNode => Schedulers::AsyncEvent,
+      Events::StartNode => Schedulers::AsyncEventAt,
+      Events::RetryNode => Schedulers::AsyncEventInterval
     }
 
     def self.fire_event(event, node, scheduler = nil)
-      scheduler ||= STRATEGIES.fetch(event, Schedulers::NowScheduler)
-      scheduler.schedule(event, node)
+      scheduler ||= STRATEGIES.fetch(event, Schedulers::PerformEvent)
+      scheduler.call(event, node)
     end
   end
 end

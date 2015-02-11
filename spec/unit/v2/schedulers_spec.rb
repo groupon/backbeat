@@ -2,19 +2,9 @@ require "spec_helper"
 
 describe V2::Schedulers, v2: true do
 
-  class MockNode
-    def id
-      1
-    end
-
-    def retry_interval
-      60
-    end
-
-    def fires_at
-      Time.now + 20.days
-    end
-  end
+  let(:user) { FactoryGirl.create(:v2_user) }
+  let(:workflow) { FactoryGirl.create(:v2_workflow_with_node, user: user) }
+  let(:node) { workflow.children.first }
 
   class MockEvent
     def self.call(node)
@@ -22,9 +12,12 @@ describe V2::Schedulers, v2: true do
     end
   end
 
-  let(:node) { MockNode.new }
+  before do
+    node.node_detail.retry_interval = 60
+    node.fires_at = Time.now + 20.days
+  end
 
-  context "NowScheduler" do
+  context "PerformEvent" do
     it "logs the node, event name, and args" do
       expect(Instrument).to receive(:instrument).with(
         node,
@@ -32,55 +25,55 @@ describe V2::Schedulers, v2: true do
         { server_retries_remaining: 1 }
       )
 
-      V2::Schedulers::NowScheduler.new(1).schedule(MockEvent, node)
+      V2::Schedulers::PerformEvent.new(1).call(MockEvent, node)
     end
 
     it "calls the event with the node" do
       expect(MockEvent).to receive(:call).with(node)
 
-      V2::Schedulers::NowScheduler.schedule(MockEvent, node)
+      V2::Schedulers::PerformEvent.call(MockEvent, node)
     end
 
-    it "fires server error event when an error is raised" do
-      error = StandardError.new
+    context "rescuing an error" do
+      let(:error) { StandardError.new }
 
-      expect(MockEvent).to receive(:call).with(node) do
-        raise error
+      before do
+        allow(MockEvent).to receive(:call) { raise error }
       end
 
-      expect(V2::Server).to receive(:server_error).with(
-        MockEvent,
-        node,
-        { error: error, server_retries_remaining: 0 }
-      )
+      it "schedules the task with a delay with one less retry" do
+        expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(MockEvent, node, Time.now + 30.seconds, 1)
 
-      expect { V2::Schedulers::NowScheduler.schedule(MockEvent, node) }.to raise_error(error)
+        expect { V2::Schedulers::PerformEvent.new(2).call(MockEvent, node) }.to raise_error
+      end
+
+      it "notifies the client if there are no remaining retries" do
+        expect(V2::Client).to receive(:notify_of).with(node, "error", error)
+
+        expect { V2::Schedulers::PerformEvent.call(MockEvent, node) }.to raise_error
+      end
+
+      it "updates the node status to errored if there are no remaining retries" do
+        expect { V2::Schedulers::PerformEvent.call(MockEvent, node) }.to raise_error
+
+        expect(node.current_server_status).to eq("errored")
+      end
     end
   end
 
-  context "RetryScheduler" do
+  context "AsyncEventBackoff" do
     it "schedules an async event with a 30 second back off" do
       expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(
         MockEvent,
         node,
         Time.now + 30.seconds,
-        0
+        4
       )
-      V2::Schedulers::RetryScheduler.schedule(MockEvent, node)
-    end
-
-    it "schedules an async event with the set number of retries" do
-      expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(
-        MockEvent,
-        node,
-        Time.now + 30.seconds,
-        5
-      )
-      V2::Schedulers::RetryScheduler.new(5).schedule(MockEvent, node)
+      V2::Schedulers::AsyncEventBackoff.call(MockEvent, node)
     end
   end
 
-  context "AtScheduler" do
+  context "AsyncEventAt" do
     it "schedules an async event with node fires_at as the time" do
       expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(
         MockEvent,
@@ -88,11 +81,11 @@ describe V2::Schedulers, v2: true do
         Time.now + 20.days,
         4
       )
-      V2::Schedulers::AtScheduler.schedule(MockEvent, node)
+      V2::Schedulers::AsyncEventAt.call(MockEvent, node)
     end
   end
 
-  context "IntervalScheduler" do
+  context "AsyncEventInterval" do
     it "schedules an async event with node retry_interval from now as the time" do
       expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(
         MockEvent,
@@ -100,11 +93,11 @@ describe V2::Schedulers, v2: true do
         Time.now + 60.minutes,
         4
       )
-      V2::Schedulers::IntervalScheduler.schedule(MockEvent, node)
+      V2::Schedulers::AsyncEventInterval.call(MockEvent, node)
     end
   end
 
-  context "AsyncScheduler" do
+  context "AsyncEvent" do
     it "schedules an async event with now as the scheduled time" do
       expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(
         MockEvent,
@@ -112,7 +105,7 @@ describe V2::Schedulers, v2: true do
         Time.now,
         4
       )
-      V2::Schedulers::AsyncScheduler.schedule(MockEvent, node)
+      V2::Schedulers::AsyncEvent.call(MockEvent, node)
     end
   end
 end
