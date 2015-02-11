@@ -29,6 +29,7 @@ module V2
 
         post "/:id/signal/:name" do
           workflow = find_workflow
+          raise V2::WorkflowComplete if workflow.complete?
           node = Server.add_node(
             current_user,
             workflow,

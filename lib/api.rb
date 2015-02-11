@@ -41,6 +41,7 @@ module Api
 
     RESCUED_ERRORS = [
       V2::InvalidEventStatusChange,
+      V2::WorkflowComplete,
       WorkflowServer::EventComplete,
       WorkflowServer::InvalidParameters,
       WorkflowServer::InvalidEventStatus,

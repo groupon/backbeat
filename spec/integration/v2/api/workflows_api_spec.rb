@@ -36,6 +36,32 @@ describe V2::Api::WorkflowsApi, v2: true do
     end
   end
 
+  context "POST /workflows/:id/signal/:name" do
+    let(:signal_params) {{
+      options: {
+        client_data: { data: '123' },
+        client_metadata: { metadata: '456'}
+      }
+    }}
+
+    it "creates a signal on the workflow" do
+      response = post "v2/workflows/#{workflow.id}/signal/new_signal", signal_params
+
+      expect(response.status).to eq(201)
+      expect(workflow.children.count).to eq(2)
+    end
+
+    it "returns a 400 response if the workflow is complete" do
+      workflow.complete!
+      expect(workflow.children.count).to eq(1)
+
+      response = post "v2/workflows/#{workflow.id}/signal/new_signal", signal_params
+
+      expect(response.status).to eq(400)
+      expect(workflow.children.count).to eq(1)
+    end
+  end
+
   context "GET /workflow/:id" do
     it "returns a workflow given an id" do
       response = get "v2/workflows/#{workflow.id}"

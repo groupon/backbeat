@@ -21,4 +21,5 @@ module V2
   end
 
   class InvalidEventStatusChange < StandardError; end
+  class WorkflowComplete < StandardError; end
 end
