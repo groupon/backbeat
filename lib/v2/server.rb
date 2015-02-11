@@ -48,8 +48,7 @@ module V2
       Events::StartNode => Schedulers::AsyncEventAt
     }
 
-    def self.fire_event(event, node, scheduler = nil)
-      scheduler ||= STRATEGIES[event]
+    def self.fire_event(event, node, scheduler = STRATEGIES[event])
       scheduler.call(event, node)
     end
   end
