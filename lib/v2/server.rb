@@ -37,13 +37,19 @@ module V2
     end
 
     STRATEGIES = {
+      Events::ChildrenReady => Schedulers::PerformEvent,
+      Events::ClientComplete => Schedulers::PerformEvent,
+      Events::ClientError => Schedulers::PerformEvent,
+      Events::ClientProcessing => Schedulers::PerformEvent,
+      Events::MarkChildrenReady => Schedulers::PerformEvent,
+      Events::NodeComplete => Schedulers::PerformEvent,
+      Events::RetryNode => Schedulers::AsyncEventInterval,
       Events::ScheduleNextNode => Schedulers::AsyncEvent,
-      Events::StartNode => Schedulers::AsyncEventAt,
-      Events::RetryNode => Schedulers::AsyncEventInterval
+      Events::StartNode => Schedulers::AsyncEventAt
     }
 
     def self.fire_event(event, node, scheduler = nil)
-      scheduler ||= STRATEGIES.fetch(event, Schedulers::PerformEvent)
+      scheduler ||= STRATEGIES[event]
       scheduler.call(event, node)
     end
   end

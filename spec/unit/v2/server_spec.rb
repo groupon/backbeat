@@ -22,9 +22,5 @@ describe V2::Server, v2: true do
     it "schedules the event with the node" do
       expect(V2::Server.fire_event(MockEvent, :node, MockScheduler)).to eq("node_called")
     end
-
-    it "defaults to the PerformEvent scheduler" do
-      expect(V2::Server.fire_event(MockEvent, :node)).to eq(:node)
-    end
   end
 end
