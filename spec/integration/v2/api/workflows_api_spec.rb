@@ -93,4 +93,12 @@ describe V2::Api::WorkflowsApi, v2: true do
     end
   end
 
+  context "PUT /workflows/:id/complete" do
+    it "marks the workflow as complete" do
+      response = put "v2/workflows/#{workflow.id}/complete"
+
+      expect(response.status).to eq(200)
+      expect(workflow.reload.complete?).to eq(true)
+    end
+  end
 end

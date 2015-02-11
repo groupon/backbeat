@@ -43,6 +43,11 @@ module V2
           node
         end
 
+        put "/:id/complete" do
+          workflow = find_workflow
+          workflow.complete!
+        end
+
         get "/:id" do
           find_workflow
         end
