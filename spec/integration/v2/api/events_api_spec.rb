@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'spec/helper/request_helper'
 
-describe V2::Api, v2: true do
+describe V2::Api::EventsApi, v2: true do
   include Rack::Test::Methods
   include RequestHelper
 
@@ -18,54 +18,6 @@ describe V2::Api, v2: true do
     header 'CLIENT_ID', user.uuid
     WorkflowServer::Client.stub(:make_decision)
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
-  end
-
-  context "POST /workflows" do
-    it "returns 201 and creates a new workflow when all parameters present" do
-      response = post 'v2/workflows', {workflow_type: "WFType", subject: {subject_klass: "PaymentTerm", subject_id: 100}, decider: "PaymentDecider"}
-
-      expect(response.status).to eq(201)
-
-      json_response = JSON.parse(response.body)
-      wf_in_db = V2::Workflow.find(json_response['id'])
-
-      expect(wf_in_db).to_not be_nil
-      expect(wf_in_db.subject).to eq({"subject_klass" => "PaymentTerm", "subject_id" => "100"})
-
-      response = post 'v2/workflows', {workflow_type: "WFType", subject: {subject_klass: "PaymentTerm", subject_id: 100}, decider: "PaymentDecider"}
-      expect(json_response['id']).to eq(JSON.parse(response.body)['id'])
-    end
-  end
-
-  context "GET /workflow/:id" do
-    it "returns a workflow given an id" do
-      response = get "v2/workflows/#{workflow.id}"
-      expect(response.status).to eq(200)
-      json_response = JSON.parse(response.body)
-
-      expect(json_response["id"]).to eq(workflow.id)
-    end
-  end
-
-  context "GET /workflow/:id/children" do
-    it "returns the workflows immediate" do
-      second_node = FactoryGirl.create(
-        :v2_node,
-        workflow: workflow,
-        parent: workflow,
-        user: user
-      )
-
-      response = get "v2/workflows/#{workflow.id}/children"
-      expect(response.status).to eq(200)
-
-      json_response = JSON.parse(response.body)
-      children = workflow.children
-
-      expect(json_response.first["id"]).to eq(children.first.id)
-      expect(json_response.second["currentServerStatus"]).to eq(children.second.current_server_status)
-      expect(json_response.count).to eq(2)
-    end
   end
 
   context "PUT /events/:id/restart" do
@@ -168,37 +120,11 @@ describe V2::Api, v2: true do
     end
   end
 
-  context "PUT /workflows/:id/deactivated" do
-    it "fires the DeactivateNode event" do
-      expect(V2::Server).to receive(:fire_event).with(V2::Events::DeactivateNode, workflow)
-
-      put "v2/workflows/#{workflow.id}/deactivated"
-    end
-  end
-
   context "PUT /events/:id/status/deactivated" do
     it "fires the DeactivateNode event" do
       expect(V2::Server).to receive(:fire_event).with(V2::Events::DeactivateNode, node)
 
       put "v2/events/#{node.id}/status/deactivated"
-    end
-  end
-
-  context "GET /workflows/:id/tree" do
-    it "returns the workflow tree as a hash" do
-      response = get "v2/workflows/#{workflow.id}/tree"
-      body = JSON.parse(response.body)
-
-      expect(body["id"]).to eq(workflow.uuid)
-    end
-  end
-
-  context "GET /workflows/:id/tree/print" do
-    it "returns the workflow tree as a string" do
-      response = get "v2/workflows/#{workflow.id}/tree/print"
-      body = JSON.parse(response.body)
-
-      expect(body["print"]).to include(workflow.name)
     end
   end
 end
