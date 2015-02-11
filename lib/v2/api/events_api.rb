@@ -7,6 +7,15 @@ require "api/helpers/current_user_helper"
 module V2
   module Api
     module EventEndpoints
+
+      STATUS_EVENT_MAP = {
+        deciding_complete: Events::ClientComplete,
+        deciding: Events::ClientProcessing,
+        completed: Events::ClientComplete,
+        errored: Events::ClientError,
+        deactivated: Events::DeactivateNode
+      }
+
       def event_api
         helpers ::Api::CurrentUserHelper
 
@@ -21,6 +30,12 @@ module V2
         resource 'events' do
           get "/:id" do
             find_node
+          end
+
+          put "/:id/status/:new_status" do
+            node = find_node
+            new_status = params[:new_status].to_sym
+            Server.fire_event(STATUS_EVENT_MAP[new_status], node)
           end
 
           put "/:id/restart" do
@@ -47,14 +62,6 @@ module V2
             end
             {success: true}
           end
-
-          STATUS_MAP = {
-            deciding_complete: Events::ClientComplete,
-            deciding: Events::ClientProcessing,
-            completed: Events::ClientComplete,
-            errored: Events::ClientError
-            deactivated: Events::DeactivateNode
-          }
 
           put "/:id/status/:new_status" do
             node = find_node
