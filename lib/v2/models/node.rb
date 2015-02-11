@@ -46,7 +46,7 @@ module V2
                                            :complete,
                                            :errored]
 
-    delegate :retries_remaining, :retry_interval, :legacy_type, to: :node_detail
+    delegate :retries_remaining, :retry_interval, :legacy_type, :legacy_type=, to: :node_detail
     delegate :data, to: :client_node_detail, prefix: :client
     delegate :metadata, to: :client_node_detail, prefix: :client
     delegate :complete?, :processing_children?, :ready?, to: :current_server_status
@@ -79,7 +79,7 @@ module V2
     end
 
     def decision?
-      legacy_type.to_sym == :signal
+      legacy_type.to_sym == :decision
     end
 
     PERFORMED_STATES = [:sent_to_client, :complete, :processing_children]

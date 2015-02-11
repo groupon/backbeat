@@ -36,7 +36,7 @@ module V2
             params.merge(
               current_server_status: :ready,
               current_client_status: :ready,
-              legacy_type: 'signal',
+              legacy_type: 'decision',
               mode: :blocking
             )
           )
