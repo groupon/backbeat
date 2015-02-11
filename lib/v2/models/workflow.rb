@@ -35,5 +35,9 @@ module V2
     def deactivated?
       false
     end
+
+    def complete!
+      update_attributes(complete: true)
+    end
   end
 end

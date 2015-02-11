@@ -36,4 +36,14 @@ describe V2::Workflow, v2: true do
       expect(output).to eq(V2::WorkflowTree.to_string(workflow) + "\n")
     end
   end
+
+  context "complete!" do
+    it "sets the complete attribute to true" do
+      expect(workflow.complete?).to eq(false)
+
+      workflow.complete!
+
+      expect(workflow.complete?).to eq(true)
+    end
+  end
 end

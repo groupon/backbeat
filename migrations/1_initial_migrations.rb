@@ -15,6 +15,7 @@ class InitialMigrations < ActiveRecord::Migration
       t.string  :decider
       t.text    :subject
       t.integer :user_id, null: false
+      t.boolean :complete, default: false
       t.timestamps
     end
     add_index(:workflows, :uuid)
