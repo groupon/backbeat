@@ -33,5 +33,17 @@ describe V2::Workers::AsyncWorker, v2: true do
         0
       )
     end
+
+    it "noops if node is deactivated" do
+      node.update_attributes(current_server_status: :deactivated)
+      expect(V2::Server).to_not receive(:fire_event)
+
+      V2::Workers::AsyncWorker.new.perform(
+        V2::Events::MarkChildrenReady.name,
+        node.class.name,
+        node.id,
+        0
+      )
+    end
   end
 end

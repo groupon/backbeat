@@ -65,6 +65,10 @@ module V2
       mode.to_sym == :blocking
     end
 
+    def deactivated?
+      current_server_status.to_sym == :deactivated
+    end
+
     def mark_retried!
       node_detail.update_attributes!(retries_remaining: retries_remaining - 1)
     end
