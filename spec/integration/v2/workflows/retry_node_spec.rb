@@ -95,11 +95,11 @@ describe V2::Api, v2: true do
   context "server error" do
     it "sends a message to the client after a set number of retries fails" do
       Timecop.freeze
-      expect(V2::Processors).to receive(:start_node).exactly(5).times do
+      expect(V2::Events::StartNode).to receive(:call).exactly(5).times do
         raise StandardError.new("start node failed")
       end
 
-      V2::Server.fire_event(V2::Server::StartNode, activity_node)
+      V2::Server.fire_event(V2::Events::StartNode, activity_node)
 
       4.times do
         Timecop.travel(Time.now + 31.seconds)

@@ -12,7 +12,7 @@ module Instrument
       node,
       "#{event}_errored",
       args,
-      error_class: error.class,
+      error_class: error.class.name,
       error: error.to_s,
       backtrace: error.backtrace,
       duration: Time.now - t0

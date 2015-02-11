@@ -1,6 +1,6 @@
-require "v2/api/events"
-require "v2/api/workflows"
-require "v2/api/debug"
+require "v2/api/events_api"
+require "v2/api/workflows_api"
+require "v2/api/debug_api"
 
 module V2
   module Api

@@ -25,7 +25,7 @@ module V2
 
           put "/:id/restart" do
             node = find_node
-            Server.fire_event(Server::RetryNode, node)
+            Server.fire_event(Events::RetryNode, node, Schedulers::PerformEvent)
             {success: true}
           end
 
@@ -53,11 +53,10 @@ module V2
               raise WorkflowServer::InvalidParameters, "args parameter is invalid"
             end
             status_map = {
-              deciding_complete: Server::ClientComplete,
-              deciding: Server::ClientProcessing,
-              completed: Server::ClientComplete,
-              errored: Server::ClientError,
-              resolved: Server::ClientResolved
+              deciding_complete: Events::ClientComplete,
+              deciding: Events::ClientProcessing,
+              completed: Events::ClientComplete,
+              errored: Events::ClientError
             }
             node = find_node
             Server.fire_event(status_map[params[:new_status].to_sym], node)
@@ -66,13 +65,13 @@ module V2
       end
     end
 
-    class Events < Grape::API
+    class EventsApi < Grape::API
       extend EventEndpoints
       version 'v2', using: :path
       event_api
     end
 
-    class WorkflowEvents < Grape::API
+    class WorkflowEventsApi < Grape::API
       extend EventEndpoints
       version 'v2', using: :path
       resource 'workflows/:workflow_id' do

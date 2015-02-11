@@ -6,7 +6,7 @@ require "api/helpers/current_user_helper"
 
 module V2
   module Api
-    class Workflows < Grape::API
+    class WorkflowsApi < Grape::API
       helpers ::Api::CurrentUserHelper
       version 'v2', using: :path
 
@@ -39,7 +39,7 @@ module V2
               mode: :blocking
             )
           )
-          Server.fire_event(Server::ScheduleNextNode, workflow)
+          Server.fire_event(Events::ScheduleNextNode, workflow)
           node
         end
 

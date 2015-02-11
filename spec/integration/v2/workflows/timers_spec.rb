@@ -61,7 +61,7 @@ describe V2::Api, v2: true do
         .with(:body => activity_hash(activity_node).to_json)
         .to_return(:status => 200, :body => "", :headers => {})
 
-      V2::Server::fire_event(V2::Server::ScheduleNextNode, signal_node)
+      V2::Server::fire_event(V2::Events::ScheduleNextNode, signal_node)
 
       soft_drain
       expect(timed_activity_node.reload.current_server_status).to eq("started")
