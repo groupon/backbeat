@@ -12,9 +12,9 @@ module V2
 
     def self.perform_action(node)
       if node.decision?
-        WorkflowServer::Client.make_decision(Client::DecisionSerializer.call(node), node.user)
+        WorkflowServer::Client.make_decision(Client::NodeSerializer.call(node), node.user)
       else
-        WorkflowServer::Client.perform_activity(Client::ActivitySerializer.call(node), node.user)
+        WorkflowServer::Client.perform_activity(Client::NodeSerializer.call(node), node.user)
       end
     end
   end

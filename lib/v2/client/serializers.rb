@@ -1,25 +1,12 @@
 module V2
   module Client
-    class ActivitySerializer
+    class NodeSerializer
       def self.call(node)
         {
           id: node.id,
           mode: node.mode,
           name: node.name,
-          parent_id: node.parent_id,
           workflow_id: node.workflow_id,
-          user_id: node.user_id,
-          client_data: node.client_data,
-          metadata: node.client_metadata
-        }
-      end
-    end
-
-    class DecisionSerializer
-      def self.call(node)
-        {
-          id: node.id,
-          name: node.name,
           parent_id: node.parent_id,
           user_id: node.user_id,
           client_data: node.client_data,
