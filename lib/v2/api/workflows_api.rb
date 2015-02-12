@@ -69,7 +69,6 @@ module V2
 
         put "/:id/deactivated" do
           workflow = find_workflow
-
           Server.fire_event(Events::DeactivateNode, workflow)
         end
       end

@@ -1,12 +1,12 @@
 module V2
   class Server
     def self.create_workflow(params, user)
-      subject = params['subject'].to_json
+      subject = params[:subject].to_json
 
       Workflow.where(subject: subject).first || Workflow.create!(
-        name: params['workflow_type'],
-        subject: params['subject'],
-        decider: params['decider'],
+        name: params[:workflow_type],
+        subject: params[:subject],
+        decider: params[:decider],
         user_id: user.id
       )
     end
@@ -16,8 +16,8 @@ module V2
         mode: params.fetch(:mode, :blocking).to_sym,
         current_server_status: params[:current_server_status] || :pending,
         current_client_status: params[:current_client_status] || :pending,
-        name: params['name'],
-        fires_at: params['fires_at'] || Time.now - 1.second,
+        name: params[:name],
+        fires_at: params[:fires_at] || Time.now - 1.second,
         parent: parent_node,
         workflow_id: parent_node.workflow_id,
         user_id: user.id
@@ -30,8 +30,8 @@ module V2
       NodeDetail.create!(
         node: node,
         legacy_type: params[:legacy_type],
-        retry_interval: params['retry_interval'],
-        retries_remaining: params['retry']
+        retry_interval: params[:retry_interval],
+        retries_remaining: params[:retry]
       )
       node
     end
