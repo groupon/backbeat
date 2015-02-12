@@ -31,5 +31,9 @@ module V2
     def nodes_by_parent
       nodes.group_by(&:parent_id)
     end
+
+    def deactivated?
+      false
+    end
   end
 end

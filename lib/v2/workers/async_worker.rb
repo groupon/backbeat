@@ -16,7 +16,7 @@ module V2
       def perform(event_class, node_class, node_id, retries_remaining)
         event = event_class.constantize
         node = node_class.constantize.find(node_id)
-        return if node.parent && node.deactivated?
+        return if node.deactivated?
         Server.fire_event(event, node, Schedulers::PerformEvent.new(retries_remaining))
       end
     end
