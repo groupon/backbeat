@@ -124,9 +124,9 @@ describe V2::Api::EventsApi, v2: true do
 
   context "PUT /events/:id/status/deactivated" do
     it "fires the DeactivateNode event" do
-      expect(V2::Server).to receive(:fire_event).with(V2::Events::DeactivateNode, node)
-
       put "v2/events/#{node.id}/status/deactivated"
+
+      expect(node.reload.current_server_status).to eq("deactivated")
     end
   end
 end
