@@ -49,6 +49,7 @@ module V2
     }
 
     def self.fire_event(event, node, scheduler = STRATEGIES[event])
+      return if node.deactivated?
       scheduler.call(event, node)
     end
   end

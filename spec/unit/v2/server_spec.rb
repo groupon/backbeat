@@ -8,7 +8,7 @@ describe V2::Server, v2: true do
 
   class MockScheduler
     def self.call(event, node)
-      event.call(node.to_s + "_called")
+      event.call(node.name + "_called")
     end
   end
 
@@ -20,7 +20,15 @@ describe V2::Server, v2: true do
 
   context "fire_event" do
     it "schedules the event with the node" do
-      expect(V2::Server.fire_event(MockEvent, :node, MockScheduler)).to eq("node_called")
+      expect(V2::Server.fire_event(MockEvent, node, MockScheduler)).to eq("#{node.name}_called")
+    end
+
+    it "noops if node is deactivated" do
+      node.current_server_status = "deactivated"
+
+      expect(MockScheduler).to_not receive(:call)
+
+      V2::Server.fire_event(MockEvent, node, MockScheduler)
     end
   end
 end
