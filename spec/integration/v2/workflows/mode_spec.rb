@@ -20,7 +20,7 @@ describe V2::Api, v2: true do
     it "completes a workflow with blocking, non_blocking and fire_and_forget nodes" do
       response = post "v2/workflows/#{v2_workflow.id}/signal/test", options: {
         client_data: { data: '123' },
-        client_metadata: { metadata: '456'}
+        metadata: { metadata: '456'}
       }
       expect(response.status).to eq(201)
       signal = JSON.parse(response.body)
