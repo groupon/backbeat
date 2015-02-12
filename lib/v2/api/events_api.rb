@@ -62,12 +62,6 @@ module V2
             end
             {success: true}
           end
-
-          put "/:id/status/:new_status" do
-            node = find_node
-            new_status = params[:new_status].to_sym
-            Server.fire_event(STATUS_MAP[new_status], node)
-          end
         end
       end
     end
