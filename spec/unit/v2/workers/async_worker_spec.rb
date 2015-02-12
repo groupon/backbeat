@@ -45,5 +45,15 @@ describe V2::Workers::AsyncWorker, v2: true do
         0
       )
     end
+
+    it "performs if workflow" do
+      expect(V2::Server).to receive(:fire_event)
+      V2::Workers::AsyncWorker.new.perform(
+        V2::Events::ScheduleNextNode.name,
+        workflow.class.name,
+        workflow.id,
+        0
+      )
+    end
   end
 end

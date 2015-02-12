@@ -57,6 +57,10 @@ module V2
           { print: WorkflowTree.to_string(workflow) }
         end
 
+        get "/:id/children" do
+          find_workflow.children
+        end
+
         put "/:id/deactivated" do
           workflow = find_workflow
 

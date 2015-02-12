@@ -47,6 +47,27 @@ describe V2::Api, v2: true do
     end
   end
 
+  context "GET /workflow/:id/children" do
+    it "returns the workflows immediate" do
+      second_node = FactoryGirl.create(
+        :v2_node,
+        workflow: workflow,
+        parent: workflow,
+        user: user
+      )
+
+      response = get "v2/workflows/#{workflow.id}/children"
+      expect(response.status).to eq(200)
+
+      json_response = JSON.parse(response.body)
+      children = workflow.children
+
+      expect(json_response.first["id"]).to eq(children.first.id)
+      expect(json_response.second["currentServerStatus"]).to eq(children.second.current_server_status)
+      expect(json_response.count).to eq(2)
+    end
+  end
+
   context "PUT /events/:id/restart" do
     context "with valid restart state" do
       before do
