@@ -42,8 +42,8 @@ describe V2::Client, v2: true do
   end
 
   context "perform_action" do
-    it "sends a call to make decision if the node is a legacy signal" do
-      node.node_detail.legacy_type = 'signal'
+    it "sends a call to make decision if the node is a legacy decision" do
+      node.node_detail.legacy_type = 'decision'
       expect(WorkflowServer::Client).to receive(:make_decision) do |params, user|
         expect(params).to include(
           subject: node.subject,

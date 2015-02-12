@@ -3,18 +3,20 @@ module V2
 
     VALID_STATE_CHANGES = {
       current_client_status: {
-        pending: [:ready, :errored],
-        ready: [:received, :errored],
-        received: [:processing, :complete, :errored],
+        any: [:errored],
+        pending: [:ready],
+        ready: [:received],
+        received: [:processing, :complete],
         processing: [:complete],
         errored: [:received],
         complete: [:complete]
       },
       current_server_status: {
-        pending: [:ready, :errored],
-        ready: [:started, :errored],
-        started: [:sent_to_client, :errored],
-        sent_to_client: [:processing_children, :recieved_from_client, :errored],
+        any: [:deactivated, :errored],
+        pending: [:ready],
+        ready: [:started],
+        started: [:sent_to_client],
+        sent_to_client: [:processing_children, :recieved_from_client],
         processing_children: [:complete],
         errored: [:retrying],
         retrying: [:ready],
@@ -63,7 +65,8 @@ module V2
     end
 
     def valid_state_changes(status_type)
-      VALID_STATE_CHANGES[status_type][node_status(status_type)]
+      VALID_STATE_CHANGES[status_type][node_status(status_type)] +
+        VALID_STATE_CHANGES[status_type][:any]
     end
 
     def node_status(status_type)

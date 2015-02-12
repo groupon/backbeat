@@ -1,18 +1,13 @@
 module RequestHelper
   def activity_hash(activity_node)
-    {
-      "activity" => {
-        "id" => activity_node.id,
-        "mode" => activity_node.mode,
-        "name" => activity_node.name,
-        "parentId" => activity_node.parent_id,
-        "workflowId" => activity_node.workflow_id,
-        "userId" => activity_node.user_id,
-        "clientData" => {
-          "could" => "be",
-          "any" => "thing"
-        }
-      }
-    }
+    WorkflowServer::Helper::HashKeyTransformations.camelize_keys(
+      { "activity" => V2::Client::NodeSerializer.call(activity_node) }
+    ).to_json
+  end
+
+  def decision_hash(decision_node)
+    WorkflowServer::Helper::HashKeyTransformations.camelize_keys(
+      { "decision" => V2::Client::NodeSerializer.call(decision_node) }
+    ).to_json
   end
 end

@@ -238,4 +238,24 @@ describe V2::Events, v2: true do
       V2::Events::RetryNode.call(node)
     end
   end
+
+  context "DeactivateNode" do
+    it "marks node as deactivated if it is not a workflow" do
+      node.current_server_status = :pending
+      V2::Events::DeactivateNode.call(node)
+      expect(node.current_server_status).to eq("deactivated")
+    end
+
+    it "marks all children as deactivated" do
+      second_node = FactoryGirl.create(
+        :v2_node,
+        workflow: workflow,
+        parent: node,
+        user: user
+      )
+      V2::Events::DeactivateNode.call(workflow)
+      expect(node.reload.current_server_status).to eq("deactivated")
+      expect(second_node.reload.current_server_status).to eq("deactivated")
+    end
+  end
 end

@@ -7,6 +7,15 @@ require "api/helpers/current_user_helper"
 module V2
   module Api
     module EventEndpoints
+
+      STATUS_EVENT_MAP = {
+        deciding_complete: Events::ClientComplete,
+        deciding: Events::ClientProcessing,
+        completed: Events::ClientComplete,
+        errored: Events::ClientError,
+        deactivated: Events::DeactivateNode
+      }
+
       def event_api
         helpers ::Api::CurrentUserHelper
 
@@ -21,6 +30,12 @@ module V2
         resource 'events' do
           get "/:id" do
             find_node
+          end
+
+          put "/:id/status/:new_status" do
+            node = find_node
+            new_status = params[:new_status].to_sym
+            Server.fire_event(STATUS_EVENT_MAP[new_status], node)
           end
 
           put "/:id/restart" do
@@ -39,27 +54,13 @@ module V2
             node = find_node
             params[:args][:decisions].each do |dec|
               node_to_add = dec.dup
-              node_to_add['options'] = {}
-              node_to_add['options']['meta_data'] = node_to_add["meta_data"]
-              node_to_add['options']['client_data'] = node_to_add["client_data"]
-              node_to_add[:legacy_type] = node_to_add['type']
+              node_to_add[:options] = {}
+              node_to_add[:options][:metadata] = node_to_add[:metadata]
+              node_to_add[:options][:client_data] = node_to_add[:client_data]
+              node_to_add[:legacy_type] = node_to_add[:type]
               Server.add_node(current_user, node, node_to_add)
             end
             {success: true}
-          end
-
-          put "/:id/status/:new_status" do
-            if params[:args] && !params[:args].is_a?(Hash)
-              raise WorkflowServer::InvalidParameters, "args parameter is invalid"
-            end
-            status_map = {
-              deciding_complete: Events::ClientComplete,
-              deciding: Events::ClientProcessing,
-              completed: Events::ClientComplete,
-              errored: Events::ClientError
-            }
-            node = find_node
-            Server.fire_event(status_map[params[:new_status].to_sym], node)
           end
         end
       end

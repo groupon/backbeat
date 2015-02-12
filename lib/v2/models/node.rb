@@ -36,6 +36,7 @@ module V2
                                            :processing_children,
                                            :complete,
                                            :errored,
+                                           :deactivated,
                                            :retrying]
 
     enumerize :current_client_status, in: [:pending,
@@ -45,8 +46,9 @@ module V2
                                            :complete,
                                            :errored]
 
-    delegate :retries_remaining, :retry_interval, :legacy_type, to: :node_detail
+    delegate :retries_remaining, :retry_interval, :legacy_type, :legacy_type=, to: :node_detail
     delegate :data, to: :client_node_detail, prefix: :client
+    delegate :metadata, to: :client_node_detail, prefix: :client
     delegate :complete?, :processing_children?, :ready?, to: :current_server_status
     delegate :subject, :decider, to: :workflow
 
@@ -64,6 +66,10 @@ module V2
       mode.to_sym == :blocking
     end
 
+    def deactivated?
+      current_server_status.to_sym == :deactivated
+    end
+
     def mark_retried!
       node_detail.update_attributes!(retries_remaining: retries_remaining - 1)
     end
@@ -73,7 +79,7 @@ module V2
     end
 
     def decision?
-      legacy_type.to_sym == :signal
+      legacy_type.to_sym == :decision
     end
 
     PERFORMED_STATES = [:sent_to_client, :complete, :processing_children]

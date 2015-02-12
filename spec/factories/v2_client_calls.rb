@@ -21,6 +21,7 @@ FactoryGirl.define do
      type 'activity'
      name 'name_1'
      client_data { {could: :be, any: :thing} }
+     metadata { { version: "v2" } }
      mode :blocking
      always false
      retry_interval 6.hours

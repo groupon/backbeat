@@ -31,19 +31,8 @@ describe V2::Api, v2: true do
         "current_server_status" => "ready"
       )
 
-      decision_to_make = FactoryGirl.build(
-        :client_decision,
-        id: node.id,
-        name: 'test',
-        parentId: node.parent_id,
-        userId: node.user_id,
-        clientData: node.client_node_detail.data,
-        decider: node.decider,
-        subject: node.subject
-      )
-
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
-        .with(:body => {decision: decision_to_make})
+        .with(:body => decision_hash(node))
         .to_return(:status => 200, :body => "", :headers => {})
 
       V2::Workers::AsyncWorker.drain

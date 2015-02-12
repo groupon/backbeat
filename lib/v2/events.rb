@@ -99,5 +99,13 @@ module V2
         Server.fire_event(ScheduleNextNode, node.parent)
       end
     end
+
+    class DeactivateNode
+      def self.call(root)
+        WorkflowTree.new(root).each do |node|
+          StateManager.call(node, current_server_status: :deactivated) if node.parent
+        end
+      end
+    end
   end
 end

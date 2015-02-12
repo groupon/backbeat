@@ -14,6 +14,13 @@ module V2
       @root = root
     end
 
+    def each(node = root, &block)
+      block.call(node)
+      children(node).each do |child|
+        each(child, &block)
+      end
+    end
+
     def to_hash(node = root)
       {
         id: node.uuid,

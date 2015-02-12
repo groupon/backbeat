@@ -41,6 +41,7 @@ module Api
 
     RESCUED_ERRORS = [
       V2::InvalidEventStatusChange,
+      V2::WorkflowComplete,
       WorkflowServer::EventComplete,
       WorkflowServer::InvalidParameters,
       WorkflowServer::InvalidEventStatus,
@@ -55,12 +56,10 @@ module Api
       Rack::Response.new({error: e.message }.to_json, 400, { "Content-type" => "application/json" }).finish
     end
 
-    if Backbeat.v2?
-      mount V2::Api::WorkflowsApi
-      mount V2::Api::EventsApi
-      mount V2::Api::WorkflowEventsApi
-      mount V2::Api::DebugApi
-    end
+    mount V2::Api::WorkflowsApi
+    mount V2::Api::EventsApi
+    mount V2::Api::WorkflowEventsApi
+    mount V2::Api::DebugApi
     mount Api::Workflows
     mount Api::Events
     mount Api::Debug

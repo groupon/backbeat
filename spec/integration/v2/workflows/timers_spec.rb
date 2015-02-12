@@ -58,7 +58,7 @@ describe V2::Api, v2: true do
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-        .with(:body => activity_hash(activity_node).to_json)
+        .with(:body => activity_hash(activity_node))
         .to_return(:status => 200, :body => "", :headers => {})
 
       V2::Server::fire_event(V2::Events::ScheduleNextNode, signal_node)
@@ -83,7 +83,7 @@ describe V2::Api, v2: true do
       Timecop.travel(Time.now + 11.minutes)
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-        .with(:body => activity_hash(timed_activity_node).to_json)
+        .with(:body => activity_hash(timed_activity_node))
         .to_return(:status => 200, :body => "", :headers => {})
 
       soft_drain

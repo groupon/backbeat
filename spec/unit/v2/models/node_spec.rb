@@ -65,6 +65,18 @@ describe V2::Node, v2: true do
     end
   end
 
+  context "decision?" do
+    it "returns true if legacy type is decision" do
+      node.legacy_type = "decision"
+      expect(node.decision?).to eq(true)
+    end
+
+    it "returns false if legacy type is anything else" do
+      node.legacy_type = :blah
+      expect(node.decision?).to eq(false)
+    end
+  end
+
   include Colorize
 
   context "print_tree" do

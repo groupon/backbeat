@@ -27,5 +27,13 @@ module V2
     def workflow_id
       id
     end
+
+    def deactivated?
+      false
+    end
+
+    def complete!
+      update_attributes(complete: true)
+    end
   end
 end
