@@ -14,6 +14,13 @@ module V2
       @root = root
     end
 
+    def each(node = root, &block)
+      block.call(node)
+      children(node).each do |child|
+        each(child, &block)
+      end
+    end
+
     def to_hash(node = root)
       {
         id: node.uuid,
@@ -42,7 +49,9 @@ module V2
     end
 
     def tree
-      @tree ||= Workflow.find(root.workflow_id).nodes_by_parent
+      @tree ||= Node.where(
+        workflow_id: root.workflow_id
+      ).group_by(&:parent_id)
     end
 
     class NodeString

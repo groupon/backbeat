@@ -15,6 +15,21 @@ describe V2::WorkflowTree, v2: true do
     )
   end
 
+  context "each" do
+    it "calls the block for each node in the tree" do
+      child_1 = add_node(workflow, "Workflow child")
+      child_2 = add_node(workflow, "Another Workflow child")
+      child_3 = add_node(workflow.children.first, "Nested child")
+
+      names = []
+      V2::WorkflowTree.new(workflow).each do |node|
+        names << node.name
+      end
+
+      expect(names).to eq([workflow.name, child_1.name, child_3.name, child_2.name])
+    end
+  end
+
   context "to_hash" do
     it "returns the tree as a hash with no children" do
       expect(V2::WorkflowTree.to_hash(workflow)).to eq({

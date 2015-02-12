@@ -28,10 +28,6 @@ module V2
       id
     end
 
-    def nodes_by_parent
-      nodes.group_by(&:parent_id)
-    end
-
     def deactivated?
       false
     end
