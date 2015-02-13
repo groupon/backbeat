@@ -4,7 +4,7 @@ ENV['RACK_ENV'] = "test"
 require 'bundler'
 Bundler.setup(:test)
 
-require 'app'
+require_relative '../app'
 require 'rspec'
 require 'rack/test'
 require 'factory_girl'

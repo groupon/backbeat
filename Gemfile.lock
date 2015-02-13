@@ -136,6 +136,7 @@ GEM
     moped (1.5.1)
     multi_json (1.9.2)
     multi_xml (0.5.5)
+    mysql2 (0.3.13)
     origin (1.1.0)
     parslet (1.4.0)
       blankslate (~> 2.0)
