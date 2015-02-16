@@ -4,6 +4,7 @@ require "migration/migrate_workflow"
 describe Migration::MigrateWorkflow, v2: true do
   let(:v1_user) { FactoryGirl.create(:v1_user) }
   let(:v1_workflow) { FactoryGirl.create(:workflow, user: v1_user) }
+  let(:v1_signal) { FactoryGirl.create(:signal, parent: v1_workflow, workflow: v1_workflow) }
 
   let(:v2_user) { FactoryGirl.create(:v2_user) }
   let(:v2_workflow) { V2::Workflow.first }
@@ -20,7 +21,6 @@ describe Migration::MigrateWorkflow, v2: true do
   end
 
   it "migrates v1 signals to v2 decisions" do
-    v1_signal = FactoryGirl.create(:signal, parent: v1_workflow, workflow: v1_workflow)
     v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
 
     Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
@@ -35,7 +35,6 @@ describe Migration::MigrateWorkflow, v2: true do
   end
 
   it "migrates great plains style workflow" do
-    v1_signal = FactoryGirl.create(:signal, parent: v1_workflow, workflow: v1_workflow)
     v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
     v1_activity = FactoryGirl.create(:activity, parent: v1_decision, workflow: v1_workflow)
     v1_sub_activity = FactoryGirl.create(:activity, parent: v1_activity, workflow: v1_workflow)
@@ -61,7 +60,6 @@ describe Migration::MigrateWorkflow, v2: true do
   end
 
   it "converts v1 status to v2 server and client status" do
-    v1_signal = FactoryGirl.create(:signal, parent: v1_workflow, workflow: v1_workflow)
     v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
 
     Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
@@ -69,5 +67,39 @@ describe Migration::MigrateWorkflow, v2: true do
 
     expect(v2_decision.current_server_status).to eq("complete")
     expect(v2_decision.current_client_status).to eq("complete")
+  end
+
+  it "converts a v1 timer" do
+    Timecop.freeze
+    v1_timer = FactoryGirl.create(:timer, parent: v1_signal, workflow: v1_workflow, fires_at: Time.now + 2.hours)
+
+    Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
+    v2_timer = v2_workflow.children.first
+
+    expect(v2_timer.legacy_type).to eq("timer")
+    expect(v2_timer.name).to eq("#{v1_timer.name}__timer__")
+    expect(v2_timer.fires_at.to_s).to eq((Time.now + 2.hours).to_s)
+    expect(V2::Workers::AsyncWorker.jobs.count).to eq(1)
+    expect(V2::Workers::AsyncWorker.jobs.first["args"]).to eq(["V2::Events::StartNode", "V2::Node", 7, 4])
+    expect(V2::Workers::AsyncWorker.jobs.first["at"].ceil).to eq((Time.now + 2.hours).to_f.ceil)
+  end
+
+  context "can_migrate?" do
+    it "does not migrate workflows with nodes that are not open, ready, or complete" do
+      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :sent_to_client)
+
+      Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
+
+      expect(V2::Workflow.count).to eq(0)
+    end
+
+    it "does not migrate workflows with timer nodes set to fire in one hour or less" do
+      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
+      v1_timer = FactoryGirl.create(:timer, parent: v1_decision, workflow: v1_workflow, fires_at: Time.now + 50.minutes)
+
+      Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
+
+      expect(V2::Workflow.count).to eq(0)
+    end
   end
 end
