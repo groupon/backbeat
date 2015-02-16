@@ -1,5 +1,3 @@
-require 'torquebox/logger'
-
 module WorkflowServer
   module Logger
 
@@ -53,7 +51,16 @@ module WorkflowServer
     end
 
     def self.logger
-      @@logger ||= TorqueBox::Logger.new('backbeat_logger')
+      @@logger ||= create_logger
+    end
+
+    def self.create_logger
+      if RUBY_PLATFORM == "java"
+        require 'torquebox/logger'
+        TorqueBox::Logger.new('backbeat_logger')
+      else
+        ::Logger.new("backbeat_logger")
+      end
     end
 
     def self.set_logger(logger)

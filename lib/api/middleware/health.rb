@@ -8,7 +8,7 @@ module Api
       ENDPOINT = '/health'.freeze
       def call(env)
         if env['PATH_INFO'] == ENDPOINT
-          db_ok = Mongoid.default_session.cluster.nodes.map(&:connected?).uniq == [true]
+          db_ok = Mongoid.default_session.cluster.nodes.map{|n| n.send(:connected?)}.uniq == [true]
 
           result = {
             sha: GIT_REVISION,
