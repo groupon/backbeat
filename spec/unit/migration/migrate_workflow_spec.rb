@@ -79,7 +79,13 @@ describe Migration::MigrateWorkflow, v2: true do
 
   it "converts a v1 timer" do
     Timecop.freeze
-    v1_timer = FactoryGirl.create(:timer, parent: v1_signal, workflow: v1_workflow, fires_at: Time.now + 2.hours)
+    v1_timer = FactoryGirl.create(
+      :timer,
+      parent: v1_signal,
+      workflow: v1_workflow,
+      status: :scheduled,
+      fires_at: Time.now + 2.hours
+    )
 
     Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
     v2_timer = v2_workflow.children.first
@@ -87,6 +93,8 @@ describe Migration::MigrateWorkflow, v2: true do
     expect(v2_timer.legacy_type).to eq("timer")
     expect(v2_timer.name).to eq("#{v1_timer.name}__timer__")
     expect(v2_timer.fires_at.to_s).to eq((Time.now + 2.hours).to_s)
+    expect(v2_timer.current_server_status).to eq("started")
+    expect(v2_timer.current_client_status).to eq("ready")
     expect(V2::Workers::AsyncWorker.jobs.count).to eq(1)
     expect(V2::Workers::AsyncWorker.jobs.first["args"]).to eq(["V2::Events::StartNode", "V2::Node", v2_timer.id, 4])
     expect(V2::Workers::AsyncWorker.jobs.first["at"].ceil).to eq((Time.now + 2.hours).to_f.ceil)
@@ -140,6 +148,21 @@ describe Migration::MigrateWorkflow, v2: true do
 
       expect(V2::Workflow.count).to eq(0)
       expect(v1_workflow.reload.migrated?).to eq(false)
+    end
+
+    it "migrates any complete timer" do
+      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
+      v1_timer = FactoryGirl.create(
+        :timer,
+        parent: v1_decision,
+        workflow: v1_workflow,
+        fires_at: Time.now - 80.minutes,
+        status: :complete
+      )
+
+      Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
+
+      expect(V2::Workflow.count).to eq(1)
     end
 
     it "does not migrate workflows with timer nodes set to fire in one hour or less" do

@@ -53,7 +53,7 @@ module Migration
     end
 
     def self.migrate_node(node, v2_parent)
-      raise WorkflowNotMigratable.new("Cannot migrate node #{node.id}") if cannot_migrate?(node)
+      raise WorkflowNotMigratable.new("Cannot migrate node #{node.id}") unless can_migrate?(node)
 
       new_v2_parent = (
         case node
@@ -87,13 +87,14 @@ module Migration
       end
     end
 
-    def self.cannot_migrate?(node)
-      ![:open, :ready, :complete].include?(node.status.to_sym) || non_migratable_timer?(node)
-    end
-
-    def self.non_migratable_timer?(node)
-      ![:open, :ready, :complete].include?(node.status.to_sym) &&
-        node.is_a?(WorkflowServer::Models::Timer) && (node.fires_at - Time.now) < 1.hour
+    def self.can_migrate?(node)
+      if node.is_a?(WorkflowServer::Models::Timer)
+        node.status.to_sym == :complete ||
+          ([:open, :ready, :scheduled].include?(node.status.to_sym) &&
+            (node.fires_at - Time.now) > 1.hour)
+      else
+        [:open, :ready, :complete].include?(node.status.to_sym)
+      end
     end
 
     def self.client_status(v1_node)
@@ -104,6 +105,8 @@ module Migration
         :ready
       when :complete
         :complete
+      when :scheduled
+        :ready
       end
     end
 
@@ -116,6 +119,8 @@ module Migration
         :ready
       when :complete
         :complete
+      when :scheduled
+        :started
       end
     end
   end
