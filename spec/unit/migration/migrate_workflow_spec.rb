@@ -80,7 +80,7 @@ describe Migration::MigrateWorkflow, v2: true do
     expect(v2_timer.name).to eq("#{v1_timer.name}__timer__")
     expect(v2_timer.fires_at.to_s).to eq((Time.now + 2.hours).to_s)
     expect(V2::Workers::AsyncWorker.jobs.count).to eq(1)
-    expect(V2::Workers::AsyncWorker.jobs.first["args"]).to eq(["V2::Events::StartNode", "V2::Node", 7, 4])
+    expect(V2::Workers::AsyncWorker.jobs.first["args"]).to eq(["V2::Events::StartNode", "V2::Node", v2_timer.id, 4])
     expect(V2::Workers::AsyncWorker.jobs.first["at"].ceil).to eq((Time.now + 2.hours).to_f.ceil)
   end
 
