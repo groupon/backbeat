@@ -84,6 +84,46 @@ describe Migration::MigrateWorkflow, v2: true do
     expect(V2::Workers::AsyncWorker.jobs.first["at"].ceil).to eq((Time.now + 2.hours).to_f.ceil)
   end
 
+  it "converts a v1 flag" do
+    v1_flag = FactoryGirl.create(:flag, parent: v1_signal, workflow: v1_workflow)
+
+    Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
+    v2_flag = v2_workflow.children.first
+
+    expect(v2_flag.legacy_type).to eq("flag")
+  end
+
+  it "converts a v1 complete workflow" do
+    v1_complete_workflow = FactoryGirl.create(:workflow_complete, parent: v1_signal, workflow: v1_workflow)
+
+    Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
+    v2_complete_workflow = v2_workflow.children.first
+
+    expect(v2_complete_workflow.legacy_type).to eq("flag")
+    expect(v2_workflow.complete).to eq(true)
+  end
+
+  it "converts a v1 continue as new workflow" do
+    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
+    v1_flag = FactoryGirl.create(:continue_as_new_workflow_flag, parent: v1_signal, workflow: v1_workflow)
+
+    Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
+    v2_decision = v2_workflow.children.first
+    v2_flag = v2_workflow.children.second
+
+    expect(v2_flag.legacy_type).to eq("flag")
+    expect(v2_decision.current_server_status).to eq("deactivated")
+  end
+
+  it "converts a v1 branch" do
+    v1_branch = FactoryGirl.create(:branch, parent: v1_signal, workflow: v1_workflow)
+
+    Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
+    v2_branch = v2_workflow.children.first
+
+    expect(v2_branch.legacy_type).to eq("branch")
+  end
+
   context "can_migrate?" do
     it "does not migrate workflows with nodes that are not open, ready, or complete" do
       v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :sent_to_client)
