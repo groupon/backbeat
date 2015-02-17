@@ -53,7 +53,7 @@ module Migration
     end
 
     def self.migrate_node(node, v2_parent)
-      raise WorkflowNotMigratable.new(node) if cannot_migrate?(node)
+      raise WorkflowNotMigratable.new("Cannot migrate node #{node.id}") if cannot_migrate?(node)
 
       new_v2_parent = (
         case node
