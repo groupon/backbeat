@@ -4,7 +4,7 @@ require "migration/migrate_workflow"
 describe Migration::MigrateWorkflow, v2: true do
   let(:v1_user) { FactoryGirl.create(:v1_user) }
   let(:v1_workflow) { FactoryGirl.create(:workflow, user: v1_user) }
-  let(:v1_signal) { FactoryGirl.create(:signal, parent: v1_workflow, workflow: v1_workflow) }
+  let(:v1_signal) { FactoryGirl.create(:signal, parent: nil, workflow: v1_workflow) }
 
   let(:v2_user) { FactoryGirl.create(:v2_user) }
   let(:v2_workflow) { V2::Workflow.first }
@@ -104,7 +104,7 @@ describe Migration::MigrateWorkflow, v2: true do
   end
 
   it "converts a v1 continue as new workflow" do
-    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
+    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete, inactive: true)
     v1_flag = FactoryGirl.create(:continue_as_new_workflow_flag, parent: v1_signal, workflow: v1_workflow)
 
     Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
@@ -128,16 +128,22 @@ describe Migration::MigrateWorkflow, v2: true do
     it "does not migrate workflows with nodes that are not open, ready, or complete" do
       v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :sent_to_client)
 
-      Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
+      expect { Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id) }.to raise_error Migration::MigrateWorkflow::WorkflowNotMigratable
 
       expect(V2::Workflow.count).to eq(0)
     end
 
     it "does not migrate workflows with timer nodes set to fire in one hour or less" do
       v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
-      v1_timer = FactoryGirl.create(:timer, parent: v1_decision, workflow: v1_workflow, fires_at: Time.now + 50.minutes)
+      v1_timer = FactoryGirl.create(
+        :timer,
+        parent: v1_decision,
+        workflow: v1_workflow,
+        fires_at: Time.now + 50.minutes,
+        status: :scheduled
+      )
 
-      Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
+      expect { Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id) }.to raise_error Migration::MigrateWorkflow::WorkflowNotMigratable
 
       expect(V2::Workflow.count).to eq(0)
     end
