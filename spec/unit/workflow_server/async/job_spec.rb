@@ -43,15 +43,24 @@ describe WorkflowServer::Async::Job do
   end
 
   context '#perform' do
-    before do
-      @dec = double('decision', some_method: nil, id: 10, name: :make_payment, pull: nil, push: nil)
+    it 'drops the job into sidekiq' do
+      @dec = double('decision', some_method: nil, id: 10, name: :make_payment, pull: nil, push: nil, workflow: double('wf', migrated?: false))
       @job = WorkflowServer::Async::Job.schedule({event: @dec, method: :some_method, args: [1,2,3,4], max_attempts: 100}, Time.now + 2.days)
       WorkflowServer::Models::Event.stub(find: @dec)
+
+      WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_async).with(@dec.id, :some_method, [1,2,3,4], 100)
+
+      @job.invoke_job
     end
 
-    it 'drops the job into sidekiq' do
-      WorkflowServer::Workers::SidekiqJobWorker.should_receive(:perform_async).with(@dec.id, :some_method, [1,2,3,4], 100)
-      @job.invoke_job
+    it 'ignores the job if the event has been migrated to v2' do
+      workflow = FactoryGirl.create(:workflow, migrated: true)
+      decision = FactoryGirl.create(:decision, workflow: workflow)
+      job = WorkflowServer::Async::Job.schedule({event: decision, method: :some_method, args: [1,2,3,4], max_attempts: 100}, Time.now + 2.days)
+
+      WorkflowServer::Workers::SidekiqJobWorker.should_not_receive(:perform_async)
+
+      job.invoke_job
     end
   end
 

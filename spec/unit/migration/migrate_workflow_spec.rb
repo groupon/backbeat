@@ -34,6 +34,14 @@ describe Migration::MigrateWorkflow, v2: true do
     expect(v2_decision.legacy_type).to eq("decision")
   end
 
+  it "marks the v1 workflow as migrated" do
+    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
+
+    Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id)
+
+    expect(v1_workflow.reload.migrated?).to eq(true)
+  end
+
   it "migrates great plains style workflow" do
     v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
     v1_activity = FactoryGirl.create(:activity, parent: v1_decision, workflow: v1_workflow)
@@ -131,6 +139,7 @@ describe Migration::MigrateWorkflow, v2: true do
       expect { Migration::MigrateWorkflow.call(v1_workflow.id, v2_user.id) }.to raise_error Migration::MigrateWorkflow::WorkflowNotMigratable
 
       expect(V2::Workflow.count).to eq(0)
+      expect(v1_workflow.reload.migrated?).to eq(false)
     end
 
     it "does not migrate workflows with timer nodes set to fire in one hour or less" do

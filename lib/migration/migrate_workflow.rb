@@ -18,6 +18,8 @@ module Migration
         v1_workflow.get_children.each do |signal|
           migrate_signal(signal, v2_workflow)
         end
+
+        v1_workflow.update_attributes!(migrated: true)
       end
     end
 

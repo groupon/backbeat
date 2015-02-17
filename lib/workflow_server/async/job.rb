@@ -30,6 +30,7 @@ module WorkflowServer
       end
 
       def perform
+        return if Models::Event.find(event_id).workflow.migrated?
         WorkflowServer::Workers::SidekiqJobWorker.perform_async(event_id, method_to_call, args, max_attempts)
       end
 
