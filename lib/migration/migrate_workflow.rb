@@ -6,7 +6,7 @@ module Migration
       ActiveRecord::Base.transaction do
         v1_workflow = WorkflowServer::Models::Workflow.find(v1_workflow_id)
 
-        v2_workflow = V2::Workflow.create(
+        v2_workflow = V2::Workflow.create!(
           uuid: v1_workflow.id,
           name: v1_workflow.name,
           decider: v1_workflow.decider,
@@ -28,7 +28,7 @@ module Migration
     end
 
     def self.migrate_activity(v1_activity, v2_parent, attrs = {})
-      node = V2::Node.create!(
+      V2::Node.create!(
         uuid: v1_activity.id,
         mode: :blocking,
         current_server_status: server_status(v1_activity),
@@ -37,20 +37,17 @@ module Migration
         fires_at: attrs[:fires_at] || Time.now - 1.second,
         parent: v2_parent,
         workflow_id:  v2_parent.workflow_id,
-        user_id: v2_parent.user_id
+        user_id: v2_parent.user_id,
+        client_node_detail: V2::ClientNodeDetail.new(
+          metadata: {},
+          data: {}
+        ),
+        node_detail: V2::NodeDetail.new(
+          legacy_type: attrs[:legacy_type] || :activity,
+          retry_interval: 5,
+          retries_remaining: 4
+        )
       )
-      V2::ClientNodeDetail.create!(
-        node: node,
-        metadata: {},
-        data: {}
-      )
-      V2::NodeDetail.create!(
-        node: node,
-        legacy_type: attrs[:legacy_type] || :activity,
-        retry_interval: 5,
-        retries_remaining: 4
-      )
-      node
     end
 
     def self.migrate_node(node, v2_parent)
