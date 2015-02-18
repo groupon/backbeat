@@ -7,7 +7,8 @@ module V2
         name: params[:workflow_type],
         subject: params[:subject],
         decider: params[:decider],
-        user_id: user.id
+        user_id: user.id,
+        migrated: true
       )
     end
 
