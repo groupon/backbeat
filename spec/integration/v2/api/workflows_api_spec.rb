@@ -69,7 +69,7 @@ describe V2::Api::WorkflowsApi, v2: true do
     end
   end
 
-  context "GET /workflow/:id" do
+  context "GET /workflows/:id" do
     it "returns a workflow given an id" do
       response = get "v2/workflows/#{workflow.id}"
       expect(response.status).to eq(200)
@@ -79,7 +79,7 @@ describe V2::Api::WorkflowsApi, v2: true do
     end
   end
 
-  context "GET /workflow/:id/children" do
+  context "GET /workflows/:id/children" do
     it "returns the workflows immediate" do
       second_node = FactoryGirl.create(
         :v2_node,
@@ -132,6 +132,37 @@ describe V2::Api::WorkflowsApi, v2: true do
 
       expect(response.status).to eq(200)
       expect(workflow.reload.complete?).to eq(true)
+    end
+  end
+
+  context "GET /workflows" do
+    it "returns the first workflow matching the decider and subject" do
+      workflow.update_attributes(migrated: true)
+      query = { decider: workflow.decider, subject: workflow.subject }
+
+      response = get "v2/workflows", query
+      body = JSON.parse(response.body)
+
+      expect(response.status).to eq(200)
+      expect(body["id"]).to eq(workflow.id)
+    end
+
+    it "returns 404 if a workflow is not found" do
+      workflow.update_attributes(migrated: true)
+      query = { decider: "Foo", subject: workflow.subject }
+
+      response = get "v2/workflows", query
+
+      expect(response.status).to eq(404)
+    end
+
+    it "returns 404 if the workflow is not fully migrated" do
+      workflow.update_attributes(migrated: false)
+      query = { decider: workflow.decider, subject: workflow.subject }
+
+      response = get "v2/workflows", query
+
+      expect(response.status).to eq(404)
     end
   end
 end

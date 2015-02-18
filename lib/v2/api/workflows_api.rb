@@ -53,6 +53,15 @@ module V2
           find_workflow
         end
 
+        get "/" do
+          Workflow.where(
+            migrated: true,
+            user_id: current_user.id,
+            decider: params[:decider],
+            subject: params[:subject].to_json
+          ).first!
+        end
+
         get "/:id/tree" do
           workflow = find_workflow
           WorkflowTree.to_hash(workflow)

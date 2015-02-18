@@ -1,7 +1,7 @@
 FactoryGirl.define do
   factory :v2_workflow, class: V2::Workflow do
     name 'WFType'
-    subject({'subjectKlass'=>'PaymentTerm', 'subjectId'=>'100'})
+    subject({'subject_klass'=>'PaymentTerm', 'subject_id'=>'100'})
     decider 'PaymentDecider'
 
     factory :v2_workflow_with_node do
