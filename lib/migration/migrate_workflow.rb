@@ -2,19 +2,8 @@ module Migration
   module MigrateWorkflow
     class WorkflowNotMigratable < StandardError; end
 
-    def self.call(v1_workflow_id, v2_user_id)
+    def self.call(v1_workflow, v2_workflow)
       ActiveRecord::Base.transaction do
-        v1_workflow = WorkflowServer::Models::Workflow.find(v1_workflow_id)
-
-        v2_workflow = V2::Workflow.create!(
-          uuid: v1_workflow.id,
-          name: v1_workflow.name,
-          decider: v1_workflow.decider,
-          subject: v1_workflow.subject,
-          user_id: v2_user_id,
-          complete: v1_workflow.status == :complete
-        )
-
         v1_workflow.get_children.each do |signal|
           migrate_signal(signal, v2_workflow)
         end
