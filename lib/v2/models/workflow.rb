@@ -15,10 +15,7 @@ module V2
     validates :user_id, presence: true
 
     def self.find_or_create_from_v1(v1_workflow, v2_user_id)
-      v2_workflow = V2::Workflow.find_by_uuid(v1_workflow.id)
-      return v2_workflow if v2_workflow
-
-      V2::Workflow.create!(
+      V2::Workflow.first_or_create!(
         uuid: v1_workflow.id,
         name: v1_workflow.name,
         decider: v1_workflow.decider,
