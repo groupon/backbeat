@@ -9,6 +9,16 @@ describe Migration::MigrateWorkflow, v2: true do
   let(:v2_user) { FactoryGirl.create(:v2_user) }
   let(:v2_workflow) { FactoryGirl.create(:v2_workflow, user: v2_user) }
 
+  it "marks both v2 and v2 workflows as migrated" do
+    expect(v1_workflow.migrated).to eq(false)
+    expect(v2_workflow.migrated).to eq(false)
+
+    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
+
+    expect(v1_workflow.migrated).to eq(true)
+    expect(v2_workflow.migrated).to eq(true)
+  end
+
   it "migrates v1 signals to v2 decisions" do
     v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
 

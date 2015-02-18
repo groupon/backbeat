@@ -8,7 +8,8 @@ module Migration
           migrate_signal(signal, v2_workflow)
         end
 
-        v1_workflow.update_attributes!(migrated: true)
+        v1_workflow.update_attributes!(migrated: true) # for ignoring delayed jobs
+        v2_workflow.update_attributes!(migrated: true) # for knowing whether to signal v2 or not
       end
     end
 
