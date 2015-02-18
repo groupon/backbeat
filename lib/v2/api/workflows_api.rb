@@ -58,6 +58,7 @@ module V2
             migrated: true,
             user_id: current_user.id,
             decider: params[:decider],
+            name: params[:workflow_type],
             subject: params[:subject].to_json
           ).first!
         end
