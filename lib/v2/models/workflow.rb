@@ -1,4 +1,4 @@
-require 'v2/models/child_status_methods'
+require 'v2/models/child_queries'
 
 module V2
   class Workflow < ActiveRecord::Base
@@ -14,7 +14,7 @@ module V2
     validates :decider, presence: true
     validates :user_id, presence: true
 
-    include SharedNodeMethods
+    include ChildQueries
 
     def parent
       nil

@@ -1,5 +1,5 @@
 module V2
-  module SharedNodeMethods
+  module ChildQueries
     def all_children_ready?
       !children.where(current_server_status: :pending).exists?
     end

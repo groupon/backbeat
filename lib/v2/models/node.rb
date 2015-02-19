@@ -1,5 +1,5 @@
 require 'enumerize'
-require 'v2/models/child_status_methods'
+require 'v2/models/child_queries'
 
 module V2
   class Node < ActiveRecord::Base
@@ -52,7 +52,7 @@ module V2
     delegate :complete?, :processing_children?, :ready?, to: :current_server_status
     delegate :subject, :decider, to: :workflow
 
-    include SharedNodeMethods
+    include ChildQueries
 
     def parent=(node)
       self.parent_id = node.id if node.is_a?(V2::Node)
