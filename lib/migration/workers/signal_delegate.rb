@@ -14,7 +14,7 @@ module Migration
       def perform(v1_workflow_id, v1_user_id, params, client_data, client_metadata)
         v1_workflow = WorkflowServer::Models::Workflow.find(v1_workflow_id)
         v2_user = V2::User.find_by_uuid(v1_user_id)
-        v2_workflow = V2::Workflow.find_or_create_from_v1(v1_workflow, v2_user.id)
+        v2_workflow = MigrateWorkflow.find_or_create_v2_workflow(v1_workflow, v2_user.id)
 
         v2_workflow.with_lock do
           if v2_workflow.migrated?
