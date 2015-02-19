@@ -18,7 +18,6 @@ module V2
 
       resource 'workflows' do
         post "/" do
-          params[:user] = current_user
           wf = Server.create_workflow(params, current_user)
           if wf.valid?
             wf
