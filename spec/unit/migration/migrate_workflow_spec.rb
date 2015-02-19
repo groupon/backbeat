@@ -15,6 +15,7 @@ describe Migration::MigrateWorkflow, v2: true do
     let(:v1_workflow) { FactoryGirl.create(:workflow, user: v1_user) }
 
     it "returns v2 workflow if it already exists" do
+      FactoryGirl.create(:v2_workflow, name: "wrong workflow", user: v2_user)
       v2_workflow = FactoryGirl.create(:v2_workflow, uuid: v1_workflow.id, user: v2_user)
       workflow = Migration::MigrateWorkflow.find_or_create_v2_workflow(v1_workflow, v2_user.id)
 
