@@ -1,6 +1,7 @@
 require 'sidekiq'
 require 'sidekiq-failures'
 require 'workflow_server/config'
+require 'migration/migrate_workflow'
 
 module Migration
   module Workers
@@ -11,10 +12,9 @@ module Migration
                       backtrace:  true,
                       queue: WorkflowServer::Config.options[:signal_delegate_queue]
 
-      def perform(v1_workflow_id, v1_user_id, params, client_data, client_metadata)
+      def perform(v1_workflow_id, params, client_data, client_metadata)
         v1_workflow = WorkflowServer::Models::Workflow.find(v1_workflow_id)
-        v2_user = V2::User.find_by_uuid(v1_user_id)
-        v2_workflow = MigrateWorkflow.find_or_create_v2_workflow(v1_workflow, v2_user.id)
+        v2_workflow = MigrateWorkflow.find_or_create_v2_workflow(v1_workflow)
 
         v2_workflow.with_lock do
           if v2_workflow.migrated?

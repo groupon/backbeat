@@ -6,27 +6,24 @@ describe Migration::MigrateWorkflow, v2: true do
   let(:v1_workflow) { FactoryGirl.create(:workflow, user: v1_user) }
   let(:v1_signal) { FactoryGirl.create(:signal, parent: nil, workflow: v1_workflow) }
 
-  let(:v2_user) { FactoryGirl.create(:v2_user) }
+  let(:v2_user) { FactoryGirl.create(:v2_user, uuid: v1_user.id) }
   let(:v2_workflow) { FactoryGirl.create(:v2_workflow, user: v2_user) }
 
   context "find_or_create_v2_workflow" do
-    let(:v1_user) { FactoryGirl.create(:v1_user) }
-    let(:v2_user) { FactoryGirl.create(:v2_user) }
-    let(:v1_workflow) { FactoryGirl.create(:workflow, user: v1_user) }
-
     it "returns v2 workflow if it already exists" do
       FactoryGirl.create(:v2_workflow, name: "wrong workflow", user: v2_user)
       v2_workflow = FactoryGirl.create(:v2_workflow, uuid: v1_workflow.id, user: v2_user)
-      workflow = Migration::MigrateWorkflow.find_or_create_v2_workflow(v1_workflow, v2_user.id)
+      workflow = Migration::MigrateWorkflow.find_or_create_v2_workflow(v1_workflow)
 
       expect(workflow.class.to_s).to eq("V2::Workflow")
       expect(workflow.id).to eq(v2_workflow.id)
     end
 
     it "creates v2 workflow if it does not exists" do
+      v2_user
       expect(V2::Workflow.count).to eq(0)
 
-      workflow = Migration::MigrateWorkflow.find_or_create_v2_workflow(v1_workflow, v2_user.id)
+      workflow = Migration::MigrateWorkflow.find_or_create_v2_workflow(v1_workflow)
 
       expect(V2::Workflow.count).to eq(1)
       expect(workflow.name).to eq(v1_workflow.name)

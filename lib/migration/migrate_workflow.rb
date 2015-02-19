@@ -1,8 +1,12 @@
 module Migration
+
+  MIGRATING_TYPE = :international
+
   module MigrateWorkflow
     class WorkflowNotMigratable < StandardError; end
 
-    def self.find_or_create_v2_workflow(v1_workflow, v2_user_id)
+    def self.find_or_create_v2_workflow(v1_workflow)
+      v2_user_id = V2::User.find_by_uuid(v1_workflow.user_id).id
       query = {
         uuid: v1_workflow.id,
         name: v1_workflow.name,

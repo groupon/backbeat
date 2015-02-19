@@ -17,7 +17,7 @@ describe Migration::Workers::SignalDelegate, v2: true do
       client_data = {data: '123'}
       client_metadata = {metadata: '456'}
 
-      Migration::Workers::SignalDelegate.perform_async(v1_workflow.id, v1_user.id, params, client_data, client_metadata)
+      Migration::Workers::SignalDelegate.perform_async(v1_workflow.id, params, client_data, client_metadata)
       Migration::Workers::SignalDelegate.drain
 
       WorkflowServer::Workers::SidekiqJobWorker.drain
@@ -39,7 +39,7 @@ describe Migration::Workers::SignalDelegate, v2: true do
 
       expect(V2::Server).to receive(:fire_event).with(V2::Events::ScheduleNextNode, @v2_workflow)
 
-      Migration::Workers::SignalDelegate.perform_async(v1_workflow.id, v1_user.id, params, client_data, client_metadata)
+      Migration::Workers::SignalDelegate.perform_async(v1_workflow.id, params, client_data, client_metadata)
       Migration::Workers::SignalDelegate.drain
 
       new_node = @v2_workflow.nodes.last

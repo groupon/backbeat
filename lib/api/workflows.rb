@@ -14,8 +14,6 @@ module Api
     helpers CurrentUserHelper
     helpers WorkflowHelper
 
-    MIGRATING_TYPE = :international
-
     helpers do
       def workflow_status(workflow)
         workflow_status = workflow.status
@@ -252,12 +250,11 @@ module Api
         options = params[:options] || {}
         client_data = options[:client_data] || {}
         client_metadata = options[:client_metadata] || {}
-        if wf.workflow_type.to_sym == MIGRATING_TYPE.to_sym
-          Migration::Workers::SignalDelegate.perform_async(wf.id, current_user.id, params, client_data, client_metadata)
+        if wf.workflow_type.to_sym == Migration::MIGRATING_TYPE.to_sym
+          Migration::Workers::SignalDelegate.perform_async(wf.id, params, client_data, client_metadata)
           { action_completed: "Delgating Signal to V1 or V2" }
         else
-          signal = wf.signal(params[:name], client_data: client_data, client_metadata: client_metadata)
-          signal
+          wf.signal(params[:name], client_data: client_data, client_metadata: client_metadata)
         end
       end
 

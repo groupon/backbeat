@@ -127,10 +127,9 @@ describe Api::Workflows do
         expect(Migration::Workers::SignalDelegate.jobs.count).to eq(1)
         job_args = Migration::Workers::SignalDelegate.jobs.first["args"]
         expect(job_args.first).to eq(wf.id)
-        expect(job_args.second).to eq(user.id)
-        expect(job_args.third["name"]).to eq("test")
-        expect(job_args.fourth).to eq({"data" => '123'})
-        expect(job_args.fifth).to eq({"metadata" => '456'})
+        expect(job_args.second["name"]).to eq("test")
+        expect(job_args.third).to eq({"data" => '123'})
+        expect(job_args.fourth).to eq({"metadata" => '456'})
       end
     end
 
