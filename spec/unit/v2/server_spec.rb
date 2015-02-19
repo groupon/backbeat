@@ -45,4 +45,42 @@ describe V2::Server, v2: true do
       expect(workflow.migrated?).to eq(true)
     end
   end
+
+  context ".signal" do
+    let(:params) {{
+      name: "New Signal",
+      options: {}
+    }}
+
+    it "raises an error if the workflow is complete" do
+      workflow.complete!
+
+      expect { V2::Server.signal(workflow, {}) }.to raise_error V2::WorkflowComplete
+    end
+
+    it "adds the signal node to the workflow" do
+      signal = V2::Server.signal(workflow, params)
+
+      expect(signal.parent).to eq(workflow)
+    end
+
+    it "sets the signal to ready" do
+      signal = V2::Server.signal(workflow, params)
+
+      expect(signal.current_server_status).to eq("ready")
+      expect(signal.current_client_status).to eq("ready")
+    end
+
+    it "sets the legacy type to decision" do
+      signal = V2::Server.signal(workflow, params)
+
+      expect(signal.legacy_type).to eq("decision")
+    end
+
+    it "fires the ScheduleNextNode event on the workflow" do
+      expect(V2::Server).to receive(:fire_event).with(V2::Events::ScheduleNextNode, workflow)
+
+      V2::Server.signal(workflow, params)
+    end
+  end
 end

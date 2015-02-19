@@ -18,20 +18,9 @@ module Migration
 
         v2_workflow.with_lock do
           if v2_workflow.migrated?
-            return if v2_workflow.complete?
             params = params.with_indifferent_access
             params[:options][:metadata] = params[:options][:client_metadata].merge({ "version"=> "v2" })
-            node = V2::Server.add_node(
-              v2_user,
-              v2_workflow,
-              params.merge(
-                current_server_status: :ready,
-                current_client_status: :ready,
-                legacy_type: 'decision',
-                mode: :blocking
-              ).with_indifferent_access
-            )
-            V2::Server.fire_event(V2::Events::ScheduleNextNode, v2_workflow)
+            V2::Server.signal(v2_workflow, params.with_indifferent_access)
           else
             v1_workflow.signal(params["name"], client_data: client_data, client_metadata: client_metadata)
           end

@@ -29,19 +29,7 @@ module V2
 
         post "/:id/signal/:name" do
           workflow = find_workflow
-          raise V2::WorkflowComplete if workflow.complete?
-          node = Server.add_node(
-            current_user,
-            workflow,
-            params.merge(
-              current_server_status: :ready,
-              current_client_status: :ready,
-              legacy_type: 'decision',
-              mode: :blocking
-            )
-          )
-          Server.fire_event(Events::ScheduleNextNode, workflow)
-          node
+          Server.signal(workflow, params)
         end
 
         put "/:id/complete" do

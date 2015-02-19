@@ -12,6 +12,22 @@ module V2
       )
     end
 
+    def self.signal(workflow, params)
+      raise WorkflowComplete if workflow.complete?
+      node = add_node(
+        workflow.user,
+        workflow,
+        params.merge(
+          current_server_status: :ready,
+          current_client_status: :ready,
+          legacy_type: 'decision',
+          mode: :blocking
+        )
+      )
+      Server.fire_event(Events::ScheduleNextNode, workflow)
+      node
+    end
+
     def self.add_node(user, parent_node, params)
       node = Node.create!(
         mode: params.fetch(:mode, :blocking).to_sym,
