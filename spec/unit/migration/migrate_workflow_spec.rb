@@ -9,7 +9,25 @@ describe Migration::MigrateWorkflow, v2: true do
   let(:v2_user) { FactoryGirl.create(:v2_user, uuid: v1_user.id) }
   let(:v2_workflow) { FactoryGirl.create(:v2_workflow, user: v2_user) }
 
-  context "find_or_create_v2_workflow" do
+  context ".queue_conversion_batch" do
+    it "queues a batch of workflow ids to the conversion worker" do
+      FactoryGirl.create(:workflow, user: v1_user)
+      10.times do |i|
+        FactoryGirl.create(
+          :workflow,
+          name: "Workflow #{i}",
+          workflow_type: :international,
+          user: v1_user
+        )
+      end
+
+      Migration::MigrateWorkflow.queue_conversion_batch
+
+      expect(Migration::Workers::Migrator.jobs.count).to eq(10)
+    end
+  end
+
+  context ".find_or_create_v2_workflow" do
     it "returns v2 workflow if it already exists" do
       FactoryGirl.create(:v2_workflow, name: "wrong workflow", user: v2_user)
       v2_workflow = FactoryGirl.create(:v2_workflow, uuid: v1_workflow.id, user: v2_user)

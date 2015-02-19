@@ -166,3 +166,12 @@ namespace :app do
     end
   end
 end
+
+namespace :workflows do
+  task :migrate, [:type] do |task, args|
+    require "migration/migrate_workflow"
+
+    type = args[:type] || Migration::MIGRATING_TYPE
+    Migration::MigrateWorkflow.queue_conversion_batch(type.to_sym)
+  end
+end

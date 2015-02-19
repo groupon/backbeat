@@ -68,6 +68,7 @@ if Backbeat.v2?
 
     config.after(:each) do
       Timecop.return
+      Mongoid::Sessions.default.collections.select { |c| c.name !~ /system/ }.each(&:drop)
     end
 
     config.before(:suite) do

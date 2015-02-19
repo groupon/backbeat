@@ -1,9 +1,17 @@
+require "migration/workers/migrator"
+
 module Migration
 
   MIGRATING_TYPE = :international
 
   module MigrateWorkflow
     class WorkflowNotMigratable < StandardError; end
+
+    def self.queue_conversion_batch(type = MIGRATING_TYPE)
+      WorkflowServer::Models::Workflow.where(workflow_type: type).each do |workflow|
+        Migration::Workers::Migrator.perform_async(workflow.id)
+      end
+    end
 
     def self.find_or_create_v2_workflow(v1_workflow)
       v2_user_id = V2::User.find_by_uuid(v1_workflow.user_id).id
