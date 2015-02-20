@@ -28,4 +28,11 @@ describe Migration::Workers::Migrator, v2: true do
     Migration::Workers::Migrator.new.perform(v1_workflow.id)
     Migration::Workers::Migrator.new.perform(v1_workflow.id)
   end
+
+  it "logs" do
+    v1_user = FactoryGirl.create(:v1_user)
+    v1_workflow = FactoryGirl.create(:workflow, user: v1_user)
+    expect(Instrument).to receive(:instrument).with("Migration::Workers::Migrator_perform", { v1_workflow_id: v1_workflow.id })
+    Migration::Workers::Migrator.new.perform(v1_workflow.id)
+  end
 end

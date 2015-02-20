@@ -20,9 +20,8 @@ describe V2::Schedulers, v2: true do
   context "PerformEvent" do
     it "logs the node, event name, and args" do
       expect(Instrument).to receive(:instrument).with(
-        node,
         "MockEvent",
-        { server_retries_remaining: 1 }
+        { node: node, server_retries_remaining: 1 }
       )
 
       V2::Schedulers::PerformEvent.new(1).call(MockEvent, node)
