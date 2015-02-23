@@ -124,8 +124,13 @@ describe V2::Api::EventsApi, v2: true do
 
   context "PUT /events/:id/status/deactivated" do
     it "fires the DeactivateNode event" do
-      put "v2/events/#{node.id}/status/deactivated"
-
+      second_node = FactoryGirl.create(
+        :v2_node,
+        workflow: workflow,
+        parent: node,
+        user: user
+      )
+      put "v2/events/#{second_node.id}/status/deactivated"
       expect(node.reload.current_server_status).to eq("deactivated")
     end
   end

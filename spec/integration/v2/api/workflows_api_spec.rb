@@ -118,14 +118,6 @@ describe V2::Api::WorkflowsApi, v2: true do
     end
   end
 
-  context "PUT /workflows/:id/deactivated" do
-    it "fires the DeactivateNode event" do
-      expect(V2::Server).to receive(:fire_event).with(V2::Events::DeactivateNode, workflow)
-
-      put "v2/workflows/#{workflow.id}/deactivated"
-    end
-  end
-
   context "PUT /workflows/:id/complete" do
     it "marks the workflow as complete" do
       response = put "v2/workflows/#{workflow.id}/complete"

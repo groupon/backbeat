@@ -63,11 +63,6 @@ module V2
         get "/:id/children" do
           find_workflow.children
         end
-
-        put "/:id/deactivated" do
-          workflow = find_workflow
-          Server.fire_event(Events::DeactivateNode, workflow)
-        end
       end
     end
   end

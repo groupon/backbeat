@@ -58,7 +58,7 @@ module V2
       Events::ClientComplete => Schedulers::PerformEvent,
       Events::ClientError => Schedulers::PerformEvent,
       Events::ClientProcessing => Schedulers::PerformEvent,
-      Events::DeactivateNode => Schedulers::PerformEvent,
+      Events::DeactivatePreviousNodes => Schedulers::PerformEvent,
       Events::MarkChildrenReady => Schedulers::PerformEvent,
       Events::NodeComplete => Schedulers::PerformEvent,
       Events::RetryNode => Schedulers::AsyncEventInterval,
