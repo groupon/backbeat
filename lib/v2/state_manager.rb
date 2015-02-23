@@ -13,6 +13,7 @@ module V2
       },
       current_server_status: {
         any: [:deactivated, :errored],
+        deactivated: [:deactivated],
         pending: [:ready],
         ready: [:started],
         started: [:sent_to_client],

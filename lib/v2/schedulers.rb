@@ -48,7 +48,7 @@ module V2
         if retries > 0
           AsyncEventBackoff.call(event, node, retries - 1)
         else
-          StateManager.call(node, current_server_status: :errored)
+          StateManager.call(node, current_server_status: :errored) if node.parent
           Client.notify_of(node, "error", error)
         end
       end
