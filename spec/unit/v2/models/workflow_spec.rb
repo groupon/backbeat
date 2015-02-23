@@ -25,6 +25,36 @@ describe V2::Workflow, v2: true do
     end
   end
 
+  context "not_complete_children" do
+    it "does not return complete children" do
+      not_complete_node = workflow.nodes.first
+      FactoryGirl.create(
+        :v2_node,
+        user: user,
+        workflow_id: workflow.id,
+        parent: workflow,
+        current_server_status: :complete
+      )
+
+      expect(workflow.not_complete_children.count).to eq(1)
+      expect(workflow.not_complete_children.first.id).to eq(not_complete_node.id)
+    end
+
+    it "does not return deactivated children" do
+      not_deactivated_node = workflow.nodes.first
+      FactoryGirl.create(
+        :v2_node,
+        user: user,
+        workflow_id: workflow.id,
+        parent: workflow,
+        current_server_status: :deactivated
+      )
+
+      expect(workflow.not_complete_children.count).to eq(1)
+      expect(workflow.not_complete_children.first.id).to eq(not_deactivated_node.id)
+    end
+  end
+
   include Colorize
 
   context "print_tree" do

@@ -5,7 +5,7 @@ module V2
     end
 
     def not_complete_children
-      children.where("current_server_status != 'complete'")
+      children.where("current_server_status != 'complete' AND current_server_status != 'deactivated'")
     end
 
     def all_children_complete?
