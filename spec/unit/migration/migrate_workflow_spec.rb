@@ -21,7 +21,7 @@ describe Migration::MigrateWorkflow, v2: true do
         )
       end
 
-      Migration::MigrateWorkflow.queue_conversion_batch
+      Migration::MigrateWorkflow.queue_conversion_batch([:international])
 
       expect(Migration::Workers::Migrator.jobs.count).to eq(10)
     end

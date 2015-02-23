@@ -171,7 +171,6 @@ namespace :workflows do
   task :migrate, [:type] do |task, args|
     require "migration/migrate_workflow"
 
-    type = args[:type] || Migration::MIGRATING_TYPE
-    Migration::MigrateWorkflow.queue_conversion_batch(type.to_sym)
+    Migration::MigrateWorkflow.queue_conversion_batch
   end
 end

@@ -2,13 +2,18 @@ require "migration/workers/migrator"
 
 module Migration
 
-  MIGRATING_TYPE = :international
+  MIGRATING_TYPES = []
+
+  def self.migrate?(type)
+    MIGRATING_TYPES.include?(type.to_sym)
+  end
 
   module MigrateWorkflow
+
     class WorkflowNotMigratable < StandardError; end
 
-    def self.queue_conversion_batch(type = MIGRATING_TYPE)
-      WorkflowServer::Models::Workflow.where(workflow_type: type).each do |workflow|
+    def self.queue_conversion_batch(types = MIGRATING_TYPES)
+      WorkflowServer::Models::Workflow.where(:workflow_type.in => types).each do |workflow|
         Migration::Workers::Migrator.perform_async(workflow.id)
       end
     end
