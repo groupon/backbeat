@@ -130,7 +130,9 @@ describe V2::Api::EventsApi, v2: true do
         parent: node,
         user: user
       )
+
       put "v2/events/#{second_node.id}/status/deactivated"
+
       expect(node.reload.current_server_status).to eq("deactivated")
     end
   end

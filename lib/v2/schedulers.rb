@@ -27,7 +27,6 @@ module V2
         new(0).call(event, node)
       end
 
-
       def call(event, node)
         event_data = { node: node, server_retries_remaining: retries }
         Instrument.instrument(event.name, event_data) do
@@ -48,7 +47,7 @@ module V2
         if retries > 0
           AsyncEventBackoff.call(event, node, retries - 1)
         else
-          StateManager.call(node, current_server_status: :errored) if node.parent
+          StateManager.call(node, current_server_status: :errored)
           Client.notify_of(node, "error", error)
         end
       end

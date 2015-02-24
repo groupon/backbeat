@@ -103,7 +103,7 @@ module V2
     class DeactivatePreviousNodes
       def self.call(node)
         WorkflowTree.new(node.workflow).each do |child_node|
-          StateManager.call(child_node, current_server_status: :deactivated) if child_node.parent && child_node.id < node.id
+          StateManager.call(child_node, current_server_status: :deactivated) if child_node.id < node.id
         end
       end
     end
