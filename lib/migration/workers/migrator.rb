@@ -7,7 +7,7 @@ module Migration
     class Migrator
       include Sidekiq::Worker
 
-      sidekiq_options retry: 4,
+      sidekiq_options retry: false,
                       backtrace:  true,
                       queue: WorkflowServer::Config.options[:migrator_queue]
 
