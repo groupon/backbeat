@@ -27,7 +27,7 @@ module Migration
           v2_workflow.with_lock do
             if v2_workflow.migrated?
               params = params.with_indifferent_access
-              params[:options][:metadata] = params[:options][:client_metadata].merge({ "version"=> "v2" })
+              params[:options][:metadata] = client_metadata.merge({ "version"=> "v2" })
               V2::Server.signal(v2_workflow, params.with_indifferent_access)
               Instrument.log_msg(self.class.to_s + "_v2_signal_sent", log_data)
             else

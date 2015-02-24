@@ -13,7 +13,7 @@ describe Migration::Workers::SignalDelegate, v2: true do
   def log_data(v1_workflow_id)
     {
       v1_workflow_id: v1_workflow_id,
-      params: {'name' => 'test', 'options' => { 'client_data' => {'data' => '123'}, 'client_metadata' => {'blah' => '456'}}},
+      params: {'name' => 'test', 'options' => { 'client_data' => {'data' => '123'}}},
       client_data: {'data' => '123'},
       client_metadata: {'blah' => '456'}
     }
@@ -22,7 +22,7 @@ describe Migration::Workers::SignalDelegate, v2: true do
   context "perform" do
     it "sends v1 signal" do
       WorkflowServer::Client.stub(:make_decision)
-      params = {name: 'test', options: { client_data: {data: '123'}, client_metadata: {blah: '456'}}}
+      params = {name: 'test', options: { client_data: {data: '123'}}}
       client_data = {data: '123'}
       client_metadata = {blah: '456'}
 
@@ -47,7 +47,7 @@ describe Migration::Workers::SignalDelegate, v2: true do
     it "sends v2 signal" do
       @v2_workflow.update_attributes!(migrated: true)
 
-      params = {name: 'test', options: { client_data: {data: '123'}, client_metadata: {blah: '456'}}}
+      params = {name: 'test', options: { client_data: {data: '123'}}}
       client_data = {data: '123'}
       client_metadata = {blah: '456'}
 
