@@ -21,9 +21,24 @@ describe Migration::MigrateWorkflow, v2: true do
         )
       end
 
-      Migration::MigrateWorkflow.queue_conversion_batch([:international])
+      Migration.queue_conversion_batch(types: [:international])
 
       expect(Migration::Workers::Migrator.jobs.count).to eq(10)
+    end
+
+    it "respects the provided limit" do
+      3.times do |i|
+        FactoryGirl.create(
+          :workflow,
+          name: "Workflow #{i}",
+          workflow_type: :international,
+          user: v1_user
+        )
+      end
+
+      Migration.queue_conversion_batch(limit: 2, types: [:international])
+
+      expect(Migration::Workers::Migrator.jobs.count).to eq(2)
     end
   end
 

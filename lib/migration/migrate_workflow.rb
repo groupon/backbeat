@@ -8,15 +8,17 @@ module Migration
     MIGRATING_TYPES.include?(type.to_sym)
   end
 
+  def self.queue_conversion_batch(args)
+    types = args[:types] || MIGRATING_TYPES
+    limit = args[:limit] || 1000
+    WorkflowServer::Models::Workflow.where(:workflow_type.in => types).limit(limit).each do |workflow|
+      Migration::Workers::Migrator.perform_async(workflow.id)
+    end
+  end
+
   module MigrateWorkflow
 
     class WorkflowNotMigratable < StandardError; end
-
-    def self.queue_conversion_batch(types = MIGRATING_TYPES)
-      WorkflowServer::Models::Workflow.where(:workflow_type.in => types).each do |workflow|
-        Migration::Workers::Migrator.perform_async(workflow.id)
-      end
-    end
 
     def self.find_or_create_v2_workflow(v1_workflow)
       v2_user_id = V2::User.find_by_uuid(v1_workflow.user_id).id

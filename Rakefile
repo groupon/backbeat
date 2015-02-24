@@ -168,9 +168,9 @@ namespace :app do
 end
 
 namespace :workflows do
-  task :migrate, [:type] do |task, args|
+  task :migrate, [:limit] do |task, args|
     require "migration/migrate_workflow"
-
-    Migration::MigrateWorkflow.queue_conversion_batch
+    limit = args[:limit] || 10
+    Migration.queue_conversion_batch(limit: limit.to_i)
   end
 end
