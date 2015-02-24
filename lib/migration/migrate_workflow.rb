@@ -11,7 +11,10 @@ module Migration
   def self.queue_conversion_batch(args)
     types = args[:types] || MIGRATING_TYPES
     limit = args[:limit] || 1000
-    WorkflowServer::Models::Workflow.where(:workflow_type.in => types).limit(limit).each do |workflow|
+    WorkflowServer::Models::Workflow.where(
+      :workflow_type.in => types,
+      :migrated => false
+    ).limit(limit).each do |workflow|
       Migration::Workers::Migrator.perform_async(workflow.id)
     end
   end

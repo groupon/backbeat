@@ -40,6 +40,20 @@ describe Migration::MigrateWorkflow, v2: true do
 
       expect(Migration::Workers::Migrator.jobs.count).to eq(2)
     end
+
+    it "does not migrate workflows that have already been migrated" do
+      FactoryGirl.create(
+        :workflow,
+        name: "Workflow",
+        workflow_type: :international,
+        user: v1_user,
+        migrated: true
+      )
+
+      Migration.queue_conversion_batch(limit: 2, types: [:international])
+
+      expect(Migration::Workers::Migrator.jobs.count).to eq(0)
+    end
   end
 
   context ".find_or_create_v2_workflow" do
