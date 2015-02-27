@@ -15,7 +15,6 @@ require 'rspec-sidekiq'
 require 'pry'
 require 'helper/mongo'
 
-
 if ENV["SIMPLE_COV"]
   require "simplecov"
   SimpleCov.start do
