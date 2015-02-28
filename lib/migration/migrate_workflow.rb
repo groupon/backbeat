@@ -34,10 +34,12 @@ module Migration
       )
     end
 
-    def self.call(v1_workflow, v2_workflow)
+    def self.call(v1_workflow, v2_workflow, need_timer_child = false)
       ActiveRecord::Base.transaction do
         v1_workflow.get_children.each do |signal|
-          migrate_signal(signal, v2_workflow)
+          if !need_timer_child || has_timers?(signal)
+            migrate_signal(signal, v2_workflow)
+          end
         end
 
         v1_workflow.update_attributes!(migrated: true) # for ignoring delayed jobs
@@ -144,6 +146,16 @@ module Migration
       when :scheduled
         :started
       end
+    end
+
+    def self.has_timers?(node)
+      return true if node.class.to_s == "WorkflowServer::Models::Timer"
+
+      results = []
+      node.children.each do |c|
+        results << has_timers?(c)
+      end
+      results.include?(true)
     end
   end
 end
