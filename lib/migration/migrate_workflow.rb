@@ -149,13 +149,10 @@ module Migration
     end
 
     def self.has_timers?(node)
-      return true if node.class.to_s == "WorkflowServer::Models::Timer"
-
-      results = []
-      node.children.each do |c|
-        results << has_timers?(c)
+      return true if node.is_a?(WorkflowServer::Models::Timer)
+      !!node.children.all.to_a.find do |c|
+        has_timers?(c)
       end
-      results.include?(true)
     end
   end
 end
