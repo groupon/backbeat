@@ -28,7 +28,9 @@ module V2
 
         post "/:id/signal/:name" do
           workflow = find_workflow
-          Server.signal(workflow, params)
+          signal = Server.signal(workflow, params)
+          Server.fire_event(Events::ScheduleNextNode, workflow)
+          signal
         end
 
         put "/:id/complete" do
@@ -46,7 +48,7 @@ module V2
             user_id: current_user.id,
             decider: params[:decider],
             name: params[:workflow_type],
-            subject: params[:subject].to_json
+            subject: params[:subject]
           ).first!
         end
 

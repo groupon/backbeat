@@ -140,6 +140,26 @@ describe Migration::MigrateWorkflow, v2: true do
     expect(v1_workflow.reload.migrated?).to eq(true)
   end
 
+  it "migrates workflow with nested timers" do
+    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
+    v1_timer = FactoryGirl.create(
+      :timer,
+      parent: v1_decision,
+      workflow: v1_workflow,
+      status: :complete,
+      fires_at: Time.now + 2.hours
+    )
+    timed_node = FactoryGirl.create(:decision, parent: v1_timer, workflow: v1_workflow, status: :complete)
+    v1_activity = FactoryGirl.create(:activity, parent: timed_node, workflow: v1_workflow)
+
+    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
+
+    v2_decision = v2_workflow.children.second
+    expect(v2_workflow.children.count).to eq(2)
+    expect(v2_decision.uuid).to eq(timed_node.id.gsub("-",""))
+    expect(v2_decision.children.first.uuid).to eq(v1_activity.id.gsub("-",""))
+  end
+
   it "converts v1 status to v2 server and client status" do
     v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
 
@@ -273,7 +293,7 @@ describe Migration::MigrateWorkflow, v2: true do
 
     it "only migrates signals with timers" do
       Timecop.freeze
-      FactoryGirl.create(:timer, parent: @decision_2, fires_at: Time.now + 2.hours)
+      FactoryGirl.create(:timer, parent: @decision_2, fires_at: Time.now + 2.hours, status: :scheduled)
       Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, true)
       expect(v1_workflow.reload.migrated?).to eq(true)
       expect(v2_workflow.reload.nodes.count).to eq(2)
@@ -299,11 +319,16 @@ describe Migration::MigrateWorkflow, v2: true do
 
     it "returns true if the tree has a timer" do
       FactoryGirl.create(:timer, parent: @nested_decision)
-      expect(Migration::MigrateWorkflow.has_timers?(v1_signal)).to eq(true)
+      expect(Migration::MigrateWorkflow.has_running_timers?(v1_signal)).to eq(true)
+    end
+
+    it "returns false if the tree has a timer thats not complete" do
+      FactoryGirl.create(:timer, parent: @nested_decision, status: :complete)
+      expect(Migration::MigrateWorkflow.has_running_timers?(v1_signal)).to eq(false)
     end
 
     it "returns false if the tree has no timer" do
-      expect(Migration::MigrateWorkflow.has_timers?(v1_signal)).to eq(false)
+      expect(Migration::MigrateWorkflow.has_running_timers?(v1_signal)).to eq(false)
     end
   end
 end

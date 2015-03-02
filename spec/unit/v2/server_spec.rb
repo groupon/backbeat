@@ -76,11 +76,5 @@ describe V2::Server, v2: true do
 
       expect(signal.legacy_type).to eq("decision")
     end
-
-    it "fires the ScheduleNextNode event on the workflow" do
-      expect(V2::Server).to receive(:fire_event).with(V2::Events::ScheduleNextNode, workflow)
-
-      V2::Server.signal(workflow, params)
-    end
   end
 end

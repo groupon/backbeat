@@ -37,7 +37,7 @@ module Migration
     def self.call(v1_workflow, v2_workflow, need_timer_child = false)
       ActiveRecord::Base.transaction do
         v1_workflow.get_children.each do |signal|
-          if !need_timer_child || has_timers?(signal)
+          if !need_timer_child || has_running_timers?(signal)
             migrate_signal(signal, v2_workflow)
           end
         end
@@ -88,17 +88,17 @@ module Migration
         when WorkflowServer::Models::Activity
           migrate_activity(node, v2_parent)
         when WorkflowServer::Models::Timer
-          node = migrate_activity(node, v2_parent, {
+          timer = migrate_activity(node, v2_parent, {
             name: "#{node.name}__timer__",
             fires_at: node.fires_at,
             legacy_type: :timer
           })
-          V2::Schedulers::AsyncEventAt.call(V2::Events::StartNode, node)
-          node
+          V2::Schedulers::AsyncEventAt.call(V2::Events::StartNode, timer)
+          timer
         when WorkflowServer::Models::WorkflowCompleteFlag
-          node = migrate_activity(node, v2_parent, legacy_type: :flag)
-          node.workflow.complete!
-          node
+          flag = migrate_activity(node, v2_parent, legacy_type: :flag)
+          flag.workflow.complete!
+          flag
         when WorkflowServer::Models::ContinueAsNewWorkflowFlag
           migrate_activity(node, v2_parent, legacy_type: :flag)
         when WorkflowServer::Models::Flag
@@ -106,8 +106,14 @@ module Migration
         end
       )
 
+      parent = if node.is_a?(WorkflowServer::Models::Timer)
+                 new_v2_parent.workflow
+               else
+                 new_v2_parent
+               end
+
       node.children.each do |child|
-        migrate_node(child, new_v2_parent)
+        migrate_node(child, parent)
       end
     end
 
@@ -148,10 +154,10 @@ module Migration
       end
     end
 
-    def self.has_timers?(node)
-      return true if node.is_a?(WorkflowServer::Models::Timer)
+    def self.has_running_timers?(node)
+      return true if node.is_a?(WorkflowServer::Models::Timer) && node.status != :complete
       !!node.children.all.to_a.find do |c|
-        has_timers?(c)
+        has_running_timers?(c)
       end
     end
   end

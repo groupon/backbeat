@@ -24,7 +24,6 @@ module V2
           mode: :blocking
         )
       )
-      Server.fire_event(Events::ScheduleNextNode, workflow)
       node
     end
 

@@ -44,6 +44,11 @@ describe V2::Api::WorkflowsApi, v2: true do
       }
     }}
 
+    it "calls schedule next node after creating the signal" do
+      expect(V2::Server).to receive(:fire_event).with(V2::Events::ScheduleNextNode, workflow)
+      response = post "v2/workflows/#{workflow.id}/signal/new_signal", signal_params
+    end
+
     it "creates a signal on the workflow" do
       response = post "v2/workflows/#{workflow.id}/signal/new_signal", signal_params
 
@@ -130,7 +135,7 @@ describe V2::Api::WorkflowsApi, v2: true do
   context "GET /workflows" do
     let(:query) {{
       decider: workflow.decider,
-      subject: workflow.subject,
+      subject: workflow.subject.to_json,
       workflow_type: workflow.name
     }}
 

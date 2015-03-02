@@ -35,6 +35,9 @@ module Migration
               Instrument.log_msg(self.class.to_s + "_v1_signal_sent", log_data)
             end
           end
+          # We have to call this outside lock other wise this asynchronous task will not have the new signal on it
+          # since with_lock does not prevent reads from occuring
+          V2::Server.fire_event(V2::Events::ScheduleNextNode, v2_workflow)
         end
       end
     end
