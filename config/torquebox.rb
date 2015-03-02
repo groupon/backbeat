@@ -34,7 +34,7 @@ TorqueBox.configure do
     name "backbeat_migration_pool"
     config do
       queues ['accounting_backbeat_signal_delegation', 'accounting_backbeat_migrator']
-      concurrency 200
+      concurrency 20
       index 1
       # We have to use options here because timeout is an implemented method in this scope and raises an error rather then setting the config value correctly
       options timeout: 10
