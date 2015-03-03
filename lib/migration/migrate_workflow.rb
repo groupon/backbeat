@@ -3,6 +3,7 @@ require "migration/workers/migrator"
 module Migration
 
   MIGRATING_TYPES = []
+  ONLY_WITH_ACTIVE_TIMERS = [:merchant_statement_workflow]
 
   def self.migrate?(type)
     MIGRATING_TYPES.include?(type.to_sym)
@@ -34,10 +35,18 @@ module Migration
       )
     end
 
-    def self.call(v1_workflow, v2_workflow, need_timer_child = false)
+    def self.migrate_signal?(signal)
+      if ONLY_WITH_ACTIVE_TIMERS.include?(signal.workflow.workflow_type)
+        has_running_timers?(signal)
+      else
+        true
+      end
+    end
+
+    def self.call(v1_workflow, v2_workflow)
       ActiveRecord::Base.transaction do
         v1_workflow.get_children.each do |signal|
-          if !need_timer_child || has_running_timers?(signal)
+          if migrate_signal?(signal)
             migrate_signal(signal, v2_workflow)
           end
         end

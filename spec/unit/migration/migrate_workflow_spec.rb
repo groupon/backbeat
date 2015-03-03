@@ -276,7 +276,7 @@ describe Migration::MigrateWorkflow, v2: true do
     end
   end
 
-  context "only_migrate_timers" do
+  context "workflows migrated only with active timers" do
     before do
       v1_signal_2 = FactoryGirl.create(:signal, parent: nil, workflow: v1_workflow)
       decision_1 = FactoryGirl.create(:decision, parent: v1_signal_2, workflow: v1_workflow)
@@ -284,8 +284,9 @@ describe Migration::MigrateWorkflow, v2: true do
       FactoryGirl.create(:activity, parent: decision_1, workflow: v1_workflow)
     end
 
-    it "migrates all signals when only_migrate_timers is false" do
-      Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, false)
+    it "migrates all signals when workflow type not in list" do
+      v1_workflow.update_attributes(workflow_type: :a_workflow)
+      Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
       expect(v1_workflow.reload.migrated?).to eq(true)
       expect(v2_workflow.reload.nodes.count).to eq(3)
       expect(v2_workflow.reload.children.count).to eq(2)
@@ -293,15 +294,17 @@ describe Migration::MigrateWorkflow, v2: true do
 
     it "only migrates signals with timers" do
       Timecop.freeze
+      v1_workflow.update_attributes(workflow_type: :merchant_statement_workflow)
       FactoryGirl.create(:timer, parent: @decision_2, fires_at: Time.now + 2.hours, status: :scheduled)
-      Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, true)
+      Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
       expect(v1_workflow.reload.migrated?).to eq(true)
       expect(v2_workflow.reload.nodes.count).to eq(2)
       expect(v2_workflow.reload.children.count).to eq(1)
     end
 
     it "will migrate no signals if no timers" do
-      Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, true)
+      v1_workflow.update_attributes(workflow_type: :merchant_statement_workflow)
+      Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
       expect(v1_workflow.reload.migrated?).to eq(true)
       expect(v2_workflow.reload.nodes.count).to eq(0)
       expect(v2_workflow.reload.children.count).to eq(0)
