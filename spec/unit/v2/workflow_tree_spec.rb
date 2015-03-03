@@ -33,7 +33,7 @@ describe V2::WorkflowTree, v2: true do
   context "to_hash" do
     it "returns the tree as a hash with no children" do
       expect(V2::WorkflowTree.to_hash(workflow)).to eq({
-        id: workflow.uuid,
+        id: workflow.uuid.uuid.to_s,
         current_server_status: nil,
         current_client_status: nil,
         name: workflow.name,
@@ -45,13 +45,13 @@ describe V2::WorkflowTree, v2: true do
       add_node(workflow, "Workflow child")
 
       expect(V2::WorkflowTree.to_hash(workflow)).to eq({
-        id: workflow.uuid,
+        id: workflow.uuid.uuid.to_s,
         current_server_status: nil,
         current_client_status: nil,
         name: workflow.name,
         children: [
           {
-            id: workflow.children.first.uuid,
+            id: workflow.children.first.uuid.uuid.to_s,
             current_server_status: "pending",
             current_client_status: "ready",
             name: "Workflow child",
@@ -67,19 +67,19 @@ describe V2::WorkflowTree, v2: true do
       add_node(workflow.children.first, "Nested child")
 
       expect(V2::WorkflowTree.to_hash(workflow)).to eq({
-        id: workflow.uuid,
+        id: workflow.uuid.uuid.to_s,
         current_server_status: nil,
         current_client_status: nil,
         name: workflow.name,
         children: [
           {
-            id: workflow.children.first.uuid,
+            id: workflow.children.first.uuid.uuid.to_s,
             current_server_status: "pending",
             current_client_status: "ready",
             name: "Workflow child",
             children: [
               {
-                id: workflow.children.first.children.first.uuid,
+                id: workflow.children.first.children.first.uuid.uuid.to_s,
                 current_server_status: "pending",
                 current_client_status: "ready",
                 name: "Nested child",
@@ -88,7 +88,7 @@ describe V2::WorkflowTree, v2: true do
             ]
           },
           {
-            id: workflow.children.last.uuid,
+            id: workflow.children.last.uuid.uuid.to_s,
             current_server_status: "pending",
             current_client_status: "ready",
             name: "Another Workflow child",
