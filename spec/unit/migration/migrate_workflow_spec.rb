@@ -272,7 +272,8 @@ describe Migration::MigrateWorkflow, v2: true do
     end
 
     it "only migrates signals with timers" do
-      FactoryGirl.create(:timer, parent: @decision_2)
+      Timecop.freeze
+      FactoryGirl.create(:timer, parent: @decision_2, fires_at: Time.now + 2.hours)
       Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, true)
       expect(v1_workflow.reload.migrated?).to eq(true)
       expect(v2_workflow.reload.nodes.count).to eq(2)
