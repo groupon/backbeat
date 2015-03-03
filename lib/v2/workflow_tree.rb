@@ -23,7 +23,6 @@ module V2
 
     def to_hash(node = root)
       {
-        # the uuid column has a nested uuid attribute that stringifies with dashes
         id: node.uuid.uuid.to_s,
         name: node.name,
         current_server_status: node.is_a?(Node) ? node.current_server_status : nil,
@@ -68,7 +67,7 @@ module V2
       end
 
       def build
-        "\n#{node.uuid}#{spacer}#{node_display}"
+        "\n#{node.uuid.uuid.to_s}#{spacer}#{node_display}"
       end
 
       private
