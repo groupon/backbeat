@@ -94,7 +94,7 @@ module Migration
             legacy_type: :timer
           })
           V2::Schedulers::AsyncEventAt.call(V2::Events::StartNode, timer)
-          timer
+          timer.workflow
         when WorkflowServer::Models::WorkflowCompleteFlag
           flag = migrate_activity(node, v2_parent, legacy_type: :flag)
           flag.workflow.complete!
@@ -106,14 +106,8 @@ module Migration
         end
       )
 
-      parent = if node.is_a?(WorkflowServer::Models::Timer)
-                 new_v2_parent.workflow
-               else
-                 new_v2_parent
-               end
-
       node.children.each do |child|
-        migrate_node(child, parent)
+        migrate_node(child, new_v2_parent)
       end
     end
 
