@@ -28,7 +28,8 @@ module V2
       end
 
       def call(event, node)
-        Instrument.instrument(node, event.name, message) do
+        event_data = { node: node, server_retries_remaining: retries }
+        Instrument.instrument(event.name, event_data) do
           begin
             event.call(node)
           rescue => e
@@ -49,10 +50,6 @@ module V2
           StateManager.call(node, current_server_status: :errored)
           Client.notify_of(node, "error", error)
         end
-      end
-
-      def message
-        { server_retries_remaining: retries }
       end
     end
   end

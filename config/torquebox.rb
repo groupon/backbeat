@@ -15,8 +15,8 @@ TorqueBox.configure do
 
   pool :services do
     type :bounded
-    min 1
-    max 1
+    min 2
+    max 2
   end
 
   service Services::SidekiqService do
@@ -27,6 +27,25 @@ TorqueBox.configure do
       index 1
       # We have to use options here because timeout is an implemented method in this scope and raises an error rather then setting the config value correctly
       options timeout: 10
+    end
+  end
+
+  service Services::SidekiqService do
+    name "backbeat_migration_pool"
+    config do
+      queues ['accounting_backbeat_signal_delegation', 'accounting_backbeat_migrator']
+      concurrency 20
+      index 2
+      # We have to use options here because timeout is an implemented method in this scope and raises an error rather then setting the config value correctly
+      options timeout: 10
+    end
+  end
+
+  if ['production','staging', 'uat'].include?(ENV['RACK_ENV']) &&
+      `hostname` =~ /accounting-utility2/
+    job Reports::LogQueueCounts do
+      # Every 5 minutes
+      cron '*/5 * * * *'
     end
   end
 

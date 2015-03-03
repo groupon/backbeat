@@ -112,6 +112,27 @@ describe Api::Workflows do
   end
 
   context "POST /workflows/id/signal/name" do
+
+    context "MIGRATING_TYPE" do
+      it "returns 201 with 'Delegating Signal' and drops message on queue" do
+        Migration::MIGRATING_TYPES = [:crazyworkflow]
+        wf = FactoryGirl.create(:workflow, user: user, workflow_type: :crazyworkflow)
+
+        response = post "/workflows/#{wf.id}/signal/test", options: { client_data: {data: '123'}, client_metadata: {metadata: '456'} }
+
+        response.status.should == 201
+        response_body = JSON.parse(response.body)
+
+        expect(response_body).to eq({ "actionCompleted" => "Delgating Signal to V1 or V2" })
+        expect(Migration::Workers::SignalDelegate.jobs.count).to eq(1)
+        job_args = Migration::Workers::SignalDelegate.jobs.first["args"]
+        expect(job_args.first).to eq(wf.id)
+        expect(job_args.second["name"]).to eq("test")
+        expect(job_args.third).to eq({"data" => '123'})
+        expect(job_args.fourth).to eq({"metadata" => '456'})
+      end
+    end
+
     it "returns 404 when workflow not found" do
       response = post "/workflows/1000/signal/test"
       response.status.should == 404

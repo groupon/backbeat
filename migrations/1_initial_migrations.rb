@@ -65,7 +65,6 @@ class InitialMigrations < ActiveRecord::Migration
 
     create_table :node_details do |t|
       t.binary  :uuid,              null: false, limit: 16
-      t.string  :uuid,              null: false
       t.integer :node_id,           null: false
       t.integer :retries_remaining, null: false
       t.integer :retry_interval,    null: false

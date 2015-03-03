@@ -4,6 +4,7 @@ require "workflow_server/logger"
 require "api/helpers/current_user_helper"
 require "api/helpers/workflow_helper"
 require "api/helpers/service_discovery_response_creator"
+require 'migration/workers/signal_delegate'
 
 module Api
   class Workflows < Grape::API
@@ -222,6 +223,7 @@ module Api
         end
       end
 
+
       desc "Send a signal to the workflow.", {
         action_descriptor: action_description(:signal_workflow) do |signal|
           fields = WorkflowServer::Models::Signal.fields
@@ -248,8 +250,12 @@ module Api
         options = params[:options] || {}
         client_data = options[:client_data] || {}
         client_metadata = options[:client_metadata] || {}
-        signal = wf.signal(params[:name], client_data: client_data, client_metadata: client_metadata)
-        signal
+        if Migration.migrate?(wf.workflow_type)
+          Migration::Workers::SignalDelegate.perform_async(wf.id, params, client_data, client_metadata)
+          { action_completed: "Delgating Signal to V1 or V2" }
+        else
+          wf.signal(params[:name], client_data: client_data, client_metadata: client_metadata)
+        end
       end
 
       desc "Pause an open workflow.", {

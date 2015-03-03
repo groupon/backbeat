@@ -31,6 +31,14 @@ FactoryGirl.define do
 end
 
 FactoryGirl.define do
+  factory :workflow_complete, class: WorkflowServer::Models::WorkflowCompleteFlag do
+    name "WFWorkflow_completed"
+    workflow
+    user { workflow.user }
+  end
+end
+
+FactoryGirl.define do
   factory :continue_as_new_workflow_flag, class: WorkflowServer::Models::ContinueAsNewWorkflowFlag do
     name "WFDecision_completed"
     workflow

@@ -7,8 +7,24 @@ module V2
         name: params[:workflow_type],
         subject: params[:subject],
         decider: params[:decider],
-        user_id: user.id
+        user_id: user.id,
+        migrated: true
       )
+    end
+
+    def self.signal(workflow, params)
+      raise WorkflowComplete if workflow.complete?
+      node = add_node(
+        workflow.user,
+        workflow,
+        params.merge(
+          current_server_status: :ready,
+          current_client_status: :ready,
+          legacy_type: 'decision',
+          mode: :blocking
+        )
+      )
+      node
     end
 
     def self.add_node(user, parent_node, params)
@@ -41,7 +57,7 @@ module V2
       Events::ClientComplete => Schedulers::PerformEvent,
       Events::ClientError => Schedulers::PerformEvent,
       Events::ClientProcessing => Schedulers::PerformEvent,
-      Events::DeactivateNode => Schedulers::PerformEvent,
+      Events::DeactivatePreviousNodes => Schedulers::PerformEvent,
       Events::MarkChildrenReady => Schedulers::PerformEvent,
       Events::NodeComplete => Schedulers::PerformEvent,
       Events::RetryNode => Schedulers::AsyncEventInterval,

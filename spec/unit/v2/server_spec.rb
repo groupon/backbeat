@@ -18,7 +18,7 @@ describe V2::Server, v2: true do
     end
   end
 
-  context "fire_event" do
+  context ".fire_event" do
     it "schedules the event with the node" do
       expect(V2::Server.fire_event(MockEvent, node, MockScheduler)).to eq("#{node.name}_called")
     end
@@ -29,6 +29,52 @@ describe V2::Server, v2: true do
       expect(MockScheduler).to_not receive(:call)
 
       V2::Server.fire_event(MockEvent, node, MockScheduler)
+    end
+  end
+
+  context ".create_workflow" do
+    it "defaults the migrated field to true" do
+      params = {
+        workflow_type: "New Workflow",
+        subject: "a subject",
+        decider: "a decider"
+      }
+
+      workflow = V2::Server.create_workflow(params, user)
+
+      expect(workflow.migrated?).to eq(true)
+    end
+  end
+
+  context ".signal" do
+    let(:params) {{
+      name: "New Signal",
+      options: {}
+    }}
+
+    it "raises an error if the workflow is complete" do
+      workflow.complete!
+
+      expect { V2::Server.signal(workflow, {}) }.to raise_error V2::WorkflowComplete
+    end
+
+    it "adds the signal node to the workflow" do
+      signal = V2::Server.signal(workflow, params)
+
+      expect(signal.parent).to eq(workflow)
+    end
+
+    it "sets the signal to ready" do
+      signal = V2::Server.signal(workflow, params)
+
+      expect(signal.current_server_status).to eq("ready")
+      expect(signal.current_client_status).to eq("ready")
+    end
+
+    it "sets the legacy type to decision" do
+      signal = V2::Server.signal(workflow, params)
+
+      expect(signal.legacy_type).to eq("decision")
     end
   end
 end

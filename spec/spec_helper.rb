@@ -13,6 +13,7 @@ require 'timecop'
 require 'webmock'
 require 'rspec-sidekiq'
 require 'pry'
+require 'helper/mongo'
 
 if ENV["SIMPLE_COV"]
   require "simplecov"
@@ -66,11 +67,17 @@ if Backbeat.v2?
 
     config.after(:each) do
       Timecop.return
+      Mongoid::Sessions.default.collections.select { |c| c.name !~ /system/ }.each(&:drop)
     end
 
     config.before(:suite) do
       DatabaseCleaner.strategy = :transaction
       DatabaseCleaner.clean_with(:truncation)
+      Helper::Mongo.start(27018)
+    end
+
+    config.after(:suite) do
+      Helper::Mongo.stop(27018)
     end
 
     config.around(:each) do |example|
@@ -83,8 +90,6 @@ if Backbeat.v2?
     config.formatter = :documentation
   end
 else
-  require 'helper/mongo'
-
   RSpec.configure do |config|
     config.filter_run_excluding v2: true
 

@@ -8,6 +8,7 @@ module WorkflowServer
       field :mode, type: Symbol, default: :blocking
       field :start_signal, type: Symbol
       field :_event_sequence, type: Integer, default: ->{ new_record? ? 1 : 0 } # allows us to identify old worklows (_event_sequence will equal 0 till we reset it)
+      field :migrated, type: Boolean, default: false
 
       has_many :events, inverse_of: :workflow, order: {sequence: 1}, dependent: :destroy
 

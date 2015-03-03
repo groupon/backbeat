@@ -18,7 +18,6 @@ module V2
 
       resource 'workflows' do
         post "/" do
-          params[:user] = current_user
           wf = Server.create_workflow(params, current_user)
           if wf.valid?
             wf
@@ -29,19 +28,9 @@ module V2
 
         post "/:id/signal/:name" do
           workflow = find_workflow
-          raise V2::WorkflowComplete if workflow.complete?
-          node = Server.add_node(
-            current_user,
-            workflow,
-            params.merge(
-              current_server_status: :ready,
-              current_client_status: :ready,
-              legacy_type: 'decision',
-              mode: :blocking
-            )
-          )
+          signal = Server.signal(workflow, params)
           Server.fire_event(Events::ScheduleNextNode, workflow)
-          node
+          signal
         end
 
         put "/:id/complete" do
@@ -51,6 +40,16 @@ module V2
 
         get "/:id" do
           find_workflow
+        end
+
+        get "/" do
+          Workflow.where(
+            migrated: true,
+            user_id: current_user.id,
+            decider: params[:decider],
+            name: params[:workflow_type],
+            subject: params[:subject]
+          ).first!
         end
 
         get "/:id/tree" do
@@ -65,11 +64,6 @@ module V2
 
         get "/:id/children" do
           find_workflow.children
-        end
-
-        put "/:id/deactivated" do
-          workflow = find_workflow
-          Server.fire_event(Events::DeactivateNode, workflow)
         end
       end
     end

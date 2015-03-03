@@ -13,7 +13,7 @@ module V2
         deciding: Events::ClientProcessing,
         completed: Events::ClientComplete,
         errored: Events::ClientError,
-        deactivated: Events::DeactivateNode
+        deactivated: Events::DeactivatePreviousNodes
       }
 
       def event_api

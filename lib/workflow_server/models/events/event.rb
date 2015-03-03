@@ -185,7 +185,7 @@ module WorkflowServer
 
       # These fields are not included in the hash sent out to the client
       def self.blacklisted_fields
-        ["locked_at", "locked_until", "start_signal", "status_history", "sequence", "orphan_decision", "inactive", "user_id"]
+        ["locked_at", "locked_until", "start_signal", "status_history", "sequence", "orphan_decision", "inactive", "user_id", "migrated"]
       end
 
       def self.hidden_field?(field)

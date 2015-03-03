@@ -29,4 +29,8 @@ describe V2::StateManager, v2: true do
     }.to raise_error(V2::InvalidEventStatusChange)
     expect(node.status_changes.count).to eq(0)
   end
+
+  it "no-ops if the node is a workflow" do
+    expect(V2::StateManager.call(workflow, current_server_status: :complete)).to be_nil
+  end
 end

@@ -13,6 +13,7 @@ module V2
       },
       current_server_status: {
         any: [:deactivated, :errored],
+        deactivated: [:deactivated],
         pending: [:ready],
         ready: [:started],
         started: [:sent_to_client],
@@ -33,6 +34,7 @@ module V2
     end
 
     def update_status(statuses)
+      return if node.is_a?(Workflow)
       [:current_client_status, :current_server_status].each do |status_type|
         new_status = statuses[status_type]
         next unless new_status

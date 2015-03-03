@@ -44,6 +44,11 @@ describe V2::Api::WorkflowsApi, v2: true do
       }
     }}
 
+    it "calls schedule next node after creating the signal" do
+      expect(V2::Server).to receive(:fire_event).with(V2::Events::ScheduleNextNode, workflow)
+      response = post "v2/workflows/#{workflow.id}/signal/new_signal", signal_params
+    end
+
     it "creates a signal on the workflow" do
       response = post "v2/workflows/#{workflow.id}/signal/new_signal", signal_params
 
@@ -69,7 +74,7 @@ describe V2::Api::WorkflowsApi, v2: true do
     end
   end
 
-  context "GET /workflow/:id" do
+  context "GET /workflows/:id" do
     it "returns a workflow given an id" do
       response = get "v2/workflows/#{workflow.id}"
       expect(response.status).to eq(200)
@@ -79,7 +84,7 @@ describe V2::Api::WorkflowsApi, v2: true do
     end
   end
 
-  context "GET /workflow/:id/children" do
+  context "GET /workflows/:id/children" do
     it "returns the workflows immediate" do
       second_node = FactoryGirl.create(
         :v2_node,
@@ -118,20 +123,48 @@ describe V2::Api::WorkflowsApi, v2: true do
     end
   end
 
-  context "PUT /workflows/:id/deactivated" do
-    it "fires the DeactivateNode event" do
-      expect(V2::Server).to receive(:fire_event).with(V2::Events::DeactivateNode, workflow)
-
-      put "v2/workflows/#{workflow.id}/deactivated"
-    end
-  end
-
   context "PUT /workflows/:id/complete" do
     it "marks the workflow as complete" do
       response = put "v2/workflows/#{workflow.id}/complete"
 
       expect(response.status).to eq(200)
       expect(workflow.reload.complete?).to eq(true)
+    end
+  end
+
+  context "GET /workflows" do
+    let(:query) {{
+      decider: workflow.decider,
+      subject: workflow.subject.to_json,
+      workflow_type: workflow.name
+    }}
+
+    it "returns the first workflow matching the decider and subject" do
+      workflow.update_attributes(migrated: true)
+
+      response = get "v2/workflows", query
+      body = JSON.parse(response.body)
+
+      expect(response.status).to eq(200)
+      expect(body["id"]).to eq(workflow.id)
+    end
+
+    [:decider, :subject, :workflow_type].each do |param|
+      it "returns 404 if a workflow is not found by #{param}" do
+        workflow.update_attributes(migrated: true)
+
+        response = get "v2/workflows", query.merge(param => "Foo")
+
+        expect(response.status).to eq(404)
+      end
+    end
+
+    it "returns 404 if the workflow is not fully migrated" do
+      workflow.update_attributes(migrated: false)
+
+      response = get "v2/workflows", query
+
+      expect(response.status).to eq(404)
     end
   end
 end
