@@ -41,11 +41,10 @@ TorqueBox.configure do
     end
   end
 
-  if ['production','staging', 'uat'].include?(ENV['RACK_ENV']) &&
-      `hostname` =~ /accounting-utility2/
+  if `hostname` =~ /accounting-utility2/
     job Reports::LogQueueCounts do
       # Every 5 minutes
-      cron '*/5 * * * *'
+      cron '0 */5 * * * ?'
     end
   end
 
