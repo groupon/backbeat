@@ -28,6 +28,7 @@ describe Migration::Workers::SignalDelegate, v2: true do
 
       allow(Instrument).to receive(:instrument).and_call_original
       allow(Instrument).to receive(:log_msg).and_call_original
+      expect(V2::Server).to_not receive(:fire_event)
 
       Migration::Workers::SignalDelegate.perform_async(v1_workflow.id, params, client_data, client_metadata)
       Migration::Workers::SignalDelegate.drain
