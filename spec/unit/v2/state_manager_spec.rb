@@ -30,6 +30,20 @@ describe V2::StateManager, v2: true do
     expect(node.status_changes.count).to eq(0)
   end
 
+  it "creates status changes if the transition is successful" do
+    manager.update_status(current_client_status: :received, current_server_status: :ready)
+
+    expect(node.status_changes.count).to eq(2)
+  end
+
+  it "does not create an status changes if either validation fails" do
+    expect {
+      manager.update_status(current_client_status: :received, current_server_status: :complete)
+    }.to raise_error
+
+    expect(node.status_changes.count).to eq(0)
+  end
+
   it "no-ops if the node is a workflow" do
     expect(V2::StateManager.call(workflow, current_server_status: :complete)).to be_nil
   end

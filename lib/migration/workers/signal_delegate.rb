@@ -24,12 +24,14 @@ module Migration
           v1_workflow = WorkflowServer::Models::Workflow.find(v1_workflow_id)
           v2_workflow = MigrateWorkflow.find_or_create_v2_workflow(v1_workflow)
 
+          schedule_v2 = false
           v2_workflow.with_lock do
             if v2_workflow.migrated?
               params = params.with_indifferent_access
               params[:options][:metadata] = client_metadata.merge({ "version"=> "v2" })
               V2::Server.signal(v2_workflow, params.with_indifferent_access)
               Instrument.log_msg(self.class.to_s + "_v2_signal_sent", log_data)
+              schedule_v2 = true
             else
               v1_workflow.signal(params["name"], client_data: client_data, client_metadata: client_metadata)
               Instrument.log_msg(self.class.to_s + "_v1_signal_sent", log_data)
@@ -37,7 +39,7 @@ module Migration
           end
           # We have to call this outside lock other wise this asynchronous task will not have the new signal on it
           # since with_lock does not prevent reads from occuring
-          V2::Server.fire_event(V2::Events::ScheduleNextNode, v2_workflow)
+          V2::Server.fire_event(V2::Events::ScheduleNextNode, v2_workflow) if schedule_v2
         end
       end
     end
