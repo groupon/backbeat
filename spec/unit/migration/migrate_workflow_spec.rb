@@ -190,6 +190,8 @@ describe Migration::MigrateWorkflow, v2: true do
     expect(v2_timer.fires_at.to_s).to eq((Time.now + 2.hours).to_s)
     expect(v2_timer.current_server_status).to eq("started")
     expect(v2_timer.current_client_status).to eq("ready")
+    expect(v2_timer.client_metadata).to eq({"version"=>"v2"})
+    expect(v2_timer.client_data).to eq({"arguments" => [v1_timer.name.to_s], "options" => {}})
     expect(V2::Workers::AsyncWorker.jobs.count).to eq(1)
     expect(V2::Workers::AsyncWorker.jobs.first["args"]).to eq(["V2::Events::StartNode", "V2::Node", v2_timer.id, 4])
     expect(V2::Workers::AsyncWorker.jobs.first["at"].ceil).to eq((Time.now + 2.hours).to_f.ceil)

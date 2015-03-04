@@ -74,7 +74,7 @@ module Migration
         workflow_id:  v2_parent.workflow_id,
         user_id: v2_parent.user_id,
         client_node_detail: V2::ClientNodeDetail.new(
-          metadata: {},
+          metadata: { version: "v2" },
           data: {}
         ),
         node_detail: V2::NodeDetail.new(
@@ -102,6 +102,7 @@ module Migration
             fires_at: node.fires_at,
             legacy_type: :timer
           })
+          timer.client_node_detail.update_attributes(data: {arguments: [node.name], options: {}})
           V2::Schedulers::AsyncEventAt.call(V2::Events::StartNode, timer)
           timer.workflow
         when WorkflowServer::Models::WorkflowCompleteFlag
