@@ -136,4 +136,13 @@ describe V2::Api::EventsApi, v2: true do
       expect(node.reload.current_server_status).to eq("deactivated")
     end
   end
+
+  context "PUT /events/:id/status/processing" do
+    it "fires the ClientProcessing event" do
+      node.update_attributes(current_client_status: :received)
+      put "v2/events/#{node.id}/status/processing"
+
+      expect(node.reload.current_client_status).to eq("processing")
+    end
+  end
 end

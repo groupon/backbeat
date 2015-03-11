@@ -11,6 +11,7 @@ module V2
       STATUS_EVENT_MAP = {
         deciding_complete: Events::ClientComplete,
         deciding: Events::ClientProcessing,
+        processing: Events::ClientProcessing,
         completed: Events::ClientComplete,
         errored: Events::ClientError,
         deactivated: Events::DeactivatePreviousNodes
