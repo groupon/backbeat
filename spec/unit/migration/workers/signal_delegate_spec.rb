@@ -4,10 +4,10 @@ describe Migration::Workers::SignalDelegate, v2: true do
 
   let(:v1_user) { FactoryGirl.create(:v1_user) }
   let(:v1_workflow) { FactoryGirl.create(:workflow, user: v1_user) }
-  let(:v2_user) { FactoryGirl.create(:v2_user, uuid: v1_user.id) }
+  let(:v2_user) { FactoryGirl.create(:v2_user, id: v1_user.id) }
 
   before do
-    @v2_workflow = FactoryGirl.create(:v2_workflow, user: v2_user, migrated: false, uuid: v1_workflow.id)
+    @v2_workflow = FactoryGirl.create(:v2_workflow, user: v2_user, migrated: false, id: v1_workflow.id)
   end
 
   def log_data(v1_workflow_id)

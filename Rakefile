@@ -122,28 +122,28 @@ end
 namespace :db do
   desc "drops and recreates the db"
   task :reset do
-    DB.with_connection('database' => nil) do |connection|
-      connection.recreate_database(DB.config['database'])
+    DB.with_connection('database' => 'postgres') do |connection|
+      connection.recreate_database(DB.config['database'], DB.config)
     end
   end
 
   desc "drop the db"
   task :drop do
-    DB.with_connection('database' => nil) do |connection|
+    DB.with_connection('database' => 'postgres') do |connection|
       connection.drop_database(DB.config['database'])
     end
   end
 
   desc "create the db"
   task :create do
-    DB.with_connection('database' => nil) do |connection|
-      connection.create_database(DB.config['database'])
+    DB.with_connection('database' => 'postgres') do |connection|
+      connection.create_database(DB.config['database'], DB.config)
     end
   end
 
   desc "create the db if it doesn't already exist"
   task :create_if_not_exists do
-    DB.with_connection('database' => nil) do |connection|
+    DB.with_connection('database' => 'postgres') do |connection|
       connection.execute("CREATE DATABASE IF NOT EXISTS #{DB.config['database']}")
     end
   end

@@ -16,7 +16,7 @@ module Api
 
       def user(client_id, path)
         if path =~ /v2/
-          V2::User.where(uuid: client_id).first
+          V2::User.where(id: client_id).first
         else
           WorkflowServer::Models::User.where(id: client_id).first
         end

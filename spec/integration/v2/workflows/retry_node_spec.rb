@@ -16,7 +16,7 @@ describe V2::Api, v2: true do
   let(:activity_node) { v2_workflow.children.first.children.first }
 
   before do
-    header 'CLIENT_ID', v2_user.uuid
+    header 'CLIENT_ID', v2_user.id
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
   end
 

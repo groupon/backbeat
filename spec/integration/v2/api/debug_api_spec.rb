@@ -13,7 +13,7 @@ describe V2::Api::DebugApi, v2: true do
   let(:workflow) { FactoryGirl.create(:v2_workflow_with_node, user: user) }
 
   before do
-    header 'CLIENT_ID', user.uuid
+    header 'CLIENT_ID', user.id
   end
 
   context "GET /debug/error_workflows" do

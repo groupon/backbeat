@@ -6,7 +6,7 @@ describe Migration::MigrateWorkflow, v2: true do
   let(:v1_workflow) { FactoryGirl.create(:workflow, user: v1_user) }
   let(:v1_signal) { FactoryGirl.create(:signal, parent: nil, workflow: v1_workflow) }
 
-  let(:v2_user) { FactoryGirl.create(:v2_user, uuid: v1_user.id) }
+  let(:v2_user) { FactoryGirl.create(:v2_user, id: v1_user.id) }
   let(:v2_workflow) { FactoryGirl.create(:v2_workflow, user: v2_user) }
 
   context ".queue_conversion_batch" do
@@ -59,7 +59,7 @@ describe Migration::MigrateWorkflow, v2: true do
   context ".find_or_create_v2_workflow" do
     it "returns v2 workflow if it already exists" do
       FactoryGirl.create(:v2_workflow, name: "wrong workflow", user: v2_user)
-      v2_workflow = FactoryGirl.create(:v2_workflow, uuid: v1_workflow.id, user: v2_user)
+      v2_workflow = FactoryGirl.create(:v2_workflow, id: v1_workflow.id, user: v2_user)
       workflow = Migration::MigrateWorkflow.find_or_create_v2_workflow(v1_workflow)
 
       expect(workflow.class.to_s).to eq("V2::Workflow")
@@ -77,7 +77,7 @@ describe Migration::MigrateWorkflow, v2: true do
       expect(workflow.complete).to eq(false)
       expect(workflow.decider).to eq(v1_workflow.decider)
       expect(workflow.subject).to eq(v1_workflow.subject)
-      expect(workflow.uuid).to eq(v1_workflow.id.gsub("-", ""))
+      expect(workflow.id).to eq(v1_workflow.id)
       expect(workflow.user_id).to eq(v2_user.id)
     end
   end
@@ -98,7 +98,7 @@ describe Migration::MigrateWorkflow, v2: true do
     Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
     v2_decision = v2_workflow.children.first
 
-    expect(v2_decision.uuid).to eq(v1_decision.id.gsub("-", ""))
+    expect(v2_decision.id).to eq(v1_decision.id)
     expect(v2_decision.mode).to eq("blocking")
     expect(v2_decision.name).to eq(v1_decision.name.to_s)
     expect(v2_decision.parent).to eq(v2_workflow)
@@ -130,12 +130,12 @@ describe Migration::MigrateWorkflow, v2: true do
     sub_activity = v2_activity.children.first
 
     expect(sub_activity.name).to eq(v1_sub_activity.name.to_s)
-    expect(sub_activity.uuid).to eq(v1_sub_activity.id.gsub("-", ""))
+    expect(sub_activity.id).to eq(v1_sub_activity.id)
     expect(sub_activity.legacy_type).to eq("activity")
 
     sub_decision = v2_activity.children.second
     expect(sub_decision.name).to eq(v1_sub_decision.name.to_s)
-    expect(sub_decision.uuid).to eq(v1_sub_decision.id.gsub("-", ""))
+    expect(sub_decision.id).to eq(v1_sub_decision.id)
     expect(sub_decision.legacy_type).to eq("decision")
     expect(v1_workflow.reload.migrated?).to eq(true)
   end
@@ -156,8 +156,8 @@ describe Migration::MigrateWorkflow, v2: true do
 
     v2_decision = v2_workflow.children.second
     expect(v2_workflow.children.count).to eq(2)
-    expect(v2_decision.uuid).to eq(timed_node.id.gsub("-",""))
-    expect(v2_decision.children.first.uuid).to eq(v1_activity.id.gsub("-",""))
+    expect(v2_decision.id).to eq(timed_node.id)
+    expect(v2_decision.children.first.id).to eq(v1_activity.id)
   end
 
   it "converts v1 status to v2 server and client status" do

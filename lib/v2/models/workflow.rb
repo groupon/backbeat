@@ -2,9 +2,7 @@ require 'v2/models/child_queries'
 
 module V2
   class Workflow < ActiveRecord::Base
-    include UUIDSupport
-
-    uuid_column :uuid
+    self.primary_key = :id
 
     belongs_to :user
     has_many :nodes

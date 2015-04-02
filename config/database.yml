@@ -1,9 +1,10 @@
 common: &common
   reconnect: true
-  adapter: mysql2
-  username: root
+  template: template0
+  encoding: unicode
+  adapter: postgresql
+  username: 'backbeat'
   password:
-  database: backbeat_dev
   pool: 200
 
 development:
@@ -13,15 +14,27 @@ development:
 uat:
   <<: *common
   database: backbeat_uat
-  username: backbeat
-  hostname: gds-snc1-backbeat-uat-rw-vip.snc1
-  url: jdbc:mysql://gds-snc1-backbeat-uat-rw-vip.snc1/backbeat_uat
-  password: Akk0unT!NgBakBeE8U$e6
+  hostname:
+  url:
+  password:
 
 staging:
   <<: *common
   database: backbeat_staging
-  username: backbeat
-  hostname: gds-snc1-backbeat-stg-rw-vip.snc1
-  url: jdbc:mysql://gds-snc1-backbeat-stg-rw-vip.snc1/backbeat_staging
-  password: Akk0unT!NgBakBeE8U$e6
+  hostname:
+  url:
+  password:
+
+production:
+  <<: *common
+  database: backbeat_pg
+  username: backbeat_prod_app
+  url:
+  password: yo_Bac7B34T_app_!
+
+dba:
+  <<: *common
+  database: backbeat_pg
+  username: backbeat_prod_dba
+  url:
+  password: yo_Bac7B34T_dba!

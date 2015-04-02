@@ -3,12 +3,11 @@ require 'v2/models/child_queries'
 
 module V2
   class Node < ActiveRecord::Base
+    self.primary_key = :id
+
     extend ::Enumerize
-    include UUIDSupport
 
-    uuid_column :uuid
-
-    default_scope { order("id asc") }
+    default_scope { order("seq asc") }
 
     belongs_to :user
     belongs_to :workflow
@@ -51,6 +50,10 @@ module V2
     delegate :metadata, to: :client_node_detail, prefix: :client
     delegate :complete?, :processing_children?, :ready?, to: :current_server_status
     delegate :subject, :decider, to: :workflow
+
+    before_create do
+      self.seq ||= ActiveRecord::Base.connection.execute("SELECT nextval('nodes_seq_seq')").first["nextval"]
+    end
 
     include ChildQueries
 

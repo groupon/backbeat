@@ -25,8 +25,8 @@ module Migration
     class WorkflowNotMigratable < StandardError; end
 
     def self.find_or_create_v2_workflow(v1_workflow)
-      v2_user_id = V2::User.find_by_uuid(v1_workflow.user_id).id
-      V2::Workflow.where(uuid: v1_workflow.id).first_or_create!(
+      v2_user_id = V2::User.find_by_id(v1_workflow.user_id).id
+      V2::Workflow.where(id: v1_workflow.id).first_or_create!(
         name: v1_workflow.name,
         decider: v1_workflow.decider,
         subject: v1_workflow.subject,
@@ -63,8 +63,7 @@ module Migration
     end
 
     def self.migrate_activity(v1_activity, v2_parent, attrs = {})
-      V2::Node.create!(
-        uuid: v1_activity.id,
+      node = V2::Node.new(
         mode: :blocking,
         current_server_status: server_status(v1_activity),
         current_client_status: client_status(v1_activity),
@@ -83,6 +82,9 @@ module Migration
           retries_remaining: 4
         )
       )
+      node.id = v1_activity.id
+      node.save!
+      node
     end
 
     def self.migrate_node(node, v2_parent)

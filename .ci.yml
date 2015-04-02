@@ -5,19 +5,18 @@ environment:
   packages:
     - mongodb-2.2.3
     - java-1.7.0_55
-    - memcached-1.4.5
-    - mysql-5.1.56_percona_server
     - ruby-1.9.3_p194
     - postgresql-9.3.2
+    - postgresql_contrib_9.3.2-2014.01.17_15.05
   vars:
     PATH: /packages/encap/jruby-1.7.11/lib/jruby/bin:$PATH
     CORE: 8
-    CUCUMBER_PROFILE: plain
     SPEC_OPTS: '"--order random --no-color"'
 build:
   before:
     - gem install bundler
     - jruby -S bundle install --no-deployment
+    - psql -U postgres -c "CREATE ROLE backbeat WITH LOGIN CREATEDB SUPERUSER;"
     - jruby -S bundle exec rake db:reset
     - jruby -S bundle exec rake db:migrate
   run:
