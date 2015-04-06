@@ -113,7 +113,8 @@ describe V2::Api::EventsApi, v2: true do
     it "returns 404 if the node does not belong to the workflow" do
       node = FactoryGirl.create(
         :v2_workflow_with_node,
-        user: user
+        name: :a_unique_name,
+        user: workflow.user
       ).children.first
 
       response = get "v2/workflows/#{workflow.id}/events/#{node.id}"
