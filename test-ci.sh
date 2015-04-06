@@ -5,7 +5,13 @@ docker run --name backbeat-mongo-$DOCKER_SHA -d mongo:2.2
 docker run --name backbeat-redis-$DOCKER_SHA -d redis:latest
 
 docker build -t $DOCKER_IMAGE:latest .
-docker run -e RACK_ENV=docker -i --link backbeat-postgres-$DOCKER_SHA:db --link backbeat-mongo-$DOCKER_SHA:mongo --link backbeat-redis-$DOCKER_SHA:redis $DOCKER_IMAGE:latest /app/run-tests.sh
+docker run \
+  -e RACK_ENV=docker \
+  -i \
+  --link backbeat-postgres-$DOCKER_SHA:db \
+  --link backbeat-mongo-$DOCKER_SHA:mongo \
+  --link backbeat-redis-$DOCKER_SHA:redis \
+  $DOCKER_IMAGE:latest /app/run-tests.sh
 TEST_EXIT=$?
 
 docker stop backbeat-redis-$DOCKER_SHA
