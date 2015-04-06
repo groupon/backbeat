@@ -1,5 +1,5 @@
 GIT
-  remote: git@github.groupondev.com:finance-engineering/application_transaction.git
+  remote: https://github.groupondev.com/finance-engineering/application_transaction.git
   revision: 20acb0fabd1d4e0445164fda14e97dca8ff8ef30
   specs:
     application_transaction (0.0.1)
@@ -7,14 +7,14 @@ GIT
       awesome_print
 
 GIT
-  remote: git@github.groupondev.com:finance-engineering/external_service.git
+  remote: https://github.groupondev.com/finance-engineering/external_service.git
   revision: 6063d8f074d7f578bd459f150eaac4fc8703106b
   specs:
     external_service (0.0.1)
       rack
 
 GIT
-  remote: git@github.groupondev.com:groupon-api/service-discovery.git
+  remote: https://github.groupondev.com/groupon-api/service-discovery.git
   revision: 90abd291b4813d609943b4b3759938059d460cdc
   specs:
     service-discovery (0.3.0)

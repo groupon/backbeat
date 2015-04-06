@@ -38,3 +38,12 @@ dba:
   username: backbeat_prod_dba
   url:
   password: yo_Bac7B34T_dba!
+
+docker:
+  reconnect: true
+  adapter: postgresql
+  username: backbeat
+  password: fed
+  database: backbeat_ci
+  host: db
+  schema_search_path: public
