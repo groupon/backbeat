@@ -14,7 +14,7 @@ describe V2::Api::WorkflowsApi, v2: true do
   let(:node) { workflow.children.first }
 
   before do
-    header 'CLIENT_ID', user.uuid
+    header 'CLIENT_ID', user.id
     WorkflowServer::Client.stub(:make_decision)
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
   end
@@ -110,7 +110,7 @@ describe V2::Api::WorkflowsApi, v2: true do
       response = get "v2/workflows/#{workflow.id}/tree"
       body = JSON.parse(response.body)
 
-      expect(body["id"]).to eq(workflow.uuid.uuid.to_s)
+      expect(body["id"]).to eq(workflow.id.to_s)
     end
   end
 

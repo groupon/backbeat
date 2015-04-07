@@ -22,6 +22,18 @@ test:
     raise_not_found_error: false
     use_utc: true
 
+docker:
+  sessions:
+    default:
+      database: workflow_test
+      hosts:
+        - mongo
+      options:
+        safe: true
+  options:
+    raise_not_found_error: false
+    use_utc: true
+
 uat:
   sessions:
     default:

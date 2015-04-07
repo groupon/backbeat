@@ -16,9 +16,13 @@ gem 'uuidtools'
 
 #active record
 gem 'activerecord', require: 'active_record'
-gem 'activerecord-jdbcmysql-adapter', platform: :jruby
-gem 'mysql2', platform: :ruby
-gem 'uuid-support', git: 'git@github.groupondev.com:US/uuid-support-gem.git', require: 'uuid_support'
+platform :jruby do
+  gem 'activerecord-jdbcpostgresql-adapter'
+  gem 'jdbc-postgres'
+end
+platform :mri do
+  gem 'activerecord-postgresql-adapter'
+end
 gem 'foreigner'
 gem 'enumerize'
 
@@ -28,9 +32,9 @@ gem 'mail'
 gem 'sidekiq'
 gem 'sidekiq-failures'
 gem 'kiqstand'
-gem 'application_transaction', :git => 'git@github.groupondev.com:finance-engineering/application_transaction.git'
+gem 'application_transaction', :git => 'https://github.groupondev.com/finance-engineering/application_transaction.git'
 
-gem 'service-discovery', :git => 'git@github.groupondev.com:groupon-api/service-discovery.git'
+gem 'service-discovery', :git => 'https://github.groupondev.com/groupon-api/service-discovery.git'
 
 platforms :ruby do
   gem 'unicorn'
@@ -67,6 +71,6 @@ group :test do
   gem 'timecop'
   gem 'webmock'
   gem 'simplecov'
-  gem 'external_service', :git => 'git@github.groupondev.com:finance-engineering/external_service.git'
+  gem 'external_service', :git => 'https://github.groupondev.com/finance-engineering/external_service.git'
   gem 'zip'
 end

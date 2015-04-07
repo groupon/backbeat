@@ -1,7 +1,5 @@
 class V2::User < ActiveRecord::Base
-  include UUIDSupport
-
-  uuid_column :uuid
+  self.primary_key = :id
 
   has_many :workflows
   has_many :nodes

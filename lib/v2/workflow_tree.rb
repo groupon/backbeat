@@ -23,7 +23,7 @@ module V2
 
     def to_hash(node = root)
       {
-        id: node.uuid.uuid.to_s,
+        id: node.id.to_s,
         name: node.name,
         current_server_status: node.is_a?(Node) ? node.current_server_status : nil,
         current_client_status: node.is_a?(Node) ? node.current_client_status : nil,
@@ -67,7 +67,7 @@ module V2
       end
 
       def build
-        "\n#{node.uuid.uuid.to_s}#{spacer}#{node_display}"
+        "\n#{node.id.to_s}#{spacer}#{node_display}"
       end
 
       private

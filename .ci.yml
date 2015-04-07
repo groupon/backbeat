@@ -1,28 +1,17 @@
 environment:
-  language: ruby
-  language_versions:
-    - jruby-1.7.11
-  packages:
-    - mongodb-2.2.3
-    - java-1.7.0_55
-    - memcached-1.4.5
-    - mysql-5.1.56_percona_server
-    - ruby-1.9.3_p194
-    - postgresql-9.3.2
+  language: docker
+  language_versions: 1.4.1
   vars:
-    PATH: /packages/encap/jruby-1.7.11/lib/jruby/bin:$PATH
-    CORE: 8
-    CUCUMBER_PROFILE: plain
-    SPEC_OPTS: '"--order random --no-color"'
+    DOCKER_BRANCH: '<% out<< DOTCI_BRANCH.replaceAll(/[^A-Za-z0-9]/,"").toLowerCase() %>'
+    DOCKER_IMAGE: '<% out<< JOB_NAME.toLowerCase().replaceAll("-","_").replaceAll("^","docker.groupondev.com/") %>'
+    DOCKER_SHA: '<% out<< DOTCI_SHA %>'
 build:
   before:
-    - gem install bundler
-    - jruby -S bundle install --no-deployment
-    - jruby -S bundle exec rake db:reset
-    - jruby -S bundle exec rake db:migrate
+    - docker --version
   run:
-    - jruby -S bundle exec rspec
-    - V2=true jruby -S bundle exec rspec
-<% if( DOTCI_BRANCH =~ /deploy/ ) { %>
-  after: \$HOME/distbuild_dependencies/deploy_request.sh --deploybot
+    - ./test-ci.sh
+<% if( DOTCI_BRANCH =~ /deploy.*/ ) { %>
+plugins:
+  - request_deploy:
+      deploy_bot: true
 <% } %>

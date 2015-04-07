@@ -15,7 +15,7 @@ describe V2::Api::EventsApi, v2: true do
 
 
   before do
-    header 'CLIENT_ID', user.uuid
+    header 'CLIENT_ID', user.id
     WorkflowServer::Client.stub(:make_decision)
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
   end

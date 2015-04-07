@@ -26,3 +26,6 @@ staging:
 production:
   <<: *default
   log_level: INFO
+
+docker:
+  <<: *default

@@ -16,7 +16,7 @@ describe V2::Api, v2: true do
   let(:workflow) { FactoryGirl.create(:v2_workflow, user: user) }
 
   before do
-    header 'CLIENT_ID', user.uuid
+    header 'CLIENT_ID', user.id
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
     Sidekiq::Testing.fake!
   end

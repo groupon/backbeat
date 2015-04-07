@@ -16,8 +16,7 @@ describe V2::WorkflowTree, v2: true do
   end
 
   def uuid(node)
-    # the uuid column has a nested uuid attribute that stringifies with dashes
-    node.uuid.uuid.to_s
+    node.id.to_s
   end
 
   context "each" do

@@ -20,3 +20,5 @@ production:
   host: general-redis-vip
   port: 6379
 
+docker:
+  host: redis

@@ -1,7 +1,4 @@
 class V2::StatusChange < ActiveRecord::Base
-  include UUIDSupport
-
-  uuid_column :uuid
-
   belongs_to :node
+  default_scope { order("id asc") }
 end

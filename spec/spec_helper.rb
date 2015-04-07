@@ -1,5 +1,5 @@
 $: << File.expand_path(File.join(__FILE__, ".."))
-ENV['RACK_ENV'] = "test"
+ENV['RACK_ENV'] ||= "test"
 
 require 'bundler'
 Bundler.setup(:test)
