@@ -10,6 +10,8 @@ build:
     - docker --version
   run:
     - ./test-ci.sh
-<% if( DOTCI_BRANCH =~ /deploy/ ) { %>
-  after: \$HOME/distbuild_dependencies/deploy_request.sh --deploybot
+<% if( DOTCI_BRANCH =~ /deploy.*/ ) { %>
+plugins:
+  - request_deploy:
+      deploy_bot: true
 <% } %>
