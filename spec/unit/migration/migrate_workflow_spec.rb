@@ -155,6 +155,7 @@ describe Migration::MigrateWorkflow, v2: true do
     Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
 
     v2_decision = v2_workflow.children.second
+
     expect(v2_workflow.children.count).to eq(2)
     expect(v2_decision.id).to eq(timed_node.id)
     expect(v2_decision.children.first.id).to eq(v1_activity.id)
@@ -195,6 +196,31 @@ describe Migration::MigrateWorkflow, v2: true do
     expect(V2::Workers::AsyncWorker.jobs.count).to eq(1)
     expect(V2::Workers::AsyncWorker.jobs.first["args"]).to eq(["V2::Events::StartNode", "V2::Node", v2_timer.id, 4])
     expect(V2::Workers::AsyncWorker.jobs.first["at"].ceil).to eq((Time.now + 2.hours).to_f.ceil)
+  end
+
+  it "converts a completed v1 timer" do
+    Timecop.freeze
+    v1_timer = FactoryGirl.create(
+      :timer,
+      parent: v1_signal,
+      workflow: v1_workflow,
+      status: :complete,
+      fires_at: Time.now + 2.hours
+    )
+
+    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
+
+    v2_decision = v2_workflow.children.first
+    v2_timer = v2_workflow.children.first
+
+    expect(v2_timer.legacy_type).to eq("timer")
+    expect(v2_timer.name).to eq("#{v1_timer.name}__timer__")
+    expect(v2_timer.fires_at.to_s).to eq((Time.now + 2.hours).to_s)
+    expect(v2_timer.current_server_status).to eq("complete")
+    expect(v2_timer.current_client_status).to eq("complete")
+    expect(v2_timer.client_metadata).to eq({"version"=>"v2"})
+    expect(v2_timer.client_data).to eq({"arguments" => [v1_timer.name.to_s], "options" => {}})
+    expect(V2::Workers::AsyncWorker.jobs.count).to eq(0)
   end
 
   it "converts a v1 flag" do
