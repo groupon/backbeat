@@ -2,7 +2,7 @@ require "migration/workers/migrator"
 
 module Migration
 
-  MIGRATING_TYPES = []
+  MIGRATING_TYPES = [:merchant_statement_workflow]
   ONLY_WITH_ACTIVE_TIMERS = [:merchant_statement_workflow]
 
   def self.migrate?(type)
@@ -105,7 +105,7 @@ module Migration
             legacy_type: :timer
           })
           timer.client_node_detail.update_attributes(data: {arguments: [node.name], options: {}})
-          V2::Schedulers::AsyncEventAt.call(V2::Events::StartNode, timer)
+          V2::Schedulers::AsyncEventAt.call(V2::Events::StartNode, timer) unless timer.current_server_status.to_sym == :complete
           timer.workflow
         when WorkflowServer::Models::WorkflowCompleteFlag
           flag = migrate_activity(node, v2_parent, legacy_type: :flag)
