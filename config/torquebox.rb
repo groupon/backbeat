@@ -42,7 +42,7 @@ TorqueBox.configure do
   end
 
   if `hostname` =~ /accounting-utility2/
-    job Reports::LogQueueCounts do
+    job Reports::LogCounts do
       # Every 5 minutes
       cron '0 */5 * * * ?'
     end
