@@ -14,7 +14,7 @@ module Migration
     limit = args[:limit] || 1000
     WorkflowServer::Models::Workflow.where(
       :workflow_type.in => types,
-      :migrated => false
+      :migrated.in => [nil, false]
     ).limit(limit).each do |workflow|
       Migration::Workers::Migrator.perform_async(workflow.id)
     end
@@ -126,19 +126,14 @@ module Migration
     def self.can_migrate?(node)
       if node.is_a?(WorkflowServer::Models::Timer)
         node.status.to_sym == :complete ||
-          ([:open, :ready, :scheduled].include?(node.status.to_sym) &&
-            (node.fires_at - Time.now) > 1.hour)
+          (node.status.to_sym == :scheduled && (node.fires_at - Time.now) > 1.hour)
       else
-        [:open, :ready, :complete].include?(node.status.to_sym)
+        node.status.to_sym == :complete
       end
     end
 
     def self.client_status(v1_node)
       case v1_node.status
-      when :open
-        :pending
-      when :ready
-        :ready
       when :complete
         :complete
       when :scheduled
@@ -149,10 +144,6 @@ module Migration
     def self.server_status(v1_node)
       return :deactivated if v1_node.inactive
       case v1_node.status
-      when :open
-        :pending
-      when :ready
-        :ready
       when :complete
         :complete
       when :scheduled

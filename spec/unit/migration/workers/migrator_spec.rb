@@ -6,8 +6,8 @@ describe Migration::Workers::Migrator, v2: true do
     v1_user = FactoryGirl.create(:v1_user)
     v2_user = FactoryGirl.create(:v2_user, id: v1_user.id)
     v1_workflow = FactoryGirl.create(:workflow, user: v1_user)
-    v1_signal = FactoryGirl.create(:signal, workflow: v1_workflow)
-    v1_decision = FactoryGirl.create(:decision, workflow: v1_workflow, parent: v1_signal)
+    v1_signal = FactoryGirl.create(:signal, workflow: v1_workflow, status: :complete)
+    v1_decision = FactoryGirl.create(:decision, workflow: v1_workflow, parent: v1_signal, status: :complete)
 
     Migration::Workers::Migrator.new.perform(v1_workflow.id)
 

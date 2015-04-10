@@ -4,7 +4,7 @@ require "migration/migrate_workflow"
 describe Migration::MigrateWorkflow, v2: true do
   let(:v1_user) { FactoryGirl.create(:v1_user) }
   let(:v1_workflow) { FactoryGirl.create(:workflow, user: v1_user) }
-  let(:v1_signal) { FactoryGirl.create(:signal, parent: nil, workflow: v1_workflow) }
+  let(:v1_signal) { FactoryGirl.create(:signal, parent: nil, workflow: v1_workflow, status: :complete) }
 
   let(:v2_user) { FactoryGirl.create(:v2_user, id: v1_user.id) }
   let(:v2_workflow) { FactoryGirl.create(:v2_workflow, user: v2_user) }
@@ -17,7 +17,8 @@ describe Migration::MigrateWorkflow, v2: true do
           :workflow,
           name: "Workflow #{i}",
           workflow_type: :international,
-          user: v1_user
+          user: v1_user,
+          status: :complete
         )
       end
 
@@ -32,7 +33,8 @@ describe Migration::MigrateWorkflow, v2: true do
           :workflow,
           name: "Workflow #{i}",
           workflow_type: :international,
-          user: v1_user
+          user: v1_user,
+          status: :complete
         )
       end
 
@@ -47,7 +49,8 @@ describe Migration::MigrateWorkflow, v2: true do
         name: "Workflow",
         workflow_type: :international,
         user: v1_user,
-        migrated: true
+        migrated: true,
+        status: :complete
       )
 
       Migration.queue_conversion_batch(limit: 2, types: [:international])
@@ -93,7 +96,7 @@ describe Migration::MigrateWorkflow, v2: true do
   end
 
   it "migrates v1 signals to v2 decisions" do
-    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
+    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
 
     Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
     v2_decision = v2_workflow.children.first
@@ -107,7 +110,7 @@ describe Migration::MigrateWorkflow, v2: true do
   end
 
   it "marks the v1 workflow as migrated" do
-    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
+    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
 
     Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
 
@@ -115,10 +118,10 @@ describe Migration::MigrateWorkflow, v2: true do
   end
 
   it "migrates great plains style workflow" do
-    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
-    v1_activity = FactoryGirl.create(:activity, parent: v1_decision, workflow: v1_workflow)
-    v1_sub_activity = FactoryGirl.create(:activity, parent: v1_activity, workflow: v1_workflow)
-    v1_sub_decision = FactoryGirl.create(:decision, parent: v1_activity, workflow: v1_workflow)
+    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
+    v1_activity = FactoryGirl.create(:activity, parent: v1_decision, workflow: v1_workflow, status: :complete)
+    v1_sub_activity = FactoryGirl.create(:activity, parent: v1_activity, workflow: v1_workflow, status: :complete)
+    v1_sub_decision = FactoryGirl.create(:decision, parent: v1_activity, workflow: v1_workflow, status: :complete)
 
     Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
     v2_decision = v2_workflow.children.first
@@ -141,7 +144,7 @@ describe Migration::MigrateWorkflow, v2: true do
   end
 
   it "migrates workflow with nested timers" do
-    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
+    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
     v1_timer = FactoryGirl.create(
       :timer,
       parent: v1_decision,
@@ -150,7 +153,7 @@ describe Migration::MigrateWorkflow, v2: true do
       fires_at: Time.now + 2.hours
     )
     timed_node = FactoryGirl.create(:decision, parent: v1_timer, workflow: v1_workflow, status: :complete)
-    v1_activity = FactoryGirl.create(:activity, parent: timed_node, workflow: v1_workflow)
+    v1_activity = FactoryGirl.create(:activity, parent: timed_node, workflow: v1_workflow, status: :complete)
 
     Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
 
@@ -224,7 +227,7 @@ describe Migration::MigrateWorkflow, v2: true do
   end
 
   it "converts a v1 flag" do
-    v1_flag = FactoryGirl.create(:flag, parent: v1_signal, workflow: v1_workflow)
+    v1_flag = FactoryGirl.create(:flag, parent: v1_signal, workflow: v1_workflow, status: :complete)
 
     Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
     v2_flag = v2_workflow.children.first
@@ -233,7 +236,7 @@ describe Migration::MigrateWorkflow, v2: true do
   end
 
   it "converts a v1 complete workflow" do
-    v1_complete_workflow = FactoryGirl.create(:workflow_complete, parent: v1_signal, workflow: v1_workflow)
+    v1_complete_workflow = FactoryGirl.create(:workflow_complete, parent: v1_signal, workflow: v1_workflow, status: :complete)
 
     Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
     v2_complete_workflow = v2_workflow.reload.children.first
@@ -244,7 +247,7 @@ describe Migration::MigrateWorkflow, v2: true do
 
   it "converts a v1 continue as new workflow" do
     v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete, inactive: true)
-    v1_flag = FactoryGirl.create(:continue_as_new_workflow_flag, parent: v1_signal, workflow: v1_workflow)
+    v1_flag = FactoryGirl.create(:continue_as_new_workflow_flag, parent: v1_signal, workflow: v1_workflow, status: :complete)
 
     Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
     v2_decision = v2_workflow.reload.children.first
@@ -255,7 +258,7 @@ describe Migration::MigrateWorkflow, v2: true do
   end
 
   it "converts a v1 branch" do
-    v1_branch = FactoryGirl.create(:branch, parent: v1_signal, workflow: v1_workflow)
+    v1_branch = FactoryGirl.create(:branch, parent: v1_signal, workflow: v1_workflow, status: :complete)
 
     Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
     v2_branch = v2_workflow.children.first
@@ -264,8 +267,8 @@ describe Migration::MigrateWorkflow, v2: true do
   end
 
   context "can_migrate?" do
-    it "does not migrate workflows with nodes that are not open, ready, or complete" do
-      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :sent_to_client)
+    it "does not migrate workflows with nodes that are not complete" do
+      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :sent_to_client, status: :open)
 
       expect { Migration::MigrateWorkflow.call(v1_workflow, v2_workflow) }.to raise_error Migration::MigrateWorkflow::WorkflowNotMigratable
 
@@ -274,7 +277,7 @@ describe Migration::MigrateWorkflow, v2: true do
     end
 
     it "migrates any complete timer" do
-      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
+      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
       v1_timer = FactoryGirl.create(
         :timer,
         parent: v1_decision,
@@ -289,7 +292,7 @@ describe Migration::MigrateWorkflow, v2: true do
     end
 
     it "does not migrate workflows with timer nodes set to fire in one hour or less" do
-      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
+      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
       v1_timer = FactoryGirl.create(
         :timer,
         parent: v1_decision,
@@ -306,10 +309,10 @@ describe Migration::MigrateWorkflow, v2: true do
 
   context "workflows migrated only with active timers" do
     before do
-      v1_signal_2 = FactoryGirl.create(:signal, parent: nil, workflow: v1_workflow)
-      decision_1 = FactoryGirl.create(:decision, parent: v1_signal_2, workflow: v1_workflow)
-      @decision_2 = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
-      FactoryGirl.create(:activity, parent: decision_1, workflow: v1_workflow)
+      v1_signal_2 = FactoryGirl.create(:signal, parent: nil, workflow: v1_workflow, status: :complete)
+      decision_1 = FactoryGirl.create(:decision, parent: v1_signal_2, workflow: v1_workflow, status: :complete)
+      @decision_2 = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
+      FactoryGirl.create(:activity, parent: decision_1, workflow: v1_workflow, status: :complete)
     end
 
     it "migrates all signals when workflow type not in list" do
@@ -341,11 +344,11 @@ describe Migration::MigrateWorkflow, v2: true do
 
   context "has_timers?" do
     before do
-      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow)
-      v1_activity = FactoryGirl.create(:activity, parent: v1_decision, workflow: v1_workflow)
-      v1_activity_2 = FactoryGirl.create(:activity, parent: v1_decision, workflow: v1_workflow)
+      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
+      v1_activity = FactoryGirl.create(:activity, parent: v1_decision, workflow: v1_workflow, status: :complete)
+      v1_activity_2 = FactoryGirl.create(:activity, parent: v1_decision, workflow: v1_workflow, status: :complete)
       FactoryGirl.create(:decision, parent: v1_activity_2, workflow: v1_workflow)
-      @nested_decision = FactoryGirl.create(:decision, parent: v1_activity, workflow: v1_workflow)
+      @nested_decision = FactoryGirl.create(:decision, parent: v1_activity, workflow: v1_workflow, status: :complete)
     end
 
     it "returns true if the tree has a timer" do
