@@ -2,6 +2,7 @@ $: << File.expand_path(File.join(__FILE__, "..")) # Hack here since require_rela
 
 require 'app'
 
+use ActiveRecord::ConnectionAdapters::ConnectionManagement
 use Api::Middleware::Log
 use Api::Middleware::Heartbeat
 use Api::Middleware::Health
