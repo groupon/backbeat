@@ -26,6 +26,16 @@ module V2
             query[:workflow_id] = params[:workflow_id] if params[:workflow_id]
             Node.where(query).find(params[:id])
           end
+
+          def validate(params, param, type, message)
+            value = params.fetch(param)
+            unless value.is_a?(type)
+              raise WorkflowServer::InvalidParameters, message
+            end
+            value
+          rescue KeyError
+            raise WorkflowServer::InvalidParameters, "Param #{param} is required"
+          end
         end
 
         resource 'events' do
@@ -42,26 +52,24 @@ module V2
           put "/:id/restart" do
             node = find_node
             Server.fire_event(Events::RetryNode, node, Schedulers::PerformEvent)
-            {success: true}
+            { success: true }
           end
 
           post "/:id/decisions" do
-            if params[:args] && !params[:args].is_a?(Hash)
-              raise WorkflowServer::InvalidParameters, "args parameter is invalid"
-            end
-            if params[:args][:decisions].nil? || params[:args][:decisions].empty?
-              raise WorkflowServer::InvalidParameters, "args must include a 'decisions' parameter"
-            end
+            args = validate(params, :args, Hash, "Args parameter must be a hash")
+            decisions = validate(args, :decisions, Array, "Args must include a 'decisions' parameter")
             node = find_node
-            params[:args][:decisions].each do |dec|
-              node_to_add = dec.dup
-              node_to_add[:options] = {}
-              node_to_add[:options][:metadata] = node_to_add[:metadata]
-              node_to_add[:options][:client_data] = node_to_add[:client_data]
-              node_to_add[:legacy_type] = node_to_add[:type]
+            decisions.each do |dec|
+              node_to_add = dec.merge({
+                legacy_type: dec[:type],
+                options: {
+                  metadata: dec[:metadata],
+                  client_data: dec[:client_data]
+                }
+              })
               Server.add_node(current_user, node, node_to_add)
             end
-            {success: true}
+            { success: true }
           end
         end
       end
