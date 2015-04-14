@@ -144,5 +144,15 @@ describe V2::Api::EventsApi, v2: true do
 
       expect(node.reload.current_client_status).to eq("processing")
     end
+
+    it "returns an error with an invalid state change" do
+      node.update_attributes(current_client_status: :processing)
+      response = put "v2/events/#{node.id}/status/processing"
+      body = JSON.parse(response.body)
+      expect(body["message"]).to eq("Cannot transition current_client_status from processing to processing")
+      expect(body["currentStatus"]).to eq("processing")
+      expect(body["attemptedStatus"]).to eq("processing")
+      expect(body["statusType"]).to eq("current_client_status")
+    end
   end
 end

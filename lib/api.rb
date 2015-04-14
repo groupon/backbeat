@@ -40,7 +40,6 @@ module Api
     end
 
     RESCUED_ERRORS = [
-      V2::InvalidEventStatusChange,
       V2::WorkflowComplete,
       WorkflowServer::EventComplete,
       WorkflowServer::InvalidParameters,
@@ -54,6 +53,15 @@ module Api
     rescue_from *RESCUED_ERRORS do |e|
       WorkflowServer::BaseLogger.info(e)
       Rack::Response.new({error: e.message }.to_json, 400, { "Content-type" => "application/json" }).finish
+    end
+
+    rescue_from V2::InvalidEventStatusChange do |e|
+      WorkflowServer::BaseLogger.info(e)
+      Rack::Response.new(
+        e.data.merge(message: e.message).to_json,
+        400,
+        { "Content-type" => "application/json" }
+      ).finish
     end
 
     mount V2::Api::WorkflowsApi

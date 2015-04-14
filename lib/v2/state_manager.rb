@@ -61,8 +61,10 @@ module V2
     end
 
     def validate_status(new_status, status_type)
+      current_status = node_status(status_type)
       raise V2::InvalidEventStatusChange.new(
-        "Cannot transition #{status_type} from #{node_status(status_type)} to #{new_status}"
+        "Cannot transition #{status_type} from #{current_status} to #{new_status}",
+        { current_status: current_status, attempted_status: new_status, status_type: status_type }
       ) unless valid_status_change?(new_status, status_type)
     end
 
