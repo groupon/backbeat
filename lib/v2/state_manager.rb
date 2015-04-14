@@ -61,11 +61,17 @@ module V2
     end
 
     def validate_status(new_status, status_type)
-      current_status = node_status(status_type)
-      raise V2::InvalidEventStatusChange.new(
-        "Cannot transition #{status_type} from #{current_status} to #{new_status}",
-        { current_status: current_status, attempted_status: new_status, status_type: status_type }
-      ) unless valid_status_change?(new_status, status_type)
+      unless valid_status_change?(new_status, status_type)
+        current_status = node_status(status_type)
+        if status_type == :current_client_status
+          raise V2::InvalidClientStatusChange.new(
+            "Cannot transition #{status_type} from #{current_status} to #{new_status}",
+            { current_status: current_status, attempted_status: new_status, status_type: status_type }
+          )
+        else
+          raise V2::InvalidServerStatusChange.new("Cannot transition #{status_type} from #{current_status} to #{new_status}")
+        end
+      end
     end
 
     def valid_status_change?(new_status, status_type)

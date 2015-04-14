@@ -55,10 +55,15 @@ module Api
       Rack::Response.new({error: e.message }.to_json, 400, { "Content-type" => "application/json" }).finish
     end
 
-    rescue_from V2::InvalidEventStatusChange do |e|
+    rescue_from V2::InvalidServerStatusChange do |e|
+      WorkflowServer::BaseLogger.info(e)
+      Rack::Response.new({ error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
+    end
+
+    rescue_from V2::InvalidClientStatusChange do |e|
       WorkflowServer::BaseLogger.info(e)
       Rack::Response.new(
-        e.data.merge(message: e.message).to_json,
+        e.data.merge(error: e.message).to_json,
         400,
         { "Content-type" => "application/json" }
       ).finish
