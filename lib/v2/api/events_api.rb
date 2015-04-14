@@ -55,6 +55,12 @@ module V2
             { success: true }
           end
 
+          put "/:id/reset" do
+            node = find_node
+            node.children.destroy_all
+            { success: true }
+          end
+
           post "/:id/decisions" do
             args = validate(params, :args, Hash, "Args parameter must be a hash")
             decisions = validate(args, :decisions, Array, "Args must include a 'decisions' parameter")

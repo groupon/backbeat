@@ -155,4 +155,14 @@ describe V2::Api::EventsApi, v2: true do
       expect(body["statusType"]).to eq("current_client_status")
     end
   end
+
+  context "PUT /events/:id/reset" do
+    it "removes all child nodes from the node" do
+      FactoryGirl.create(:v2_node, user: user, workflow: workflow, parent: node)
+
+      put "v2/events/#{node.id}/reset"
+
+      expect(node.children.count).to eq(0)
+    end
+  end
 end

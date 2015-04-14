@@ -13,9 +13,9 @@ module V2
     belongs_to :workflow
     has_many :children, class_name: "V2::Node", foreign_key: "parent_id"
     belongs_to :parent_node, inverse_of: :children, class_name: "V2::Node", foreign_key: "parent_id"
-    has_one :client_node_detail
-    has_one :node_detail
-    has_many :status_changes
+    has_one :client_node_detail, dependent: :destroy
+    has_one :node_detail, dependent: :destroy
+    has_many :status_changes, dependent: :destroy
 
     validates :mode, presence: true
     validates :current_server_status, presence: true
