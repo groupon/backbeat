@@ -32,8 +32,10 @@ describe V2::Api::DebugApi, v2: true do
 
       errored_workflow = FactoryGirl.create(
         :v2_workflow_with_node,
-        user: user
+        name: :a_unique_name,
+        user_id: user.id
       )
+
       errored_workflow.children.first.update_attributes(
         current_client_status: :errored,
       )

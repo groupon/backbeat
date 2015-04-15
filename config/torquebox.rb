@@ -45,7 +45,7 @@ TorqueBox.configure do
   # For cron syntax see - http://torquebox.org/documentation/2.3.0/scheduled-jobs.html
 
   if `hostname` =~ /accounting-utility2/
-    job Reports::LogQueueCounts do
+    job Reports::LogCounts do
       # Every 5 minutes
       cron '0 */5 * * * ?'
     end
