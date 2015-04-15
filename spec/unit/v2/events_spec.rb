@@ -260,4 +260,26 @@ describe V2::Events, v2: true do
       expect(third_node.reload.current_server_status).to eq("pending")
     end
   end
+
+  context "ResetNode" do
+    it "marks all children of the provided node as deactivated" do
+      second_node = FactoryGirl.create(
+        :v2_node,
+        workflow: workflow,
+        parent: node,
+        user: user
+      )
+      third_node = FactoryGirl.create(
+        :v2_node,
+        workflow: workflow,
+        parent: node,
+        user: user
+      )
+      V2::Events::ResetNode.call(node)
+
+      expect(node.reload.current_server_status).to eq("pending")
+      expect(second_node.reload.current_server_status).to eq("deactivated")
+      expect(third_node.reload.current_server_status).to eq("deactivated")
+    end
+  end
 end

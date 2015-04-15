@@ -57,7 +57,7 @@ module V2
 
           put "/:id/reset" do
             node = find_node
-            node.children.destroy_all
+            Server.fire_event(Events::ResetNode, node)
             { success: true }
           end
 

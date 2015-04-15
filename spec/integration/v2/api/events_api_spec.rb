@@ -172,12 +172,13 @@ describe V2::Api::EventsApi, v2: true do
   end
 
   context "PUT /events/:id/reset" do
-    it "removes all child nodes from the node" do
-      FactoryGirl.create(:v2_node, user: user, workflow: workflow, parent: node)
+    it "deactivates all child nodes on the node" do
+      child = FactoryGirl.create(:v2_node, user: user, workflow: workflow, parent: node)
 
       put "v2/events/#{node.id}/reset"
 
-      expect(node.children.count).to eq(0)
+      expect(node.children.count).to eq(1)
+      expect(child.reload.current_server_status).to eq("deactivated")
     end
   end
 end

@@ -32,6 +32,17 @@ describe V2::WorkflowTree, v2: true do
 
       expect(names).to eq([workflow.name, child_1.name, child_3.name, child_2.name])
     end
+
+    it "skips the root node if the root option is false" do
+      child_1 = add_node(workflow, "Workflow child")
+
+      names = []
+      V2::WorkflowTree.new(workflow).each(root: false) do |node|
+        names << node.name
+      end
+
+      expect(names).to eq([child_1.name])
+    end
   end
 
   context "to_hash" do
