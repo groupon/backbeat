@@ -152,7 +152,6 @@ describe V2::Api::EventsApi, v2: true do
       expect(body["error"]).to eq("Cannot transition current_client_status from processing to processing")
       expect(body["currentStatus"]).to eq("processing")
       expect(body["attemptedStatus"]).to eq("processing")
-      expect(body["statusType"]).to eq("current_client_status")
     end
   end
 

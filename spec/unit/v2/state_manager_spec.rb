@@ -27,20 +27,24 @@ describe V2::StateManager, v2: true do
     expect {
       manager.update_status(current_server_status: node.current_server_status)
     }.to raise_error(V2::InvalidServerStatusChange)
+
     expect(node.status_changes.count).to eq(0)
   end
 
-  it "returns the current node status in the exception data" do
+  it "returns exception data for invalid client status change" do
+    node.update_attributes(current_client_status: :processing)
+    error = nil
+
     begin
-      node.update_attributes(current_client_status: :processing)
       manager.update_status(current_client_status: :processing)
     rescue V2::InvalidClientStatusChange => e
-      expect(e.data).to eq({
-        current_status: :processing,
-        attempted_status: :processing,
-        status_type: :current_client_status
-      })
+      error = e
     end
+
+    expect(error.data).to eq({
+      current_status: :processing,
+      attempted_status: :processing
+    })
   end
 
   it "creates status changes if the transition is successful" do
