@@ -80,11 +80,7 @@ module V2
 
     class ClientError
       def self.call(node)
-        StateManager.call(
-          node,
-          current_server_status: :errored,
-          current_client_status: :errored
-        )
+        StateManager.call(node, current_client_status: :errored)
         if node.retries_remaining > 0
           node.mark_retried!
           Server.fire_event(RetryNode, node)
@@ -96,7 +92,7 @@ module V2
 
     class RetryNode
       def self.call(node)
-        StateManager.call(node, current_server_status: :retrying)
+        StateManager.call(node, current_client_status: :ready, current_server_status: :retrying)
         StateManager.call(node, current_server_status: :ready)
         Server.fire_event(ScheduleNextNode, node.parent)
       end

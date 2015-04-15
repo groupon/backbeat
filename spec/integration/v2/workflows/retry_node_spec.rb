@@ -87,7 +87,7 @@ describe V2::Api, v2: true do
       response = put "v2/events/#{activity_node.id}/status/errored"
       expect(activity_node.reload.attributes).to include(
         "current_client_status" => "errored",
-        "current_server_status" => "errored"
+        "current_server_status" => "sent_to_client"
       )
     end
   end

@@ -221,16 +221,16 @@ describe V2::Events, v2: true do
   context "RetryNode" do
     before do
       node.update_attributes(
-        current_server_status: :errored,
+        current_server_status: :sent_to_client,
         current_client_status: :errored
       )
     end
 
     it "marks the server status as retrying, then ready" do
       V2::Events::RetryNode.call(node)
-      expect(node.status_changes.first.to_status).to eq("retrying")
-      expect(node.status_changes.second.to_status).to eq("ready")
-      expect(node.reload.current_server_status).to eq("ready")
+      expect(node.status_changes.first.attributes).to include({"from_status" => "errored", "to_status" => "ready", "status_type" => "current_client_status"})
+      expect(node.status_changes.second.attributes).to include({"from_status" => "sent_to_client", "to_status" => "retrying", "status_type" => "current_server_status"})
+      expect(node.status_changes.third.attributes).to include({"from_status" => "retrying", "to_status" => "ready", "status_type" => "current_server_status"})
     end
 
     it "fires the ScheduleNextNode event with the parent" do

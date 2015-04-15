@@ -32,6 +32,8 @@ module V2
         Instrument.instrument(event.name, event_data) do
           begin
             event.call(node)
+          rescue V2::InvalidClientStatusChange
+            raise
           rescue => e
             handle_error(event, node, e)
             raise e

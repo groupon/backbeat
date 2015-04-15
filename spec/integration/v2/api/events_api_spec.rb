@@ -49,9 +49,9 @@ describe V2::Api::EventsApi, v2: true do
     end
 
     context "with invalid restart state" do
-      it "returns 500" do
+      it "returns 409" do
         response = put "v2/events/#{node.id}/restart"
-        expect(response.status).to eq(500)
+        expect(response.status).to eq(409)
       end
     end
 
@@ -154,6 +154,20 @@ describe V2::Api::EventsApi, v2: true do
       expect(body["error"]).to eq("Cannot transition current_client_status from processing to processing")
       expect(body["currentStatus"]).to eq("processing")
       expect(body["attemptedStatus"]).to eq("processing")
+    end
+
+    it "does not mark the node in error state with invalid client state change" do
+      node.update_attributes(current_client_status: :processing, current_server_status: :sent_to_client)
+      response = put "v2/events/#{node.id}/status/processing"
+      expect(node.reload.current_client_status).to eq("processing")
+      expect(node.reload.current_server_status).to eq("sent_to_client")
+    end
+
+    it "does not mark the node in error state with invalid client state change" do
+      node.update_attributes(current_client_status: :processing, current_server_status: :sent_to_client)
+      response = put "v2/events/#{node.id}/status/processing"
+      expect(node.reload.current_client_status).to eq("processing")
+      expect(node.reload.current_server_status).to eq("sent_to_client")
     end
   end
 

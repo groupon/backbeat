@@ -8,11 +8,11 @@ module V2
         ready: [:received],
         received: [:processing, :complete],
         processing: [:complete],
-        errored: [:received],
+        errored: [:ready],
         complete: [:complete]
       },
       current_server_status: {
-        any: [:deactivated, :errored],
+        any: [:deactivated, :errored, :retrying],
         deactivated: [:deactivated],
         pending: [:ready],
         ready: [:started],
