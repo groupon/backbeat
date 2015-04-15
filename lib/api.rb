@@ -62,7 +62,7 @@ module Api
 
     rescue_from V2::InvalidClientStatusChange do |e|
       WorkflowServer::BaseLogger.info(e)
-      Rack::Response.new(e.data.merge(error: e.message).to_json, 400, { "Content-type" => "application/json" }).finish
+      Rack::Response.new(e.data.merge(error: e.message).to_json, 409, { "Content-type" => "application/json" }).finish
     end
 
     mount V2::Api::WorkflowsApi

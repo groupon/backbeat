@@ -149,6 +149,8 @@ describe V2::Api::EventsApi, v2: true do
       node.update_attributes(current_client_status: :processing)
       response = put "v2/events/#{node.id}/status/processing"
       body = JSON.parse(response.body)
+
+      expect(response.status).to eq(409)
       expect(body["error"]).to eq("Cannot transition current_client_status from processing to processing")
       expect(body["currentStatus"]).to eq("processing")
       expect(body["attemptedStatus"]).to eq("processing")
