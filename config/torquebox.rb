@@ -41,6 +41,9 @@ TorqueBox.configure do
     end
   end
 
+
+  # For cron syntax see - http://torquebox.org/documentation/2.3.0/scheduled-jobs.html
+
   if `hostname` =~ /accounting-utility2/
     job Reports::LogQueueCounts do
       # Every 5 minutes
@@ -50,11 +53,16 @@ TorqueBox.configure do
 
   if ENV['RACK_ENV'] == 'production' &&
     `hostname` =~ /accounting-utility2/
+    job Reports::InconsistentNodes do
+      # Every day at noon
+      cron '0 0 12 * * ?'
+    end
 
     job Reports::DailyReport do
-      # Every day at midnight
-      cron '0 0 12 1/1 * ? *'
+      # Every day at noon
+      cron '0 0 12 * * ?'
     end
+
     job Reports::BadEvents do
       # Every day at 11 am (pick a time when we are not busy)
       cron '0 0 11 * * ?'
