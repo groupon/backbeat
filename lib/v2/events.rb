@@ -2,7 +2,7 @@ module V2
   module Events
     class MarkChildrenReady
       def self.call(node)
-        node.children.each do |child_node|
+        node.active_children.each do |child_node|
           StateManager.call(
             child_node,
             current_server_status: :ready,

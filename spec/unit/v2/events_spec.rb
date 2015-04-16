@@ -26,6 +26,19 @@ describe V2::Events, v2: true do
       expect(node.current_client_status).to eq("ready")
     end
 
+    it "ignores deactivated children" do
+      node.update_attributes(
+        current_server_status: :deactivated,
+        current_client_status: :complete
+      )
+
+      V2::Events::MarkChildrenReady.call(workflow)
+
+      node.reload
+      expect(node.current_server_status).to eq("deactivated")
+      expect(node.current_client_status).to eq("complete")
+    end
+
     it "calls ChildrenReady" do
       expect(V2::Server).to receive(:fire_event).with(V2::Events::ChildrenReady, workflow)
 
