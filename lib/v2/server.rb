@@ -60,6 +60,7 @@ module V2
       Events::DeactivatePreviousNodes => Schedulers::PerformEvent,
       Events::MarkChildrenReady => Schedulers::PerformEvent,
       Events::NodeComplete => Schedulers::PerformEvent,
+      Events::ResetNode => Schedulers::PerformEvent,
       Events::RetryNode => Schedulers::AsyncEventInterval,
       Events::ScheduleNextNode => Schedulers::AsyncEvent,
       Events::StartNode => Schedulers::AsyncEventAt

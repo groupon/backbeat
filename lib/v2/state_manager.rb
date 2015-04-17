@@ -8,11 +8,11 @@ module V2
         ready: [:received],
         received: [:processing, :complete],
         processing: [:complete],
-        errored: [:received],
+        errored: [:ready],
         complete: [:complete]
       },
       current_server_status: {
-        any: [:deactivated, :errored],
+        any: [:deactivated, :errored, :retrying],
         deactivated: [:deactivated],
         pending: [:ready],
         ready: [:started],
@@ -61,9 +61,16 @@ module V2
     end
 
     def validate_status(new_status, status_type)
-      raise V2::InvalidEventStatusChange.new(
-        "Cannot transition #{status_type} from #{node_status(status_type)} to #{new_status}"
-      ) unless valid_status_change?(new_status, status_type)
+      unless valid_status_change?(new_status, status_type)
+        current_status = node_status(status_type)
+        message = "Cannot transition #{status_type} from #{current_status} to #{new_status}"
+        if status_type == :current_client_status
+          error_data = { current_status: current_status, attempted_status: new_status }
+          raise V2::InvalidClientStatusChange.new(message, error_data)
+        else
+          raise V2::InvalidServerStatusChange.new(message)
+        end
+      end
     end
 
     def valid_status_change?(new_status, status_type)

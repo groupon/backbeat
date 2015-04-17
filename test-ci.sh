@@ -1,6 +1,10 @@
 #!/bin/bash
 
-docker run --name backbeat-postgres-$DOCKER_SHA -e POSTGRES_DB=backbeat_ci -e POSTGRES_USER=backbeat -e POSTGRES_PASSWORD=fed -d postgres:9.4
+docker run --name backbeat-postgres-$DOCKER_SHA \
+  -e POSTGRES_DB=backbeat_ci \
+  -e POSTGRES_USER=backbeat \
+  -e POSTGRES_PASSWORD=fed \
+  -d postgres:9.4
 docker run --name backbeat-mongo-$DOCKER_SHA -d mongo:2.2
 docker run --name backbeat-redis-$DOCKER_SHA -d redis:latest
 

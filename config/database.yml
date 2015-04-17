@@ -1,4 +1,4 @@
-common: &common
+development:
   reconnect: true
   template: template0
   encoding: unicode
@@ -6,38 +6,7 @@ common: &common
   username: 'backbeat'
   password:
   pool: 200
-
-development:
-  <<: *common
   database: backbeat_dev
-
-uat:
-  <<: *common
-  database: backbeat_uat
-  hostname:
-  url:
-  password:
-
-staging:
-  <<: *common
-  database: backbeat_staging
-  hostname:
-  url:
-  password:
-
-production:
-  <<: *common
-  database: backbeat_pg
-  username: backbeat_prod_app
-  url:
-  password: yo_Bac7B34T_app_!
-
-dba:
-  <<: *common
-  database: backbeat_pg
-  username: backbeat_prod_dba
-  url:
-  password: yo_Bac7B34T_dba!
 
 docker:
   reconnect: true

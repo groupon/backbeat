@@ -14,11 +14,8 @@ module V2
       @root = root
     end
 
-    def each(node = root, &block)
-      block.call(node)
-      children(node).each do |child|
-        each(child, &block)
-      end
+    def each(options = {}, &block)
+      _each(root, options, &block)
     end
 
     def to_hash(node = root)
@@ -42,6 +39,13 @@ module V2
     private
 
     attr_reader :root
+
+    def _each(node, options, &block)
+      block.call(node) if options.fetch(:root, true)
+      children(node).each do |child|
+        _each(child, options.merge(root: true), &block)
+      end
+    end
 
     def children(node)
       parent_id = node.is_a?(Node) ? node.id : nil

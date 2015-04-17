@@ -49,9 +49,9 @@ describe V2::Api::EventsApi, v2: true do
     end
 
     context "with invalid restart state" do
-      it "returns 400" do
+      it "returns 409" do
         response = put "v2/events/#{node.id}/restart"
-        expect(response.status).to eq(400)
+        expect(response.status).to eq(409)
       end
     end
 
@@ -144,6 +144,42 @@ describe V2::Api::EventsApi, v2: true do
       put "v2/events/#{node.id}/status/processing"
 
       expect(node.reload.current_client_status).to eq("processing")
+    end
+
+    it "returns an error with an invalid state change" do
+      node.update_attributes(current_client_status: :processing)
+      response = put "v2/events/#{node.id}/status/processing"
+      body = JSON.parse(response.body)
+
+      expect(response.status).to eq(409)
+      expect(body["error"]).to eq("Cannot transition current_client_status from processing to processing")
+      expect(body["currentStatus"]).to eq("processing")
+      expect(body["attemptedStatus"]).to eq("processing")
+    end
+
+    it "does not mark the node in error state with invalid client state change" do
+      node.update_attributes(current_client_status: :processing, current_server_status: :sent_to_client)
+      response = put "v2/events/#{node.id}/status/processing"
+      expect(node.reload.current_client_status).to eq("processing")
+      expect(node.reload.current_server_status).to eq("sent_to_client")
+    end
+
+    it "does not mark the node in error state with invalid client state change" do
+      node.update_attributes(current_client_status: :processing, current_server_status: :sent_to_client)
+      response = put "v2/events/#{node.id}/status/processing"
+      expect(node.reload.current_client_status).to eq("processing")
+      expect(node.reload.current_server_status).to eq("sent_to_client")
+    end
+  end
+
+  context "PUT /events/:id/reset" do
+    it "deactivates all child nodes on the node" do
+      child = FactoryGirl.create(:v2_node, user: user, workflow: workflow, parent: node)
+
+      put "v2/events/#{node.id}/reset"
+
+      expect(node.children.count).to eq(1)
+      expect(child.reload.current_server_status).to eq("deactivated")
     end
   end
 end

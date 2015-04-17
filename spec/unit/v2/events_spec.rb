@@ -26,6 +26,19 @@ describe V2::Events, v2: true do
       expect(node.current_client_status).to eq("ready")
     end
 
+    it "ignores deactivated children" do
+      node.update_attributes(
+        current_server_status: :deactivated,
+        current_client_status: :complete
+      )
+
+      V2::Events::MarkChildrenReady.call(workflow)
+
+      node.reload
+      expect(node.current_server_status).to eq("deactivated")
+      expect(node.current_client_status).to eq("complete")
+    end
+
     it "calls ChildrenReady" do
       expect(V2::Server).to receive(:fire_event).with(V2::Events::ChildrenReady, workflow)
 
@@ -221,16 +234,16 @@ describe V2::Events, v2: true do
   context "RetryNode" do
     before do
       node.update_attributes(
-        current_server_status: :errored,
+        current_server_status: :sent_to_client,
         current_client_status: :errored
       )
     end
 
     it "marks the server status as retrying, then ready" do
       V2::Events::RetryNode.call(node)
-      expect(node.status_changes.first.to_status).to eq("retrying")
-      expect(node.status_changes.second.to_status).to eq("ready")
-      expect(node.reload.current_server_status).to eq("ready")
+      expect(node.status_changes.first.attributes).to include({"from_status" => "errored", "to_status" => "ready", "status_type" => "current_client_status"})
+      expect(node.status_changes.second.attributes).to include({"from_status" => "sent_to_client", "to_status" => "retrying", "status_type" => "current_server_status"})
+      expect(node.status_changes.third.attributes).to include({"from_status" => "retrying", "to_status" => "ready", "status_type" => "current_server_status"})
     end
 
     it "fires the ScheduleNextNode event with the parent" do
@@ -258,6 +271,28 @@ describe V2::Events, v2: true do
       expect(node.reload.current_server_status).to eq("deactivated")
       expect(second_node.reload.current_server_status).to eq("pending")
       expect(third_node.reload.current_server_status).to eq("pending")
+    end
+  end
+
+  context "ResetNode" do
+    it "marks all children of the provided node as deactivated" do
+      second_node = FactoryGirl.create(
+        :v2_node,
+        workflow: workflow,
+        parent: node,
+        user: user
+      )
+      third_node = FactoryGirl.create(
+        :v2_node,
+        workflow: workflow,
+        parent: node,
+        user: user
+      )
+      V2::Events::ResetNode.call(node)
+
+      expect(node.reload.current_server_status).to eq("pending")
+      expect(second_node.reload.current_server_status).to eq("deactivated")
+      expect(third_node.reload.current_server_status).to eq("deactivated")
     end
   end
 end
