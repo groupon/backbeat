@@ -1,5 +1,6 @@
 module V2
   class Server
+    include WorkflowServer::Logger
     def self.create_workflow(params, user)
       subject = params[:subject].to_json
 
@@ -28,28 +29,30 @@ module V2
     end
 
     def self.add_node(user, parent_node, params)
-      node = Node.create!(
-        mode: params.fetch(:mode, :blocking).to_sym,
-        current_server_status: params[:current_server_status] || :pending,
-        current_client_status: params[:current_client_status] || :pending,
-        name: params[:name],
-        fires_at: params[:fires_at] || Time.now - 1.second,
-        parent: parent_node,
-        workflow_id: parent_node.workflow_id,
-        user_id: user.id
-      )
-      ClientNodeDetail.create!(
-        node: node,
-        metadata: params[:options][:metadata] || {},
-        data: params[:options][:client_data] || {}
-      )
-      NodeDetail.create!(
-        node: node,
-        legacy_type: params[:legacy_type],
-        retry_interval: params[:retry_interval],
-        retries_remaining: params[:retry]
-      )
-      node
+      Node.transaction do
+        node = Node.create!(
+          mode: params.fetch(:mode, :blocking).to_sym,
+          current_server_status: params[:current_server_status] || :pending,
+          current_client_status: params[:current_client_status] || :pending,
+          name: params[:name],
+          fires_at: params[:fires_at] || Time.now - 1.second,
+          parent: parent_node,
+          workflow_id: parent_node.workflow_id,
+          user_id: user.id
+        )
+        ClientNodeDetail.create!(
+          node: node,
+          metadata: params[:options][:metadata] || {},
+          data: params[:options][:client_data] || {}
+        )
+        NodeDetail.create!(
+          node: node,
+          legacy_type: params[:legacy_type],
+          retry_interval: params[:retry_interval],
+          retries_remaining: params[:retry]
+        )
+        node
+      end
     end
 
     STRATEGIES = {
@@ -67,8 +70,10 @@ module V2
     }
 
     def self.fire_event(event, node, scheduler = STRATEGIES[event])
+      info(source: "Server::fire_event", status: :fire_event_started, node: node.id, event: event.name)
       return if node.deactivated?
       scheduler.call(event, node)
+      info(source: "Server::fire_event", status: :fire_event_finished, node: node.id, event: event.name)
     end
   end
 end

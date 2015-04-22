@@ -20,7 +20,7 @@ describe V2::Server, v2: true do
 
   context ".fire_event" do
     it "schedules the event with the node" do
-      expect(V2::Server.fire_event(MockEvent, node, MockScheduler)).to eq("#{node.name}_called")
+      expect(V2::Server.fire_event(MockEvent, node, MockScheduler)).to eq(true)
     end
 
     it "noops if node is deactivated" do
@@ -56,6 +56,12 @@ describe V2::Server, v2: true do
       workflow.complete!
 
       expect { V2::Server.signal(workflow, {}) }.to raise_error V2::WorkflowComplete
+    end
+
+    it "creates the node and details in transactions" do
+      expect(V2::ClientNodeDetail).to receive(:create!).and_raise(StandardError)
+      expect{ V2::Server.signal(workflow, params) }.to raise_error
+      expect(V2::Node.count).to eq(1)
     end
 
     it "adds the signal node to the workflow" do
