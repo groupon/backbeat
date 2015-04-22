@@ -58,6 +58,12 @@ describe V2::Server, v2: true do
       expect { V2::Server.signal(workflow, {}) }.to raise_error V2::WorkflowComplete
     end
 
+    it "creates the node and details in transactions" do
+      expect(V2::ClientNodeDetail).to receive(:create!).and_raise(StandardError)
+      expect{ V2::Server.signal(workflow, params) }.to raise_error
+      expect(V2::Node.count).to eq(1)
+    end
+
     it "adds the signal node to the workflow" do
       signal = V2::Server.signal(workflow, params)
 
