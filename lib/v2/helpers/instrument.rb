@@ -8,7 +8,12 @@ module Instrument
     log_msg("#{event}_succeeded", args, duration: Time.now - t0)
     return result
   rescue Exception => error
-    log_msg(
+    handle_exception(event, error, t0,  *args)
+    raise error
+  end
+
+  def self.handle_exception(event, error, t0,  *args)
+     log_msg(
       "#{event}_errored",
       args,
       error_class: error.class.name,
@@ -16,7 +21,9 @@ module Instrument
       backtrace: error.backtrace,
       duration: Time.now - t0
     )
-    raise error
+    rescue Exception => error
+      info(event_name: :error_logging_error, name: event.name)
+      raise error
   end
 
 

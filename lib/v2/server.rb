@@ -1,5 +1,6 @@
 module V2
   class Server
+    include WorkflowServer::Logger
     def self.create_workflow(params, user)
       subject = params[:subject].to_json
 
@@ -67,8 +68,10 @@ module V2
     }
 
     def self.fire_event(event, node, scheduler = STRATEGIES[event])
+      info(source: "Server::fire_event", status: :fire_event_started, node: node.id, event: event.name)
       return if node.deactivated?
       scheduler.call(event, node)
+      info(source: "Server::fire_event", status: :fire_event_finished, node: node.id, event: event.name)
     end
   end
 end
