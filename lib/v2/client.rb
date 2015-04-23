@@ -11,10 +11,12 @@ module V2
     end
 
     def self.perform_action(node)
-      if node.decision?
-        WorkflowServer::Client.make_decision(Client::NodeSerializer.call(node), node.user)
-      else
-        WorkflowServer::Client.perform_activity(Client::NodeSerializer.call(node), node.user)
+      Instrument.instrument("v2_client_perform_action", { node: node.id, legacy_type: node.legacy_type }) do
+        if node.decision?
+          WorkflowServer::Client.make_decision(Client::NodeSerializer.call(node), node.user)
+        else
+          WorkflowServer::Client.perform_activity(Client::NodeSerializer.call(node), node.user)
+        end
       end
     end
   end
