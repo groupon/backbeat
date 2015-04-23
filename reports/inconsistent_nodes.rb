@@ -25,7 +25,7 @@ module Reports
       V2::Node
         .where("fires_at > ?", options[:lower_bound])
         .where("fires_at < ?", options[:upper_bound])
-        .where("current_server_status <> 'complete' OR current_client_status <> 'complete'")
+        .where("(current_server_status <> 'complete' OR current_client_status <> 'complete') AND current_server_status <> 'deactivated'")
     end
 
     def write_to_file(nodes_by_workflow, file_name)

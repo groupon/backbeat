@@ -52,4 +52,26 @@ describe Reports::InconsistentNodes, v2: true do
       end
     end
   end
+
+
+  context "inconsistent_nodes" do
+    it "doesn't grab nodes that are deactivated" do
+      Timecop.freeze do
+        FactoryGirl.create(
+          :v2_node,
+          name: "bad node",
+          parent: workflow,
+          fires_at: Time.now - 2.days,
+          updated_at: Time.now - 25.hours,
+          user: user,
+          current_server_status: :deactivated,
+          current_client_status: :ready,
+          workflow: workflow
+        )
+
+        results = Reports::InconsistentNodes.new.inconsistent_nodes({lower_bound: Time.parse('2015/04/01'), upper_bound: 1.day.ago})
+        expect(results).to eq([])
+      end
+    end
+  end
 end
