@@ -28,8 +28,7 @@ describe V2::Workers::AsyncWorker, v2: true do
 
       V2::Workers::AsyncWorker.new.perform(
         V2::Events::MarkChildrenReady.name,
-        node.class.name,
-        node.id,
+        { "node_class" => node.class.name, "node_id" => node.id },
         0
       )
     end
@@ -37,8 +36,7 @@ describe V2::Workers::AsyncWorker, v2: true do
     it "retries the job if the node cannot be found" do
       V2::Workers::AsyncWorker.new.perform(
         V2::Events::MarkChildrenReady.name,
-        node.class.name,
-        5,
+        { "node_class" => node.class.name, "node_id" => 5 },
         0
       )
 
