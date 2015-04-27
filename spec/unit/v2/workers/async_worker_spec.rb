@@ -33,5 +33,16 @@ describe V2::Workers::AsyncWorker, v2: true do
         0
       )
     end
+
+    it "retries the job if the node cannot be found" do
+      V2::Workers::AsyncWorker.new.perform(
+        V2::Events::MarkChildrenReady.name,
+        node.class.name,
+        5,
+        0
+      )
+
+      expect(V2::Workers::AsyncWorker.jobs.count).to eq(1)
+    end
   end
 end
