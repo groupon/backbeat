@@ -44,6 +44,35 @@ describe V2::Server, v2: true do
 
       expect(workflow.migrated?).to eq(true)
     end
+
+    it "returns workflow if race condition occurs" do
+      original_call = V2::Workflow.method(:where)
+      lookup_count = 0
+      allow(V2::Workflow).to receive(:where) do |*args|
+        lookup_count += 1
+        if lookup_count == 1
+          # Simulates race condition of creation after lookup
+          FactoryGirl.create(:v2_workflow_with_node, name: "UniqueName", decider: "Decider", subject: "Subject", user: user)
+          []
+        else
+          original_call.call(*args)
+        end
+      end
+
+      params = { workflow_type: "UniqueName", subject: "Subject", decider: "Decider" }
+      workflow = V2::Server.create_workflow(params, user)
+      expect(lookup_count).to eq(2)
+      expect(workflow.name).to eq("UniqueName")
+    end
+
+    it "does not return another users workflow if the subject is the same" do
+      params = { workflow_type: "UniqueName", subject: "Subject", decider: "Decider" }
+      user2 = FactoryGirl.create(:v2_user)
+      workflow1 = V2::Server.create_workflow(params, user)
+      workflow2 = V2::Server.create_workflow(params, user2)
+
+      expect(workflow1).to_not eq(workflow2)
+    end
   end
 
   context ".signal" do

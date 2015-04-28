@@ -2,15 +2,19 @@ module V2
   class Server
     include WorkflowServer::Logger
     def self.create_workflow(params, user)
-      subject = params[:subject].to_json
-
-      Workflow.where(subject: subject).first || Workflow.create!(
+      find_workflow(params, user) || Workflow.create!(
         name: params[:workflow_type],
         subject: params[:subject],
         decider: params[:decider],
         user_id: user.id,
         migrated: true
       )
+    rescue ActiveRecord::RecordNotUnique => e
+      find_workflow(params, user)
+    end
+
+    def self.find_workflow(params, user)
+      Workflow.where(name: params[:workflow_type], subject: params[:subject].to_json, user_id: user.id).first
     end
 
     def self.signal(workflow, params)
