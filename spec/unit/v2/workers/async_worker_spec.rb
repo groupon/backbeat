@@ -13,7 +13,7 @@ describe V2::Workers::AsyncWorker, v2: true do
   context "schedule_async_event" do
     it "calls an event with the node" do
       expect(V2::Events::ChildrenReady).to receive(:call).with(node)
-      V2::Workers::AsyncWorker.schedule_async_event(V2::Events::ChildrenReady, node, Time.now, 0)
+      V2::Workers::AsyncWorker.schedule_async_event(V2::Events::ChildrenReady, node, { time: Time.now, retries: 0 })
       V2::Workers::AsyncWorker.drain
     end
   end
@@ -23,21 +23,23 @@ describe V2::Workers::AsyncWorker, v2: true do
       expect(V2::Server).to receive(:fire_event) do |event, event_node, scheduler|
         expect(event).to eq(V2::Events::MarkChildrenReady)
         expect(event_node).to eq(node)
-        expect(scheduler).to be_a(V2::Schedulers::PerformEvent)
+        expect(scheduler).to be_a(V2::Async::PerformEvent)
       end
 
       V2::Workers::AsyncWorker.new.perform(
         V2::Events::MarkChildrenReady.name,
         { "node_class" => node.class.name, "node_id" => node.id },
-        0
+        { "retries" => 0 }
       )
     end
 
-    it "retries the job if the node cannot be found" do
+    it "retries the job if there is an error deserializing the node" do
+      expect(V2::Node).to receive(:find) { raise "Could not connect to the database" }
+
       V2::Workers::AsyncWorker.new.perform(
         V2::Events::MarkChildrenReady.name,
-        { "node_class" => node.class.name, "node_id" => 5 },
-        0
+        { "node_class" => node.class.name, "node_id" => node.id },
+        { "retries" => 0 }
       )
 
       expect(V2::Workers::AsyncWorker.jobs.count).to eq(1)
