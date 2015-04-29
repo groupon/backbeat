@@ -116,18 +116,50 @@ describe V2::Events, v2: true do
       node.update_attributes(current_server_status: :started)
     end
 
-    it "performs client action unless its a flag" do
-      expect(V2::Client).to receive(:perform_action).with(node)
+    context "with client action" do
+      it "updates the node statuses" do
+        allow(V2::Client).to receive(:perform_action).with(node)
 
-      V2::Events::StartNode.call(node)
+        V2::Events::StartNode.call(node)
+
+        expect(node.current_server_status).to eq("sent_to_client")
+        expect(node.current_client_status).to eq("received")
+      end
+
+      it "sends the node to the client" do
+        expect(V2::Client).to receive(:perform_action).with(node)
+
+        V2::Events::StartNode.call(node)
+      end
+
+      it "does not update the node statuses if the client call fails" do
+        allow(V2::Client).to receive(:perform_action).with(node) { raise "HTTP Error" }
+
+        expect { V2::Events::StartNode.call(node) }.to raise_error
+
+        expect(node.current_server_status).to eq("started")
+        expect(node.current_client_status).to eq("ready")
+      end
     end
 
-    it "performs no client action if a flag" do
-      node.node_detail.update_attributes(legacy_type: :flag)
+    context "without client action" do
+      it "updates the node statuses" do
+        node.node_detail.update_attributes(legacy_type: :flag)
+        allow(V2::Server).to receive(:fire_event).with(V2::Events::ClientComplete, node)
 
-      expect(V2::Server).to receive(:fire_event).with(V2::Events::ClientComplete, node)
+        V2::Events::StartNode.call(node)
 
-      V2::Events::StartNode.call(node)
+        expect(node.current_server_status).to eq("sent_to_client")
+        expect(node.current_client_status).to eq("received")
+      end
+
+      it "performs no client action if a flag" do
+        node.node_detail.update_attributes(legacy_type: :flag)
+
+        expect(V2::Server).to receive(:fire_event).with(V2::Events::ClientComplete, node)
+
+        V2::Events::StartNode.call(node)
+      end
     end
   end
 
