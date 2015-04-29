@@ -17,7 +17,7 @@ module V2
         pending: [:ready],
         ready: [:started],
         started: [:sent_to_client],
-        sent_to_client: [:processing_children, :recieved_from_client],
+        sent_to_client: [:processing_children],
         processing_children: [:complete],
         errored: [:retrying],
         retrying: [:ready],

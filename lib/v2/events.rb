@@ -38,14 +38,17 @@ module V2
 
     class StartNode
       def self.call(node)
-        StateManager.call(node,
-          current_server_status: :sent_to_client,
-          current_client_status: :received
-        )
-
         if node.perform_client_action?
           Client.perform_action(node)
+          StateManager.call(node,
+            current_server_status: :sent_to_client,
+            current_client_status: :received
+          )
         else
+          StateManager.call(node,
+            current_server_status: :sent_to_client,
+            current_client_status: :received
+          )
           Server.fire_event(ClientComplete, node)
         end
       end
