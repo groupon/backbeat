@@ -1,13 +1,7 @@
 require "migration/workers/migrator"
 
 module Migration
-
-  MIGRATING_TYPES = [:merchant_statement_workflow, :merchant_payment_workflow, :booking_file_workflow]
   ONLY_WITH_ACTIVE_TIMERS = [:merchant_statement_workflow]
-
-  def self.migrate?(type)
-    MIGRATING_TYPES.include?(type.to_sym)
-  end
 
   def self.queue_conversion_batch(args)
     types = args[:types] || MIGRATING_TYPES
