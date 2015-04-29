@@ -20,7 +20,7 @@ module V2
 
       def perform(event_class, node_data, options)
         info(status: :perform_started, node_data: node_data, event: event_class, options: options)
-        options = options.reduce({}) { |m, (k, v)| m[k.to_sym] = v; m }
+        options = symbolize_keys(options)
         node = deserialize_node(event_class, node_data, options)
         Server.fire_event(event_class.constantize, node, Async::PerformEvent)
         info(status: :perform_finished, node: node.id, event: event_class)
@@ -31,7 +31,7 @@ module V2
         else
           if node
             StateManager.call(node, current_server_status: :errored)
-            Client.notify_of(node, "error", e)
+            Client.notify_of(node, "Server Error", e)
           else
             info(status: :deserialize_node_error, error: e, backtrace: e.backtrace)
           end
@@ -40,6 +40,10 @@ module V2
       end
 
       private
+
+      def symbolize_keys(options)
+        options.reduce({}) { |m, (k, v)| m[k.to_sym] = v; m }
+      end
 
       def deserialize_node(event_class, node_data, options)
         node_class = node_data["node_class"]
