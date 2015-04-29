@@ -172,6 +172,14 @@ describe V2::Api::EventsApi, v2: true do
     end
   end
 
+  context "PUT /events/:id/status/errored" do
+    it "stores the client backtrace in the client node detail" do
+      client_params = { "error" => { "backtrace" => "The backtrace" }}
+      put "v2/events/#{node.id}/status/errored", { "args" => client_params }
+      expect(node.client_node_detail.result).to eq(client_params)
+    end
+  end
+
   context "PUT /events/:id/reset" do
     it "deactivates all child nodes on the node" do
       child = FactoryGirl.create(:v2_node, user: user, workflow: workflow, parent: node)
