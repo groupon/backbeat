@@ -21,53 +21,16 @@ describe V2::Async, v2: true do
     it "logs the node, event name, and args" do
       expect(Instrument).to receive(:instrument).with(
         "MockEvent",
-        { node: node, server_retries_remaining: 1 }
+        { node: node }
       )
 
-      V2::Async::PerformEvent.new({ retries: 1 }).call(MockEvent, node)
+      V2::Async::PerformEvent.call(MockEvent, node)
     end
 
     it "calls the event with the node" do
       expect(MockEvent).to receive(:call).with(node)
 
       V2::Async::PerformEvent.call(MockEvent, node)
-    end
-
-    context "rescuing an error" do
-      let(:error) { StandardError.new }
-
-      before do
-        allow(MockEvent).to receive(:call) { raise error }
-      end
-
-      it "schedules the task with a delay with one less retry" do
-        expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(MockEvent, node, { time: Time.now + 30.seconds, retries: 1 })
-
-        expect { V2::Async::PerformEvent.new({ retries: 2 }).call(MockEvent, node) }.to raise_error
-      end
-
-      it "notifies the client if there are no remaining retries" do
-        expect(V2::Client).to receive(:notify_of).with(node, "error", error)
-
-        expect { V2::Async::PerformEvent.call(MockEvent, node) }.to raise_error
-      end
-
-      it "updates the node status to errored if there are no remaining retries" do
-        expect { V2::Async::PerformEvent.call(MockEvent, node) }.to raise_error
-
-        expect(node.current_server_status).to eq("errored")
-      end
-    end
-  end
-
-  context "Backoff" do
-    it "schedules an async event with a 30 second back off" do
-      expect(V2::Workers::AsyncWorker).to receive(:schedule_async_event).with(
-        MockEvent,
-        node,
-        { time: Time.now + 30.seconds }
-      )
-      V2::Async::Backoff.call(MockEvent, node)
     end
   end
 
