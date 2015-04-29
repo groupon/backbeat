@@ -250,7 +250,7 @@ module Api
         options = params[:options] || {}
         client_data = options[:client_data] || {}
         client_metadata = options[:client_metadata] || {}
-        if Migration.migrate?(wf.workflow_type)
+        if options[:metadata].try(:[], "workflow_type_on_v2") == "true"
           Migration::Workers::SignalDelegate.perform_async(wf.id, params, client_data, client_metadata)
           { action_completed: "Delgating Signal to V1 or V2" }
         else
