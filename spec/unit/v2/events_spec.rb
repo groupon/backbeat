@@ -181,6 +181,33 @@ describe V2::Events, v2: true do
     end
   end
 
+  context "ServerError" do
+    it "marks the server status as errored" do
+      V2::Events::ServerError.call(node)
+      expect(node.current_server_status).to eq("errored")
+    end
+
+    it "notifies the client" do
+      V2::Events::ServerError.call(node)
+
+      expect(WebMock).to have_requested(:post, "http://backbeat-client:9000/notifications").with(
+        body: {
+          "notification" => {
+            "type" => "V2::Node",
+            "id" => node.id,
+            "name" => node.name,
+            "subject" => node.subject,
+            "message" => "error"
+          },
+          "error" => {
+            "errorKlass" => "String",
+            "message" => "Server Error"
+          }
+        }
+      )
+    end
+  end
+
   context "ClientError" do
     it "marks the status as errored" do
       V2::Events::ClientError.call(node)

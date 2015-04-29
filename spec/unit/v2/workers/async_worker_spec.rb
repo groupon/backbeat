@@ -33,6 +33,20 @@ describe V2::Workers::AsyncWorker, v2: true do
       )
     end
 
+    it "retries the job if there is an error in running the event" do
+      expect(V2::Events::MarkChildrenReady).to receive(:call) { raise "Event Failed" }
+
+      expect {
+        V2::Workers::AsyncWorker.new.perform(
+          V2::Events::MarkChildrenReady.name,
+          { "node_class" => node.class.name, "node_id" => node.id },
+          { "retries" => 1 }
+        )
+      }.to raise_error
+
+      expect(V2::Workers::AsyncWorker.jobs.count).to eq(1)
+    end
+
     it "retries the job if there is an error deserializing the node" do
       expect(V2::Node).to receive(:find) { raise "Could not connect to the database" }
 
@@ -45,6 +59,21 @@ describe V2::Workers::AsyncWorker, v2: true do
       }.to raise_error
 
       expect(V2::Workers::AsyncWorker.jobs.count).to eq(1)
+    end
+
+    it "puts the node in an errored state when out of retries" do
+      expect(V2::Events::MarkChildrenReady).to receive(:call) { raise "Event Failed" }
+
+      expect {
+        V2::Workers::AsyncWorker.new.perform(
+          V2::Events::MarkChildrenReady.name,
+          { "node_class" => node.class.name, "node_id" => node.id },
+          { "retries" => 0 }
+        )
+      }.to raise_error
+
+      expect(V2::Workers::AsyncWorker.jobs.count).to eq(0)
+      expect(node.reload.current_server_status).to eq("errored")
     end
   end
 end

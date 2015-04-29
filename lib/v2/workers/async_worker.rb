@@ -27,11 +27,11 @@ module V2
       rescue => e
         retries = options.fetch(:retries, 4)
         if retries > 0
-          AsyncWorker.perform_at(Time.now + 30.seconds, event_class, node_data, options.merge(retries: retries - 1))
+          new_options = options.merge(retries: retries - 1)
+          AsyncWorker.perform_at(Time.now + 30.seconds, event_class, node_data, new_options)
         else
           if node
-            StateManager.call(node, current_server_status: :errored)
-            Client.notify_of(node, "Server Error", e)
+            Server.fire_event(Events::ServerError, node)
           else
             info(status: :deserialize_node_error, error: e, backtrace: e.backtrace)
           end

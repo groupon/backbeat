@@ -66,6 +66,7 @@ module V2
       Events::ResetNode => Async::PerformEvent,
       Events::RetryNode => Async::ScheduleIn,
       Events::ScheduleNextNode => Async::ScheduleNow,
+      Events::ServerError => Async::PerformEvent,
       Events::StartNode => Async::ScheduleAt
     }
 
