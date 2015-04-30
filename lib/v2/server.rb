@@ -60,6 +60,14 @@ module V2
       end
     end
 
+    def self.resume_workflow(workflow)
+      workflow.resume!
+      workflow.nodes.where(current_server_status: :paused).each do |node|
+        StateManager.transition(node, current_server_status: :started)
+        fire_event(Events::StartNode, node)
+      end
+    end
+
     STRATEGIES = {
       Events::ChildrenReady => Schedulers::PerformEvent,
       Events::ClientComplete => Schedulers::PerformEvent,

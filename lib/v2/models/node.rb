@@ -36,7 +36,8 @@ module V2
                                            :complete,
                                            :errored,
                                            :deactivated,
-                                           :retrying]
+                                           :retrying,
+                                           :paused]
 
     enumerize :current_client_status, in: [:pending,
                                            :ready,
@@ -89,6 +90,10 @@ module V2
 
     def already_performed?
       PERFORMED_STATES.include?(current_server_status.to_sym)
+    end
+
+    def paused?
+      Workflow.where(id: workflow_id, paused: true).exists?
     end
   end
 end

@@ -175,6 +175,26 @@ describe V2::Api::WorkflowsApi, v2: true do
     end
   end
 
+  context "PUT /workflows/:id/pause" do
+    it "marks the workflow as paused" do
+      response = put "v2/workflows/#{workflow.id}/pause"
+
+      expect(response.status).to eq(200)
+      expect(workflow.reload.paused?).to eq(true)
+    end
+  end
+
+  context "PUT /workflows/:id/resume" do
+    it "resumes the workflow" do
+      workflow.pause!
+
+      response = put "v2/workflows/#{workflow.id}/resume"
+
+      expect(response.status).to eq(200)
+      expect(workflow.reload.paused?).to eq(false)
+    end
+  end
+
   context "GET /workflows" do
     let(:query) {{
       decider: workflow.decider,

@@ -38,6 +38,16 @@ module V2
           workflow.complete!
         end
 
+        put "/:id/pause" do
+          workflow = find_workflow
+          workflow.pause!
+        end
+
+        put "/:id/resume" do
+          workflow = find_workflow
+          Server.resume_workflow(workflow)
+        end
+
         get "/:id" do
           find_workflow
         end

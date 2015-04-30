@@ -76,4 +76,24 @@ describe V2::Workflow, v2: true do
       expect(workflow.complete?).to eq(true)
     end
   end
+
+  context "pause!" do
+    it "sets the paused attribute to true" do
+      expect(workflow.paused?).to eq(false)
+
+      workflow.pause!
+
+      expect(workflow.paused?).to eq(true)
+    end
+  end
+
+  context "resume!" do
+    it "sets the paused attribute to false" do
+      workflow.pause!
+
+      workflow.resume!
+
+      expect(workflow.paused?).to eq(false)
+    end
+  end
 end
