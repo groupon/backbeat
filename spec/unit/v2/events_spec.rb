@@ -132,13 +132,12 @@ describe V2::Events, v2: true do
         V2::Events::StartNode.call(node)
       end
 
-      it "does not update the node statuses if the client call fails" do
-        allow(V2::Client).to receive(:perform_action).with(node) { raise "HTTP Error" }
+      it "fires the ClientError event if the client call fails" do
+        allow(V2::Client).to receive(:perform_action).with(node) { raise WorkflowServer::HttpError.new("Failed", {}) }
 
-        expect { V2::Events::StartNode.call(node) }.to raise_error
+        expect(V2::Server).to receive(:fire_event).with(V2::Events::ClientError, node)
 
-        expect(node.current_server_status).to eq("started")
-        expect(node.current_client_status).to eq("ready")
+        V2::Events::StartNode.call(node)
       end
     end
 
