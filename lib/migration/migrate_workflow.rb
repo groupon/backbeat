@@ -1,7 +1,7 @@
 require "migration/workers/migrator"
 
 module Migration
-  ONLY_WITH_ACTIVE_TIMERS = [:merchant_statement_workflow]
+  ONLY_WITH_ACTIVE_TIMERS = [:merchant_statement_workflow, :payment_workflow]
 
   def self.queue_conversion_batch(args)
     types = args[:types] || MIGRATING_TYPES
