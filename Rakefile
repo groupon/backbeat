@@ -167,11 +167,3 @@ namespace :app do
     end
   end
 end
-
-namespace :workflows do
-  task :migrate, [:limit] do |task, args|
-    require "migration/migrate_workflow"
-    limit = args[:limit] || 10
-    Migration.queue_conversion_batch(limit: limit.to_i)
-  end
-end

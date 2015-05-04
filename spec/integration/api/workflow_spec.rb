@@ -115,10 +115,9 @@ describe Api::Workflows do
 
     context "MIGRATING_TYPE" do
       it "returns 201 with 'Delegating Signal' and drops message on queue" do
-        Migration::MIGRATING_TYPES = [:crazyworkflow]
         wf = FactoryGirl.create(:workflow, user: user, workflow_type: :crazyworkflow)
 
-        response = post "/workflows/#{wf.id}/signal/test", options: { client_data: {data: '123'}, client_metadata: {metadata: '456'} }
+        response = post "/workflows/#{wf.id}/signal/test", options: { client_data: {data: '123'}, client_metadata: {metadata: '456'}, metadata: {workflow_type_on_v2: true} }
 
         response.status.should == 201
         response_body = JSON.parse(response.body)
