@@ -1,56 +1,24 @@
 module V2
   module Schedulers
-    class BaseAsyncEvent
-      DEFAULT_RETRIES = 4
-
+    class AsyncEvent
       def initialize(&timer)
         @timer = timer
       end
 
-      def call(event, node, retries = DEFAULT_RETRIES)
+      def call(event, node)
         time = @timer.call(node)
-        Workers::AsyncWorker.schedule_async_event(event, node, time, retries)
+        Workers::AsyncWorker.schedule_async_event(event, node, { time: time })
       end
     end
 
-    AsyncEvent = BaseAsyncEvent.new { Time.now }
-    AsyncEventAt = BaseAsyncEvent.new { |node| node.fires_at }
-    AsyncEventBackoff = BaseAsyncEvent.new { Time.now + 30.seconds }
-    AsyncEventInterval = BaseAsyncEvent.new { |node| Time.now + node.retry_interval.minutes }
+    ScheduleNow = AsyncEvent.new { Time.now }
+    ScheduleAt  = AsyncEvent.new { |node| node.fires_at }
+    ScheduleIn  = AsyncEvent.new { |node| Time.now + node.retry_interval.minutes }
 
     class PerformEvent
-      def initialize(retries)
-        @retries = retries
-      end
-
       def self.call(event, node)
-        new(0).call(event, node)
-      end
-
-      def call(event, node)
-        event_data = { node: node, server_retries_remaining: retries }
-        Instrument.instrument(event.name, event_data) do
-          begin
-            event.call(node)
-          rescue V2::InvalidClientStatusChange
-            raise
-          rescue => e
-            handle_error(event, node, e)
-            raise e
-          end
-        end
-      end
-
-      private
-
-      attr_reader :retries
-
-      def handle_error(event, node, error)
-        if retries > 0
-          AsyncEventBackoff.call(event, node, retries - 1)
-        else
-          StateManager.call(node, current_server_status: :errored)
-          Client.notify_of(node, "error", error)
+        Instrument.instrument(event.name, { node: node }) do
+          event.call(node)
         end
       end
     end

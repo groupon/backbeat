@@ -1,7 +1,7 @@
 require "v2/helpers/instrument"
 require "v2/events"
-require "v2/schedulers"
 require "v2/client"
+require "v2/schedulers"
 require "v2/server"
 require "v2/state_manager"
 require "v2/workflow_tree"

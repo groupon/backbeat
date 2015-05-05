@@ -68,16 +68,17 @@ module V2
       Events::MarkChildrenReady => Schedulers::PerformEvent,
       Events::NodeComplete => Schedulers::PerformEvent,
       Events::ResetNode => Schedulers::PerformEvent,
-      Events::RetryNode => Schedulers::AsyncEventInterval,
-      Events::ScheduleNextNode => Schedulers::AsyncEvent,
-      Events::StartNode => Schedulers::AsyncEventAt
+      Events::RetryNode => Schedulers::ScheduleIn,
+      Events::ScheduleNextNode => Schedulers::ScheduleNow,
+      Events::ServerError => Schedulers::PerformEvent,
+      Events::StartNode => Schedulers::ScheduleAt
     }
 
     def self.fire_event(event, node, scheduler = STRATEGIES[event])
-      info(source: "Server::fire_event", status: :fire_event_started, node: node.id, event: event.name)
+      info(status: :fire_event_started, node: node.id, event: event.name)
       return if node.deactivated?
       scheduler.call(event, node)
-      info(source: "Server::fire_event", status: :fire_event_finished, node: node.id, event: event.name)
+      info(status: :fire_event_finished, node: node.id, event: event.name)
     end
   end
 end

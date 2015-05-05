@@ -13,7 +13,7 @@ describe V2::Workers::AsyncWorker, v2: true do
   context "schedule_async_event" do
     it "calls an event with the node" do
       expect(V2::Events::ChildrenReady).to receive(:call).with(node)
-      V2::Workers::AsyncWorker.schedule_async_event(V2::Events::ChildrenReady, node, Time.now, 0)
+      V2::Workers::AsyncWorker.schedule_async_event(V2::Events::ChildrenReady, node, { time: Time.now, retries: 0 })
       V2::Workers::AsyncWorker.drain
     end
   end
@@ -23,15 +23,57 @@ describe V2::Workers::AsyncWorker, v2: true do
       expect(V2::Server).to receive(:fire_event) do |event, event_node, scheduler|
         expect(event).to eq(V2::Events::MarkChildrenReady)
         expect(event_node).to eq(node)
-        expect(scheduler).to be_a(V2::Schedulers::PerformEvent)
+        expect(scheduler).to eq(V2::Schedulers::PerformEvent)
       end
 
       V2::Workers::AsyncWorker.new.perform(
         V2::Events::MarkChildrenReady.name,
-        node.class.name,
-        node.id,
-        0
+        { "node_class" => node.class.name, "node_id" => node.id },
+        { "retries" => 0 }
       )
+    end
+
+    it "retries the job if there is an error in running the event" do
+      expect(V2::Events::MarkChildrenReady).to receive(:call) { raise "Event Failed" }
+
+      expect {
+        V2::Workers::AsyncWorker.new.perform(
+          V2::Events::MarkChildrenReady.name,
+          { "node_class" => node.class.name, "node_id" => node.id },
+          { "retries" => 1 }
+        )
+      }.to raise_error
+
+      expect(V2::Workers::AsyncWorker.jobs.count).to eq(1)
+    end
+
+    it "retries the job if there is an error deserializing the node" do
+      expect(V2::Node).to receive(:find) { raise "Could not connect to the database" }
+
+      expect {
+        V2::Workers::AsyncWorker.new.perform(
+          V2::Events::MarkChildrenReady.name,
+          { "node_class" => node.class.name, "node_id" => node.id },
+          { "retries" => 1 }
+        )
+      }.to raise_error
+
+      expect(V2::Workers::AsyncWorker.jobs.count).to eq(1)
+    end
+
+    it "puts the node in an errored state when out of retries" do
+      expect(V2::Events::MarkChildrenReady).to receive(:call) { raise "Event Failed" }
+
+      expect {
+        V2::Workers::AsyncWorker.new.perform(
+          V2::Events::MarkChildrenReady.name,
+          { "node_class" => node.class.name, "node_id" => node.id },
+          { "retries" => 0 }
+        )
+      }.to raise_error
+
+      expect(V2::Workers::AsyncWorker.jobs.count).to eq(0)
+      expect(node.reload.current_server_status).to eq("errored")
     end
   end
 end

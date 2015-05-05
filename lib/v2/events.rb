@@ -79,6 +79,13 @@ module V2
       end
     end
 
+    class ServerError
+      def self.call(node)
+        StateManager.call(node, current_server_status: :errored)
+        Client.notify_of(node, "error", "Server Error")
+      end
+    end
+
     class ClientError
       def self.call(node)
         StateManager.call(node, current_client_status: :errored)

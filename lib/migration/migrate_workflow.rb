@@ -99,7 +99,7 @@ module Migration
             legacy_type: :timer
           })
           timer.client_node_detail.update_attributes(data: {arguments: [node.name], options: {}})
-          V2::Schedulers::AsyncEventAt.call(V2::Events::StartNode, timer) unless timer.current_server_status.to_sym == :complete
+          V2::Schedulers::ScheduleAt.call(V2::Events::StartNode, timer) unless timer.current_server_status.to_sym == :complete
           timer.workflow
         when WorkflowServer::Models::WorkflowCompleteFlag
           flag = migrate_activity(node, v2_parent, legacy_type: :flag)
