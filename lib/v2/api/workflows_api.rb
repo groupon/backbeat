@@ -70,7 +70,7 @@ module V2
 
         get "/:id/nodes" do
           search_params = params.slice(*VALID_NODE_FILTERS)
-          find_workflow.nodes.where(search_params)
+          find_workflow.nodes.where(search_params).map{|node| V2::Client::NodeSerializer.call(node)}
         end
       end
     end

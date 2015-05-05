@@ -32,7 +32,7 @@ describe V2::Api, v2: true do
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
-        .with(:body => decision_hash(signal_node))
+        .with(:body => decision_hash(signal_node, {current_server_status: :sent_to_client, current_client_status: :received}))
         .to_return(:status => 200, :body => "", :headers => {})
 
       V2::Workers::AsyncWorker.drain
@@ -91,7 +91,7 @@ describe V2::Api, v2: true do
 
       activity_nodes[0..1].each do |activity_node|
         WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-          .with(:body => activity_hash(activity_node))
+          .with(:body => activity_hash(activity_node, {current_server_status: :sent_to_client, current_client_status: :received}))
           .to_return(:status => 200, :body => "", :headers => {})
       end
 
@@ -128,7 +128,7 @@ describe V2::Api, v2: true do
 
       activity_nodes[2..3].each do |activity_node|
         WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-          .with(:body => activity_hash(activity_node))
+          .with(:body => activity_hash(activity_node, {current_server_status: :sent_to_client, current_client_status: :received}))
           .to_return(:status => 200, :body => "", :headers => {})
       end
 
@@ -230,7 +230,7 @@ describe V2::Api, v2: true do
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
-        .with(:body => decision_hash(signal_node))
+        .with(:body => decision_hash(signal_node, {current_server_status: :sent_to_client, current_client_status: :received}))
         .to_return(:status => 200, :body => "", :headers => {})
 
       V2::Workers::AsyncWorker.drain
@@ -269,7 +269,7 @@ describe V2::Api, v2: true do
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-        .with(:body => activity_hash(activity_node))
+        .with(:body => activity_hash(activity_node, {current_server_status: :sent_to_client, current_client_status: :received}))
         .to_return(:status => 200, :body => "", :headers => {})
 
       V2::Workers::AsyncWorker.drain
@@ -286,7 +286,7 @@ describe V2::Api, v2: true do
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
-        .with(:body => decision_hash(signal_node_2))
+        .with(:body => decision_hash(signal_node_2, {current_server_status: :sent_to_client, current_client_status: :received}))
         .to_return(:status => 200, :body => "", :headers => {})
 
       V2::Workers::AsyncWorker.drain
@@ -333,7 +333,7 @@ describe V2::Api, v2: true do
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-        .with(:body => activity_hash(activity_node_signal_2))
+        .with(:body => activity_hash(activity_node_signal_2, {current_server_status: :sent_to_client, current_client_status: :received}))
         .to_return(:status => 200, :body => "", :headers => {})
       V2::Workers::AsyncWorker.drain
 
