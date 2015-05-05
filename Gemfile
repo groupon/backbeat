@@ -29,8 +29,8 @@ gem 'enumerize'
 # Utility
 gem 'awesome_print'
 gem 'mail'
-gem 'sidekiq'
-gem 'sidekiq-failures'
+gem 'sidekiq', '~> 3.1.0'
+gem 'sidekiq-failures', '~> 0.4.0'
 gem 'kiqstand'
 gem 'application_transaction', :git => 'https://github.groupondev.com/finance-engineering/application_transaction.git'
 
