@@ -65,6 +65,13 @@ module V2
         get "/:id/children" do
           find_workflow.children
         end
+
+        VALID_NODE_FILTERS = [:current_server_status, :current_client_status]
+
+        get "/:id/nodes" do
+          search_params = params.slice(*VALID_NODE_FILTERS)
+          find_workflow.nodes.where(search_params)
+        end
       end
     end
   end
