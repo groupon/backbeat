@@ -1,5 +1,5 @@
 module V2
-  module Async
+  module Schedulers
     class AsyncEvent
       def initialize(&timer)
         @timer = timer

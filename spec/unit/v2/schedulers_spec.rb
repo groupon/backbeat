@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe V2::Async, v2: true do
+describe V2::Schedulers, v2: true do
 
   let(:user) { FactoryGirl.create(:v2_user) }
   let(:workflow) { FactoryGirl.create(:v2_workflow_with_node, user: user) }
@@ -24,13 +24,13 @@ describe V2::Async, v2: true do
         { node: node }
       )
 
-      V2::Async::PerformEvent.call(MockEvent, node)
+      V2::Schedulers::PerformEvent.call(MockEvent, node)
     end
 
     it "calls the event with the node" do
       expect(MockEvent).to receive(:call).with(node)
 
-      V2::Async::PerformEvent.call(MockEvent, node)
+      V2::Schedulers::PerformEvent.call(MockEvent, node)
     end
   end
 
@@ -41,7 +41,7 @@ describe V2::Async, v2: true do
         node,
         { time: Time.now + 20.days }
       )
-      V2::Async::ScheduleAt.call(MockEvent, node)
+      V2::Schedulers::ScheduleAt.call(MockEvent, node)
     end
   end
 
@@ -52,7 +52,7 @@ describe V2::Async, v2: true do
         node,
         { time: Time.now + 60.minutes }
       )
-      V2::Async::ScheduleIn.call(MockEvent, node)
+      V2::Schedulers::ScheduleIn.call(MockEvent, node)
     end
   end
 
@@ -63,7 +63,7 @@ describe V2::Async, v2: true do
         node,
         { time: Time.now }
       )
-      V2::Async::ScheduleNow.call(MockEvent, node)
+      V2::Schedulers::ScheduleNow.call(MockEvent, node)
     end
   end
 end

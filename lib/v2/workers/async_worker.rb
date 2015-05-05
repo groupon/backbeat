@@ -65,7 +65,7 @@ module V2
       end
 
       def fire(event_class, node)
-        Server.fire_event(event_class.constantize, node, Async::PerformEvent)
+        Server.fire_event(event_class.constantize, node, Schedulers::PerformEvent)
       rescue => e
         raise NodeServerError.new(node, e)
       end

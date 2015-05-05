@@ -56,18 +56,18 @@ module V2
     end
 
     STRATEGIES = {
-      Events::ChildrenReady => Async::PerformEvent,
-      Events::ClientComplete => Async::PerformEvent,
-      Events::ClientError => Async::PerformEvent,
-      Events::ClientProcessing => Async::PerformEvent,
-      Events::DeactivatePreviousNodes => Async::PerformEvent,
-      Events::MarkChildrenReady => Async::PerformEvent,
-      Events::NodeComplete => Async::PerformEvent,
-      Events::ResetNode => Async::PerformEvent,
-      Events::RetryNode => Async::ScheduleIn,
-      Events::ScheduleNextNode => Async::ScheduleNow,
-      Events::ServerError => Async::PerformEvent,
-      Events::StartNode => Async::ScheduleAt
+      Events::ChildrenReady => Schedulers::PerformEvent,
+      Events::ClientComplete => Schedulers::PerformEvent,
+      Events::ClientError => Schedulers::PerformEvent,
+      Events::ClientProcessing => Schedulers::PerformEvent,
+      Events::DeactivatePreviousNodes => Schedulers::PerformEvent,
+      Events::MarkChildrenReady => Schedulers::PerformEvent,
+      Events::NodeComplete => Schedulers::PerformEvent,
+      Events::ResetNode => Schedulers::PerformEvent,
+      Events::RetryNode => Schedulers::ScheduleIn,
+      Events::ScheduleNextNode => Schedulers::ScheduleNow,
+      Events::ServerError => Schedulers::PerformEvent,
+      Events::StartNode => Schedulers::ScheduleAt
     }
 
     def self.fire_event(event, node, scheduler = STRATEGIES[event])

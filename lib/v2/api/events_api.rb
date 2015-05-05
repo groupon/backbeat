@@ -51,7 +51,7 @@ module V2
 
           put "/:id/restart" do
             node = find_node
-            Server.fire_event(Events::RetryNode, node, Async::PerformEvent)
+            Server.fire_event(Events::RetryNode, node, Schedulers::PerformEvent)
             { success: true }
           end
 
