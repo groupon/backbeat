@@ -95,15 +95,16 @@ module V2
       end
 
       def colorize_details(node_details)
-        case node.current_server_status.to_sym
-        when :started, :sent_to_client, :processing_children, :retrying
-          yellow(node_details)
-        when :complete
-          green(node_details)
-        when :errored
+        statuses = [node.current_server_status.to_sym, node.current_client_status.to_sym]
+        case
+        when statuses.include?(:errored)
           red(node_details)
-        else
+        when (statuses - [:ready, :ready]).empty?
           white(node_details)
+        when (statuses - [:complete, :complete]).empty?
+          green(node_details)
+        else
+          yellow(node_details)
         end
       end
     end
