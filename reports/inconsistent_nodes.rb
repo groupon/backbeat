@@ -6,7 +6,7 @@ module Reports
     def default_options
       {
         lower_bound: Time.parse('2015/04/01'),
-        upper_bound: 1.day.ago,
+        upper_bound: 5.hours.ago,
         file_name: file_name(Date.today)
       }
     end
