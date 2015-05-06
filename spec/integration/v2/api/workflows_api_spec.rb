@@ -107,7 +107,7 @@ describe V2::Api::WorkflowsApi, v2: true do
 
   context "GET /workflows/:id/nodes" do
     before do
-      @second_node = FactoryGirl.create(
+      second_node = FactoryGirl.create(
         :v2_node,
         workflow: workflow,
         parent: workflow,
@@ -116,7 +116,7 @@ describe V2::Api::WorkflowsApi, v2: true do
       @third_node = FactoryGirl.create(
         :v2_node,
         workflow: workflow,
-        parent: @second_node,
+        parent: second_node,
         user: user,
         current_server_status: :complete
       )
