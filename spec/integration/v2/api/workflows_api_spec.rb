@@ -105,6 +105,49 @@ describe V2::Api::WorkflowsApi, v2: true do
     end
   end
 
+  context "GET /workflows/:id/nodes" do
+    before do
+      second_node = FactoryGirl.create(
+        :v2_node,
+        workflow: workflow,
+        parent: workflow,
+        user: user
+      )
+      @third_node = FactoryGirl.create(
+        :v2_node,
+        workflow: workflow,
+        parent: second_node,
+        user: user,
+        current_server_status: :complete
+      )
+      @third_node.client_node_detail.update_attributes!(metadata: {"version"=>"v2", "workflow_type_on_v2"=>true})
+    end
+
+    it "returns the workflows nodes in ClientNodeSerializer" do
+      response = get "v2/workflows/#{workflow.id}/nodes"
+      expect(response.status).to eq(200)
+
+      json_response = JSON.parse(response.body)
+      nodes = workflow.nodes
+
+      expect(json_response.first["id"]).to eq(nodes.first.id)
+      expect(json_response.second["id"]).to eq(nodes.second.id)
+      expect(json_response.third["id"]).to eq(nodes.third.id)
+      expect(json_response.third["currentServerStatus"]).to eq(nodes.third.current_server_status)
+      expect(json_response.third["metadata"]).to eq({"version"=>"v2", "workflowTypeOnV2"=>true})
+      expect(json_response.count).to eq(3)
+    end
+
+    it "returns nodes limited by query" do
+      response = get "v2/workflows/#{workflow.id}/nodes?currentServerStatus=complete"
+      expect(response.status).to eq(200)
+
+      json_response = JSON.parse(response.body)
+      expect(json_response.first["id"]).to eq(@third_node.id)
+      expect(json_response.count).to eq(1)
+    end
+  end
+
   context "GET /workflows/:id/tree" do
     it "returns the workflow tree as a hash" do
       response = get "v2/workflows/#{workflow.id}/tree"

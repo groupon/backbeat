@@ -28,9 +28,8 @@ describe V2::Api::EventsApi, v2: true do
           current_server_status: :errored
         )
         WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-          .with(:body => activity_hash(node))
+          .with(:body => activity_hash(node, {current_server_status: :sent_to_client, current_client_status: :received}))
           .to_return(:status => 200, :body => "", :headers => {})
-
       end
 
       it "returns 200" do
