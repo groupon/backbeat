@@ -99,9 +99,9 @@ module V2
         case
         when statuses.include?(:errored)
           red(node_details)
-        when (statuses - [:ready, :ready]).empty?
+        when statuses.all?{|s| s == :ready}
           white(node_details)
-        when (statuses - [:complete, :complete]).empty?
+        when statuses.all?{|s| s == :complete}
           green(node_details)
         else
           yellow(node_details)
