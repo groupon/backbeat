@@ -137,16 +137,22 @@ describe V2::WorkflowTree, v2: true do
       child_1 = add_node(workflow, "Workflow child")
       child_2 = add_node(workflow, "Another Workflow child")
       child_3 = add_node(workflow.children.first, "Nested child")
+      child_4 = add_node(workflow, "An Errored Workflow child")
+      child_5 = add_node(workflow, "A Ready Workflow child")
 
       child_1.update_attributes(current_server_status: :processing_children)
-      child_2.update_attributes(current_server_status: :complete)
+      child_2.update_attributes(current_server_status: :complete, current_client_status: :complete)
       child_3.update_attributes(current_server_status: :sent_to_client)
+      child_4.update_attributes(current_server_status: :ready, current_client_status: :errored)
+      child_5.update_attributes(current_server_status: :ready, current_client_status: :ready)
 
       expect(V2::WorkflowTree.to_string(workflow)).to eq(
         "\n#{uuid(workflow)}#{cyan("|--")}#{workflow.name}"\
         "\n#{uuid(child_1)}#{cyan("   |--")}#{yellow("#{child_1.name} - server: #{child_1.current_server_status}, client: #{child_1.current_client_status}")}"\
         "\n#{uuid(child_3)}#{cyan("      |--")}#{yellow("#{child_3.name} - server: #{child_3.current_server_status}, client: #{child_3.current_client_status}")}"\
-        "\n#{uuid(child_2)}#{cyan("   |--")}#{green("#{child_2.name} - server: #{child_2.current_server_status}, client: #{child_2.current_client_status}")}"
+        "\n#{uuid(child_2)}#{cyan("   |--")}#{green("#{child_2.name} - server: #{child_2.current_server_status}, client: #{child_2.current_client_status}")}"\
+        "\n#{uuid(child_4)}#{cyan("   |--")}#{red("#{child_4.name} - server: #{child_4.current_server_status}, client: #{child_4.current_client_status}")}"\
+        "\n#{uuid(child_5)}#{cyan("   |--")}#{white("#{child_5.name} - server: #{child_5.current_server_status}, client: #{child_5.current_client_status}")}"
       )
     end
   end
