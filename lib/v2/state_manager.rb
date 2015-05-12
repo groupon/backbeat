@@ -29,12 +29,12 @@ module V2
       new(node).update_status(statuses)
     end
 
-    def self.transaction(node, statuses = {}, &block)
-      new(node).transaction(statuses, &block)
+    def self.rollback_if_error(node, statuses = {}, &block)
+      new(node).rollback_if_error(statuses, &block)
     end
 
-    def transaction(statuses = {})
-      old_statuses = statuses.keys.inject({}){|hash, type| hash[type] = node_status(type); hash }
+    def rollback_if_error(statuses = {})
+      old_statuses = current_statuses
       update_status(statuses)
       yield
     rescue V2::InvalidClientStatusChange, V2::InvalidServerStatusChange
@@ -65,6 +65,14 @@ module V2
     private
 
     attr_reader :node
+
+    def current_statuses
+      statuses = {}
+      [:current_client_status, :current_server_status].each do |status_type|
+        statuses[status_type] = node.send(status_type).to_sym
+      end
+      statuses
+    end
 
     def create_status_changes(new_statuses)
       new_statuses.each do |(status_type, new_status)|

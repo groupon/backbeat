@@ -65,9 +65,9 @@ describe V2::StateManager, v2: true do
     expect(V2::StateManager.call(workflow, current_server_status: :complete)).to be_nil
   end
 
-  context "transaction" do
+  context "rollback_if_error" do
     it "rolls back status if error occurs" do
-      expect {manager.transaction(current_client_status: :received, current_server_status: :ready) do
+      expect {manager.rollback_if_error(current_client_status: :received, current_server_status: :ready) do
         raise "random error"
       end}.to raise_error
 
@@ -77,7 +77,7 @@ describe V2::StateManager, v2: true do
     end
 
     it "does not add status changes when state transition error occurs" do
-      expect {manager.transaction(current_client_status: :ready, current_server_status: :pending) do
+      expect {manager.rollback_if_error(current_client_status: :ready, current_server_status: :pending) do
         1 + 1
       end}.to raise_error(V2::InvalidClientStatusChange)
 
