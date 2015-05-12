@@ -29,6 +29,22 @@ module V2
       new(node).update_status(statuses)
     end
 
+    def self.transaction(node, statuses = {}, &block)
+      new(node).transaction(statuses, &block)
+    end
+
+    def transaction(statuses = {})
+      old_statuses = statuses.keys.inject({}){|hash, type| hash[type] = node_status(type); hash }
+      update_status(statuses)
+      yield
+    rescue V2::InvalidClientStatusChange, V2::InvalidServerStatusChange
+      raise
+    rescue => e
+      create_status_changes(old_statuses)
+      node.update_attributes!(old_statuses)
+      raise
+    end
+
     def initialize(node)
       @node = node
     end
