@@ -190,6 +190,14 @@ describe V2::Events, v2: true do
       expect(node.current_server_status).to eq("processing_children")
       expect(node.current_client_status).to eq("complete")
     end
+
+    it "rolls back if error occurs" do
+      expect(V2::Server).to receive(:fire_event).with(V2::Events::MarkChildrenReady, node).and_raise "error"
+      expect{V2::Events::ClientComplete.call(node)}.to raise_error
+
+      expect(node.current_server_status).to eq("sent_to_client")
+      expect(node.current_client_status).to eq("processing")
+    end
   end
 
   context "NodeComplete" do

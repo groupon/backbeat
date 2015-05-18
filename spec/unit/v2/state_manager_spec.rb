@@ -64,4 +64,26 @@ describe V2::StateManager, v2: true do
   it "no-ops if the node is a workflow" do
     expect(V2::StateManager.call(workflow, current_server_status: :complete)).to be_nil
   end
+
+  context "rollback_if_error" do
+    it "rolls back status if error occurs" do
+      expect {manager.rollback_if_error(current_client_status: :received, current_server_status: :ready) do
+        raise "random error"
+      end}.to raise_error
+
+      expect(node.status_changes.count).to eq(4)
+      expect(node.current_server_status).to eq("pending")
+      expect(node.current_client_status).to eq("ready")
+    end
+
+    it "does not add status changes when state transition error occurs" do
+      expect {manager.rollback_if_error(current_client_status: :ready, current_server_status: :pending) do
+        1 + 1
+      end}.to raise_error(V2::InvalidClientStatusChange)
+
+      expect(node.status_changes.count).to eq(0)
+      expect(node.current_server_status).to eq("pending")
+      expect(node.current_client_status).to eq("ready")
+    end
+  end
 end

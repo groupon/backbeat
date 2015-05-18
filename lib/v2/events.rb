@@ -61,11 +61,10 @@ module V2
 
     class ClientComplete
       def self.call(node)
-        StateManager.call(node,
-          current_client_status: :complete,
-          current_server_status: :processing_children
-        )
-        Server.fire_event(MarkChildrenReady, node)
+        status_changes = { current_client_status: :complete, current_server_status: :processing_children }
+        StateManager.rollback_if_error(node, status_changes) do
+          Server.fire_event(MarkChildrenReady, node)
+        end
       end
     end
 
