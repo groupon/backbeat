@@ -123,7 +123,7 @@ describe Migration::MigrateWorkflow, v2: true do
     v1_sub_activity = FactoryGirl.create(:activity, parent: v1_activity, workflow: v1_workflow, status: :complete)
     v1_sub_decision = FactoryGirl.create(:decision, parent: v1_activity, workflow: v1_workflow, status: :complete)
 
-    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
+    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, true)
     v2_decision = v2_workflow.children.first
     v2_activity = v2_decision.children.first
 
@@ -155,7 +155,7 @@ describe Migration::MigrateWorkflow, v2: true do
     timed_node = FactoryGirl.create(:decision, parent: v1_timer, workflow: v1_workflow, status: :complete)
     v1_activity = FactoryGirl.create(:activity, parent: timed_node, workflow: v1_workflow, status: :complete)
 
-    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
+    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, true)
 
     v2_decision = v2_workflow.children.second
 
@@ -248,7 +248,7 @@ describe Migration::MigrateWorkflow, v2: true do
     v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete, inactive: true)
     v1_flag = FactoryGirl.create(:continue_as_new_workflow_flag, parent: v1_signal, workflow: v1_workflow, status: :complete)
 
-    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
+    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, true)
     v2_decision = v2_workflow.reload.children.first
     v2_flag = v2_workflow.reload.children.second
 
@@ -269,7 +269,7 @@ describe Migration::MigrateWorkflow, v2: true do
     it "does not migrate workflows with nodes that are not complete" do
       v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :sent_to_client, status: :open)
 
-      expect { Migration::MigrateWorkflow.call(v1_workflow, v2_workflow) }.to raise_error Migration::MigrateWorkflow::WorkflowNotMigratable
+      expect { Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, true) }.to raise_error Migration::MigrateWorkflow::WorkflowNotMigratable
 
       expect(v2_workflow.children.count).to eq(0)
       expect(v1_workflow.reload.migrated?).to eq(false)
@@ -306,7 +306,7 @@ describe Migration::MigrateWorkflow, v2: true do
     end
   end
 
-  context "workflows migrated only with active timers" do
+  context "workflows with running timers" do
     before do
       v1_signal_2 = FactoryGirl.create(:signal, parent: nil, workflow: v1_workflow, status: :complete)
       decision_1 = FactoryGirl.create(:decision, parent: v1_signal_2, workflow: v1_workflow, status: :complete)
@@ -314,30 +314,31 @@ describe Migration::MigrateWorkflow, v2: true do
       FactoryGirl.create(:activity, parent: decision_1, workflow: v1_workflow, status: :complete)
     end
 
-    it "migrates all signals when workflow type not in list" do
-      v1_workflow.update_attributes(workflow_type: :a_workflow)
+    it "migrates only the top signal when signals do not have timers" do
       Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
+
+      expect(v1_workflow.reload.migrated?).to eq(true)
+      expect(v2_workflow.reload.nodes.count).to eq(2)
+      expect(v2_workflow.reload.children.count).to eq(2)
+    end
+
+    it "only migrates signals with timers or top node" do
+      Timecop.freeze
+      FactoryGirl.create(:timer, parent: @decision_2, fires_at: Time.now + 2.hours, status: :scheduled)
+
+      Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
+
       expect(v1_workflow.reload.migrated?).to eq(true)
       expect(v2_workflow.reload.nodes.count).to eq(3)
       expect(v2_workflow.reload.children.count).to eq(2)
     end
 
-    it "only migrates signals with timers" do
-      Timecop.freeze
-      v1_workflow.update_attributes(workflow_type: :merchant_statement_workflow)
-      FactoryGirl.create(:timer, parent: @decision_2, fires_at: Time.now + 2.hours, status: :scheduled)
+    it "will migrate only top signal nodes if no timers" do
       Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
+
       expect(v1_workflow.reload.migrated?).to eq(true)
       expect(v2_workflow.reload.nodes.count).to eq(2)
-      expect(v2_workflow.reload.children.count).to eq(1)
-    end
-
-    it "will migrate no signals if no timers" do
-      v1_workflow.update_attributes(workflow_type: :merchant_statement_workflow)
-      Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
-      expect(v1_workflow.reload.migrated?).to eq(true)
-      expect(v2_workflow.reload.nodes.count).to eq(0)
-      expect(v2_workflow.reload.children.count).to eq(0)
+      expect(v2_workflow.reload.children.count).to eq(2)
     end
   end
 
