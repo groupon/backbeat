@@ -123,7 +123,7 @@ describe Migration::MigrateWorkflow, v2: true do
     v1_sub_activity = FactoryGirl.create(:activity, parent: v1_activity, workflow: v1_workflow, status: :complete)
     v1_sub_decision = FactoryGirl.create(:decision, parent: v1_activity, workflow: v1_workflow, status: :complete)
 
-    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, true)
+    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, migrate_all: true)
     v2_decision = v2_workflow.children.first
     v2_activity = v2_decision.children.first
 
@@ -155,7 +155,7 @@ describe Migration::MigrateWorkflow, v2: true do
     timed_node = FactoryGirl.create(:decision, parent: v1_timer, workflow: v1_workflow, status: :complete)
     v1_activity = FactoryGirl.create(:activity, parent: timed_node, workflow: v1_workflow, status: :complete)
 
-    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, true)
+    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, migrate_all: true)
 
     v2_decision = v2_workflow.children.second
 
@@ -167,7 +167,7 @@ describe Migration::MigrateWorkflow, v2: true do
   it "converts v1 status to v2 server and client status" do
     v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
 
-    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
+    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, migrate_all: true)
     v2_decision = v2_workflow.children.first
 
     expect(v2_decision.current_server_status).to eq("complete")
@@ -248,7 +248,7 @@ describe Migration::MigrateWorkflow, v2: true do
     v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete, inactive: true)
     v1_flag = FactoryGirl.create(:continue_as_new_workflow_flag, parent: v1_signal, workflow: v1_workflow, status: :complete)
 
-    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, true)
+    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, migrate_all: true)
     v2_decision = v2_workflow.reload.children.first
     v2_flag = v2_workflow.reload.children.second
 
@@ -269,7 +269,7 @@ describe Migration::MigrateWorkflow, v2: true do
     it "does not migrate workflows with nodes that are not complete" do
       v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :sent_to_client, status: :open)
 
-      expect { Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, true) }.to raise_error Migration::MigrateWorkflow::WorkflowNotMigratable
+      expect { Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, migrate_all: true) }.to raise_error Migration::MigrateWorkflow::WorkflowNotMigratable
 
       expect(v2_workflow.children.count).to eq(0)
       expect(v1_workflow.reload.migrated?).to eq(false)
@@ -308,12 +308,11 @@ describe Migration::MigrateWorkflow, v2: true do
 
   context "workflows that require a full decision history" do
     it "migrates all decisions" do
-      v1_workflow.update_attributes(workflow_type: :g1)
       decision_1 = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
       activity = FactoryGirl.create(:activity, parent: decision_1, workflow: v1_workflow, status: :complete)
       decision_2 = FactoryGirl.create(:decision, parent: activity, workflow: v1_workflow, status: :complete)
 
-      Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
+      Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, decision_history: true)
 
       expect(v2_workflow.children.count).to eq(3)
       expect(v2_workflow.children.first.name).to eq(decision_1.name.to_s)

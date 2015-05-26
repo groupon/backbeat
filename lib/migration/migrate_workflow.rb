@@ -27,15 +27,16 @@ module Migration
       )
     end
 
-    def self.call(v1_workflow, v2_workflow, migrate_all = false)
+    def self.call(v1_workflow, v2_workflow, options = {})
       ActiveRecord::Base.transaction do
-        if v1_workflow.workflow_type.to_sym == :g1
+        if options[:decision_history]
           v1_workflow.decisions.each do |decision|
+            raise WorkflowNotMigratable.new("Cannot migrate node #{decision.id}") unless can_migrate?(decision)
             migrate_activity(decision, v2_workflow, { legacy_type: :decision, id: nil })
           end
         end
         v1_workflow.get_children.each do |signal|
-          if has_running_timers?(signal) || migrate_all
+          if has_running_timers?(signal) || options[:migrate_all]
             migrate_signal(signal, v2_workflow)
           else
             migrate_top_node(signal, v2_workflow)
@@ -84,6 +85,8 @@ module Migration
     end
 
     def self.migrate_single_node(node, v2_parent)
+      raise WorkflowNotMigratable.new("Cannot migrate node #{node.id}") unless can_migrate?(node)
+
       case node
       when WorkflowServer::Models::Decision
         migrate_activity(node, v2_parent, legacy_type: :decision)
@@ -112,8 +115,6 @@ module Migration
     end
 
     def self.migrate_node(node, v2_parent)
-      raise WorkflowNotMigratable.new("Cannot migrate node #{node.id}") unless can_migrate?(node)
-
       new_v2_parent = migrate_single_node(node, v2_parent)
       node.children.each do |child|
         migrate_node(child, new_v2_parent)
