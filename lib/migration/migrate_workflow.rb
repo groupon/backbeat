@@ -1,10 +1,8 @@
 require "migration/workers/migrator"
 
 module Migration
-  ONLY_WITH_ACTIVE_TIMERS = [:merchant_statement_workflow, :payment_workflow]
-
   def self.queue_conversion_batch(args)
-    types = args[:types] || MIGRATING_TYPES
+    types = args[:types] || []
     limit = args[:limit] || 1000
     WorkflowServer::Models::Workflow.where(
       :workflow_type.in => types,
@@ -29,19 +27,19 @@ module Migration
       )
     end
 
-    def self.migrate_signal?(signal)
-      if ONLY_WITH_ACTIVE_TIMERS.include?(signal.workflow.workflow_type)
-        has_running_timers?(signal)
-      else
-        true
-      end
-    end
-
-    def self.call(v1_workflow, v2_workflow)
+    def self.call(v1_workflow, v2_workflow, options = {})
       ActiveRecord::Base.transaction do
+        if options[:decision_history]
+          v1_workflow.decisions.each do |decision|
+            raise WorkflowNotMigratable.new("Cannot migrate node #{decision.id}") unless can_migrate?(decision)
+            migrate_activity(decision, v2_workflow, { legacy_type: :decision, id: nil })
+          end
+        end
         v1_workflow.get_children.each do |signal|
-          if migrate_signal?(signal)
+          if has_running_timers?(signal) || options[:migrate_all]
             migrate_signal(signal, v2_workflow)
+          else
+            migrate_top_node(signal, v2_workflow)
           end
         end
 
@@ -54,6 +52,11 @@ module Migration
       v1_signal.children.each do |decision|
         migrate_node(decision, v2_parent)
       end
+    end
+
+    def self.migrate_top_node(v1_signal, v2_parent)
+      decision = v1_signal.children.first
+      migrate_single_node(decision, v2_parent)
     end
 
     def self.migrate_activity(v1_activity, v2_parent, attrs = {})
@@ -76,42 +79,43 @@ module Migration
           retries_remaining: 4
         )
       )
-      node.id = v1_activity.id
+      node.id = attrs.fetch(:id, v1_activity.id)
       node.save!
       node
     end
 
-    def self.migrate_node(node, v2_parent)
+    def self.migrate_single_node(node, v2_parent)
       raise WorkflowNotMigratable.new("Cannot migrate node #{node.id}") unless can_migrate?(node)
 
-      new_v2_parent = (
-        case node
-        when WorkflowServer::Models::Decision
-          migrate_activity(node, v2_parent, legacy_type: :decision)
-        when WorkflowServer::Models::Branch
-          migrate_activity(node, v2_parent, legacy_type: :branch)
-        when WorkflowServer::Models::Activity
-          migrate_activity(node, v2_parent)
-        when WorkflowServer::Models::Timer
-          timer = migrate_activity(node, v2_parent, {
-            name: "#{node.name}__timer__",
-            fires_at: node.fires_at,
-            legacy_type: :timer
-          })
-          timer.client_node_detail.update_attributes(data: {arguments: [node.name], options: {}})
-          V2::Schedulers::ScheduleAt.call(V2::Events::StartNode, timer) unless timer.current_server_status.to_sym == :complete
-          timer.workflow
-        when WorkflowServer::Models::WorkflowCompleteFlag
-          flag = migrate_activity(node, v2_parent, legacy_type: :flag)
-          flag.workflow.complete!
-          flag
-        when WorkflowServer::Models::ContinueAsNewWorkflowFlag
-          migrate_activity(node, v2_parent, legacy_type: :flag)
-        when WorkflowServer::Models::Flag
-          migrate_activity(node, v2_parent, legacy_type: :flag)
-        end
-      )
+      case node
+      when WorkflowServer::Models::Decision
+        migrate_activity(node, v2_parent, legacy_type: :decision)
+      when WorkflowServer::Models::Branch
+        migrate_activity(node, v2_parent, legacy_type: :branch)
+      when WorkflowServer::Models::Activity
+        migrate_activity(node, v2_parent)
+      when WorkflowServer::Models::Timer
+        timer = migrate_activity(node, v2_parent, {
+          name: "#{node.name}__timer__",
+          fires_at: node.fires_at,
+          legacy_type: :timer
+        })
+        timer.client_node_detail.update_attributes(data: {arguments: [node.name], options: {}})
+        V2::Schedulers::ScheduleAt.call(V2::Events::StartNode, timer) unless timer.current_server_status.to_sym == :complete
+        timer.workflow
+      when WorkflowServer::Models::WorkflowCompleteFlag
+        flag = migrate_activity(node, v2_parent, legacy_type: :flag)
+        flag.workflow.complete!
+        flag
+      when WorkflowServer::Models::ContinueAsNewWorkflowFlag
+        migrate_activity(node, v2_parent, legacy_type: :flag)
+      when WorkflowServer::Models::Flag
+        migrate_activity(node, v2_parent, legacy_type: :flag)
+      end
+    end
 
+    def self.migrate_node(node, v2_parent)
+      new_v2_parent = migrate_single_node(node, v2_parent)
       node.children.each do |child|
         migrate_node(child, new_v2_parent)
       end
