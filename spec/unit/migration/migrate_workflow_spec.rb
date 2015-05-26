@@ -306,6 +306,22 @@ describe Migration::MigrateWorkflow, v2: true do
     end
   end
 
+  context "workflows that require a full decision history" do
+    it "migrates all decisions" do
+      v1_workflow.update_attributes(workflow_type: :g1)
+      decision_1 = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
+      activity = FactoryGirl.create(:activity, parent: decision_1, workflow: v1_workflow, status: :complete)
+      decision_2 = FactoryGirl.create(:decision, parent: activity, workflow: v1_workflow, status: :complete)
+
+      Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
+
+      expect(v2_workflow.children.count).to eq(3)
+      expect(v2_workflow.children.first.name).to eq(decision_1.name.to_s)
+      expect(v2_workflow.children.second.name).to eq(decision_2.name.to_s)
+      expect(v2_workflow.children.last.id).to eq(decision_1.id)
+    end
+  end
+
   context "workflows with running timers" do
     before do
       v1_signal_2 = FactoryGirl.create(:signal, parent: nil, workflow: v1_workflow, status: :complete)

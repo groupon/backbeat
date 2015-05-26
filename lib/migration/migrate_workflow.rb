@@ -29,6 +29,11 @@ module Migration
 
     def self.call(v1_workflow, v2_workflow, migrate_all = false)
       ActiveRecord::Base.transaction do
+        if v1_workflow.workflow_type.to_sym == :g1
+          v1_workflow.decisions.each do |decision|
+            migrate_activity(decision, v2_workflow, { legacy_type: :decision, id: nil })
+          end
+        end
         v1_workflow.get_children.each do |signal|
           if has_running_timers?(signal) || migrate_all
             migrate_signal(signal, v2_workflow)
@@ -73,7 +78,7 @@ module Migration
           retries_remaining: 4
         )
       )
-      node.id = v1_activity.id
+      node.id = attrs.fetch(:id, v1_activity.id)
       node.save!
       node
     end
