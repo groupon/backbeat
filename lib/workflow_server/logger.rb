@@ -13,7 +13,7 @@ module WorkflowServer
           thread_id: Thread.current.object_id,
           tid: WorkflowServer::Logger.tid || 'none',
           level: level,
-          source: self.class.to_s,
+          logger: self.class.to_s,
           name: self.class.to_s,
           message: message
         }
