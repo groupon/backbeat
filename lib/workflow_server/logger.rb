@@ -83,7 +83,7 @@ module WorkflowServer
           thread_id: Thread.current.object_id,
           tid: WorkflowServer::Logger.tid || 'none',
           level: level,
-          source: self.to_s,
+          logger: self.to_s,
           message: message
         }
         if WorkflowServer::Config.options[:log_format] == 'json'
