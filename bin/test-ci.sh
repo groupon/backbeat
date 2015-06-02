@@ -15,7 +15,7 @@ docker run \
   --link backbeat-postgres-$DOCKER_SHA:db \
   --link backbeat-mongo-$DOCKER_SHA:mongo \
   --link backbeat-redis-$DOCKER_SHA:redis \
-  $DOCKER_IMAGE:latest /app/run-tests.sh
+  $DOCKER_IMAGE:latest /app/bin/run-tests.sh
 TEST_EXIT=$?
 
 docker stop backbeat-redis-$DOCKER_SHA
