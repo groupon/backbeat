@@ -13,6 +13,6 @@ docker:
   adapter: postgresql
   username: backbeat
   password: fed
-  database: backbeat_ci
-  host: db
+  database: backbeat_docker
+  host: database
   schema_search_path: public

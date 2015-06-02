@@ -1,0 +1,35 @@
+web:
+  build: .
+  command: bin/startup.sh
+  ports:
+    - 9292:9292
+  environment:
+    backbeat_user_id: "9ab09c2f-68d5-4e0e-8844-3637eea44254"
+    decision_endpoint_url: "http://192.168.1.21:9090/api/decision"
+    backbeat_activity_url: "http://192.168.1.21:9090/api/activity"
+    notification_endpoint_url: "http://192.168.1.21:9090/api/notification"
+    RACK_ENV: docker
+  links:
+    - database
+    - redis
+
+workers:
+  build: .
+  command: bundle exec sidekiq -r app.rb -q accounting_backbeat_server_v2
+  volumes:
+    - .:/app
+  links:
+    - database
+    - redis
+  environment:
+    RACK_ENV: docker
+
+database:
+  image: library/postgres:9.4
+  environment:
+    POSTGRES_USER: backbeat
+    POSTGRES_PASSWORD: fed
+    POSTGRES_DB: backbeat_docker
+
+redis:
+  image: library/redis

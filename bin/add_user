@@ -1,0 +1,14 @@
+#!/usr/bin/env jruby
+
+require_relative '../app'
+
+unless V2::User.where(id: ENV['backbeat_user_id']).exists?
+  u = V2::User.new(
+    id:                    ENV['backbeat_user_id'],
+    decision_endpoint:     ENV['decision_endpoint_url'],
+    activity_endpoint:     ENV['backbeat_activity_url'],
+    notification_endpoint: ENV['notification_endpoint_url']
+  )
+  u.id = ENV['backbeat_user_id']
+  u.save!
+end

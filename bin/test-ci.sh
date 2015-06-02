@@ -1,7 +1,7 @@
 #!/bin/bash
 
 docker run --name backbeat-postgres-$DOCKER_SHA \
-  -e POSTGRES_DB=backbeat_ci \
+  -e POSTGRES_DB=backbeat_docker \
   -e POSTGRES_USER=backbeat \
   -e POSTGRES_PASSWORD=fed \
   -d postgres:9.4
@@ -12,7 +12,7 @@ docker build -t $DOCKER_IMAGE:latest .
 docker run \
   -e RACK_ENV=docker \
   -i \
-  --link backbeat-postgres-$DOCKER_SHA:db \
+  --link backbeat-postgres-$DOCKER_SHA:database \
   --link backbeat-mongo-$DOCKER_SHA:mongo \
   --link backbeat-redis-$DOCKER_SHA:redis \
   $DOCKER_IMAGE:latest /app/bin/run-tests.sh
