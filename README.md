@@ -1,33 +1,73 @@
+# Backbeat
+
 ### Getting Started
-This guide should get you from zero to running Backbeat locally in 301 seconds flat or your money back!
 
-__Step 1__: Clone the repo: ```git clone
-git@github.groupondev.com:finance-engineering/backbeat.git```  
-__Step 2__: Install [chruby](https://github.com/postmodern/chruby#install)
-or [rbenv](https://github.com/sstephenson/rbenv/#installation) or
-[rvm](https://rvm.io/rvm/install/)  
-__Step 3__: Install any of the supported Ruby versions:
- - MRI 1.9.3
- - JRuby 1.7.3
+1. Clone the repo:
 
-__Step 4__: Open up the Project! `cd backbeat`  
-__Step 5__: Install [Bundler](http://gembundler.com/) `gem install bundler`  
-__Step 6__: Install the gems `bundle install`  
-__Step 7__: Install [MongoDB](http://www.mongodb.org/) `brew install mongo`  
-__Step 8__: :money_with_wings:  PROFIT :money_with_wings:   					
+```bash
+$ git clone git@github.groupondev.com:finance-engineering/backbeat.git
+```
 
-__What are you going to do next? You could...__  
-Open a console:  
+2. Install a Ruby version manager if necessary:
+  - [chruby](https://github.com/postmodern/chruby#install)
+  - [rbenv](https://github.com/sstephenson/rbenv/#installation)
+  - [rvm](https://rvm.io/rvm/install/)
+
+3. Install any of the supported Ruby versions:
+  - MRI 1.9.3
+  - JRuby 1.7.3
+
+4. Install [Bundler](http://gembundler.com/) if necessary:
+
+```bash
+$ gem install bundler`
 ```
-bin/console
+
+5. Open up the project: `cd backbeat`
+6. Install the necessary gems:
+
+```bash
+$ bundle install
 ```
-Start the server:  
+
+### Docker
+
+```bash
+$ docker-compose build
+$ docker-compose up
 ```
-bin/server
-script/delayed_job_backbeat start /tmp/backbeat_delayedjob_pid_file
+
+This will create a user from the `BACKBEAT_USER_ID` and `BACKBEAT_CLIENT_URL`
+environment variables set in the `docker-compose.yml`. Change these as necessary.
+
+Run a console:
+
+```bash
+$ bin/docker_console
 ```
-Immediately regret this decision:
+
+### Commands
+
+Run the migrations:
+
+```bash
+$ rake db:create db:migrate
 ```
-cd ..
-rm -rf backbeat
+
+Open a console:
+
+```bash
+$ bin/console
+```
+
+Start the server:
+
+```bash
+$ rackup
+```
+
+Start the sidekiq workers:
+
+```bash
+$ sidekiq -r app.rb -q accounting_backbeat_server_v2
 ```
