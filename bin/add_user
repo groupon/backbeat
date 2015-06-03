@@ -7,7 +7,7 @@ client_url = ENV['BACKBEAT_CLIENT_URL']
 
 unless V2::User.where(id: user_id).exists?
   u = V2::User.new(
-    decision_endpoint:     "#{client_url}/decision",
+    decision_endpoint:     "#{client_url}/activity",
     activity_endpoint:     "#{client_url}/activity",
     notification_endpoint: "#{client_url}/notification"
   )

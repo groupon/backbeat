@@ -46,6 +46,11 @@ Run a console:
 $ bin/docker_console
 ```
 
+### Sample App
+
+The [sample backbeat client](https://github.groupondev.com/c-kbuchanan/backbeat_sample_ruby)
+is already configured to work with a local dockerized backbeat.
+
 ### Commands
 
 Run the migrations:
