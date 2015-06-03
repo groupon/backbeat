@@ -35,6 +35,8 @@ module WorkflowServer
       params = params.dup
       body = WorkflowServer::Helper::HashKeyTransformations.camelize_keys(params).to_json
       ::HTTParty.post(url, body: body, headers: {"Content-Type" => "application/json", "Content-Length" => body.size.to_s})
+    rescue
+      raise WorkflowServer::HttpError.new("Could not POST #{url}")
     end
   end
 end
