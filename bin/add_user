@@ -2,13 +2,15 @@
 
 require_relative '../app'
 
-unless V2::User.where(id: ENV['backbeat_user_id']).exists?
+user_id = ENV['BACKBEAT_USER_ID']
+client_url = ENV['BACKBEAT_CLIENT_URL']
+
+unless V2::User.where(id: user_id).exists?
   u = V2::User.new(
-    id:                    ENV['backbeat_user_id'],
-    decision_endpoint:     ENV['decision_endpoint_url'],
-    activity_endpoint:     ENV['backbeat_activity_url'],
-    notification_endpoint: ENV['notification_endpoint_url']
+    decision_endpoint:     "#{client_url}/decision",
+    activity_endpoint:     "#{client_url}/activity",
+    notification_endpoint: "#{client_url}/notification"
   )
-  u.id = ENV['backbeat_user_id']
+  u.id = user_id
   u.save!
 end

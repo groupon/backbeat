@@ -4,10 +4,8 @@ web:
   ports:
     - 9292:9292
   environment:
-    backbeat_user_id: "9ab09c2f-68d5-4e0e-8844-3637eea44254"
-    decision_endpoint_url: "http://192.168.1.21:9090/api/decision"
-    backbeat_activity_url: "http://192.168.1.21:9090/api/activity"
-    notification_endpoint_url: "http://192.168.1.21:9090/api/notification"
+    BACKBEAT_USER_ID: "9ab09c2f-68d5-4e0e-8844-3637eea44254"
+    BACKBEAT_CLIENT_URL: "http://198.167.129.13:9090/api"
     RACK_ENV: docker
   links:
     - database
