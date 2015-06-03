@@ -67,13 +67,7 @@ module V2
             decisions = validate(args, :decisions, Array, "Args must include a 'decisions' parameter")
             node = find_node
             decisions.each do |dec|
-              node_to_add = dec.merge({
-                legacy_type: dec[:type],
-                options: {
-                  metadata: dec[:metadata],
-                  client_data: dec[:client_data]
-                }
-              })
+              node_to_add = dec.merge({ legacy_type: dec[:type] })
               Server.add_node(current_user, node, node_to_add)
             end
             { success: true }

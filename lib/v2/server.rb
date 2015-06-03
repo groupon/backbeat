@@ -44,10 +44,11 @@ module V2
           workflow_id: parent_node.workflow_id,
           user_id: user.id
         )
+        options = params[:options] || params
         ClientNodeDetail.create!(
           node: node,
-          metadata: params[:options][:metadata] || {},
-          data: params[:options][:client_data] || {}
+          metadata: options[:metadata] || {},
+          data: options[:client_data] || {}
         )
         NodeDetail.create!(
           node: node,
