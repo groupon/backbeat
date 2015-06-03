@@ -5,7 +5,7 @@ web:
     - 9292:9292
   environment:
     BACKBEAT_USER_ID: "9ab09c2f-68d5-4e0e-8844-3637eea44254"
-    BACKBEAT_CLIENT_URL: "http://198.167.129.13:9090/api"
+    BACKBEAT_CLIENT_URL: "http://10.60.119.0:9090/api"
     RACK_ENV: docker
   links:
     - database
