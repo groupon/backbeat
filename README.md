@@ -32,13 +32,19 @@ $ bundle install
 
 ### Docker
 
+The docker build will create a user based on the `BACKBEAT_USER_ID` and `BACKBEAT_CLIENT_URL`
+environment variables set in the `backbeat_user.env` file. Change these as necessary.
+
+Move the `backbeat_user.env.example` file into place:
+
+```bash
+$ mv backbeat_user.env.example backbeat_user.env
+```
+
 ```bash
 $ docker-compose build
 $ docker-compose up
 ```
-
-This will create a user from the `BACKBEAT_USER_ID` and `BACKBEAT_CLIENT_URL`
-environment variables set in the `docker-compose.yml`. Change these as necessary.
 
 Run a console:
 
