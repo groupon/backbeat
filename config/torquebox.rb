@@ -34,6 +34,7 @@ TorqueBox.configure do
     name "backbeat_v2_sidekiq_worker_pool"
     config do
       queues ['accounting_backbeat_server_v2', 'accounting_backbeat_signal_delegation', 'accounting_backbeat_migrator']
+      strict true
       concurrency 1
       index 2
       # We have to use options here because timeout is an implemented method in this scope and raises an error rather then setting the config value correctly
