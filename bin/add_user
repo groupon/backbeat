@@ -1,16 +1,27 @@
 #!/usr/bin/env jruby
 
 require_relative '../app'
+require 'logger'
 
 user_id = ENV['BACKBEAT_USER_ID']
 client_url = ENV['BACKBEAT_CLIENT_URL']
+logger = Logger.new(STDOUT)
+user = V2::User.where(id: user_id).first
 
-unless V2::User.where(id: user_id).exists?
-  u = V2::User.new(
+if user
+  logger.info "User exists: "
+else
+  user = V2::User.new(
     decision_endpoint:     "#{client_url}/activity",
     activity_endpoint:     "#{client_url}/activity",
     notification_endpoint: "#{client_url}/notification"
   )
-  u.id = user_id
-  u.save!
+  user.id = user_id
+  user.save!
+
+  logger.info "Created new user: "
+end
+
+user.attributes.each do |attr, val|
+  logger.info "#{attr}: #{val}"
 end
