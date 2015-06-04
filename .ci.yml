@@ -9,7 +9,7 @@ build:
   before:
     - docker --version
   run:
-    - ./test-ci.sh
+    - bin/test-ci.sh
 <% if( DOTCI_BRANCH =~ /deploy.*/ ) { %>
 plugins:
   - request_deploy:

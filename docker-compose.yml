@@ -1,0 +1,32 @@
+web:
+  build: .
+  command: bin/startup.sh
+  ports:
+    - 9292:9292
+  environment:
+    RACK_ENV: docker
+  env_file: backbeat_user.env
+  links:
+    - database
+    - redis
+
+workers:
+  build: .
+  command: bundle exec sidekiq -r app.rb -q accounting_backbeat_server_v2
+  volumes:
+    - .:/app
+  links:
+    - database
+    - redis
+  environment:
+    RACK_ENV: docker
+
+database:
+  image: library/postgres:9.4
+  environment:
+    POSTGRES_USER: backbeat
+    POSTGRES_PASSWORD: fed
+    POSTGRES_DB: backbeat_docker
+
+redis:
+  image: library/redis

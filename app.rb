@@ -48,15 +48,14 @@ end
 
 # Sidekiq workers use this to pick up jobs and unicorn and delayed job workers need to be able to put stuff into redis
 redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[WorkflowServer::Config.environment.to_s]
+redis_url = "redis://#{redis_config['host']}:#{redis_config['port']}"
 
 Sidekiq.configure_client do |config|
-  # We set the namespace to resque so that we can use all of the resque
-  # monitoring tools to monitor sidekiq too
-  config.redis = {
-    namespace: 'fed_sidekiq',
-    size: 100,
-    url: "redis://#{redis_config['host']}:#{redis_config['port']}"
-  }
+  config.redis = { namespace: 'fed_sidekiq', size: 100, url: redis_url }
+end
+
+Sidekiq.configure_server do |config|
+  config.redis = { namespace: 'fed_sidekiq', url: redis_url }
 end
 
 # set default priority to 2, since this is what we do in the delayed job worker.
