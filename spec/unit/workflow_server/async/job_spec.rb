@@ -61,6 +61,7 @@ describe WorkflowServer::Async::Job do
       WorkflowServer::Workers::SidekiqJobWorker.should_not_receive(:perform_async)
 
       job.invoke_job
+      expect(decision.reload.status).to eq(:resolved)
     end
   end
 
