@@ -129,6 +129,7 @@ module Reports
       data.each_pair do |workflow_id, event_ids|
         begin
           workflow = Workflow.find(workflow_id)
+          next if workflow.migrated?
 
           unless workflow
             event_ids.each do |event_id|
