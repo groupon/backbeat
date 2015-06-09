@@ -23,13 +23,18 @@ module V2
       def self.call(node)
         node.not_complete_children.each do |child_node|
           transitioned = false
+
           child_node.with_lock do
             if child_node.current_server_status.ready?
               StateManager.transition(child_node, current_server_status: :started)
               transitioned = true
             end
           end
-          Server::fire_event(StartNode, child_node) if transitioned
+
+          StateManager.with_rollback(child_node, current_server_status: :ready) do
+            Server::fire_event(StartNode, child_node) if transitioned
+          end
+
           break if child_node.blocking?
         end
         Server.fire_event(NodeComplete, node) if node.all_children_complete?

@@ -109,6 +109,17 @@ describe V2::Events, v2: true do
 
       V2::Events::ScheduleNextNode.call(workflow)
     end
+
+    it "resets the child node back to ready if start node cannot be enqueued" do
+      node.update_attributes(current_server_status: :ready)
+
+      expect(V2::Server).to receive(:fire_event).with(V2::Events::StartNode, node) do
+        raise "Connection Error"
+      end
+
+      expect { V2::Events::ScheduleNextNode.call(workflow) }.to raise_error
+      expect(node.reload.current_server_status).to eq("ready")
+    end
   end
 
   context "StartNode" do
