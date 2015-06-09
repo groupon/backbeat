@@ -31,8 +31,10 @@ module V2
             end
           end
 
-          StateManager.with_rollback(child_node, current_server_status: :ready) do
-            Server::fire_event(StartNode, child_node) if transitioned
+          if transitioned
+            StateManager.with_rollback(child_node, current_server_status: :ready) do
+              Server::fire_event(StartNode, child_node)
+            end
           end
 
           break if child_node.blocking?
