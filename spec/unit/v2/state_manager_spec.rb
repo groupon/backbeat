@@ -8,7 +8,7 @@ describe V2::StateManager, v2: true do
   let(:manager) { V2::StateManager.new(node) }
 
   it "creates a status change when the client status has changed" do
-    manager.update_status(current_client_status: :errored, current_server_status: :errored)
+    manager.transition(current_client_status: :errored, current_server_status: :errored)
     client_status, server_status = node.status_changes.order("status_type asc").last(2)
     expect(client_status.to_status).to eq("errored")
     expect(server_status.to_status).to eq("errored")
@@ -17,7 +17,7 @@ describe V2::StateManager, v2: true do
   end
 
   it "updates the node attributes" do
-    manager.update_status(current_client_status: :received, current_server_status: :ready)
+    manager.transition(current_client_status: :received, current_server_status: :ready)
 
     expect(node.current_client_status).to eq('received')
     expect(node.current_server_status).to eq('ready')
@@ -25,7 +25,7 @@ describe V2::StateManager, v2: true do
 
   it "raised an error if invalid status change" do
     expect {
-      manager.update_status(current_server_status: node.current_server_status)
+      manager.transition(current_server_status: node.current_server_status)
     }.to raise_error(V2::InvalidServerStatusChange)
 
     expect(node.status_changes.count).to eq(0)
@@ -36,7 +36,7 @@ describe V2::StateManager, v2: true do
     error = nil
 
     begin
-      manager.update_status(current_client_status: :processing)
+      manager.transition(current_client_status: :processing)
     rescue V2::InvalidClientStatusChange => e
       error = e
     end
@@ -48,38 +48,56 @@ describe V2::StateManager, v2: true do
   end
 
   it "creates status changes if the transition is successful" do
-    manager.update_status(current_client_status: :received, current_server_status: :ready)
+    manager.transition(current_client_status: :received, current_server_status: :ready)
 
     expect(node.status_changes.count).to eq(2)
   end
 
   it "does not create an status changes if either validation fails" do
     expect {
-      manager.update_status(current_client_status: :received, current_server_status: :complete)
+      manager.transition(current_client_status: :received, current_server_status: :complete)
     }.to raise_error
 
     expect(node.status_changes.count).to eq(0)
   end
 
   it "no-ops if the node is a workflow" do
-    expect(V2::StateManager.call(workflow, current_server_status: :complete)).to be_nil
+    expect(V2::StateManager.transition(workflow, current_server_status: :complete)).to be_nil
   end
 
-  context "rollback_if_error" do
-    it "rolls back status if error occurs" do
-      expect {manager.rollback_if_error(current_client_status: :received, current_server_status: :ready) do
-        raise "random error"
-      end}.to raise_error
+  context "with_rollback" do
+    it "rolls back to the starting status if error occurs" do
+      expect {
+        V2::StateManager.with_rollback(node) do |state|
+          state.transition(current_client_status: :received, current_server_status: :ready)
+          raise "random error"
+        end
+      }.to raise_error
 
       expect(node.status_changes.count).to eq(4)
       expect(node.current_server_status).to eq("pending")
       expect(node.current_client_status).to eq("ready")
     end
 
+    it "rolls back to the provided status if error occurs" do
+      expect {
+        V2::StateManager.with_rollback(node, { current_server_status: :ready }) do |state|
+          raise "random error"
+        end
+      }.to raise_error
+
+      expect(node.status_changes.count).to eq(2)
+      expect(node.current_server_status).to eq("ready")
+      expect(node.current_client_status).to eq("ready")
+    end
+
     it "does not add status changes when state transition error occurs" do
-      expect {manager.rollback_if_error(current_client_status: :ready, current_server_status: :pending) do
-        1 + 1
-      end}.to raise_error(V2::InvalidClientStatusChange)
+      expect {
+        V2::StateManager.with_rollback(node) do |state|
+          state.transition(current_client_status: :ready, current_server_status: :pending)
+          1 + 1
+        end
+      }.to raise_error(V2::InvalidClientStatusChange)
 
       expect(node.status_changes.count).to eq(0)
       expect(node.current_server_status).to eq("pending")

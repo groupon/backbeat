@@ -109,6 +109,17 @@ describe V2::Events, v2: true do
 
       V2::Events::ScheduleNextNode.call(workflow)
     end
+
+    it "resets the child node back to ready if start node cannot be enqueued" do
+      node.update_attributes(current_server_status: :ready)
+
+      expect(V2::Server).to receive(:fire_event).with(V2::Events::StartNode, node) do
+        raise "Connection Error"
+      end
+
+      expect { V2::Events::ScheduleNextNode.call(workflow) }.to raise_error
+      expect(node.reload.current_server_status).to eq("ready")
+    end
   end
 
   context "StartNode" do
@@ -193,7 +204,7 @@ describe V2::Events, v2: true do
 
     it "rolls back if error occurs" do
       expect(V2::Server).to receive(:fire_event).with(V2::Events::MarkChildrenReady, node).and_raise "error"
-      expect{V2::Events::ClientComplete.call(node)}.to raise_error
+      expect { V2::Events::ClientComplete.call(node) }.to raise_error
 
       expect(node.current_server_status).to eq("sent_to_client")
       expect(node.current_client_status).to eq("processing")
@@ -206,7 +217,7 @@ describe V2::Events, v2: true do
     end
 
     it "does nothing if the node does not have a parent" do
-      expect(V2::StateManager).to_not receive(:call)
+      expect(V2::StateManager).to_not receive(:transition)
 
       V2::Events::NodeComplete.call(workflow)
     end

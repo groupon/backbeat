@@ -25,23 +25,18 @@ module V2
       }
     }
 
-    def self.call(node, statuses = {})
-      new(node).update_status(statuses)
+    def self.transition(node, statuses = {})
+      new(node).transition(statuses)
     end
 
-    def self.rollback_if_error(node, statuses = {}, &block)
-      new(node).rollback_if_error(statuses, &block)
-    end
-
-    def rollback_if_error(statuses = {})
-      old_statuses = current_statuses
-      update_status(statuses)
-      yield
-    rescue V2::InvalidClientStatusChange, V2::InvalidServerStatusChange
+    def self.with_rollback(node, rollback_statuses = {})
+      manager = new(node)
+      starting_statuses = manager.current_statuses
+      yield manager
+    rescue InvalidStatusChange
       raise
     rescue => e
-      create_status_changes(old_statuses)
-      node.update_attributes!(old_statuses)
+      manager.rollback(starting_statuses.merge(rollback_statuses))
       raise
     end
 
@@ -49,7 +44,7 @@ module V2
       @node = node
     end
 
-    def update_status(statuses)
+    def transition(statuses)
       return if node.is_a?(Workflow)
 
       [:current_client_status, :current_server_status].each do |status_type|
@@ -62,16 +57,24 @@ module V2
       node.update_attributes!(statuses)
     end
 
+    def rollback(statuses)
+      create_status_changes(statuses)
+      node.update_attributes!(statuses)
+    end
+
+    def current_statuses
+      [:current_client_status, :current_server_status].reduce({}) do |statuses, status_type|
+        statuses[status_type] = node_status(status_type)
+        statuses
+      end
+    end
+
     private
 
     attr_reader :node
 
-    def current_statuses
-      statuses = {}
-      [:current_client_status, :current_server_status].each do |status_type|
-        statuses[status_type] = node.send(status_type).to_sym
-      end
-      statuses
+    def node_status(status_type)
+      node.send(status_type).to_sym
     end
 
     def create_status_changes(new_statuses)
@@ -90,9 +93,9 @@ module V2
         message = "Cannot transition #{status_type} from #{current_status} to #{new_status}"
         if status_type == :current_client_status
           error_data = { current_status: current_status, attempted_status: new_status }
-          raise V2::InvalidClientStatusChange.new(message, error_data)
+          raise InvalidClientStatusChange.new(message, error_data)
         else
-          raise V2::InvalidServerStatusChange.new(message)
+          raise InvalidServerStatusChange.new(message)
         end
       end
     end
@@ -104,10 +107,6 @@ module V2
     def valid_state_changes(status_type)
       VALID_STATE_CHANGES[status_type][node_status(status_type)] +
         VALID_STATE_CHANGES[status_type][:any]
-    end
-
-    def node_status(status_type)
-      node.send(status_type).to_sym
     end
   end
 end

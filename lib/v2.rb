@@ -20,7 +20,9 @@ module V2
     include WorkflowServer::Logger
   end
 
-  class InvalidClientStatusChange < StandardError
+  class InvalidStatusChange < StandardError; end
+  class InvalidServerStatusChange < InvalidStatusChange; end
+  class InvalidClientStatusChange < InvalidStatusChange
     attr_reader :data
 
     def initialize(message, data = {})
@@ -29,6 +31,5 @@ module V2
     end
   end
 
-  class InvalidServerStatusChange < StandardError; end
   class WorkflowComplete < StandardError; end
 end
