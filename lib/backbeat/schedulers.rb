@@ -1,3 +1,5 @@
+require 'backbeat/helpers/instrument'
+
 module Backbeat
   module Schedulers
     class AsyncEvent

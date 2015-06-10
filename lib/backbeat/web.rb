@@ -1,5 +1,4 @@
 require 'grape'
-require 'backbeat'
 require 'backbeat/web/middleware/log'
 require 'backbeat/web/middleware/health'
 require 'backbeat/web/middleware/heartbeat'

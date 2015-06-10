@@ -1,4 +1,4 @@
-require_relative '../app'
+require File.expand_path('../../config/environment',  __FILE__)
 require 'mail'
 
 module Reports

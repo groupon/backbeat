@@ -1,8 +1,8 @@
-require "grape"
-require "backbeat/errors"
-require "backbeat/server"
-require "backbeat/models/workflow"
-require "backbeat/web/helpers/current_user_helper"
+require 'grape'
+require 'backbeat/errors'
+require 'backbeat/server'
+require 'backbeat/models/workflow'
+require 'backbeat/web/helpers/current_user_helper'
 
 module Backbeat
   module Web

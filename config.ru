@@ -1,6 +1,5 @@
-$: << File.expand_path(File.join(__FILE__, ".."))
+require File.expand_path('../config/environment',  __FILE__)
 
-require './app'
 require 'backbeat/web'
 
 use Rack::Lint if Backbeat::Config.environment == :test

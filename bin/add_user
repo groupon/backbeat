@@ -1,6 +1,6 @@
 #!/usr/bin/env jruby
 
-require_relative '../app'
+require File.expand_path('../../config/environment',  __FILE__)
 require 'logger'
 
 user_id = ENV['BACKBEAT_USER_ID']

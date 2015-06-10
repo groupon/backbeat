@@ -1,4 +1,4 @@
-require "backbeat/helpers/colorize"
+require 'backbeat/helpers/colorize'
 
 module Backbeat
   class WorkflowTree

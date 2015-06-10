@@ -1,4 +1,5 @@
 require 'httparty'
+require 'backbeat/client/serializers'
 
 module Backbeat
   module Client

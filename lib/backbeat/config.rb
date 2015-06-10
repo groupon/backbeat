@@ -1,11 +1,14 @@
 module Backbeat
   class Config
     def self.environment
-      @environment ||= get_environment.to_sym
+      @environment ||= (
+        env = ENV.fetch('RACK_ENV', 'development')
+        env == 'test' ? 'development' : env
+      )
     end
 
     def self.root
-      @root ||= get_root
+      @root ||= File.expand_path('../../../', __FILE__)
     end
 
     def self.log_file
@@ -16,36 +19,22 @@ module Backbeat
       @options ||= options_yml[environment]
     end
 
-    def self.option(field)
-      options[field]
-    end
-
     def self.options_yml
-      options = YAML.load(File.read(File.join(root, "config", "options.yml")))
+      options = YAML.load_file("#{root}/config/options.yml")
       options.default_proc = ->(h, k) { h.key?(k.to_s) ? h[k.to_s] : nil }
       options
     end
 
-    def self.get_environment
-      return ENV['RACK_ENV'] if ENV['RACK_ENV']
-
-      hostname = `hostname`.chomp
-      ENV['RACK_ENV'] = if hostname.match /accounting/
-        case hostname
-        when /uat/, /fed2-tat/
-          'uat'
-        when /staging/, /fed1-tat/
-          'staging'
-        else
-          'production'
-        end
-      else
-        'development'
-      end
+    def self.database
+      @database ||= YAML.load_file("#{root}/config/database.yml")[environment.to_s]
     end
 
-    def self.get_root
-      File.expand_path(File.join(File.dirname(__FILE__), "..", ".."))
+    def self.redis
+      @redis ||= (
+        config = YAML.load_file("#{root}/config/redis.yml")[environment.to_s]
+        config['url'] = "redis://#{config['host']}:#{config['port']}"
+        config
+      )
     end
   end
 end

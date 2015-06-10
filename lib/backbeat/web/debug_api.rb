@@ -1,7 +1,7 @@
-require "grape"
-require "backbeat/models/node"
-require "backbeat/models/workflow"
-require "backbeat/web/helpers/current_user_helper"
+require 'grape'
+require 'backbeat/models/node'
+require 'backbeat/models/workflow'
+require 'backbeat/web/helpers/current_user_helper'
 
 module Backbeat
   module Web

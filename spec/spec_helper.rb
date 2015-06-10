@@ -1,10 +1,12 @@
-$: << File.expand_path(File.join(__FILE__, ".."))
 ENV['RACK_ENV'] ||= "test"
+
+require File.expand_path('../../config/environment',  __FILE__)
+
+$: << File.expand_path('../', __FILE__)
 
 require 'bundler'
 Bundler.setup(:test)
 
-require './app'
 require 'rspec'
 require 'rack/test'
 require 'factory_girl'

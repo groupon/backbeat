@@ -1,5 +1,5 @@
 require 'spec_helper'
-require "spec/helper/request_helper"
+require 'helper/request_helper'
 
 describe Backbeat do
   include Rack::Test::Methods

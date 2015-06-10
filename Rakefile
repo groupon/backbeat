@@ -1,6 +1,7 @@
 #!/usr/bin/env rake
 
-require './app'
+require File.expand_path('../config/environment',  __FILE__)
+
 require 'rake'
 require 'torquebox-rake-support'
 
@@ -43,7 +44,8 @@ require "foreigner"
 
 module DB
   def self.config
-    migration_env = Backbeat.env == "production" ? "production_dba" : Backbeat.env
+    env = Backbeat::Config.environment
+    migration_env = env == "production" ? "production_dba" : env
     @config ||= YAML::load(IO.read('config/database.yml'))[migration_env]
   end
 
