@@ -76,10 +76,8 @@ module V2
     }
 
     def self.fire_event(event, node, scheduler = STRATEGIES[event])
-      info(status: :fire_event_started, node: node.id, event: event.name)
       return if node.deactivated?
       scheduler.call(event, node)
-      info(status: :fire_event_finished, node: node.id, event: event.name)
     end
   end
 end
