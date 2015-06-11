@@ -1,15 +1,15 @@
-$: << File.expand_path(File.join(__FILE__, "..")) # Hack here since require_relative 'app' doesn't work
+$: << File.expand_path(File.join(__FILE__, ".."))
 
-require 'app'
+require './app'
+require 'backbeat/web'
 
+use Rack::Lint if Backbeat::Config.environment == :test
 use ActiveRecord::ConnectionAdapters::ConnectionManagement
-use Api::Middleware::Log
-use Api::Middleware::Heartbeat
-use Api::Middleware::Health
-use Api::Middleware::SidekiqStats
-use Api::Middleware::DelayedJobStats
-use Rack::Lint if WorkflowServer::Config.environment == :test
-use Api::Middleware::CamelCase
-use Api::Middleware::Authenticate
+use Backbeat::Web::Middleware::Log
+use Backbeat::Web::Middleware::Heartbeat
+use Backbeat::Web::Middleware::Health
+use Backbeat::Web::Middleware::SidekiqStats
+use Backbeat::Web::Middleware::CamelCase
+use Backbeat::Web::Middleware::Authenticate
 
-run Api::App
+run Backbeat::API

@@ -22,7 +22,7 @@ module Reports
     end
 
     def inconsistent_nodes(options)
-      V2::Node
+      Backbeat::Node
         .where("fires_at > ?", options[:lower_bound])
         .where("fires_at < ?", options[:upper_bound])
         .where("(current_server_status <> 'complete' OR current_client_status <> 'complete') AND current_server_status <> 'deactivated'")

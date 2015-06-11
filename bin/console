@@ -6,11 +6,8 @@ require 'irb'
 require 'redis-namespace'
 require_relative '../script/console_helpers.rb'
 
-mongo_path = File.expand_path(File.join(WorkflowServer::Config.root, "config", "mongoid.yml"))
-Mongoid.load!(mongo_path, WorkflowServer::Config.environment)
-Moped.logger = Logger.new($stdout)
-Moped.logger.level = Logger::DEBUG
-
-include WorkflowServer::Models
+User = Backbeat::User
+Workflow = Backbeat::Workflow
+Node = Backbeat::Node
 
 IRB.start

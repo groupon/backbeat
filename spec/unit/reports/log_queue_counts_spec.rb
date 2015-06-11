@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'webmock/rspec'
 require_relative '../../../reports/log_counts.rb'
 
-describe Reports::LogCounts, v2: true do
+describe Reports::LogCounts do
   context "perform" do
     it "calls count methods" do
       expect(subject).to receive(:log_queue_counts)
@@ -38,7 +38,7 @@ describe Reports::LogCounts, v2: true do
 
     it "logs the number of nodes in ready state" do
       node_arel = double
-      expect(V2::Node).to receive(:where).with(current_server_status: :ready).and_return(node_arel)
+      expect(Backbeat::Node).to receive(:where).with(current_server_status: :ready).and_return(node_arel)
       expect(node_arel).to receive(:count).and_return(3)
       expected_info(:nodes, :ready_nodes, 3)
       subject.send(:log_ready_nodes)

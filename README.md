@@ -82,3 +82,6 @@ Start the sidekiq workers:
 ```bash
 $ sidekiq -r app.rb -q accounting_backbeat_server_v2
 ```
+
+### Gitbook
+[Backbeat Gitbook](https://github.groupondev.com/pages/finance-engineering/html/index.html)

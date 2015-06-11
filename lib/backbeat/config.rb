@@ -1,0 +1,51 @@
+module Backbeat
+  class Config
+    def self.environment
+      @environment ||= get_environment.to_sym
+    end
+
+    def self.root
+      @root ||= get_root
+    end
+
+    def self.log_file
+      ENV['LOG_FILE'] || options[:log]
+    end
+
+    def self.options
+      @options ||= options_yml[environment]
+    end
+
+    def self.option(field)
+      options[field]
+    end
+
+    def self.options_yml
+      options = YAML.load(File.read(File.join(root, "config", "options.yml")))
+      options.default_proc = ->(h, k) { h.key?(k.to_s) ? h[k.to_s] : nil }
+      options
+    end
+
+    def self.get_environment
+      return ENV['RACK_ENV'] if ENV['RACK_ENV']
+
+      hostname = `hostname`.chomp
+      ENV['RACK_ENV'] = if hostname.match /accounting/
+        case hostname
+        when /uat/, /fed2-tat/
+          'uat'
+        when /staging/, /fed1-tat/
+          'staging'
+        else
+          'production'
+        end
+      else
+        'development'
+      end
+    end
+
+    def self.get_root
+      File.expand_path(File.join(File.dirname(__FILE__), "..", ".."))
+    end
+  end
+end

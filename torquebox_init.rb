@@ -1,1 +1,1 @@
-require 'app'
+require 'backbeat/app'

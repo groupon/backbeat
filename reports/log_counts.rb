@@ -1,7 +1,7 @@
 require_relative 'report_base'
 module Reports
   class LogCounts < ReportBase
-    include WorkflowServer::Logger
+    include Backbeat::Logging
 
     def perform( options = {} )
       log_queue_counts
@@ -20,7 +20,7 @@ module Reports
     end
 
     def log_ready_nodes
-      ready_nodes_count = V2::Node.where(current_server_status: :ready).count
+      ready_nodes_count = Backbeat::Node.where(current_server_status: :ready).count
       log_count(:nodes, :ready_nodes, ready_nodes_count)
     end
 

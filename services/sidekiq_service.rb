@@ -2,6 +2,7 @@ require 'sidekiq'
 require 'sidekiq-failures'
 require 'celluloid'
 require_relative '../app'
+require 'backbeat/workers/middleware/transaction_id'
 
 module Sidekiq
   class Shutdown < RuntimeError; end
@@ -26,13 +27,12 @@ module Services
       redis_config = YAML::load_file("./config/redis.yml")[WorkflowServer::Config.environment.to_s]
 
       Sidekiq.configure_server do |config|
-        # We set the namespace to resque so that we can use all of the resque monitoring tools to monitor sidekiq too
         config.redis = { namespace: 'fed_sidekiq', url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
         config.poll_interval = 5
         config.failures_max_count = false
         config.failures_default_mode = :exhausted
         config.server_middleware do |chain|
-          chain.add WorkflowServer::Middlewares::TransactionId
+          chain.add Backbeat::Workers::Middleware::TransactionId
           chain.add Kiqstand::Middleware
         end
       end
@@ -52,8 +52,8 @@ module Services
       Sidekiq.options[:queues] = Sidekiq.options[:queues].to_a
       raise 'Sidekiq workers must have at least 1 queue!' if Sidekiq.options[:queues].size < 1
 
-      Sidekiq::Logging.logger = WorkflowServer::SidekiqLogger
-      Celluloid.logger = WorkflowServer::SidekiqLogger
+      Sidekiq::Logging.logger = Backbeat::Logging::SidekiqLogger
+      Celluloid.logger = Backbeat::Logging::SidekiqLogger
 
       require 'sidekiq/launcher'
 

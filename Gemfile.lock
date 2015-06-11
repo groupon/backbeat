@@ -1,52 +1,3 @@
-GIT
-  remote: https://github.com/mongoid/mongoid.git
-  revision: 28ee2d96707f607b12235bddf13f9fbeea310f74
-  branch: 3.1.0-stable
-  specs:
-    mongoid (3.1.5)
-      activemodel (~> 3.2)
-      moped (~> 1.4)
-      origin (~> 1.0)
-      tzinfo (~> 0.3.29)
-
-GIT
-  remote: https://github.com/mooremo/mongoid-locker.git
-  revision: 50158725657c21d7f7acb4fb22e7f98a5c39b88d
-  specs:
-    mongoid-locker (0.2.1)
-      mongoid (>= 2.4, < 3.2)
-
-GIT
-  remote: https://github.com/nchainani/delayed_job_mongoid.git
-  revision: 721d5309c322d41a9daa9abaaa8b158ee8f3e6a9
-  branch: replace_find_and_modify
-  specs:
-    delayed_job_mongoid (2.0.0)
-      delayed_job (~> 3.0)
-      mongoid (~> 3.0)
-
-GIT
-  remote: https://github.groupondev.com/finance-engineering/application_transaction.git
-  revision: 20acb0fabd1d4e0445164fda14e97dca8ff8ef30
-  specs:
-    application_transaction (0.0.1)
-      activesupport
-      awesome_print
-
-GIT
-  remote: https://github.groupondev.com/finance-engineering/external_service.git
-  revision: 6063d8f074d7f578bd459f150eaac4fc8703106b
-  specs:
-    external_service (0.0.1)
-      rack
-
-GIT
-  remote: https://github.groupondev.com/groupon-api/service-discovery.git
-  revision: 90abd291b4813d609943b4b3759938059d460cdc
-  specs:
-    service-discovery (0.3.0)
-      multi_json
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -82,8 +33,6 @@ GEM
     crack (0.4.1)
       safe_yaml (~> 0.9.0)
     database_cleaner (1.4.0)
-    delayed_job (3.0.5)
-      activesupport (~> 3.0)
     descendants_tracker (0.0.1)
     diff-lcs (1.2.5)
     edn (1.0.0)
@@ -128,8 +77,11 @@ GEM
       treetop (~> 1.4.8)
     method_source (0.8.2)
     mime-types (1.25)
-    mongoid-indifferent-access (1.0.0)
-      mongoid
+    mongoid (3.1.7)
+      activemodel (~> 3.2)
+      moped (~> 1.4)
+      origin (~> 1.0)
+      tzinfo (~> 0.3.29)
     moped (1.5.1)
     multi_json (1.9.2)
     multi_xml (0.5.5)
@@ -156,8 +108,6 @@ GEM
       rack (>= 1.0)
     raindrops (0.12.0)
     rake (10.1.0)
-    rdoc (3.12.2)
-      json (~> 1.4)
     redis (3.2.1)
     redis-namespace (1.5.2)
       redis (~> 3.0, >= 3.0.4)
@@ -182,10 +132,6 @@ GEM
       redis-namespace (>= 1.3.1)
     sidekiq-failures (0.4.3)
       sidekiq (>= 2.16.0)
-    simplecov (0.7.1)
-      multi_json (~> 1.0)
-      simplecov-html (~> 0.7.1)
-    simplecov-html (0.7.1)
     slop (3.5.0)
     spoon (0.0.4)
       ffi
@@ -238,7 +184,6 @@ GEM
       kgio (~> 2.6)
       rack
       raindrops (~> 0.7)
-    uuidtools (2.1.4)
     virtus (0.5.5)
       backports (~> 3.3)
       descendants_tracker (~> 0.0.1)
@@ -260,12 +205,9 @@ DEPENDENCIES
   activerecord
   activerecord-jdbcpostgresql-adapter
   activerecord-postgresql-adapter
-  application_transaction!
   awesome_print
   database_cleaner
-  delayed_job_mongoid!
   enumerize
-  external_service!
   factory_girl
   foreigner
   grape
@@ -274,26 +216,19 @@ DEPENDENCIES
   jruby-openssl
   kiqstand
   mail
-  mongoid!
-  mongoid-indifferent-access
-  mongoid-locker!
   pry
   rack-test
   rake
-  rdoc (~> 3.4)
   rspec
   rspec-sidekiq
-  service-discovery!
   sidekiq (~> 3.1.0)
   sidekiq-failures (~> 0.4.0)
-  simplecov
   timecop
   torquebox (= 3.0.0)
   torquebox-capistrano-support
   torquebox-messaging (= 3.0.0)
   torquebox-server
   unicorn
-  uuidtools
   warbler
   webmock
   zip

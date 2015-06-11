@@ -1,2 +1,0 @@
-#!/bin/sh
-exec /usr/local/etc/init.d/delayed_job_backbeat start
