@@ -61,7 +61,6 @@ module V2
     end
 
     STRATEGIES = {
-      Events::ChildrenReady => Schedulers::PerformEvent,
       Events::ClientComplete => Schedulers::PerformEvent,
       Events::ClientError => Schedulers::PerformEvent,
       Events::ClientProcessing => Schedulers::PerformEvent,

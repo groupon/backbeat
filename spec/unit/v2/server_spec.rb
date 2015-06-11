@@ -20,7 +20,7 @@ describe V2::Server, v2: true do
 
   context ".fire_event" do
     it "schedules the event with the node" do
-      expect(V2::Server.fire_event(MockEvent, node, MockScheduler)).to eq(true)
+      expect(V2::Server.fire_event(MockEvent, node, MockScheduler)).to eq("test_node_called")
     end
 
     it "noops if node is deactivated" do

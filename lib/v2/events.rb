@@ -9,13 +9,7 @@ module V2
             current_client_status: :ready
           )
         end
-        Server::fire_event(ChildrenReady, node)
-      end
-    end
-
-    class ChildrenReady
-      def self.call(node)
-        Server::fire_event(ScheduleNextNode, node) if node.all_children_ready?
+        Server.fire_event(ScheduleNextNode, node)
       end
     end
 
@@ -33,7 +27,7 @@ module V2
 
           if transitioned
             StateManager.with_rollback(child_node, current_server_status: :ready) do
-              Server::fire_event(StartNode, child_node)
+              Server.fire_event(StartNode, child_node)
             end
           end
 

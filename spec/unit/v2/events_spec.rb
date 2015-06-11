@@ -39,28 +39,10 @@ describe V2::Events, v2: true do
       expect(node.current_client_status).to eq("complete")
     end
 
-    it "calls ChildrenReady" do
-      expect(V2::Server).to receive(:fire_event).with(V2::Events::ChildrenReady, workflow)
-
-      V2::Events::MarkChildrenReady.call(workflow)
-    end
-  end
-
-  context "ChildrenReady" do
     it "calls ScheduleNextNode if all children are ready" do
-      node.update_attributes(current_server_status: :ready)
-
       expect(V2::Server).to receive(:fire_event).with(V2::Events::ScheduleNextNode, workflow)
 
-      V2::Events::ChildrenReady.call(workflow)
-    end
-
-    it "does not call ScheduleNextNode if children are not ready" do
-      node.update_attributes(current_server_status: :pending)
-
-      expect(V2::Server).to_not receive(:fire_event).with(V2::Events::ScheduleNextNode, workflow)
-
-      V2::Events::ChildrenReady.call(workflow)
+      V2::Events::MarkChildrenReady.call(workflow)
     end
   end
 
