@@ -108,7 +108,7 @@ module V2
 
     class DeactivatePreviousNodes
       def self.call(node)
-        WorkflowTree.new(node.workflow).each(root: false) do |child_node|
+        WorkflowTree.new(node.workflow).traverse(root: false) do |child_node|
           StateManager.transition(child_node, current_server_status: :deactivated) if child_node.seq < node.seq
         end
       end
@@ -116,7 +116,7 @@ module V2
 
     class ResetNode
       def self.call(node)
-        WorkflowTree.new(node).each(root: false) do |child_node|
+        WorkflowTree.new(node).traverse(root: false) do |child_node|
           StateManager.transition(child_node, current_server_status: :deactivated)
         end
       end
