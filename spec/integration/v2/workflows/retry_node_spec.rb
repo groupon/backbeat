@@ -90,6 +90,33 @@ describe V2::Api, v2: true do
         "current_server_status" => "sent_to_client"
       )
     end
+
+    it "resets the node to handle errors in weird states" do
+      node = v2_workflow.children.first
+
+      2.times do
+        FactoryGirl.create(
+          :v2_node,
+          parent: node,
+          user: v2_user,
+          workflow: v2_workflow,
+          current_server_status: :ready,
+          current_client_status: :ready,
+        )
+      end
+
+      allow(V2::Client).to receive(:perform_action) do |node|
+        V2::Server.fire_event(V2::Events::ClientComplete, node)
+      end
+
+      put "v2/events/#{node.id}/status/errored"
+
+      V2::Workers::AsyncWorker.drain
+      node.reload
+
+      expect(node.current_server_status).to eq("complete")
+      expect(node.current_client_status).to eq("complete")
+    end
   end
 
   context "server error" do
