@@ -3,7 +3,10 @@
 require File.expand_path('../config/environment',  __FILE__)
 
 require 'rake'
-require 'torquebox-rake-support'
+
+if defined?(Torquebox)
+  require 'torquebox-rake-support'
+end
 
 namespace :roller do
   desc "build a new roller package.  pass PACKAGE=<package_name> on cl"

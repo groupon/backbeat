@@ -53,12 +53,13 @@ module Backbeat
         end
 
         get "/" do
+          subject = params[:subject].is_a?(String) ? params[:subject] : params[:subject].to_json
           Workflow.where(
             migrated: true,
             user_id: current_user.id,
+            subject: subject,
             decider: params[:decider],
-            name: params[:workflow_type],
-            subject: params[:subject]
+            name: params[:workflow_type]
           ).first!
         end
 
@@ -80,7 +81,7 @@ module Backbeat
 
         get "/:id/nodes" do
           search_params = params.slice(*VALID_NODE_FILTERS)
-          find_workflow.nodes.where(search_params).map { |node| Client::NodeSerializer.call(node) }
+          find_workflow.nodes.where(search_params.to_h).map { |node| Client::NodeSerializer.call(node) }
         end
       end
     end

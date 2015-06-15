@@ -15,7 +15,11 @@ module Backbeat
     end
 
     def self.find_workflow(params, user)
-      Workflow.where(name: params[:workflow_type], subject: params[:subject].to_json, user_id: user.id).first
+      Workflow.where(
+        name: params[:workflow_type],
+        subject: params[:subject].to_json,
+        user_id: user.id
+      ).first
     end
 
     def self.signal(workflow, params)

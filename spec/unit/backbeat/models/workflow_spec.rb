@@ -68,7 +68,7 @@ describe Backbeat::Workflow do
 
   context "print_tree" do
     it "prints the tree of the node" do
-      output = capture(:stdout) do
+      output = Capture.with_out_capture do
         workflow.print_tree
       end
 

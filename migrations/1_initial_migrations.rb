@@ -2,31 +2,26 @@ class InitialMigrations < ActiveRecord::Migration
   def change
     enable_extension('uuid-ossp')
 
-    create_table :users, id: false do |t|
-      t.uuid   :id,                    primary_key: true, null: false
+    create_table :users, id: :uuid do |t|
       t.string :decision_endpoint,     null: false
       t.string :activity_endpoint,     null: false
       t.string :notification_endpoint, null: false
     end
     execute("alter table users alter column id set default uuid_generate_v4()")
-    add_index(:users, :id, unique: true)
 
-    create_table :workflows, id: false do |t|
-      t.uuid    :id,       primary_key: true, null: false
+    create_table :workflows, id: :uuid do |t|
       t.string  :name,     null: false
       t.string  :decider
       t.text    :subject
       t.uuid    :user_id,  null: false
       t.boolean :migrated, default: false
       t.boolean :complete, default: false
-      t.timestamps
+      t.timestamps null: false
     end
     execute("alter table workflows alter column id set default uuid_generate_v4()")
-    add_index(:workflows, :id, unique: true)
     add_foreign_key(:workflows, :users)
 
-    create_table :nodes, id: false do |t|
-      t.uuid     :id,                    primary_key: true, null: false
+    create_table :nodes, id: :uuid do |t|
       t.string   :mode,                  null: false
       t.string   :current_server_status, null: false
       t.string   :current_client_status, null: false
@@ -35,11 +30,10 @@ class InitialMigrations < ActiveRecord::Migration
       t.uuid     :parent_id
       t.uuid     :workflow_id,           null: false
       t.uuid     :user_id,               null: false
-      t.timestamps
+      t.timestamps null: false
     end
     execute("alter table nodes alter column id set default uuid_generate_v4()")
     execute("alter table nodes add column seq serial")
-    add_index(:nodes, :id, unique: true)
     add_index(:nodes, :seq, unique: true)
     add_index(:nodes, :workflow_id)
     add_index(:nodes, :parent_id)

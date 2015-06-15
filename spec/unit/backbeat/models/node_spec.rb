@@ -1,4 +1,5 @@
 require "spec_helper"
+require "helper/capture"
 
 describe Backbeat::Node do
 
@@ -90,7 +91,7 @@ describe Backbeat::Node do
 
   context "print_tree" do
     it "prints the tree of the node" do
-      output = capture(:stdout) do
+      output = Capture.with_out_capture do
         node.print_tree
       end
 

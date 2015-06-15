@@ -5,7 +5,7 @@ gem 'rake'
 gem 'grape'
 gem 'httparty'
 
-gem 'activerecord', require: 'active_record'
+gem 'activerecord', '~> 4.1.0', require: 'active_record'
 platform :jruby do
   gem 'activerecord-jdbcpostgresql-adapter'
   gem 'jdbc-postgres'

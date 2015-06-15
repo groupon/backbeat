@@ -21,18 +21,23 @@ describe Backbeat::Web::WorkflowsApi do
 
   context "POST /workflows" do
     it "returns 201 and creates a new workflow when all parameters present" do
-      response = post 'v2/workflows', {workflow_type: "WFType", subject: {subject_klass: "PaymentTerm", subject_id: 100}, decider: "PaymentDecider"}
+      workflow_data = {
+        workflow_type: "WFType",
+        subject: { subject_klass: "PaymentTerm", subject_id: 100 },
+        decider: "PaymentDecider"
+      }
+      response = post 'v2/workflows', workflow_data
 
       expect(response.status).to eq(201)
 
-      json_response = JSON.parse(response.body)
-      wf_in_db = Backbeat::Workflow.find(json_response['id'])
+      first_response = JSON.parse(response.body)
+      wf_in_db = Backbeat::Workflow.find(first_response['id'])
 
       expect(wf_in_db).to_not be_nil
-      expect(wf_in_db.subject).to eq({"subject_klass" => "PaymentTerm", "subject_id" => "100"})
+      expect(wf_in_db.subject).to eq({ "subject_klass" => "PaymentTerm", "subject_id" => "100" })
 
-      response = post 'v2/workflows', {workflow_type: "WFType", subject: {subject_klass: "PaymentTerm", subject_id: 100}, decider: "PaymentDecider"}
-      expect(json_response['id']).to eq(JSON.parse(response.body)['id'])
+      response = post 'v2/workflows', workflow_data
+      expect(first_response['id']).to eq(JSON.parse(response.body)['id'])
     end
   end
 

@@ -3,8 +3,6 @@ require 'backbeat/models/child_queries'
 
 module Backbeat
   class Node < ActiveRecord::Base
-    self.primary_key = :id
-
     extend Enumerize
 
     default_scope { order("seq asc") }
