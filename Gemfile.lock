@@ -69,23 +69,13 @@ GEM
     json (1.8.2)
     json (1.8.2-java)
     kgio (2.8.1)
-    kiqstand (1.1.0)
-      mongoid (~> 3.1)
-      moped (~> 1.4)
     mail (2.5.4)
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
     method_source (0.8.2)
     mime-types (1.25)
-    mongoid (3.1.7)
-      activemodel (~> 3.2)
-      moped (~> 1.4)
-      origin (~> 1.0)
-      tzinfo (~> 0.3.29)
-    moped (1.5.1)
     multi_json (1.9.2)
     multi_xml (0.5.5)
-    origin (1.1.0)
     parslet (1.4.0)
       blankslate (~> 2.0)
     pg (0.18.1)
@@ -214,7 +204,6 @@ DEPENDENCIES
   httparty
   jdbc-postgres
   jruby-openssl
-  kiqstand
   mail
   pry
   rack-test

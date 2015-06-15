@@ -1,7 +1,5 @@
 source ENV.fetch('GEM_SOURCE', 'https://rubygems.org/')
 
-ruby '1.9.3'
-
 gem 'rake'
 
 gem 'grape'
@@ -22,7 +20,6 @@ gem 'awesome_print'
 gem 'mail'
 gem 'sidekiq', '~> 3.1.0'
 gem 'sidekiq-failures', '~> 0.4.0'
-gem 'kiqstand'
 
 platforms :ruby do
   gem 'unicorn'
