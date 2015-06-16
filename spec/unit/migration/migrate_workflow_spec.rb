@@ -304,6 +304,20 @@ describe Migration::MigrateWorkflow, v2: true do
 
       expect(v2_workflow.children.count).to eq(0)
     end
+
+    it "migrates resolved nodes" do
+      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
+      v1_timer = FactoryGirl.create(
+        :activity,
+        parent: v1_decision,
+        workflow: v1_workflow,
+        status: :resolved
+      )
+
+      Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, migrate_all: true)
+
+      expect(v2_workflow.nodes.count).to eq(2)
+    end
   end
 
   context "workflows that require a full decision history" do

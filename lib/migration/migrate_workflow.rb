@@ -126,13 +126,14 @@ module Migration
         node.status.to_sym == :complete ||
           (node.status.to_sym == :scheduled && (node.fires_at - Time.now) > 1.hour)
       else
-        node.status.to_sym == :complete
+        status = node.status.to_sym
+        status == :complete || status == :resolved
       end
     end
 
     def self.client_status(v1_node)
       case v1_node.status
-      when :complete
+      when :complete, :resolved
         :complete
       when :scheduled
         :ready
@@ -142,7 +143,7 @@ module Migration
     def self.server_status(v1_node)
       return :deactivated if v1_node.inactive
       case v1_node.status
-      when :complete
+      when :complete, :resolved
         :complete
       when :scheduled
         :started
