@@ -51,7 +51,7 @@ redis_config = YAML::load_file("#{File.dirname(__FILE__)}/config/redis.yml")[Wor
 redis_url = "redis://#{redis_config['host']}:#{redis_config['port']}"
 
 Sidekiq.configure_client do |config|
-  config.redis = { namespace: 'fed_sidekiq', size: 100, url: redis_url }
+  config.redis = { namespace: 'fed_sidekiq', size: 100, url: redis_url, network_timeout: 5 }
 end
 
 Sidekiq.configure_server do |config|
