@@ -6,6 +6,7 @@ module Backbeat
     class AsyncWorker
       include Sidekiq::Worker
       include Logging
+      extend Logging
 
       sidekiq_options retry: false, queue: Config.options[:async_queue_v2]
 

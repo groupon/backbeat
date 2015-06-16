@@ -20,7 +20,4 @@ require 'backbeat/models/status_change'
 require 'backbeat/models/workflow'
 
 module Backbeat
-  class Logger
-    include Logging
-  end
 end

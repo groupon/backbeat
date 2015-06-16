@@ -1,6 +1,6 @@
 module Backbeat
   module Instrument
-    include Logging
+    extend Logging
 
     def self.instrument(event, *args)
       t0 = Time.now

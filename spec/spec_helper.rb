@@ -20,7 +20,7 @@ require 'securerandom'
 unless ENV["CONSOLE_LOG"]
   log_dir = File.expand_path("../../log", __FILE__)
   Dir.mkdir(log_dir) unless File.exists?(log_dir)
-  Backbeat::Logging.set_logger(Logger.new(File.open(File.expand_path("../../log/test.log", __FILE__), "a+")))
+  Backbeat::Logger.set_logger(Logger.new(File.open(File.expand_path("../../log/test.log", __FILE__), "a+")))
 end
 
 RACK_ROOT = File.expand_path(File.join(__FILE__,'..'))

@@ -5,10 +5,10 @@ module Backbeat
     module Middleware
       class TransactionId
         def call(*args)
-          Backbeat::Logging.tid(:set)
+          Backbeat::Logger.tid(:set)
           yield
         ensure
-          Backbeat::Logging.tid(:clear)
+          Backbeat::Logger.tid(:clear)
         end
       end
     end

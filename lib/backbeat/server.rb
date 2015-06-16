@@ -1,6 +1,6 @@
 module Backbeat
   class Server
-    include Logging
+    extend Logging
 
     def self.create_workflow(params, user)
       find_workflow(params, user) || Workflow.create!(

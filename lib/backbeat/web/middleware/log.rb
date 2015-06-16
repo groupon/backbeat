@@ -12,7 +12,7 @@ module Backbeat
 
         def call(env)
           t0 = Time.now
-          tid = Backbeat::Logging.tid(:set)
+          tid = Backbeat::Logger.tid(:set)
           info "START - Endpoint #{env['PATH_INFO']}"
           envs = env['PATH_INFO'].split("/")
           status, headers, body = @app.call(env)
@@ -26,7 +26,7 @@ module Backbeat
             route_info: route_info(env)})
 
           headers[TRANSACTION_ID_HEADER] = tid
-          Backbeat::Logging.tid(:clear)
+          Backbeat::Logger.tid(:clear)
           [status, headers, body]
         end
 

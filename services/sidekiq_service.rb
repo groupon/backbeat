@@ -52,8 +52,8 @@ module Services
       Sidekiq.options[:queues] = Sidekiq.options[:queues].to_a
       raise 'Sidekiq workers must have at least 1 queue!' if Sidekiq.options[:queues].size < 1
 
-      Sidekiq::Logging.logger = Backbeat::Logging::SidekiqLogger
-      Celluloid.logger = Backbeat::Logging::SidekiqLogger
+      Sidekiq::Logger.logger = Backbeat::SidekiqLogger
+      Celluloid.logger = Backbeat::SidekiqLogger
 
       require 'sidekiq/launcher'
 
