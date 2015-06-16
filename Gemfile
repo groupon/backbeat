@@ -2,7 +2,7 @@ source ENV.fetch('GEM_SOURCE', 'https://rubygems.org/')
 
 gem 'rake'
 
-gem 'grape'
+gem 'grape', '~> 0.11.0'
 gem 'httparty'
 
 gem 'activerecord', '~> 4.1.0', require: 'active_record'

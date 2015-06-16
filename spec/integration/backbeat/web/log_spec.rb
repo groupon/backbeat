@@ -37,7 +37,7 @@ describe Backbeat::Web::Middleware::Log do
               :version=>'v2',
               :namespace=>"/workflows",
               :method=>"GET",
-              :path=>"/:version/workflows/:id(.:format)"
+              :path=>"/:version/workflows/:id"
             }
           }
         }.to_json)

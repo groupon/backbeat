@@ -80,8 +80,8 @@ module Backbeat
         VALID_NODE_FILTERS = [:current_server_status, :current_client_status]
 
         get "/:id/nodes" do
-          search_params = params.slice(*VALID_NODE_FILTERS)
-          find_workflow.nodes.where(search_params.to_h).map { |node| Client::NodeSerializer.call(node) }
+          search_params = params.slice(*VALID_NODE_FILTERS).to_hash
+          find_workflow.nodes.where(search_params).map { |node| Client::NodeSerializer.call(node) }
         end
       end
     end
