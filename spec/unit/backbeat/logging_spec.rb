@@ -6,12 +6,10 @@ describe Backbeat::Logger do
     extend Backbeat::Logging
   end
 
-  it "should handle multiple string encodings" do
-    if RUBY_PLATFORM == "java"
-      test_message = "Rüby".encode("ASCII-8BIT")
-      expect {
-        TestLogger.debug(test_message)
-      }.to_not raise_error
-    end
+  xit "should handle multiple string encodings" do
+    test_message = "Rüby".encode("ASCII-8BIT")
+    expect {
+      TestLogger.debug(test_message)
+    }.to_not raise_error
   end
 end
