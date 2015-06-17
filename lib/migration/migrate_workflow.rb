@@ -36,7 +36,7 @@ module Migration
           end
         end
         v1_workflow.get_children.each do |signal|
-          if has_running_timers?(signal) || options[:migrate_all]
+          if has_special_cases?(signal) || options[:migrate_all]
             migrate_signal(signal, v2_workflow)
           else
             migrate_top_node(signal, v2_workflow)
@@ -163,10 +163,11 @@ module Migration
       end
     end
 
-    def self.has_running_timers?(node)
+    def self.has_special_cases?(node)
       return true if node.is_a?(WorkflowServer::Models::Timer) && node.status != :complete
+      return true if node.is_a?(WorkflowServer::Models::Workflow)
       !!node.children.all.to_a.find do |c|
-        has_running_timers?(c)
+        has_special_cases?(c)
       end
     end
   end
