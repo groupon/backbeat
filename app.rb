@@ -29,6 +29,7 @@ end
 require 'api'
 require 'workflow_server'
 require 'v2'
+require 'script/console_helpers.rb' if $0 == 'bin/console'
 
 I18n.enforce_available_locales = false
 
