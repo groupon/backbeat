@@ -1,20 +1,11 @@
 require 'spec_helper'
 require 'helper/request_helper'
 
-describe Backbeat::Web::DebugApi do
-  include Rack::Test::Methods
+describe Backbeat::Web::DebugApi, :api_test do
   include RequestHelper
-
-  def app
-    FullRackApp
-  end
 
   let(:user) { FactoryGirl.create(:user) }
   let(:workflow) { FactoryGirl.create(:workflow_with_node, user: user) }
-
-  before do
-    header 'CLIENT_ID', user.id
-  end
 
   context "GET /debug/error_workflows" do
     it "returns an empty collection if there are no error nodes" do

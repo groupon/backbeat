@@ -21,11 +21,11 @@ describe Reports::InconsistentNodes do
           workflow: workflow
         )
 
-        File.any_instance.should_receive(:write).with({workflow.id.to_s => [incosistent_node.id.to_s]}.to_json) do
+        expect_any_instance_of(File).to receive(:write).with({workflow.id.to_s => [incosistent_node.id.to_s]}.to_json) do
           Timecop.freeze(finish_time)
         end
 
-        subject.should_receive(:mail_report).with(
+        expect(subject).to receive(:mail_report).with(
           "Report finished running at: #{finish_time.to_s}\n1 workflows contain inconsistencies.\n"\
           "Total time taken #{5.minutes} seconds\n"\
           "The workflow ids are stored in /tmp/reports_inconsistentnodes/#{Date.today}.txt\n"
@@ -51,7 +51,7 @@ describe Reports::InconsistentNodes do
           workflow: workflow
         )
 
-        subject.should_receive(:mail_report).with("No inconsistent workflows to talk about")
+        expect(subject).to receive(:mail_report).with("No inconsistent workflows to talk about")
         subject.perform
       end
     end

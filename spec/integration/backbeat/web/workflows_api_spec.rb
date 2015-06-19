@@ -1,21 +1,15 @@
 require 'spec_helper'
 require 'helper/request_helper'
 
-describe Backbeat::Web::WorkflowsApi do
-  include Rack::Test::Methods
+describe Backbeat::Web::WorkflowsApi, :api_test do
   include RequestHelper
-
-  def app
-    FullRackApp
-  end
 
   let(:user) { FactoryGirl.create(:user) }
   let(:workflow) { FactoryGirl.create(:workflow_with_node, user: user) }
   let(:node) { workflow.children.first }
 
   before do
-    header 'CLIENT_ID', user.id
-    Backbeat::Client.stub(:make_decision)
+    allow(Backbeat::Client).to receive(:make_decision)
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
   end
 

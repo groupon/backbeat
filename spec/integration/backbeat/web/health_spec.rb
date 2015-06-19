@@ -1,22 +1,17 @@
 require 'spec_helper'
 
-describe Backbeat::Web::Middleware::Health do
-  include Rack::Test::Methods
-
-  def app
-    FullRackApp
-  end
+describe Backbeat::Web::Middleware::Health, :api_test do
 
   context "/health" do
     it "includes running SHA, current time and status. if this fails locally, run a mongo on port 27018" do
       response = get '/health'
-      response.status.should == 200
-      response.headers["Content-Type"].should == "application/json"
-      JSON.parse(response.body).should == {
+      expect(response.status).to eq(200)
+      expect(response.headers["Content-Type"]).to eq("application/json")
+      expect(JSON.parse(response.body)).to eq({
         "sha" => GIT_REVISION,
         "time" => Time.now.iso8601,
         "status" => "OK"
-      }
+      })
     end
   end
 end

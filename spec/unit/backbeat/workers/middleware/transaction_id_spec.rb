@@ -3,12 +3,12 @@ require 'spec_helper'
 describe Backbeat::Workers::Middleware::TransactionId do
   it "sets the transaction id and then yields" do
     yielded = false
-    Backbeat::Logger.tid.should be_nil
+    expect(Backbeat::Logger.tid).to be_nil
     subject.call do
-      Backbeat::Logger.tid.should_not be_nil
+      expect(Backbeat::Logger.tid).not_to be_nil
       yielded = true
     end
-    Backbeat::Logger.tid.should be_nil
-    yielded.should == true
+    expect(Backbeat::Logger.tid).to be_nil
+    expect(yielded).to eq(true)
   end
 end

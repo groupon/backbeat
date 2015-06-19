@@ -3,20 +3,14 @@ require 'sidekiq/testing'
 require 'helper/request_helper'
 require 'helper/sidekiq_helper'
 
-describe Backbeat do
-  include Rack::Test::Methods
+describe Backbeat, :api_test do
   include RequestHelper
   include SidekiqHelper
-
-  def app
-    FullRackApp
-  end
 
   let(:user) { FactoryGirl.create(:user) }
   let(:workflow) { FactoryGirl.create(:workflow, user: user) }
 
   before do
-    header 'CLIENT_ID', user.id
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
     Sidekiq::Testing.fake!
   end

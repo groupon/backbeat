@@ -1,20 +1,11 @@
 require 'spec_helper'
 require 'helper/request_helper'
 
-describe Backbeat do
-  include Rack::Test::Methods
+describe Backbeat, :api_test do
   include RequestHelper
-
-  def app
-    FullRackApp
-  end
 
   let(:user) { FactoryGirl.create(:user) }
   let(:workflow) { FactoryGirl.create(:workflow, user: user) }
-
-  before do
-    header 'CLIENT_ID', user.id
-  end
 
   context "POST /workflows/:id/signal" do
     it "returns 201 and creates a new workflow when all parameters present" do

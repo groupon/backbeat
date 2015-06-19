@@ -52,17 +52,17 @@ describe Backbeat::Node do
 
   context "blocking?" do
     it "returns true if the mode is blocking" do
-      expect(node.blocking?).to be_true
+      expect(node.blocking?).to be_truthy
     end
 
     it "returns false if the mode is non-blocking" do
       node.mode = :non_blocking
-      expect(node.blocking?).to be_false
+      expect(node.blocking?).to be_falsey
     end
 
     it "returns false if the mode is fire_and_forget" do
       node.mode = :fire_and_forget
-      expect(node.blocking?).to be_false
+      expect(node.blocking?).to be_falsey
     end
   end
 

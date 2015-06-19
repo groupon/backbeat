@@ -1,32 +1,25 @@
 require 'spec_helper'
 
-describe Backbeat::Web::Middleware::Log do
-  include Rack::Test::Methods
-
-  def app
-    FullRackApp
-  end
-
+describe Backbeat::Web::Middleware::Log, :api_test do
   let(:user) { FactoryGirl.create(:user) }
   let(:wf) { FactoryGirl.create(:workflow, user: user) }
 
   before do
-    header 'CLIENT_ID', user.id
-    Backbeat::Client.stub(:make_decision)
+    allow(Backbeat::Client).to receive(:make_decision)
   end
 
   it "includes the transaction id in the response" do
     response = get "v2/workflows/#{wf.id}"
-    response.status.should == 200
-    response.headers.keys.should include("X-backbeat-tid")
+    expect(response.status).to eq(200)
+    expect(response.headers.keys).to include("X-backbeat-tid")
   end
 
   it "logs route details" do
     log_count = 0
-    expect_any_instance_of(described_class).to receive(:info).twice do |response_info|
-      log_count+=1
+    expect(Backbeat::Logger).to receive(:info).twice do |response_info|
+      log_count += 1
       if log_count == 2
-        expect(response_info.to_json).to eq({
+        expect(response_info).to eq({
           :response=> {
             :status=>200,
             :type=>"workflows",
@@ -40,10 +33,10 @@ describe Backbeat::Web::Middleware::Log do
               :path=>"/:version/workflows/:id"
             }
           }
-        }.to_json)
+        })
       end
     end
     response = get "v2/workflows/#{wf.id}"
-    response.status.should == 200
+    expect(response.status).to eq(200)
   end
 end

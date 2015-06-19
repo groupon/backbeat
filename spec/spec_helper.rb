@@ -23,15 +23,20 @@ unless ENV['CONSOLE_LOG']
   Backbeat::Logger.set_logger(Logger.new(File.open("#{log_dir}/test.log", "a+")))
 end
 
-RACK_ROOT = File.expand_path(File.join(__FILE__,'..'))
-ENV['RACK_ROOT'] = RACK_ROOT
-config_ru = File.expand_path('../../config.ru', __FILE__)
-FullRackApp = Rack::Lint.new(Rack::Builder.parse_file(config_ru).first)
-
 FactoryGirl.find_definitions
 
 RSpec::Sidekiq.configure do |config|
   config.warn_when_jobs_not_processed_by_sidekiq = false
+end
+
+require 'backbeat/web'
+
+module ApiTest
+  include Rack::Test::Methods
+
+  def app
+    Backbeat::Web::App
+  end
 end
 
 RSpec.configure do |config|
@@ -41,6 +46,14 @@ RSpec.configure do |config|
 
   config.after(:each) do
     Timecop.return
+  end
+
+  config.include(ApiTest, :api_test)
+
+  config.before(:each, :api_test) do
+    if defined?(user)
+      header 'CLIENT_ID', user.id
+    end
   end
 
   config.before(:suite) do
@@ -54,6 +67,6 @@ RSpec.configure do |config|
     end
   end
 
-  config.color_enabled = true
+  config.color = true
   config.formatter = :documentation
 end

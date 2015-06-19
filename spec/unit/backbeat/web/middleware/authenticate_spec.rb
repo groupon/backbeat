@@ -12,32 +12,32 @@ describe Backbeat::Web::Middleware::Authenticate do
   it "returns 401 if client_id header is missing" do
     request = Rack::MockRequest.new(described_class.new(@mock_app))
     response = request.post("/some_place")
-    response.should_not be_nil
-    response.status.should == 401
-    response.headers["Content-Type"].should == "text/plain"
-    response.body.should == 'Unauthorized'
-    @env.should be_empty
+    expect(response).not_to be_nil
+    expect(response.status).to eq(401)
+    expect(response.headers["Content-Type"]).to eq("text/plain")
+    expect(response.body).to eq('Unauthorized')
+    expect(@env).to be_empty
   end
 
   it "returns 401 if client_id header is incorrect" do
     request = Rack::MockRequest.new(described_class.new(@mock_app))
     response = request.post("/some_place", {"HTTP_CLIENT_ID" => "XX_TT"})
-    response.should_not be_nil
-    response.status.should == 401
-    response.headers["Content-Type"].should == "text/plain"
-    response.body.should == 'Unauthorized'
-    @env.should be_empty
+    expect(response).not_to be_nil
+    expect(response.status).to eq(401)
+    expect(response.headers["Content-Type"]).to eq("text/plain")
+    expect(response.body).to eq('Unauthorized')
+    expect(@env).to be_empty
   end
 
   it "calls the application with the user set in the environment" do
     user = FactoryGirl.create(:user)
     request = Rack::MockRequest.new(described_class.new(@mock_app))
     response = request.post("/some_place", {"HTTP_CLIENT_ID" => user.id})
-    response.should_not be_nil
-    response.status.should == 200
-    response.headers["Content-Type"].should == "application/json"
-    response.body.should == "[]"
-    @env['WORKFLOW_CURRENT_USER'].should_not be_nil
-    @env['WORKFLOW_CURRENT_USER'].should == user
+    expect(response).not_to be_nil
+    expect(response.status).to eq(200)
+    expect(response.headers["Content-Type"]).to eq("application/json")
+    expect(response.body).to eq("[]")
+    expect(@env['WORKFLOW_CURRENT_USER']).not_to be_nil
+    expect(@env['WORKFLOW_CURRENT_USER']).to eq(user)
   end
 end

@@ -46,7 +46,7 @@ end
 group :test do
   gem 'database_cleaner'
   gem 'rack-test'
-  gem 'rspec'
+  gem 'rspec', '~> 3.2.0'
   gem 'rspec-sidekiq'
   gem 'factory_girl'
   gem 'timecop'

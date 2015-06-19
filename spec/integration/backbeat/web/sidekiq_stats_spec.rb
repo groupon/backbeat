@@ -1,11 +1,6 @@
 require 'spec_helper'
 
-describe Backbeat::Web::Middleware::SidekiqStats do
-  include Rack::Test::Methods
-
-  def app
-    FullRackApp
-  end
+describe Backbeat::Web::Middleware::SidekiqStats, :api_test do
 
   context '/sidekiq_stats' do
     it 'catches the request, returns 200 and queue stats' do
@@ -14,14 +9,14 @@ describe Backbeat::Web::Middleware::SidekiqStats do
 
       q1 = double(Sidekiq::Queue, latency: 10)
       q2 = double(Sidekiq::Queue, latency: 20)
-      Sidekiq::Queue.should_receive(:new).with("queue1").and_return(q1)
-      Sidekiq::Queue.should_receive(:new).with("queue2").and_return(q2)
-      Sidekiq::Stats.stub(new: stats)
+      expect(Sidekiq::Queue).to receive(:new).with("queue1").and_return(q1)
+      expect(Sidekiq::Queue).to receive(:new).with("queue2").and_return(q2)
+      allow(Sidekiq::Stats).to receive_messages(new: stats)
 
-      Sidekiq::Stats::History.should_receive(:new).with(1).and_return(history)
+      expect(Sidekiq::Stats::History).to receive(:new).with(1).and_return(history)
 
       response = get '/sidekiq_stats'
-      response.status.should == 200
+      expect(response.status).to eq(200)
 
       JSON.parse(response.body) == {
         "latency" => { "queue1" => 10, "queue2" => 20 },

@@ -2,21 +2,15 @@ require 'spec_helper'
 require 'helper/request_helper'
 require 'helper/sidekiq_helper'
 
-describe Backbeat do
-  include Rack::Test::Methods
+describe Backbeat, :api_test do
   include RequestHelper
   include SidekiqHelper
-
-  def app
-    FullRackApp
-  end
 
   let(:user) { FactoryGirl.create(:user) }
   let(:workflow) { FactoryGirl.create(:workflow_with_node_running, user: user) }
   let(:activity_node) { workflow.children.first.children.first }
 
   before do
-    header 'CLIENT_ID', user.id
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
   end
 
@@ -61,7 +55,7 @@ describe Backbeat do
     end
 
     it "retries full number of retries available and fails" do
-      activity_node.reload.attributes.should include(
+      expect(activity_node.reload.attributes).to include(
         "current_client_status" => "received",
         "current_server_status" => "sent_to_client"
       )

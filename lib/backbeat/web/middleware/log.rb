@@ -2,8 +2,6 @@ module Backbeat
   module Web
     module Middleware
       class Log
-        include Logging
-
         TRANSACTION_ID_HEADER = 'X-backbeat-tid'.freeze
 
         def initialize(app)
@@ -12,21 +10,26 @@ module Backbeat
 
         def call(env)
           t0 = Time.now
-          tid = Backbeat::Logger.tid(:set)
-          info "START - Endpoint #{env['PATH_INFO']}"
+          tid = Logger.tid(:set)
+
+          Logger.info("START - Endpoint #{env['PATH_INFO']}")
+
           envs = env['PATH_INFO'].split("/")
           status, headers, body = @app.call(env)
 
-          info(response: {
-            status: status,
-            type: envs[2],
-            method: envs.last,
-            env: env['PATH_INFO'],
-            duration: Time.now - t0,
-            route_info: route_info(env)})
+          Logger.info(
+            response: {
+              status: status,
+              type: envs[2],
+              method: envs.last,
+              env: env['PATH_INFO'],
+              duration: Time.now - t0,
+              route_info: route_info(env)
+            }
+          )
 
           headers[TRANSACTION_ID_HEADER] = tid
-          Backbeat::Logger.tid(:clear)
+          Logger.tid(:clear)
           [status, headers, body]
         end
 
