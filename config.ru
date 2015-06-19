@@ -2,7 +2,6 @@ require File.expand_path('../config/environment',  __FILE__)
 
 require 'backbeat/web'
 
-use Rack::Lint if Backbeat::Config.environment == :test
 use ActiveRecord::ConnectionAdapters::ConnectionManagement
 use Backbeat::Web::Middleware::Log
 use Backbeat::Web::Middleware::Heartbeat

@@ -1,4 +1,4 @@
-ENV['RACK_ENV'] ||= "test"
+ENV['RACK_ENV'] ||= 'test'
 
 require File.expand_path('../../config/environment',  __FILE__)
 
@@ -17,18 +17,16 @@ require 'rspec-sidekiq'
 require 'pry'
 require 'securerandom'
 
-unless ENV["CONSOLE_LOG"]
+unless ENV['CONSOLE_LOG']
   log_dir = File.expand_path("../../log", __FILE__)
-  Dir.mkdir(log_dir) unless File.exists?(log_dir)
-  Backbeat::Logger.set_logger(Logger.new(File.open(File.expand_path("../../log/test.log", __FILE__), "a+")))
+  Dir.mkdir(log_dir) unless File.exist?(log_dir)
+  Backbeat::Logger.set_logger(Logger.new(File.open("#{log_dir}/test.log", "a+")))
 end
 
 RACK_ROOT = File.expand_path(File.join(__FILE__,'..'))
 ENV['RACK_ROOT'] = RACK_ROOT
-FullRackApp = Rack::Builder.parse_file(File.expand_path(File.join(__FILE__,'..','..','config.ru'))).first
-
-FORMAT_TIME = Proc.new { |time| time.strftime("%Y-%m-%dT%H:%M:%SZ") }
-BACKBEAT_CLIENT_ENDPOINT = "http://backbeat-client:9000"
+config_ru = File.expand_path('../../config.ru', __FILE__)
+FullRackApp = Rack::Lint.new(Rack::Builder.parse_file(config_ru).first)
 
 FactoryGirl.find_definitions
 
