@@ -6,8 +6,6 @@ require 'irb'
 require 'redis-namespace'
 require_relative '../script/console_helpers.rb'
 
-User = Backbeat::User
-Workflow = Backbeat::Workflow
-Node = Backbeat::Node
+include Backbeat
 
 IRB.start
