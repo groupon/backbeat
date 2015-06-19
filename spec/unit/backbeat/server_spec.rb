@@ -118,7 +118,7 @@ describe Backbeat::Server do
     it "un-pauses the workflow" do
       workflow.pause!
 
-      V2::Server.resume_workflow(workflow)
+      Backbeat::Server.resume_workflow(workflow)
 
       expect(workflow.paused?).to eq(false)
     end
@@ -126,9 +126,9 @@ describe Backbeat::Server do
     it "starts any paused nodes on the workflow" do
       node.update_attributes(current_server_status: :paused)
 
-      expect(V2::Server).to receive(:fire_event).with(V2::Events::StartNode, node)
+      expect(Backbeat::Server).to receive(:fire_event).with(Backbeat::Events::StartNode, node)
 
-      V2::Server.resume_workflow(workflow)
+      Backbeat::Server.resume_workflow(workflow)
 
       expect(node.reload.current_server_status).to eq("started")
     end

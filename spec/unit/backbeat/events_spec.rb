@@ -114,7 +114,7 @@ describe Backbeat::Events do
   context "StartNode" do
     before do
       node.update_attributes(current_server_status: :started)
-      allow(V2::Client).to receive(:perform_action).with(node)
+      allow(Backbeat::Client).to receive(:perform_action).with(node)
     end
 
     context "with client action" do
@@ -166,15 +166,15 @@ describe Backbeat::Events do
       it "does not start the node" do
         node.workflow.pause!
 
-        expect(V2::Client).to_not receive(:perform_action)
+        expect(Backbeat::Client).to_not receive(:perform_action)
 
-        V2::Events::StartNode.call(node)
+        Backbeat::Events::StartNode.call(node)
       end
 
       it "transitions the server status to paused" do
         node.workflow.pause!
 
-        V2::Events::StartNode.call(node)
+        Backbeat::Events::StartNode.call(node)
 
         expect(node.current_server_status).to eq("paused")
       end

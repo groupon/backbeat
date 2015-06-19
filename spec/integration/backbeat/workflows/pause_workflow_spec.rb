@@ -1,6 +1,6 @@
 require 'spec_helper'
-require "spec/helper/request_helper"
-require "spec/helper/sidekiq_helper"
+require "helper/request_helper"
+require "helper/sidekiq_helper"
 
 describe Backbeat, :api_test do
   include RequestHelper
