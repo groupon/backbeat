@@ -12,8 +12,8 @@ describe V2::Workers::AsyncWorker, v2: true do
 
   context "schedule_async_event" do
     it "calls an event with the node" do
-      expect(V2::Events::ChildrenReady).to receive(:call).with(node)
-      V2::Workers::AsyncWorker.schedule_async_event(V2::Events::ChildrenReady, node, { time: Time.now, retries: 0 })
+      expect(V2::Events::MarkChildrenReady).to receive(:call).with(node)
+      V2::Workers::AsyncWorker.schedule_async_event(V2::Events::MarkChildrenReady, node, { time: Time.now, retries: 0 })
       V2::Workers::AsyncWorker.drain
     end
   end

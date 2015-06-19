@@ -19,14 +19,14 @@ describe V2::WorkflowTree, v2: true do
     node.id.to_s
   end
 
-  context "each" do
+  context "traverse" do
     it "calls the block for each node in the tree" do
       child_1 = add_node(workflow, "Workflow child")
       child_2 = add_node(workflow, "Another Workflow child")
       child_3 = add_node(workflow.children.first, "Nested child")
 
       names = []
-      V2::WorkflowTree.new(workflow).each do |node|
+      V2::WorkflowTree.new(workflow).traverse do |node|
         names << node.name
       end
 
@@ -37,7 +37,7 @@ describe V2::WorkflowTree, v2: true do
       child_1 = add_node(workflow, "Workflow child")
 
       names = []
-      V2::WorkflowTree.new(workflow).each(root: false) do |node|
+      V2::WorkflowTree.new(workflow).traverse(root: false) do |node|
         names << node.name
       end
 

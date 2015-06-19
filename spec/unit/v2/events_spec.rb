@@ -39,28 +39,10 @@ describe V2::Events, v2: true do
       expect(node.current_client_status).to eq("complete")
     end
 
-    it "calls ChildrenReady" do
-      expect(V2::Server).to receive(:fire_event).with(V2::Events::ChildrenReady, workflow)
-
-      V2::Events::MarkChildrenReady.call(workflow)
-    end
-  end
-
-  context "ChildrenReady" do
     it "calls ScheduleNextNode if all children are ready" do
-      node.update_attributes(current_server_status: :ready)
-
       expect(V2::Server).to receive(:fire_event).with(V2::Events::ScheduleNextNode, workflow)
 
-      V2::Events::ChildrenReady.call(workflow)
-    end
-
-    it "does not call ScheduleNextNode if children are not ready" do
-      node.update_attributes(current_server_status: :pending)
-
-      expect(V2::Server).to_not receive(:fire_event).with(V2::Events::ScheduleNextNode, workflow)
-
-      V2::Events::ChildrenReady.call(workflow)
+      V2::Events::MarkChildrenReady.call(workflow)
     end
   end
 
@@ -318,14 +300,47 @@ describe V2::Events, v2: true do
 
     it "marks the server status as retrying, then ready" do
       V2::Events::RetryNode.call(node)
-      expect(node.status_changes.first.attributes).to include({"from_status" => "errored", "to_status" => "ready", "status_type" => "current_client_status"})
-      expect(node.status_changes.second.attributes).to include({"from_status" => "sent_to_client", "to_status" => "retrying", "status_type" => "current_server_status"})
-      expect(node.status_changes.third.attributes).to include({"from_status" => "retrying", "to_status" => "ready", "status_type" => "current_server_status"})
+      expect(node.status_changes.first.attributes).to include({
+        "from_status" => "errored",
+        "to_status" => "ready",
+        "status_type" => "current_client_status"
+      })
+      expect(node.status_changes.second.attributes).to include({
+        "from_status" => "sent_to_client",
+        "to_status" => "retrying",
+        "status_type" => "current_server_status"
+      })
+      expect(node.status_changes.third.attributes).to include({
+        "from_status" => "retrying",
+        "to_status" => "ready",
+        "status_type" => "current_server_status"
+      })
     end
 
     it "fires the ScheduleNextNode event with the parent" do
+      allow(V2::Server).to receive(:fire_event).with(V2::Events::ResetNode, node)
+
       expect(V2::Server).to receive(:fire_event).with(V2::Events::ScheduleNextNode, workflow)
+
       V2::Events::RetryNode.call(node)
+    end
+
+    it "resets the node" do
+      2.times do
+        FactoryGirl.create(
+          :v2_node,
+          parent: node,
+          user: user,
+          workflow: workflow,
+          current_server_status: :ready,
+          current_client_status: :ready,
+        )
+      end
+
+      V2::Events::RetryNode.call(node)
+
+      expect(node.children.first.current_server_status).to eq("deactivated")
+      expect(node.children.second.current_server_status).to eq("deactivated")
     end
   end
 

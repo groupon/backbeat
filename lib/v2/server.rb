@@ -61,7 +61,6 @@ module V2
     end
 
     STRATEGIES = {
-      Events::ChildrenReady => Schedulers::PerformEvent,
       Events::ClientComplete => Schedulers::PerformEvent,
       Events::ClientError => Schedulers::PerformEvent,
       Events::ClientProcessing => Schedulers::PerformEvent,
@@ -76,10 +75,8 @@ module V2
     }
 
     def self.fire_event(event, node, scheduler = STRATEGIES[event])
-      info(status: :fire_event_started, node: node.id, event: event.name)
       return if node.deactivated?
       scheduler.call(event, node)
-      info(status: :fire_event_finished, node: node.id, event: event.name)
     end
   end
 end

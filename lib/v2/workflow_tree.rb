@@ -14,8 +14,8 @@ module V2
       @root = root
     end
 
-    def each(options = {}, &block)
-      _each(root, options, &block)
+    def traverse(options = {}, &block)
+      _traverse(root, options, &block)
     end
 
     def to_hash(node = root)
@@ -40,10 +40,10 @@ module V2
 
     attr_reader :root
 
-    def _each(node, options, &block)
+    def _traverse(node, options, &block)
       block.call(node) if options.fetch(:root, true)
       children(node).each do |child|
-        _each(child, options.merge(root: true), &block)
+        _traverse(child, options.merge(root: true), &block)
       end
     end
 
