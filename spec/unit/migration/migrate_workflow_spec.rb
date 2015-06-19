@@ -265,6 +265,31 @@ describe Migration::MigrateWorkflow, v2: true do
     expect(v2_branch.legacy_type).to eq("branch")
   end
 
+  it "converts a nested workflow" do
+    v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
+    v1_sub_workflow = FactoryGirl.create(:workflow, name: "Sub Workflow", user: v1_user, status: :executing, subject: { "name" => "Another subject" })
+    v1_sub_workflow.parent = v1_decision
+    v1_sub_workflow.save
+    v1_sub_signal = FactoryGirl.create(:signal, parent: nil, workflow: v1_sub_workflow, status: :complete)
+    v1_sub_decision = FactoryGirl.create(:decision, parent: v1_sub_signal, workflow: v1_sub_workflow, status: :complete)
+
+    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow, migrate_all: true)
+
+    v2_sub_workflow = V2::Workflow.order(:created_at).last
+    expect(v2_sub_workflow.subject).to eq(v1_sub_workflow.subject)
+    expect(v2_sub_workflow.name).to eq(v1_sub_workflow.name.to_s)
+    expect(v2_sub_workflow.decider).to eq(v1_sub_workflow.decider)
+    expect(v2_sub_workflow.user_id).to eq(v1_sub_workflow.user_id)
+    expect(v2_sub_workflow.complete).to eq(false)
+    expect(v2_sub_workflow.children.count).to eq(1)
+
+    v2_sub_decision = v2_sub_workflow.children.first
+    expect(v2_sub_decision.id).to eq(v1_sub_decision.id)
+
+    flag = v2_workflow.children.first.children.first
+    expect(flag.name).to eq("Created sub-workflow #{v2_sub_workflow.id}")
+  end
+
   context "can_migrate?" do
     it "does not migrate workflows with nodes that are not complete" do
       v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :sent_to_client, status: :open)
@@ -371,7 +396,23 @@ describe Migration::MigrateWorkflow, v2: true do
     end
   end
 
-  context "has_timers?" do
+  context "workflows with sub-workflows" do
+    it "migrates the full signal tree" do
+      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
+      v1_sub_workflow = FactoryGirl.create(:workflow, name: "Sub Workflow", user: v1_user, status: :executing, subject: { "name" => "Another subject" })
+      v1_sub_workflow.parent = v1_decision
+      v1_sub_workflow.save
+      v1_sub_signal = FactoryGirl.create(:signal, parent: nil, workflow: v1_sub_workflow, status: :complete)
+      v1_sub_decision = FactoryGirl.create(:decision, parent: v1_sub_signal, workflow: v1_sub_workflow, status: :complete)
+
+      Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
+
+      expect(V2::Workflow.count).to eq(2)
+      expect(v2_workflow.children.first.children.count).to eq(1)
+    end
+  end
+
+  context "has_special_cases?" do
     before do
       v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
       v1_activity = FactoryGirl.create(:activity, parent: v1_decision, workflow: v1_workflow, status: :complete)
@@ -382,16 +423,21 @@ describe Migration::MigrateWorkflow, v2: true do
 
     it "returns true if the tree has a timer" do
       FactoryGirl.create(:timer, parent: @nested_decision)
-      expect(Migration::MigrateWorkflow.has_running_timers?(v1_signal)).to eq(true)
+      expect(Migration::MigrateWorkflow.has_special_cases?(v1_signal)).to eq(true)
     end
 
     it "returns false if the tree has a timer thats not complete" do
       FactoryGirl.create(:timer, parent: @nested_decision, status: :complete)
-      expect(Migration::MigrateWorkflow.has_running_timers?(v1_signal)).to eq(false)
+      expect(Migration::MigrateWorkflow.has_special_cases?(v1_signal)).to eq(false)
     end
 
-    it "returns false if the tree has no timer" do
-      expect(Migration::MigrateWorkflow.has_running_timers?(v1_signal)).to eq(false)
+    it "returns false if the tree has no timer or workflow" do
+      expect(Migration::MigrateWorkflow.has_special_cases?(v1_signal)).to eq(false)
+    end
+
+    it "returns true if the tree has a workflow" do
+      FactoryGirl.create(:workflow, parent: @nested_decision)
+      expect(Migration::MigrateWorkflow.has_special_cases?(v1_signal)).to eq(true)
     end
   end
 end

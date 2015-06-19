@@ -36,7 +36,7 @@ module Migration
           end
         end
         v1_workflow.get_children.each do |signal|
-          if has_running_timers?(signal) || options[:migrate_all]
+          if has_special_cases?(signal) || options[:migrate_all]
             migrate_signal(signal, v2_workflow)
           else
             migrate_top_node(signal, v2_workflow)
@@ -62,12 +62,12 @@ module Migration
     def self.migrate_activity(v1_activity, v2_parent, attrs = {})
       node = V2::Node.new(
         mode: :blocking,
-        current_server_status: server_status(v1_activity),
-        current_client_status: client_status(v1_activity),
+        current_server_status: attrs[:current_server_status] || server_status(v1_activity),
+        current_client_status: attrs[:current_client_status] || client_status(v1_activity),
         name: attrs[:name] || v1_activity.name,
         fires_at: attrs[:fires_at] || Time.now - 1.second,
         parent: v2_parent,
-        workflow_id:  v2_parent.workflow_id,
+        workflow_id: v2_parent.workflow_id,
         user_id: v2_parent.user_id,
         client_node_detail: V2::ClientNodeDetail.new(
           metadata: { version: "v2" },
@@ -111,13 +111,26 @@ module Migration
         migrate_activity(node, v2_parent, legacy_type: :flag)
       when WorkflowServer::Models::Flag
         migrate_activity(node, v2_parent, legacy_type: :flag)
+      when WorkflowServer::Models::Workflow
+        v2_sub_workflow = find_or_create_v2_workflow(node)
+        migrate_activity(node, v2_parent, {
+          current_server_status: :complete,
+          current_client_status: :complete,
+          legacy_type: :flag,
+          name: "Created sub-workflow #{v2_sub_workflow.id}",
+        })
+        v2_sub_workflow
       end
     end
 
     def self.migrate_node(node, v2_parent)
       new_v2_parent = migrate_single_node(node, v2_parent)
-      node.children.each do |child|
-        migrate_node(child, new_v2_parent)
+      if node.is_a?(WorkflowServer::Models::Workflow)
+        call(node, new_v2_parent)
+      else
+        node.children.each do |child|
+          migrate_node(child, new_v2_parent)
+        end
       end
     end
 
@@ -127,7 +140,7 @@ module Migration
           (node.status.to_sym == :scheduled && (node.fires_at - Time.now) > 1.hour)
       else
         status = node.status.to_sym
-        status == :complete || status == :resolved
+        status == :complete || status == :resolved || node.is_a?(WorkflowServer::Models::Workflow)
       end
     end
 
@@ -150,10 +163,11 @@ module Migration
       end
     end
 
-    def self.has_running_timers?(node)
+    def self.has_special_cases?(node)
       return true if node.is_a?(WorkflowServer::Models::Timer) && node.status != :complete
+      return true if node.is_a?(WorkflowServer::Models::Workflow)
       !!node.children.all.to_a.find do |c|
-        has_running_timers?(c)
+        has_special_cases?(c)
       end
     end
   end
