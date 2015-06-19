@@ -33,5 +33,13 @@ module V2
     def complete!
       update_attributes(complete: true)
     end
+
+    def pause!
+      update_attributes(paused: true)
+    end
+
+    def resume!
+      update_attributes(paused: false)
+    end
   end
 end

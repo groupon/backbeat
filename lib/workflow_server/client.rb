@@ -36,7 +36,7 @@ module WorkflowServer
       body = WorkflowServer::Helper::HashKeyTransformations.camelize_keys(params).to_json
       ::HTTParty.post(url, body: body, headers: {"Content-Type" => "application/json", "Content-Length" => body.size.to_s})
     rescue
-      raise WorkflowServer::HttpError.new("Could not POST #{url}")
+      raise WorkflowServer::HttpError.new("Could not POST #{url}", nil)
     end
   end
 end

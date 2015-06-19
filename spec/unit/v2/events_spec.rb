@@ -107,12 +107,11 @@ describe V2::Events, v2: true do
   context "StartNode" do
     before do
       node.update_attributes(current_server_status: :started)
+      allow(V2::Client).to receive(:perform_action).with(node)
     end
 
     context "with client action" do
       it "updates the node statuses" do
-        allow(V2::Client).to receive(:perform_action).with(node)
-
         V2::Events::StartNode.call(node)
 
         expect(node.current_server_status).to eq("sent_to_client")
@@ -151,6 +150,24 @@ describe V2::Events, v2: true do
         expect(V2::Server).to receive(:fire_event).with(V2::Events::ClientComplete, node)
 
         V2::Events::StartNode.call(node)
+      end
+    end
+
+    context "paused" do
+      it "does not start the node" do
+        node.workflow.pause!
+
+        expect(V2::Client).to_not receive(:perform_action)
+
+        V2::Events::StartNode.call(node)
+      end
+
+      it "transitions the server status to paused" do
+        node.workflow.pause!
+
+        V2::Events::StartNode.call(node)
+
+        expect(node.current_server_status).to eq("paused")
       end
     end
   end

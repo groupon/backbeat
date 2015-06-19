@@ -39,6 +39,10 @@ module V2
 
     class StartNode
       def self.call(node)
+        if node.paused?
+          StateManager.transition(node, current_server_status: :paused)
+          return
+        end
         StateManager.transition(node,
           current_server_status: :sent_to_client,
           current_client_status: :received
