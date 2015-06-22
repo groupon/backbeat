@@ -95,6 +95,7 @@ module WorkflowServer
         signals: Signal,
         timers: Timer,
         activities: [Activity, SubActivity, Branch],
+        workflows: [Workflow]
       }.each_pair do |name, klass|
         #
         # Returns events of the given type

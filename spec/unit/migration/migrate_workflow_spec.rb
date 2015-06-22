@@ -149,7 +149,7 @@ describe Migration::MigrateWorkflow, v2: true do
       :timer,
       parent: v1_decision,
       workflow: v1_workflow,
-      status: :complete,
+      status: :scheduled,
       fires_at: Time.now + 2.hours
     )
     timed_node = FactoryGirl.create(:decision, parent: v1_timer, workflow: v1_workflow, status: :complete)
@@ -407,8 +407,40 @@ describe Migration::MigrateWorkflow, v2: true do
 
       Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)
 
+      expect(v1_workflow.reload.migrated).to eq(true)
+      expect(v1_sub_workflow.reload.migrated).to eq(true)
       expect(V2::Workflow.count).to eq(2)
       expect(v2_workflow.children.first.children.count).to eq(1)
+    end
+  end
+
+  context "workflows with sub-workflows" do
+    it "rolls back nested v1_workflow attribute changes when another nested workflow fails" do
+      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
+
+      v1_sub_workflow = FactoryGirl.create(:workflow, name: "Sub Workflow", workflow: v1_workflow, user: v1_user, status: :executing, subject: { "name" => "Another subject" })
+      v1_sub_workflow.parent = v1_decision
+      v1_sub_workflow.save
+      v1_sub_signal = FactoryGirl.create(:signal, parent: nil, workflow: v1_sub_workflow, status: :complete)
+      v1_sub_decision = FactoryGirl.create(:decision, parent: v1_sub_signal, workflow: v1_sub_workflow, status: :complete)
+
+      v1_signal_2 = FactoryGirl.create(:signal, parent: nil, workflow: v1_workflow, status: :complete)
+      v1_decision_2 = FactoryGirl.create(:decision, parent: v1_signal_2, workflow: v1_workflow, status: :complete)
+      v1_sub_workflow_2 = FactoryGirl.create(:workflow, name: "Sub Workflow_2", workflow: v1_workflow, user: v1_user, status: :executing, subject: { "name" => "Another subject" })
+      v1_sub_workflow_2.parent = v1_decision_2
+      v1_sub_workflow_2.save
+      v1_sub_signal_2 = FactoryGirl.create(:signal, parent: nil, workflow: v1_sub_workflow_2, status: :complete)
+      v1_sub_decision_2 = FactoryGirl.create(:decision, parent: v1_sub_signal_2, workflow: v1_sub_workflow_2, status: :complete)
+      v1_sub_decision_timer = FactoryGirl.create(:timer, parent: v1_sub_signal_2, workflow: v1_sub_workflow_2, status: :complete, status: :scheduled, fires_at: Time.now + 30.minutes)
+
+      expect{Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)}.to raise_error Migration::MigrateWorkflow::WorkflowNotMigratable
+
+      expect(V2::Workflow.count).to eq(1)
+      expect(V2::Workflow.last).to eq(v2_workflow)
+      expect(v1_workflow.reload.migrated).to eq(false)
+      expect(v1_sub_workflow.reload.migrated).to eq(false)
+      expect(v1_sub_workflow_2.reload.migrated).to eq(false)
+      expect(v2_workflow.reload.migrated).to eq(false)
     end
   end
 
