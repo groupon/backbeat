@@ -9,6 +9,7 @@ default: &default
 
 test:
   <<: *default
+  log_level: WARN
   log: /tmp/backbeat.log
 
 development:

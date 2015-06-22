@@ -1,10 +1,7 @@
 module Backbeat
   class Config
     def self.environment
-      @environment ||= (
-        env = ENV.fetch('RACK_ENV', 'development')
-        env == 'test' ? 'development' : env
-      )
+      @environment ||= ENV.fetch('RACK_ENV', 'development')
     end
 
     def self.root
@@ -12,17 +9,20 @@ module Backbeat
     end
 
     def self.log_file
-      ENV['LOG_FILE'] || options[:log]
+      @log_file ||= ENV['LOG_FILE'] || options[:log]
+    end
+
+    def self.log_level
+      @log_level ||= ::Logger.const_get(options[:log_level])
     end
 
     def self.options
-      @options ||= options_yml[environment]
-    end
-
-    def self.options_yml
-      options = YAML.load_file("#{root}/config/options.yml")
-      options.default_proc = ->(h, k) { h.key?(k.to_s) ? h[k.to_s] : nil }
-      options
+      @options ||= (
+        opts_yml = YAML.load_file("#{root}/config/options.yml")
+        opts = opts_yml[environment]
+        opts.default_proc = ->(h, k) { h.key?(k.to_s) ? h[k.to_s] : nil }
+        opts
+      )
     end
 
     def self.database

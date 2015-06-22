@@ -1,4 +1,4 @@
-development:
+common: &common
   reconnect: true
   template: template0
   encoding: unicode
@@ -6,7 +6,14 @@ development:
   username: 'backbeat'
   password:
   pool: 200
+
+development:
+  <<: *common
   database: backbeat_dev
+
+test:
+  <<: *common
+  database: backbeat_test
 
 docker:
   reconnect: true

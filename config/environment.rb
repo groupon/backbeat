@@ -18,6 +18,7 @@ ActiveRecord::Base.include_root_in_json = false
 ActiveRecord::Base.establish_connection(Backbeat::Config.database)
 
 Sidekiq.configure_client do |config|
+  config.logger.level = Backbeat::Config.log_level
   config.redis = { namespace: 'fed_sidekiq', size: 100, url: Backbeat::Config.redis['url'], network_timeout: 5 }
 end
 

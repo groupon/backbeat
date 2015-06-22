@@ -59,6 +59,13 @@ is already configured to work with a local dockerized backbeat.
 
 ### Commands
 
+Running the tests:
+
+```bash
+$ RACK_ENV=test rake db:create db:migrate
+$ rspec
+```
+
 Run the migrations:
 
 ```bash
