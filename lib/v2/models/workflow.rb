@@ -41,5 +41,10 @@ module V2
     def resume!
       update_attributes(paused: false)
     end
+
+    def destroy
+      children.map(&:destroy)
+      super
+    end
   end
 end

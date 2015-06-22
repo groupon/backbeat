@@ -55,6 +55,15 @@ describe V2::Workflow, v2: true do
     end
   end
 
+  context "destroy" do
+    it "destroys the workflow and its children" do
+      expect(workflow.children.count).to eq(1)
+      workflow.destroy
+      expect(V2::Workflow.count).to eq(0)
+      expect(V2::Node.count).to eq(0)
+    end
+  end
+
   include Colorize
 
   context "print_tree" do
