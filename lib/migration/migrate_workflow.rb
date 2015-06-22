@@ -46,6 +46,9 @@ module Migration
         v1_workflow.update_attributes!(migrated: true) # for ignoring delayed jobs
         v2_workflow.update_attributes!(migrated: true) # for knowing whether to signal v2 or not
       end
+    rescue => e
+      v1_workflow.workflows.each{|wf| wf.update_attributes!(migrated: false)}
+      raise e
     end
 
     def self.migrate_signal(v1_signal, v2_parent)
