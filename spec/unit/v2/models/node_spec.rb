@@ -77,6 +77,15 @@ describe V2::Node, v2: true do
     end
   end
 
+  context "destroy" do
+    it "destroys the node and its children" do
+      FactoryGirl.create(:v2_node, user: user, workflow: workflow, parent: node)
+      expect(V2::Node.count).to eq(2)
+      node.destroy
+      expect(V2::Node.count).to eq(0)
+    end
+  end
+
   include Colorize
 
   context "print_tree" do
