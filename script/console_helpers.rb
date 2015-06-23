@@ -24,5 +24,5 @@ end
 
 # prints running workers counted by queue and host
 def sidekiq_job_count
-  Sidekiq::Workers.new.group_by { |a| a.first.split(":")[0] + " " + a.second["queue"]}.each_pair { |a,b| puts "#{a} - #{b.count}" };1
+  Sidekiq::Workers.new.group_by { |a| a.first.split(":")[0] + " " + a.third["queue"]}.each_pair { |a,b| puts "#{a} - #{b.count}" };1
 end
