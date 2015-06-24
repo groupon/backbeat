@@ -8,4 +8,5 @@ require_relative '../script/console_helpers.rb'
 
 include Backbeat
 
+ActiveRecord::Base.logger = Logger.new(STDOUT)
 IRB.start
