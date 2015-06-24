@@ -28,23 +28,27 @@ module Migration
     end
 
     def self.call(v1_workflow, v2_workflow, options = {})
-      ActiveRecord::Base.transaction do
-        if options[:decision_history]
-          v1_workflow.decisions.each do |decision|
-            raise WorkflowNotMigratable.new("Cannot migrate node #{decision.id}") unless can_migrate?(decision)
-            migrate_activity(decision, v2_workflow, { legacy_type: :decision, id: nil })
-          end
-        end
-        v1_workflow.get_children.each do |signal|
-          if has_special_cases?(signal) || options[:migrate_all]
-            migrate_signal(signal, v2_workflow)
-          else
-            migrate_top_node(signal, v2_workflow)
-          end
-        end
+      v2_workflow.with_lock do
+        return if v2_workflow.migrated?
 
-        v1_workflow.update_attributes!(migrated: true) # for ignoring delayed jobs
-        v2_workflow.update_attributes!(migrated: true) # for knowing whether to signal v2 or not
+        ActiveRecord::Base.transaction do
+          if options[:decision_history]
+            v1_workflow.decisions.each do |decision|
+              raise WorkflowNotMigratable.new("Cannot migrate node #{decision.id}") unless can_migrate?(decision)
+              migrate_activity(decision, v2_workflow, { legacy_type: :decision, id: nil })
+            end
+          end
+          v1_workflow.get_children.each do |signal|
+            if has_special_cases?(signal) || options[:migrate_all]
+              migrate_signal(signal, v2_workflow)
+            else
+              migrate_top_node(signal, v2_workflow)
+            end
+          end
+
+          v1_workflow.update_attributes!(migrated: true) # for ignoring delayed jobs
+          v2_workflow.update_attributes!(migrated: true) # for knowing whether to signal v2 or not
+        end
       end
     rescue => e
       v1_workflow.workflows.each{|wf| wf.update_attributes!(migrated: false)}

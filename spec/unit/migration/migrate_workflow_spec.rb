@@ -117,6 +117,12 @@ describe Migration::MigrateWorkflow, v2: true do
     expect(v1_workflow.reload.migrated?).to eq(true)
   end
 
+  it "returns if workflow is already migrated" do
+    v2_workflow.update_attributes!(migrated: true)
+    expect(v1_workflow).to_not receive(:get_children)
+    Migration::MigrateWorkflow.call(v1_workflow, v2_workflow.reload)
+  end
+
   it "migrates great plains style workflow" do
     v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
     v1_activity = FactoryGirl.create(:activity, parent: v1_decision, workflow: v1_workflow, status: :complete)
