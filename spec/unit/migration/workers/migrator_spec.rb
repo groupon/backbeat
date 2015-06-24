@@ -18,16 +18,6 @@ describe Migration::Workers::Migrator, v2: true do
     expect(V2::Node.first.id).to eq(v1_decision.id)
   end
 
-  it "returns if workflow is already migrated" do
-    v1_user = FactoryGirl.create(:v1_user)
-    v2_user = FactoryGirl.create(:v2_user, id: v1_user.id)
-    v1_workflow = FactoryGirl.create(:workflow, user: v1_user)
-
-    expect(Migration::MigrateWorkflow).to receive(:call).and_call_original.once
-
-    Migration::Workers::Migrator.new.perform(v1_workflow.id)
-    Migration::Workers::Migrator.new.perform(v1_workflow.id)
-  end
 
   it "logs" do
     v1_user = FactoryGirl.create(:v1_user)
