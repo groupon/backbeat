@@ -7,8 +7,9 @@ require 'backbeat/web/helpers/current_user_helper'
 module Backbeat
   module Web
     class WorkflowsApi < Grape::API
-      helpers CurrentUserHelper
       version 'v2', using: :path
+
+      helpers CurrentUserHelper
 
       helpers do
         def find_workflow
@@ -36,16 +37,19 @@ module Backbeat
         put "/:id/complete" do
           workflow = find_workflow
           workflow.complete!
+          { success: true }
         end
 
         put "/:id/pause" do
           workflow = find_workflow
           workflow.pause!
+          { success: true }
         end
 
         put "/:id/resume" do
           workflow = find_workflow
           Server.resume_workflow(workflow)
+          { success: true }
         end
 
         get "/:id" do

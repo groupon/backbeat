@@ -7,6 +7,7 @@ module Backbeat
         end
 
         ENDPOINT = '/health'.freeze
+
         def call(env)
           if env['PATH_INFO'] == ENDPOINT
             db_ok = ActiveRecord::Base.connected?
@@ -16,11 +17,10 @@ module Backbeat
               time: Time.now.iso8601,
               status: db_ok ? 'OK' : 'DATABASE_UNREACHABLE'
             }
-            return [ 200, {"Content-Type" => "application/json"}, [result.to_json] ]
+            [200, {"Content-Type" => "application/json"}, [result.to_json]]
+          else
+            @app.call(env)
           end
-
-          status, headers, body = @app.call(env)
-          [status, headers, body]
         end
       end
     end

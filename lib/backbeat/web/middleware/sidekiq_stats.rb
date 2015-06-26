@@ -7,6 +7,7 @@ module Backbeat
         end
 
         ENDPOINT = '/sidekiq_stats'
+
         def call(env)
           if env['PATH_INFO'] == ENDPOINT
             stats = Sidekiq::Stats.new
@@ -23,10 +24,10 @@ module Backbeat
               scheduled: stats.scheduled_size,
               retry_size: stats.retry_size
             }
-            return [ 200, {"Content-Type" => "application/json"}, [ data.to_json ] ]
+            [200, {"Content-Type" => "application/json"}, [data.to_json]]
+          else
+            @app.call(env)
           end
-          status, headers, body = @app.call(env)
-          [status, headers, body]
         end
       end
     end

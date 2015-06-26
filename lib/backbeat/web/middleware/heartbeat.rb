@@ -7,6 +7,7 @@ module Backbeat
         end
 
         ENDPOINT = '/heartbeat.txt'.freeze
+
         def call(env)
           if env['PATH_INFO'] == ENDPOINT
             if File.exists?("#{File.dirname(__FILE__)}/../../../../public/heartbeat.txt")
@@ -14,9 +15,9 @@ module Backbeat
             else
               return [ 404, {"Content-Type" => "text/plain"}, ["It's dead, Jim."] ]
             end
+          else
+            @app.call(env)
           end
-          status, headers, body = @app.call(env)
-          [status, headers, body]
         end
       end
     end

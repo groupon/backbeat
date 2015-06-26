@@ -15,7 +15,7 @@ module Backbeat
           Logger.info("START - Endpoint #{env['PATH_INFO']}")
 
           envs = env['PATH_INFO'].split("/")
-          status, headers, body = @app.call(env)
+          status, headers, body = response = @app.call(env)
 
           Logger.info(
             response: {
@@ -30,7 +30,8 @@ module Backbeat
 
           headers[TRANSACTION_ID_HEADER] = tid
           Logger.tid(:clear)
-          [status, headers, body]
+
+          response
         end
 
         def route_info(env)

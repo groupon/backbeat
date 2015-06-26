@@ -48,6 +48,7 @@ module Backbeat
             node.client_node_detail.update_attributes(result: params[:args])
             new_status = params[:new_status].to_sym
             Server.fire_event(STATUS_EVENT_MAP[new_status], node)
+            { success: true }
           end
 
           put "/:id/restart" do
