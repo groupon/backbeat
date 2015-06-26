@@ -11,7 +11,7 @@ module Backbeat
           if headers["Content-Type"] == "application/json"
             begin
               new_body = response.body.map { |str| JSON.parse(str) }
-              HashKeyTransformations.camelize_keys(new_body)
+              Client::HashKeyTransformations.camelize_keys(new_body)
               response.body = new_body.map(&:to_json)
               headers['Content-Length'] = content_length(response.body, headers)
             rescue Exception => e

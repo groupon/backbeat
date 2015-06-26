@@ -1,4 +1,4 @@
-require 'backbeat/helpers/instrument'
+require 'backbeat/instrument'
 
 module Backbeat
   module Schedulers

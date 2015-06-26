@@ -6,7 +6,7 @@ module Backbeat
     def self.notify_of(node, message, error = nil)
       user = node.user
       if (url = user.try(:notification_endpoint))
-        notification = Client::NotificationSerializer.call(node, message, error)
+        notification = NotificationSerializer.call(node, message, error)
         response = post(user.notification_endpoint, notification)
         raise HttpError.new("http request to notify_of failed", response) unless response.code.between?(200, 299)
       end
@@ -15,9 +15,9 @@ module Backbeat
     def self.perform_action(node)
       Instrument.instrument("client_perform_action", { node: node.id, legacy_type: node.legacy_type }) do
         if node.decision?
-          make_decision(Client::NodeSerializer.call(node), node.user)
+          make_decision(NodeSerializer.call(node), node.user)
         else
-          perform_activity(Client::NodeSerializer.call(node), node.user)
+          perform_activity(NodeSerializer.call(node), node.user)
         end
       end
     end

@@ -1,5 +1,6 @@
 require "spec_helper"
 require "helper/capture"
+require "backbeat/workflow_tree/colorize"
 
 describe Backbeat::Node do
 
@@ -87,7 +88,7 @@ describe Backbeat::Node do
     end
   end
 
-  include Backbeat::Colorize
+  include Backbeat::WorkflowTree::Colorize
 
   context "print_tree" do
     it "prints the tree of the node" do

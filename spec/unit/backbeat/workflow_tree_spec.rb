@@ -1,5 +1,5 @@
 require "spec_helper"
-require "backbeat/helpers/colorize"
+require "backbeat/workflow_tree/colorize"
 
 describe Backbeat::WorkflowTree do
   let(:user) { FactoryGirl.create(:user) }
@@ -114,7 +114,7 @@ describe Backbeat::WorkflowTree do
     end
   end
 
-  include Backbeat::Colorize
+  include Backbeat::WorkflowTree::Colorize
 
   context "to_string" do
     it "returns the tree as a string with no children" do
