@@ -15,7 +15,7 @@ module Backbeat
       format :json
 
       before do
-        Client::HashKeyTransformations.underscore_keys(params)
+        @params = Client::HashKeyTransformations.underscore_keys(params)
       end
 
       rescue_from :all do |e|

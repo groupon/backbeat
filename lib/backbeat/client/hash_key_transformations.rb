@@ -14,25 +14,24 @@ module Backbeat
       end
 
       def self.transform_keys(object, &block)
-        if object.is_a?(Hash)
-          object.keys.each do |key|
+        case object
+        when Hash
+          object.reduce({}) do |memo, (key, value)|
             new_key = block.call(key)
-            if ((object.has_key?(new_key) || object.has_key?(new_key.to_s)) && key.to_sym != new_key)
-              raise ("Creating duplicate key(#{new_key.inspect}) by transformation, cannot continue.")
-            end
-
-            value = object.delete(key)
-            object[new_key] = transform_keys(value, &block)
+            memo[new_key] = transform_keys(value, &block)
+            memo
           end
-        elsif object.is_a?(Array)
-          object.map! do |value|
+        when Array
+          object.map do |value|
             transform_keys(value, &block)
           end
-        elsif object.respond_to?(:to_hash)
-          return transform_keys(object.to_hash, &block)
+        else
+          if object.respond_to?(:to_hash)
+            transform_keys(object.to_hash, &block)
+          else
+            object
+          end
         end
-
-        object
       end
     end
   end

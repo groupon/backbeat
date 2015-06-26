@@ -8,28 +8,22 @@ module Backbeat
 
         def call(env)
           status, headers, response = @app.call(env)
-          if headers["Content-Type"] == "application/json"
-            begin
-              new_body = response.body.map { |str| JSON.parse(str) }
-              Client::HashKeyTransformations.camelize_keys(new_body)
-              response.body = new_body.map(&:to_json)
-              headers['Content-Length'] = content_length(response.body, headers)
-            rescue Exception => e
-            end
+          if headers['Content-Type'] == 'application/json'
+            original_body  = response.body.map { |str| JSON.parse(str) }
+            camelized      = Client::HashKeyTransformations.camelize_keys(original_body)
+            camelized_json = camelized.map(&:to_json)
+            response.body  = camelized_json
+            headers['Content-Length'] = content_length(camelized_json)
           end
-          [ status, headers, response ]
+          [status, headers, response]
         end
 
         private
 
-        def content_length(body, headers)
-          size = 0
-          body.each {|str| size += Rack::Utils.bytesize(str) }
-          size.to_s
-        end
-
-        def chunked?(headers)
-          "chunked" == headers['Transfer-Encoding']
+        def content_length(body)
+          body.reduce(0) do |length, str|
+            length += Rack::Utils.bytesize(str)
+          end.to_s
         end
       end
     end

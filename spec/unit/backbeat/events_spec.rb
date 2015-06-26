@@ -254,7 +254,10 @@ describe Backbeat::Events do
             "type" => "Backbeat::Node",
             "id" => node.id,
             "name" => node.name,
-            "subject" => node.subject,
+            "subject" => {
+              "subjectKlass" => node.subject['subject_klass'],
+              "subjectId" => node.subject['subject_id'],
+            },
             "message" => "error"
           },
           "error" => {
@@ -303,7 +306,10 @@ describe Backbeat::Events do
               "type" => "Backbeat::Node",
               "id" => node.id,
               "name" => node.name,
-              "subject" => node.subject,
+              "subject" => {
+                "subjectKlass" => node.subject['subject_klass'],
+                "subjectId" => node.subject['subject_id'],
+              },
               "message" => "error"
             },
             "error" => {

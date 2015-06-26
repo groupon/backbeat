@@ -39,7 +39,6 @@ module Backbeat
     private_class_method :make_decision
 
     def self.post(url, params = {})
-      params = params.dup
       body = HashKeyTransformations.camelize_keys(params).to_json
       HTTParty.post(url, body: body, headers: {"Content-Type" => "application/json", "Content-Length" => body.size.to_s})
     rescue
