@@ -54,18 +54,20 @@ module V2
         validate_status(new_status.to_sym, status_type)
       end
 
-      create_status_changes(statuses)
-      node.update_attributes!(statuses)
+      update_statuses(statuses)
     end
 
     def rollback(statuses)
-      create_status_changes(statuses)
-      node.update_attributes!(statuses)
+      return if node.is_a?(Workflow)
+
+      update_statuses(statuses)
     end
 
     def current_statuses
+      return if node.is_a?(Workflow)
+
       [:current_client_status, :current_server_status].reduce({}) do |statuses, status_type|
-        statuses[status_type] = node_status(status_type)
+        statuses[status_type] = node.send(status_type).to_sym
         statuses
       end
     end
@@ -74,14 +76,20 @@ module V2
 
     attr_reader :node
 
-    def node_status(status_type)
-      node.send(status_type).to_sym
+    def update_statuses(statuses)
+      rows_affected = Node.where(id: node.id).where(current_statuses).update_all(statuses)
+      if rows_affected == 0
+        raise StaleStatusChange, "Stale status change data for node #{node.id}"
+      else
+        create_status_changes(statuses)
+        node.reload
+      end
     end
 
     def create_status_changes(new_statuses)
       new_statuses.each do |(status_type, new_status)|
         node.status_changes.create!(
-          from_status: node_status(status_type),
+          from_status: current_statuses[status_type],
           to_status: new_status,
           status_type: status_type
         )
@@ -90,7 +98,7 @@ module V2
 
     def validate_status(new_status, status_type)
       unless valid_status_change?(new_status, status_type)
-        current_status = node_status(status_type)
+        current_status = current_statuses[status_type]
         message = "Cannot transition #{status_type} from #{current_status} to #{new_status}"
         if status_type == :current_client_status
           error_data = { current_status: current_status, attempted_status: new_status }
@@ -106,7 +114,8 @@ module V2
     end
 
     def valid_state_changes(status_type)
-      VALID_STATE_CHANGES[status_type][node_status(status_type)] +
+      current_status = current_statuses[status_type]
+      VALID_STATE_CHANGES[status_type][current_status] +
         VALID_STATE_CHANGES[status_type][:any]
     end
   end

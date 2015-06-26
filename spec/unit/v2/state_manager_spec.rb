@@ -61,6 +61,12 @@ describe V2::StateManager, v2: true do
     expect(node.status_changes.count).to eq(0)
   end
 
+  it "raises an error if the status change is stale" do
+    V2::Node.where(id: node.id).update_all(current_client_status: :received)
+
+    expect { manager.transition(current_client_status: :received) }.to raise_error(V2::StaleStatusChange)
+  end
+
   it "no-ops if the node is a workflow" do
     expect(V2::StateManager.transition(workflow, current_server_status: :complete)).to be_nil
   end

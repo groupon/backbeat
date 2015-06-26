@@ -103,13 +103,11 @@ describe V2::Events, v2: true do
       expect(node.reload.current_server_status).to eq("ready")
     end
 
-    it "returns out of call if lock already obtained on a child" do
-      child_node = workflow.children.first
-      child_node.update_attributes!(current_server_status: :ready)
+    it "does nothing if another process is already scheduling" do
+      node.update_attributes(current_server_status: :ready)
+      allow(V2::StateManager).to receive(:transition).and_raise(V2::StaleStatusChange)
 
-      expect_any_instance_of(V2::Node).to receive(:with_lock).and_raise(ActiveRecord::StatementInvalid)
-      expect(V2::StateManager).to_not receive(:transition)
-      expect(V2::Events::ScheduleNextNode.call(workflow)).to eq(nil)
+      expect { V2::Events::ScheduleNextNode.call(workflow) }.to_not raise_error
     end
   end
 
