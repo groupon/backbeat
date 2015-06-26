@@ -18,11 +18,17 @@ module V2
         node.not_complete_children.each do |child_node|
           transitioned = false
 
-          child_node.with_lock do
-            if child_node.current_server_status.ready?
-              StateManager.transition(child_node, current_server_status: :started)
-              transitioned = true
+          begin
+            child_node.with_lock("FOR UPDATE NOWAIT") do
+              if child_node.current_server_status.ready?
+                StateManager.transition(child_node, current_server_status: :started)
+                transitioned = true
+              end
             end
+          rescue ActiveRecord::StatementInvalid
+            # Could not gain lock on child_node. Another worker is in schedule_next_node already for this workflow
+            # We only need one schedule_next_node to keep the tree moving so lets get out of here
+            return
           end
 
           if transitioned
