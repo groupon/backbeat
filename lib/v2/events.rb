@@ -25,7 +25,8 @@ module V2
                 transitioned = true
               end
             end
-          rescue ActiveRecord::StatementInvalid
+          rescue ActiveRecord::StatementInvalid => e
+            Logger.info(message: "ScheduleNextNode: Could not get lock on child_node", error: e.message, child_node: child_node.id )
             # Could not gain lock on child_node. Another worker is in schedule_next_node already for this workflow
             # We only need one schedule_next_node to keep the tree moving so lets get out of here
             return
