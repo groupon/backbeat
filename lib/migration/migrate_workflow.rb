@@ -152,7 +152,7 @@ module Migration
       new_v2_parent = migrate_single_node(node, v2_parent)
       if node.is_a?(WorkflowServer::Models::Workflow)
         sub_migration = MigrateWorkflow.call(node, new_v2_parent, { enqueue_timers: false })
-        @timers += sub_migration.timers
+        @timers += sub_migration.timers if sub_migration
       else
         node.children.each do |child|
           migrate_node(child, new_v2_parent)
