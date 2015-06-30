@@ -5,31 +5,6 @@ if defined?(Torquebox)
   require 'torquebox-rake-support'
 end
 
-namespace :roller do
-  desc "build a new roller package.  pass PACKAGE=<package_name> on cl"
-  task :build_package do
-    package_name = ENV['PACKAGE']
-    local_package_location = "config/roller/#{package_name}/"
-
-    if package_name.nil? || package_name.empty?
-      puts "Please specify PACKAGE=package_name on command line"
-      exit 1
-    elsif !Dir.exists?(local_package_location)
-      puts "Can't find #{package_name} under config/roller"
-      exit 2
-    end
-
-    date_ext = Time.now.strftime("%Y.%m.%d_%H.%M")
-    dirname = "#{package_name}-#{date_ext}"
-    filename = "#{dirname}.tar.gz"
-    system("rsync -a #{local_package_location} /tmp/#{dirname}; cd /tmp; gnutar zcf #{filename} #{dirname}")
-    system("rsync -a --stats --progress /tmp/#{filename} dev1.snc1:#{filename}")
-    system("ssh dev1.snc1 publish_encap #{filename}")
-
-    puts "created roller package named: #{dirname}"
-  end
-end
-
 namespace :sidekiq do
   desc "configures logging for our sidekiq workers"
   task :logging_setup do
