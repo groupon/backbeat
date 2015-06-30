@@ -12,7 +12,7 @@ module Migration
     end
   end
 
-  module MigrateWorkflow
+  class MigrateWorkflow
 
     class WorkflowNotMigratable < StandardError; end
 
@@ -28,6 +28,16 @@ module Migration
     end
 
     def self.call(v1_workflow, v2_workflow, options = {})
+      new.call(v1_workflow, v2_workflow, options)
+    end
+
+    def initialize
+      @timers = []
+    end
+
+    attr_reader :timers
+
+    def call(v1_workflow, v2_workflow, options = {})
       v2_workflow.with_lock do
         return if v2_workflow.migrated?
 
@@ -46,27 +56,35 @@ module Migration
             end
           end
 
+          enqueue_timers if options.fetch(:enqueue_timers, true)
           v1_workflow.update_attributes!(migrated: true) # for ignoring delayed jobs
           v2_workflow.update_attributes!(migrated: true) # for knowing whether to signal v2 or not
         end
       end
+      self
     rescue => e
       v1_workflow.workflows.each{|wf| wf.update_attributes!(migrated: false)}
       raise e
     end
 
-    def self.migrate_signal(v1_signal, v2_parent)
+    def enqueue_timers
+      timers.each do |timer|
+        V2::Schedulers::ScheduleAt.call(V2::Events::StartNode, timer) unless timer.current_server_status.to_sym == :complete
+      end
+    end
+
+    def migrate_signal(v1_signal, v2_parent)
       v1_signal.children.each do |decision|
         migrate_node(decision, v2_parent)
       end
     end
 
-    def self.migrate_top_node(v1_signal, v2_parent)
+    def migrate_top_node(v1_signal, v2_parent)
       decision = v1_signal.children.first
       migrate_single_node(decision, v2_parent)
     end
 
-    def self.migrate_activity(v1_activity, v2_parent, attrs = {})
+    def migrate_activity(v1_activity, v2_parent, attrs = {})
       node = V2::Node.new(
         mode: :blocking,
         current_server_status: attrs[:current_server_status] || server_status(v1_activity),
@@ -91,7 +109,7 @@ module Migration
       node
     end
 
-    def self.migrate_single_node(node, v2_parent)
+    def migrate_single_node(node, v2_parent)
       raise WorkflowNotMigratable.new("Cannot migrate node #{node.id}") unless can_migrate?(node)
 
       case node
@@ -108,7 +126,7 @@ module Migration
           legacy_type: :timer
         })
         timer.client_node_detail.update_attributes(data: {arguments: [node.name], options: {}})
-        V2::Schedulers::ScheduleAt.call(V2::Events::StartNode, timer) unless timer.current_server_status.to_sym == :complete
+        @timers << timer
         timer.workflow
       when WorkflowServer::Models::WorkflowCompleteFlag
         flag = migrate_activity(node, v2_parent, legacy_type: :flag)
@@ -119,7 +137,7 @@ module Migration
       when WorkflowServer::Models::Flag
         migrate_activity(node, v2_parent, legacy_type: :flag)
       when WorkflowServer::Models::Workflow
-        v2_sub_workflow = find_or_create_v2_workflow(node)
+        v2_sub_workflow = MigrateWorkflow.find_or_create_v2_workflow(node)
         migrate_activity(node, v2_parent, {
           current_server_status: :complete,
           current_client_status: :complete,
@@ -130,10 +148,11 @@ module Migration
       end
     end
 
-    def self.migrate_node(node, v2_parent)
+    def migrate_node(node, v2_parent)
       new_v2_parent = migrate_single_node(node, v2_parent)
       if node.is_a?(WorkflowServer::Models::Workflow)
-        call(node, new_v2_parent)
+        sub_migration = MigrateWorkflow.call(node, new_v2_parent, { enqueue_timers: false })
+        @timers += sub_migration.timers if sub_migration
       else
         node.children.each do |child|
           migrate_node(child, new_v2_parent)
@@ -141,7 +160,7 @@ module Migration
       end
     end
 
-    def self.can_migrate?(node)
+    def can_migrate?(node)
       if node.is_a?(WorkflowServer::Models::Timer)
         node.status.to_sym == :complete ||
           (node.status.to_sym == :scheduled && (node.fires_at - Time.now) > 1.hour)
@@ -151,7 +170,7 @@ module Migration
       end
     end
 
-    def self.client_status(v1_node)
+    def client_status(v1_node)
       case v1_node.status
       when :complete, :resolved
         :complete
@@ -160,7 +179,7 @@ module Migration
       end
     end
 
-    def self.server_status(v1_node)
+    def server_status(v1_node)
       return :deactivated if v1_node.inactive
       case v1_node.status
       when :complete, :resolved
@@ -170,7 +189,7 @@ module Migration
       end
     end
 
-    def self.has_special_cases?(node)
+    def has_special_cases?(node)
       return true if node.is_a?(WorkflowServer::Models::Timer) && node.status != :complete
       return true if node.is_a?(WorkflowServer::Models::Workflow)
       !!node.children.all.to_a.find do |c|

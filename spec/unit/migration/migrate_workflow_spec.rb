@@ -400,6 +400,16 @@ describe Migration::MigrateWorkflow, v2: true do
       expect(v2_workflow.reload.nodes.count).to eq(2)
       expect(v2_workflow.reload.children.count).to eq(2)
     end
+
+    it "does not enqueue timers if the migration fails" do
+      FactoryGirl.create(:timer, parent: @decision_2, fires_at: Time.now + 2.hours, status: :scheduled)
+      FactoryGirl.create(:activity, parent: @decision_2, workflow: v1_workflow, status: :executing)
+
+      expect { Migration::MigrateWorkflow.call(v1_workflow, v2_workflow) }.to raise_error(Migration::MigrateWorkflow::WorkflowNotMigratable)
+
+      expect(v1_workflow.reload.migrated?).to eq(false)
+      expect(V2::Workers::AsyncWorker.jobs.count).to eq(0)
+    end
   end
 
   context "workflows with sub-workflows" do
@@ -439,7 +449,7 @@ describe Migration::MigrateWorkflow, v2: true do
       v1_sub_decision_2 = FactoryGirl.create(:decision, parent: v1_sub_signal_2, workflow: v1_sub_workflow_2, status: :complete)
       v1_sub_decision_timer = FactoryGirl.create(:timer, parent: v1_sub_signal_2, workflow: v1_sub_workflow_2, status: :complete, status: :scheduled, fires_at: Time.now + 30.minutes)
 
-      expect{Migration::MigrateWorkflow.call(v1_workflow, v2_workflow)}.to raise_error Migration::MigrateWorkflow::WorkflowNotMigratable
+      expect { Migration::MigrateWorkflow.call(v1_workflow, v2_workflow) }.to raise_error Migration::MigrateWorkflow::WorkflowNotMigratable
 
       expect(V2::Workflow.count).to eq(1)
       expect(V2::Workflow.last).to eq(v2_workflow)
@@ -447,6 +457,31 @@ describe Migration::MigrateWorkflow, v2: true do
       expect(v1_sub_workflow.reload.migrated).to eq(false)
       expect(v1_sub_workflow_2.reload.migrated).to eq(false)
       expect(v2_workflow.reload.migrated).to eq(false)
+    end
+
+    it "does not enqueue timers until the parent migration succeeds" do
+      v1_decision = FactoryGirl.create(:decision, parent: v1_signal, workflow: v1_workflow, status: :complete)
+
+      v1_sub_workflow = FactoryGirl.create(:workflow, name: "Sub Workflow", workflow: v1_workflow, user: v1_user, status: :executing, subject: { "name" => "Another subject" })
+      v1_sub_workflow.parent = v1_decision
+      v1_sub_workflow.save
+      v1_sub_signal = FactoryGirl.create(:signal, parent: nil, workflow: v1_sub_workflow, status: :complete)
+      v1_sub_decision = FactoryGirl.create(:decision, parent: v1_sub_signal, workflow: v1_sub_workflow, status: :complete)
+      FactoryGirl.create(:timer, parent: v1_sub_signal, workflow: v1_sub_workflow, status: :scheduled, fires_at: Time.now + 2.hours)
+
+      v1_signal_2 = FactoryGirl.create(:signal, parent: nil, workflow: v1_workflow, status: :complete)
+      v1_decision_2 = FactoryGirl.create(:decision, parent: v1_signal_2, workflow: v1_workflow, status: :complete)
+
+      v1_sub_workflow_2 = FactoryGirl.create(:workflow, name: "Sub Workflow_2", workflow: v1_workflow, user: v1_user, status: :executing, subject: { "name" => "Another subject" })
+      v1_sub_workflow_2.parent = v1_decision_2
+      v1_sub_workflow_2.save
+      v1_sub_signal_2 = FactoryGirl.create(:signal, parent: nil, workflow: v1_sub_workflow_2, status: :complete)
+      v1_sub_decision_2 = FactoryGirl.create(:decision, parent: v1_sub_signal_2, workflow: v1_sub_workflow_2, status: :complete)
+      FactoryGirl.create(:timer, parent: v1_sub_signal_2, workflow: v1_sub_workflow_2, status: :scheduled, fires_at: Time.now + 30.minutes)
+
+      expect { Migration::MigrateWorkflow.call(v1_workflow, v2_workflow) }.to raise_error Migration::MigrateWorkflow::WorkflowNotMigratable
+
+      expect(V2::Workers::AsyncWorker.jobs.count).to eq(0)
     end
   end
 
@@ -461,21 +496,21 @@ describe Migration::MigrateWorkflow, v2: true do
 
     it "returns true if the tree has a timer" do
       FactoryGirl.create(:timer, parent: @nested_decision)
-      expect(Migration::MigrateWorkflow.has_special_cases?(v1_signal)).to eq(true)
+      expect(Migration::MigrateWorkflow.new.has_special_cases?(v1_signal)).to eq(true)
     end
 
     it "returns false if the tree has a timer thats not complete" do
       FactoryGirl.create(:timer, parent: @nested_decision, status: :complete)
-      expect(Migration::MigrateWorkflow.has_special_cases?(v1_signal)).to eq(false)
+      expect(Migration::MigrateWorkflow.new.has_special_cases?(v1_signal)).to eq(false)
     end
 
     it "returns false if the tree has no timer or workflow" do
-      expect(Migration::MigrateWorkflow.has_special_cases?(v1_signal)).to eq(false)
+      expect(Migration::MigrateWorkflow.new.has_special_cases?(v1_signal)).to eq(false)
     end
 
     it "returns true if the tree has a workflow" do
       FactoryGirl.create(:workflow, parent: @nested_decision)
-      expect(Migration::MigrateWorkflow.has_special_cases?(v1_signal)).to eq(true)
+      expect(Migration::MigrateWorkflow.new.has_special_cases?(v1_signal)).to eq(true)
     end
   end
 end
