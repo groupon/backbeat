@@ -16,31 +16,18 @@ module V2
     class ScheduleNextNode
       def self.call(node)
         node.not_complete_children.each do |child_node|
-          transitioned = false
-
-          begin
-            child_node.with_lock("FOR UPDATE NOWAIT") do
-              if child_node.current_server_status.ready?
-                StateManager.transition(child_node, current_server_status: :started)
-                transitioned = true
-              end
-            end
-          rescue ActiveRecord::StatementInvalid => e
-            Logger.info(message: "ScheduleNextNode: Could not get lock on child_node", error: e.message, child_node: child_node.id )
-            # Could not gain lock on child_node. Another worker is in schedule_next_node already for this workflow
-            # We only need one schedule_next_node to keep the tree moving so lets get out of here
-            return
-          end
-
-          if transitioned
+          if child_node.current_server_status.ready?
+            StateManager.transition(child_node, current_server_status: :started)
             StateManager.with_rollback(child_node, current_server_status: :ready) do
               Server.fire_event(StartNode, child_node)
             end
           end
-
           break if child_node.blocking?
         end
+
         Server.fire_event(NodeComplete, node) if node.all_children_complete?
+      rescue StaleStatusChange => e
+        Logger.info(message: "Aborting concurrent scheduling process", node: node.id, error: e.message)
       end
     end
 

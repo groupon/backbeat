@@ -32,4 +32,5 @@ module V2
   end
 
   class WorkflowComplete < StandardError; end
+  class StaleStatusChange < StandardError; end
 end
