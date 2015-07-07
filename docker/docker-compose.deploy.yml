@@ -1,0 +1,18 @@
+web:
+  extends:
+    file: common.yml
+    service: app
+  image: docker.groupondev.com/backbeat/backbeat_server:latest
+  command: bin/startup
+  env_file: backbeat_user.env
+  env_file: deploy.env
+  ports:
+    - 80:9292
+
+workers:
+  extends:
+    file: common.yml
+    service: app
+  image: docker.groupondev.com/backbeat/backbeat_server:latest
+  command: bin/sidekiq
+  env_file: deploy.env

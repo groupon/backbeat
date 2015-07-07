@@ -10,6 +10,6 @@ WORKDIR /app
 
 ADD Gemfile /app/
 ADD Gemfile.lock /app/
-RUN bundle install
+RUN bundle install --without development torquebox
 
 ADD . /app

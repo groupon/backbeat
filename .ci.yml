@@ -1,12 +1,6 @@
-environment:
-  language: docker
-  language_versions: 1.4.1
-  vars:
-    DOCKER_BRANCH: '<% out<< DOTCI_BRANCH.replaceAll(/[^A-Za-z0-9]/,"").toLowerCase() %>'
-    DOCKER_IMAGE: '<% out<< JOB_NAME.toLowerCase().replaceAll("-","_").replaceAll("^","docker.groupondev.com/") %>'
-    DOCKER_SHA: '<% out<< DOTCI_SHA %>'
-build:
-  before:
-    - docker --version
-  run:
-    - bin/test-ci.sh
+run:
+  ci:
+<% if( DOTCI_BRANCH =~ /deploy.*/) { %>
+plugins:
+  - publish: 'ci'
+<% } %>

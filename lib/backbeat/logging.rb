@@ -36,8 +36,7 @@ module Backbeat
     end
 
     def self.create_logger
-      if RUBY_PLATFORM == "java"
-        require 'torquebox/logger'
+      if defined?(TorqueBox)
         TorqueBox::Logger.new('backbeat_logger')
       else
         ::Logger.new(STDOUT)

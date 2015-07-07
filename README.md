@@ -56,7 +56,13 @@ environment variables set in the `backbeat_user.env` file. Change these as neces
 Move the `backbeat_user.env.example` file into place:
 
 ```bash
-$ mv backbeat_user.env.example backbeat_user.env
+$ mv docker/backbeat_user.env.example docker/backbeat_user.env
+```
+
+Set the docker-compose file environment variable:
+
+```bash
+$ export COMPOSE_FILE=docker/docker-compose.local.yml
 ```
 
 ```bash

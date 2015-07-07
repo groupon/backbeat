@@ -10,10 +10,10 @@ describe Backbeat::Web::Middleware::Heartbeat, :api_test do
       expect(response.body).to eq("We have a pulse.")
     end
 
-    it "returns 404 if heartbeat missing" do
+    it "returns 503 if heartbeat missing" do
       File.delete("#{File.dirname(__FILE__)}/../../../../public/heartbeat.txt")
       response = get '/heartbeat.txt'
-      expect(response.status).to eq(404)
+      expect(response.status).to eq(503)
       expect(response.headers["Content-Type"]).to eq("text/plain")
       expect(response.body).to eq("It's dead, Jim.")
       File.open("#{File.dirname(__FILE__)}/../../../../public/heartbeat.txt", "w") {|f|}

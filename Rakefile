@@ -1,18 +1,9 @@
 require File.expand_path('../config/environment',  __FILE__)
 require 'rake'
 
-if defined?(Torquebox)
+if defined?(TorqueBox)
   require 'torquebox-rake-support'
 end
-
-namespace :sidekiq do
-  desc "configures logging for our sidekiq workers"
-  task :logging_setup do
-    sidekiq.logger = WorkflowServer::SidekiqLogger
-  end
-end
-
-task "sidekiq:setup" => "sidekiq:logging_setup"
 
 require "active_record"
 require "foreigner"

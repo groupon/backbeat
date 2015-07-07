@@ -1,4 +1,5 @@
 defaults: &defaults
+  namespace: backbeat
   host: localhost
   port: 6379
 
@@ -8,18 +9,17 @@ development:
 test:
   <<: *defaults
 
-uat:
-  host: newuat-redis-vip
-  port: 6379
-
-staging:
-  host: general-redis-staging-vip
-  port: 6379
-
-production:
-  host: general-redis-vip
-  port: 6379
-
-docker:
+docker: &docker
+  namespace: backbeat
   host: redis
   port: 6379
+
+uat:
+  <<: *docker
+
+staging:
+  <<: *docker
+
+production:
+  <<: *docker
+

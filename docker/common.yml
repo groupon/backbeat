@@ -1,0 +1,13 @@
+app:
+  build: ../
+  restart: always
+
+database:
+  image: library/postgres:9.4
+  environment:
+    POSTGRES_USER: backbeat
+    POSTGRES_PASSWORD: backbeat
+    POSTGRES_DB: backbeat_docker
+
+redis:
+  image: library/redis

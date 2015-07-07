@@ -15,12 +15,11 @@ test:
   <<: *common
   database: backbeat_test
 
-docker:
+docker: &docker
   reconnect: true
   adapter: postgresql
   username: backbeat
-  password: fed
+  password: backbeat
   database: backbeat_docker
   host: database
   schema_search_path: public
-  pool: 25
