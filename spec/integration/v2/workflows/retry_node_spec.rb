@@ -130,12 +130,12 @@ describe V2::Api, v2: true do
 
       4.times do
         Timecop.travel(Time.now + 31.seconds)
-        expect { soft_drain }.to raise_error
+        soft_drain
         expect(activity_node.current_server_status).to eq("sent_to_client")
       end
 
       Timecop.travel(Time.now + 31.seconds)
-      expect { soft_drain }.to raise_error
+      soft_drain
       expect(activity_node.reload.current_server_status).to eq("errored")
     end
   end
