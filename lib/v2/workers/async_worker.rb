@@ -29,14 +29,8 @@ module V2
       def business_perform(event_class, node_data, options)
         options = symbolize_keys(options)
         process_event(event_class, node_data, options)
-      rescue NodeServerError=> e
-        handle_processing_error(e, event_class, node_data, options) do |e|
-          Server.fire_event(Events::ServerError, e.node)
-        end
       rescue => e
-        handle_processing_error(e, event_class, node_data, options) do |e|
-          info(status: :deserialize_node_error, error: e, backtrace: e.backtrace)
-        end
+        handle_processing_error(e, event_class, node_data, options)
       end
 
       def handle_processing_error(e, event_class, node_data, options)
@@ -45,9 +39,11 @@ module V2
           new_options = options.merge(retries: retries - 1)
           AsyncWorker.perform_at(Time.now + 30.seconds, event_class, node_data, new_options)
         else
-          yield e
+          info(status: :retries_exhausted, event_class: event_class, node_data: node_data, options: options, error: e, backtrace: e.backtrace)
+          Server.fire_event(Events::ServerError, e.node) if e.is_a?(NodeServerError)
         end
-        raise e
+      rescue => e
+        error(status: :uncaught_exception, event_class: event_class, node_data: node_data, options: options, error: e, backtrace: e.backtrace)
       end
 
       def process_event(event_class, node_data, options)
