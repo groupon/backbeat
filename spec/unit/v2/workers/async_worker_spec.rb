@@ -48,13 +48,15 @@ describe V2::Workers::AsyncWorker, v2: true do
     it "retries the job if there is an error deserializing the node" do
       expect(V2::Node).to receive(:find) { raise "Could not connect to the database" }
 
-      V2::Workers::AsyncWorker.new.perform(
-        V2::Events::MarkChildrenReady.name,
-        { "node_class" => node.class.name, "node_id" => node.id },
-        { "retries" => 1 }
-      )
+      expect {
+        V2::Workers::AsyncWorker.new.perform(
+          V2::Events::MarkChildrenReady.name,
+          { "node_class" => node.class.name, "node_id" => node.id },
+          { "retries" => 1 }
+        )
+      }.to raise_error(V2::DeserializeError)
 
-      expect(V2::Workers::AsyncWorker.jobs.count).to eq(1)
+      expect(V2::Workers::AsyncWorker.jobs.count).to eq(0)
     end
 
     it "puts the node in an errored state when out of retries" do
@@ -78,11 +80,13 @@ describe V2::Workers::AsyncWorker, v2: true do
         expect(message[:error].message).to eq("Error Connecting to Redis")
       end
 
-      subject.perform(
-        V2::Events::MarkChildrenReady.name,
-        { "node_class" => node.class.name, "node_id" => node.id },
-        { "retries" => 1 }
-      )
+      expect {
+        subject.perform(
+          V2::Events::MarkChildrenReady.name,
+          { "node_class" => node.class.name, "node_id" => node.id },
+          { "retries" => 1 }
+        )
+      }.to raise_error("Error Connecting to Redis")
     end
   end
 end
