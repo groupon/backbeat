@@ -62,9 +62,9 @@ describe Backbeat::StateManager do
   end
 
   it "raises an error if the status change is stale" do
-    V2::Node.where(id: node.id).update_all(current_client_status: :received)
+    Backbeat::Node.where(id: node.id).update_all(current_client_status: :received)
 
-    expect { manager.transition(current_client_status: :received) }.to raise_error(V2::StaleStatusChange)
+    expect { manager.transition(current_client_status: :received) }.to raise_error(Backbeat::StaleStatusChange)
   end
 
   it "no-ops if the node is a workflow" do

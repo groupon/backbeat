@@ -105,9 +105,9 @@ describe Backbeat::Events do
 
     it "does nothing if another process is already scheduling" do
       node.update_attributes(current_server_status: :ready)
-      allow(V2::StateManager).to receive(:transition).and_raise(V2::StaleStatusChange)
+      allow(Backbeat::StateManager).to receive(:transition).and_raise(Backbeat::StaleStatusChange)
 
-      expect { V2::Events::ScheduleNextNode.call(workflow) }.to_not raise_error
+      expect { Backbeat::Events::ScheduleNextNode.call(workflow) }.to_not raise_error
     end
   end
 
