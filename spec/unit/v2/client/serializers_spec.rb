@@ -20,6 +20,7 @@ describe "Serializers", v2: true do
           metadata: node.client_metadata,
           subject: node.subject,
           decider: node.decider,
+          workflow_name: node.workflow.name,
           current_server_status: node.current_server_status,
           current_client_status: node.current_client_status
         }
