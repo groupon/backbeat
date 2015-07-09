@@ -4,9 +4,9 @@
 
 1. Clone the repo:
 
-```bash
-$ git clone git@github.groupondev.com:finance-engineering/backbeat.git
-```
+  ```bash
+  $ git clone git@github.groupondev.com:finance-engineering/backbeat.git
+  ```
 
 2. Install a Ruby version manager if necessary:
   - [chruby](https://github.com/postmodern/chruby#install)
@@ -19,16 +19,29 @@ $ git clone git@github.groupondev.com:finance-engineering/backbeat.git
 
 4. Install [Bundler](http://gembundler.com/) if necessary:
 
-```bash
-$ gem install bundler`
-```
+  ```bash
+  $ gem install bundler`
+  ```
 
 5. Open up the project: `cd backbeat`
+
 6. Install the necessary gems:
 
-```bash
+  ```bash
 $ bundle install
-```
+  ```
+
+7. Install postgres
+  - [postgres](http://www.postgresql.org/download/macosx/)
+
+8. Create backbeat role in postgres DB
+  - You can use [this](http://www.postgresql.org/ftp/pgadmin3/release/v1.20.0/osx/) client to interact with DB
+
+9. Install mongoDB
+
+  ```bash
+$ brew install mongodb
+  ```
 
 ### Docker
 
@@ -81,4 +94,11 @@ Start the sidekiq workers:
 
 ```bash
 $ sidekiq -r app.rb -q accounting_backbeat_server_v2
+```
+
+
+### Running a specific test in V2:
+
+```bash
+$ V2=true bundle exec rspec {spec_file_path}
 ```
