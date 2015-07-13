@@ -76,8 +76,14 @@ module V2
 
     attr_reader :node
 
+    def to_sql(statuses)
+      statuses.map { |type, val| "#{type} = '#{val}'" }
+    end
+
     def update_statuses(statuses)
-      rows_affected = Node.where(id: node.id).where(current_statuses).update_all(statuses)
+      updates = to_sql(statuses).join(',')
+      where_statuses = to_sql(current_statuses).join(' AND ')
+      rows_affected = Node.connection.execute("UPDATE nodes SET #{updates} WHERE id = '#{node.id}' AND #{where_statuses}")
       if rows_affected == 0
         raise StaleStatusChange, "Stale status change data for node #{node.id}"
       else
