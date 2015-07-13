@@ -83,7 +83,8 @@ module V2
     def update_statuses(statuses)
       updates = to_sql(statuses).join(',')
       where_statuses = to_sql(current_statuses).join(' AND ')
-      rows_affected = Node.connection.execute("UPDATE nodes SET #{updates} WHERE id = '#{node.id}' AND #{where_statuses}")
+      result = Node.connection.execute("UPDATE nodes SET #{updates} WHERE id = '#{node.id}' AND #{where_statuses}")
+      rows_affected = result.respond_to?(:cmd_tuples) ? result.cmd_tuples : result # The jruby adapter does not return a PG::Result
       if rows_affected == 0
         raise StaleStatusChange, "Stale status change data for node #{node.id}"
       else
