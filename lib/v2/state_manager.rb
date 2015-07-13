@@ -76,14 +76,14 @@ module V2
 
     attr_reader :node
 
-    def to_sql(statuses)
-      statuses.map { |type, val| "#{type} = '#{val}'" }
+    def update_sql(new_statuses)
+      updates = new_statuses.map { |type, val| "#{type} = '#{val}'" }.join(',')
+      where_statuses = current_statuses.map { |type, val| "#{type} = '#{val}'" }.join(' AND ')
+      "UPDATE nodes SET #{updates} WHERE id = '#{node.id}' AND #{where_statuses}"
     end
 
     def update_statuses(statuses)
-      updates = to_sql(statuses).join(',')
-      where_statuses = to_sql(current_statuses).join(' AND ')
-      result = Node.connection.execute("UPDATE nodes SET #{updates} WHERE id = '#{node.id}' AND #{where_statuses}")
+      result = Node.connection.execute(update_sql(statuses))
       rows_affected = result.respond_to?(:cmd_tuples) ? result.cmd_tuples : result # The jruby adapter does not return a PG::Result
       if rows_affected == 0
         raise StaleStatusChange, "Stale status change data for node #{node.id}"
