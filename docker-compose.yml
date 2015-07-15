@@ -12,7 +12,7 @@ web:
 
 workers:
   build: .
-  command: bundle exec sidekiq -r app.rb -q accounting_backbeat_server_v2
+  command: bin/sidekiq
   volumes:
     - .:/app
   links:
