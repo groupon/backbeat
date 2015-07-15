@@ -54,7 +54,7 @@ TorqueBox.configure do
 
   if ENV['RACK_ENV'] == 'production' &&
     `hostname` =~ /accounting-utility2/
-    job Reports::InconsistentNodes do
+    job Reports::DailyActivity do
       # Every day at noon
       cron '0 0 12 * * ?'
     end

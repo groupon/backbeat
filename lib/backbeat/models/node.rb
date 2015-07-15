@@ -49,6 +49,7 @@ module Backbeat
     delegate :metadata, to: :client_node_detail, prefix: :client
     delegate :complete?, :processing_children?, :ready?, to: :current_server_status
     delegate :subject, :decider, to: :workflow
+    delegate :name, to: :workflow, prefix: :workflow
 
     before_create do
       self.seq ||= ActiveRecord::Base.connection.execute("SELECT nextval('nodes_seq_seq')").first["nextval"]

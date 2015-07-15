@@ -76,8 +76,15 @@ module Backbeat
 
     attr_reader :node
 
+    def update_sql(new_statuses)
+      updates = new_statuses.map { |type, val| "#{type} = '#{val}'" }.join(',')
+      where_statuses = current_statuses.map { |type, val| "#{type} = '#{val}'" }.join(' AND ')
+      "UPDATE nodes SET #{updates} WHERE id = '#{node.id}' AND #{where_statuses}"
+    end
+
     def update_statuses(statuses)
-      rows_affected = Node.where(id: node.id).where(current_statuses).update_all(statuses)
+      result = Node.connection.execute(update_sql(statuses))
+      rows_affected = result.respond_to?(:cmd_tuples) ? result.cmd_tuples : result # The jruby adapter does not return a PG::Result
       if rows_affected == 0
         raise StaleStatusChange, "Stale status change data for node #{node.id}"
       else

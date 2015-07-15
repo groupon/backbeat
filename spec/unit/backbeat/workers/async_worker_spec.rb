@@ -36,13 +36,11 @@ describe Backbeat::Workers::AsyncWorker do
     it "retries the job if there is an error in running the event" do
       expect(Backbeat::Events::MarkChildrenReady).to receive(:call) { raise "Event Failed" }
 
-      expect {
-        Backbeat::Workers::AsyncWorker.new.perform(
-          Backbeat::Events::MarkChildrenReady.name,
-          { "node_class" => node.class.name, "node_id" => node.id },
-          { "retries" => 1 }
-        )
-      }.to raise_error
+      Backbeat::Workers::AsyncWorker.new.perform(
+        Backbeat::Events::MarkChildrenReady.name,
+        { "node_class" => node.class.name, "node_id" => node.id },
+        { "retries" => 1 }
+      )
 
       expect(Backbeat::Workers::AsyncWorker.jobs.count).to eq(1)
     end
@@ -56,24 +54,39 @@ describe Backbeat::Workers::AsyncWorker do
           { "node_class" => node.class.name, "node_id" => node.id },
           { "retries" => 1 }
         )
-      }.to raise_error
+      }.to raise_error(Backbeat::DeserializeError)
 
-      expect(Backbeat::Workers::AsyncWorker.jobs.count).to eq(1)
+      expect(Backbeat::Workers::AsyncWorker.jobs.count).to eq(0)
     end
 
     it "puts the node in an errored state when out of retries" do
       expect(Backbeat::Events::MarkChildrenReady).to receive(:call) { raise "Event Failed" }
 
-      expect {
-        Backbeat::Workers::AsyncWorker.new.perform(
-          Backbeat::Events::MarkChildrenReady.name,
-          { "node_class" => node.class.name, "node_id" => node.id },
-          { "retries" => 0 }
-        )
-      }.to raise_error
+      Backbeat::Workers::AsyncWorker.new.perform(
+        Backbeat::Events::MarkChildrenReady.name,
+        { "node_class" => node.class.name, "node_id" => node.id },
+        { "retries" => 0 }
+      )
 
       expect(Backbeat::Workers::AsyncWorker.jobs.count).to eq(0)
       expect(node.reload.current_server_status).to eq("errored")
+    end
+
+    it "logs if we blow up when trying to retry" do
+      allow(Backbeat::Workers::AsyncWorker).to receive(:perform_at) { raise "Error Connecting to Redis" }
+
+      allow(subject).to receive(:error) do |message|
+        expect(message[:status]).to eq(:uncaught_exception)
+        expect(message[:error].message).to eq("Error Connecting to Redis")
+      end
+
+      expect {
+        subject.perform(
+          Backbeat::Events::MarkChildrenReady.name,
+          { "node_class" => node.class.name, "node_id" => node.id },
+          { "retries" => 1 }
+        )
+      }.to raise_error("Error Connecting to Redis")
     end
   end
 end

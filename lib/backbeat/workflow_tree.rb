@@ -103,6 +103,8 @@ module Backbeat
           white(node_details)
         when statuses.all?{|s| s == :complete}
           green(node_details)
+        when statuses.include?(:deactivated)
+          white(node_details)
         else
           yellow(node_details)
         end

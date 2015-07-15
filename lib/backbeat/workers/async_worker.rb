@@ -28,46 +28,27 @@ module Backbeat
 
       def business_perform(event_class, node_data, options)
         options = symbolize_keys(options)
-        process_event(event_class, node_data, options)
-      rescue NodeServerError=> e
-        handle_processing_error(e, event_class, node_data, options) do |e|
-          Server.fire_event(Events::ServerError, e.node)
-        end
+        node = deserialize_node(node_data)
+        Server.fire_event(event_class.constantize, node, Schedulers::PerformEvent)
+      rescue DeserializeError => e
+        error(status: :deserialize_node_error, node: node_data["node_id"], error: e, backtrace: e.backtrace)
+        raise e
       rescue => e
-        handle_processing_error(e, event_class, node_data, options) do |e|
-          info(status: :deserialize_node_error, error: e, backtrace: e.backtrace)
-        end
+        handle_processing_error(e, event_class, node, options)
       end
 
-      def handle_processing_error(e, event_class, node_data, options)
+      def handle_processing_error(e, event_class, node, options)
         retries = options.fetch(:retries, 4)
         if retries > 0
-          new_options = options.merge(retries: retries - 1)
-          AsyncWorker.perform_at(Time.now + 30.seconds, event_class, node_data, new_options)
+          new_options = options.merge(retries: retries - 1, time: Time.now + 30.seconds)
+          AsyncWorker.schedule_async_event(event_class.constantize, node, new_options)
         else
-          yield e
+          info(status: :retries_exhausted, event_class: event_class, node: node.id, options: options, error: e, backtrace: e.backtrace)
+          Server.fire_event(Events::ServerError, node)
         end
-        raise e
-      end
-
-      def process_event(event_class, node_data, options)
-        node = deserialize_node(node_data)
-        fire(event_class, node)
-      end
-
-      class NodeServerError < StandardError
-        attr_reader :node
-
-        def initialize(node, e)
-          @node = node
-          super(e.message)
-        end
-      end
-
-      def fire(event_class, node)
-        Server.fire_event(event_class.constantize, node, Schedulers::PerformEvent)
       rescue => e
-        raise NodeServerError.new(node, e)
+        error(status: :uncaught_exception, event_class: event_class, node: node.id, options: options, error: e, backtrace: e.backtrace)
+        raise e
       end
 
       def symbolize_keys(options)
@@ -78,6 +59,8 @@ module Backbeat
         node_class = node_data["node_class"]
         node_id = node_data["node_id"]
         node_class.constantize.find(node_id)
+      rescue => e
+        raise DeserializeError.new(e.message)
       end
     end
   end

@@ -12,6 +12,7 @@ module Backbeat
 
   class WorkflowComplete < StandardError; end
   class StaleStatusChange < StandardError; end
+  class DeserializeError < StandardError; end
 
   class InvalidParameters < StandardError
     def initialize(raw_message)
