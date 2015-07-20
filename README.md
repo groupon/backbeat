@@ -37,12 +37,6 @@ $ bundle install
 8. Create backbeat role in postgres DB
   - You can use [this](http://www.postgresql.org/ftp/pgadmin3/release/v1.20.0/osx/) client to interact with DB
 
-9. Install mongoDB
-
-  ```bash
-$ brew install mongodb
-  ```
-
 ### Docker
 
 The docker build will create a user based on the `BACKBEAT_USER_ID` and `BACKBEAT_CLIENT_URL`
