@@ -100,15 +100,9 @@ $ rackup
 Start the sidekiq workers:
 
 ```bash
-$ sidekiq -r app.rb -q accounting_backbeat_server_v2
+$ bin/sidekiq
 ```
 
 ### Gitbook
 [Backbeat Gitbook](https://github.groupondev.com/pages/finance-engineering/html/index.html)
 =======
-
-### Running a specific test in V2:
-
-```bash
-$ V2=true bundle exec rspec {spec_file_path}
-```
