@@ -127,6 +127,11 @@ describe Backbeat::Events do
         expect(node.current_client_status).to eq("received")
       end
 
+      it "touches the node" do
+        expect(node).to receive(:touch!)
+        Backbeat::Events::StartNode.call(node)
+      end
+
       it "sends the node to the client" do
         expect(Backbeat::Client).to receive(:perform_action).with(node)
 

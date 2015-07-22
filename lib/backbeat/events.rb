@@ -41,6 +41,7 @@ module Backbeat
           current_server_status: :sent_to_client,
           current_client_status: :received
         )
+        node.touch!
         if node.perform_client_action?
           Client.perform_action(node)
         else
