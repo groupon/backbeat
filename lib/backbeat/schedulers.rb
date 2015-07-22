@@ -16,8 +16,10 @@ module Backbeat
     ScheduleNow = AsyncEvent.new { Time.now }
     ScheduleAt  = AsyncEvent.new { |node| node.fires_at }
 
+    DEFAULT_RETRIES = 4
+
     ScheduleRetry = AsyncEvent.new do |node|
-      tries = 4 - node.retries_remaining
+      tries = DEFAULT_RETRIES - node.retries_remaining
       tries = 0 if tries < 0
       backoff = (tries ** 4) + node.retry_interval + (rand(30) * (tries + 1))
       Time.now + backoff.minutes
