@@ -81,7 +81,7 @@ module Backbeat
       Events::MarkChildrenReady => Schedulers::PerformEvent,
       Events::NodeComplete => Schedulers::PerformEvent,
       Events::ResetNode => Schedulers::PerformEvent,
-      Events::RetryNode => Schedulers::ScheduleIn,
+      Events::RetryNode => Schedulers::ScheduleRetry,
       Events::ScheduleNextNode => Schedulers::ScheduleNow,
       Events::ServerError => Schedulers::PerformEvent,
       Events::StartNode => Schedulers::ScheduleAt

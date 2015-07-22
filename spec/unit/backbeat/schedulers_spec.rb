@@ -45,14 +45,31 @@ describe Backbeat::Schedulers do
     end
   end
 
-  context "ScheduleIn" do
-    it "schedules an async event with node retry_interval from now as the time" do
-      expect(Backbeat::Workers::AsyncWorker).to receive(:schedule_async_event).with(
-        MockEvent,
-        node,
-        { time: Time.now + 60.minutes }
-      )
-      Backbeat::Schedulers::ScheduleIn.call(MockEvent, node)
+  context "ScheduleRetry" do
+    let(:now) { Time.now }
+
+    retries = [
+      { retries_remaining: 51, lower_bound: 0.minutes, upper_bound: 30.minutes },
+      { retries_remaining: 4, lower_bound: 0.minutes, upper_bound: 30.minutes },
+      { retries_remaining: 1, lower_bound: 86.minutes, upper_bound: 206.minutes }
+    ]
+
+    retries.each do |params|
+      it "calculates retry interval by progressively backing off as remaining retries decrease from 4" do
+        node.node_detail.update_attributes(retries_remaining: params[:retries_remaining])
+
+        expect(Backbeat::Workers::AsyncWorker).to receive(:schedule_async_event) do |event, evented_node, args|
+          expect(event).to eq(MockEvent)
+          expect(evented_node).to eq(node)
+
+          time = args[:time]
+
+          expect(time).to be >= now + node.retry_interval.minutes + params[:lower_bound]
+          expect(time).to be <= now + node.retry_interval.minutes + params[:upper_bound]
+        end
+
+        Backbeat::Schedulers::ScheduleRetry.call(MockEvent, node)
+      end
     end
   end
 
