@@ -51,8 +51,13 @@ module Backbeat
     delegate :subject, :decider, to: :workflow
     delegate :name, to: :workflow, prefix: :workflow
 
-    scope :incomplete, -> { where("(current_server_status <> 'complete' OR current_client_status <> 'complete')") }
-    scope :active, -> { where("current_server_status <> 'deactivated'") }
+    scope :incomplete, lambda {
+      where("(current_server_status <> 'complete' OR current_client_status <> 'complete')")
+    }
+
+    scope :active, lambda {
+      where("current_server_status <> 'deactivated'")
+    }
 
     before_create do
       self.seq ||= ActiveRecord::Base.connection.execute("SELECT nextval('nodes_seq_seq')").first["nextval"]
@@ -99,13 +104,13 @@ module Backbeat
     end
 
     def touch!
-      # maybe add status conditions, but i don't think it's necessary
       node_detail.update_attributes!(complete_by: should_complete_by)
     end
 
     private
+
     def should_complete_by
-      timeout = client_data.try(:fetch, "timeout", Backbeat::Config.options[:default_client_timeout]) # This can be a user level setting as well
+      timeout = client_data.fetch("timeout", Backbeat::Config.options["default_client_timeout"])
       if timeout
         Time.now + timeout
       end
