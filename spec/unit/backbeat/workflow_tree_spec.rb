@@ -51,6 +51,9 @@ describe Backbeat::WorkflowTree do
         id: uuid(workflow),
         current_server_status: nil,
         current_client_status: nil,
+        user_id: workflow.user_id,
+        subject: workflow.subject,
+        mode: nil,
         name: workflow.name,
         children: []
       })
@@ -63,12 +66,18 @@ describe Backbeat::WorkflowTree do
         id: uuid(workflow),
         current_server_status: nil,
         current_client_status: nil,
+        user_id: workflow.user_id,
+        subject: workflow.subject,
+        mode: nil,
         name: workflow.name,
         children: [
           {
             id: uuid(workflow.children.first),
             current_server_status: "pending",
             current_client_status: "ready",
+            user_id: workflow.user_id,
+            subject: workflow.children.first.subject,
+            mode: "blocking",
             name: "Workflow child",
             children: []
           }
@@ -85,19 +94,28 @@ describe Backbeat::WorkflowTree do
         id: uuid(workflow),
         current_server_status: nil,
         current_client_status: nil,
+        user_id: workflow.user_id,
+        subject: workflow.subject,
+        mode: nil,
         name: workflow.name,
         children: [
           {
             id: uuid(workflow.children.first),
             current_server_status: "pending",
             current_client_status: "ready",
+            user_id: workflow.user_id,
+            subject: workflow.children.first.subject,
+            mode: "blocking",
             name: "Workflow child",
             children: [
               {
                 id: uuid(workflow.children.first.children.first),
                 current_server_status: "pending",
                 current_client_status: "ready",
+                user_id: workflow.user_id,
+                subject: workflow.children.first.children.first.subject,
                 name: "Nested child",
+                mode: "blocking",
                 children: []
               }
             ]
@@ -106,6 +124,9 @@ describe Backbeat::WorkflowTree do
             id: uuid(workflow.children.last),
             current_server_status: "pending",
             current_client_status: "ready",
+            user_id: workflow.user_id,
+            subject: workflow.children.last.subject,
+            mode: "blocking",
             name: "Another Workflow child",
             children: []
           }
