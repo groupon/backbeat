@@ -20,22 +20,33 @@
 4. Install [Bundler](http://gembundler.com/) if necessary:
 
   ```bash
-  $ gem install bundler`
+  $ gem install bundler
   ```
 
-5. Open up the project: `cd backbeat`
+5. Open up the project:
+
+  ```bash
+  $ cd backbeat
+  ```
 
 6. Install the necessary gems:
 
   ```bash
-$ bundle install
+  $ bundle install
   ```
 
-7. Install postgres
-  - [postgres](http://www.postgresql.org/download/macosx/)
+7. Install [postgres](http://www.postgresql.org/download/macosx/)
+
+  ```bash
+  $ brew install postgres
+  ```
 
 8. Create backbeat role in postgres DB
-  - You can use [this](http://www.postgresql.org/ftp/pgadmin3/release/v1.20.0/osx/) client to interact with DB
+
+  ```bash
+  $ psql -c "CREATE ROLE backbeat"
+  ```
+  - You can also use [this](http://www.postgresql.org/ftp/pgadmin3/release/v1.20.0/osx/) client to interact with DB
 
 ### Docker
 
