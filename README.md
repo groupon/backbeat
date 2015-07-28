@@ -5,7 +5,7 @@
 1. Clone the repo:
 
   ```bash
-  $ git clone git@github.groupondev.com:finance-engineering/backbeat.git
+  $ git clone git@github.groupondev.com:Backbeat/backbeat_server.git
   ```
 
 2. Install a Ruby version manager if necessary:
@@ -14,8 +14,8 @@
   - [rvm](https://rvm.io/rvm/install/)
 
 3. Install any of the supported Ruby versions:
-  - MRI 1.9.3
-  - JRuby 1.7.3
+  - JRuby 1.7.3 - 1.7.20
+  - MRI 1.9.3 - 2.1.6
 
 4. Install [Bundler](http://gembundler.com/) if necessary:
 
@@ -72,7 +72,7 @@ $ bin/docker_console
 
 ### Sample App
 
-The [sample backbeat client](https://github.groupondev.com/c-kbuchanan/backbeat_sample_ruby)
+The [sample backbeat client](https://github.groupondev.com/Backbeat/backbeat_sample_ruby)
 is already configured to work with a local dockerized backbeat.
 
 ### Commands
@@ -109,5 +109,5 @@ $ bin/sidekiq
 ```
 
 ### Gitbook
+
 [Backbeat Gitbook](https://github.groupondev.com/pages/finance-engineering/html/index.html)
-=======
