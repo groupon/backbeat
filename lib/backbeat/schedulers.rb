@@ -21,7 +21,7 @@ module Backbeat
     ScheduleRetry = AsyncEvent.new do |node|
       tries = DEFAULT_RETRIES - node.retries_remaining
       tries = 0 if tries < 0
-      backoff = (tries ** 4) + node.retry_interval + (rand(30) * (tries + 1))
+      backoff = node.retry_interval + (tries ** 4) + (rand(0..30) * (tries + 1))
       Time.now + backoff.minutes
     end
 

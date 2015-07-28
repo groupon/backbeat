@@ -51,7 +51,7 @@ describe Backbeat::Schedulers do
     retries = [
       { retries_remaining: 51, lower_bound: 0.minutes, upper_bound: 30.minutes },
       { retries_remaining: 4, lower_bound: 0.minutes, upper_bound: 30.minutes },
-      { retries_remaining: 1, lower_bound: 86.minutes, upper_bound: 206.minutes }
+      { retries_remaining: 1, lower_bound: 81.minutes, upper_bound: 201.minutes }
     ]
 
     retries.each do |params|
