@@ -5,7 +5,7 @@
 1. Clone the repo:
 
   ```bash
-  $ git clone git@github.groupondev.com:Backbeat/backbeat_server.git
+  $ git clone git@github.groupondev.com:backbeat/backbeat_server.git
   ```
 
 2. Install a Ruby version manager if necessary:
@@ -72,7 +72,7 @@ $ bin/docker_console
 
 ### Sample App
 
-The [sample backbeat client](https://github.groupondev.com/Backbeat/backbeat_sample_ruby)
+The [sample backbeat client](https://github.groupondev.com/backbeat/backbeat_sample_ruby)
 is already configured to work with a local dockerized backbeat.
 
 ### Commands
