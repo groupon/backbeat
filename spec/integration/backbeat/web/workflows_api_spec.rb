@@ -73,6 +73,137 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
     end
   end
 
+  context "GET /workflows/search" do
+    let!(:wf_1) { FactoryGirl.create(
+      :workflow,
+      user: user,
+      subject: { class: "FooModel", id: 1 },
+      name: "import"
+    )}
+
+    let!(:wf_2) { FactoryGirl.create(
+      :workflow,
+      user: user,
+      subject: { class: "BarModel", id: 2 },
+      name: "import"
+    )}
+
+    let!(:wf_3) { FactoryGirl.create(
+      :workflow,
+      user: user,
+      subject: { class: "FooModel", id: 3 },
+      name: "export"
+    )}
+
+    it "returns all workflows with matching name" do
+      response = get "v2/workflows/search?name=import"
+      json_response = JSON.parse(response.body)
+      expect(json_response.count).to eq(2)
+      expect(json_response.map{ |wf| wf["name"] }).to_not include("bar")
+    end
+
+    it "returns all workflows partially matching on subject" do
+      response = get "v2/workflows/search?subject=FooModel"
+      json_response = JSON.parse(response.body)
+      expect(json_response.count).to eq(2)
+      expect(json_response.first["id"]).to eq(wf_1.id)
+      expect(json_response.last["id"]).to eq(wf_3.id)
+    end
+
+    it "returns all workflows matching name and partial subject" do
+      response = get "v2/workflows/search?subject=FooModel&name=import"
+      json_response = JSON.parse(response.body)
+      expect(json_response.first["id"]).to eq(wf_1.id)
+    end
+
+    it "returns all workflows with nodes in server_status matching queried status" do
+      errored_node = FactoryGirl.create(
+        :node,
+        workflow: wf_1,
+        user: user,
+        current_server_status: :errored
+      )
+      response = get "v2/workflows/search?current_status=errored"
+      json_response = JSON.parse(response.body)
+      expect(json_response.count).to eq(1)
+      expect(json_response.first["id"]).to eq(wf_1.id)
+    end
+
+    it "returns all workflows with nodes in client_status matching queried status" do
+      errored_node = FactoryGirl.create(
+        :node,
+        workflow: wf_1,
+        user: user,
+        current_client_status: :errored
+      )
+      response = get "v2/workflows/search?current_status=errored"
+      json_response = JSON.parse(response.body)
+      expect(json_response.count).to eq(1)
+      expect(json_response.first["id"]).to eq(wf_1.id)
+    end
+
+    it "returns workflows filtered by all params" do
+      errored_node = FactoryGirl.create(
+        :node,
+        workflow: wf_1,
+        user: user,
+        current_client_status: :pending
+      )
+      response = get "v2/workflows/search?current_status=pending&name=import&subject=FooModel"
+      json_response = JSON.parse(response.body)
+      expect(json_response.count).to eq(1)
+      expect(json_response.first["id"]).to eq(wf_1.id)
+    end
+
+    it "returns workflows with nodes that errored in a certain timeframe" do
+      errored_node = FactoryGirl.create(
+        :node,
+        workflow: wf_1,
+        user: user,
+        current_client_status: :pending
+      )
+      errored_node.status_changes.create({
+        from_status: :pending,
+        to_status: :errored,
+        status_type: :current_server_status,
+        created_at: 2.hours.ago.utc
+      })
+
+      status_start = 3.hours.ago.utc.iso8601
+      status_end = 1.hours.ago.utc.iso8601
+      query_params = "status_start=#{status_start}&status_end=#{status_end}&past_status=errored"
+      response = get "v2/workflows/search?#{query_params}"
+      json_response = JSON.parse(response.body)
+      expect(json_response.count).to eq(1)
+      expect(json_response.first["id"]).to eq(wf_1.id)
+    end
+
+    it "returns workflows with errors that are now complete" do
+      errored_node = FactoryGirl.create(
+        :node,
+        workflow: wf_1,
+        user: user,
+        current_client_status: :complete
+      )
+      errored_node.status_changes.create({
+        from_status: :sent_to_client,
+        to_status: :errored,
+        status_type: :current_client_status,
+        created_at: 1.hours.ago.utc
+      })
+
+      response = get "v2/workflows/search?current_status=complete&past_status=errored"
+      json_response = JSON.parse(response.body)
+      expect(json_response.count).to eq(1)
+      expect(json_response.first["id"]).to eq(wf_1.id)
+    end
+
+    it "returns nothing if no params are provided" do
+      response = get "v2/workflows/search"
+      expect(response.body).to eq("[]")
+    end
+  end
+
   context "GET /workflows/:id" do
     it "returns a workflow given an id" do
       response = get "v2/workflows/#{workflow.id}"
