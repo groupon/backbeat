@@ -2,7 +2,7 @@ module Backbeat
   module Search
     class WorkflowSearch
       def self.filter_for(param, &block)
-        ->(relation, params) do
+        lambda do |relation, params|
           if params[param]
             block.call(relation, params)
           else
