@@ -97,23 +97,23 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
 
     it "returns all workflows with matching name" do
       response = get "v2/workflows/search?name=import"
-      json_response = JSON.parse(response.body)
-      expect(json_response.count).to eq(2)
-      expect(json_response.map{ |wf| wf["name"] }).to_not include("bar")
+      result = JSON.parse(response.body)
+      expect(result.count).to eq(2)
+      expect(result.map{ |wf| wf["name"] }).to_not include("bar")
     end
 
     it "returns all workflows partially matching on subject" do
       response = get "v2/workflows/search?subject=FooModel"
-      json_response = JSON.parse(response.body)
-      expect(json_response.count).to eq(2)
-      expect(json_response.first["id"]).to eq(wf_1.id)
-      expect(json_response.last["id"]).to eq(wf_3.id)
+      result = JSON.parse(response.body)
+      expect(result.count).to eq(2)
+      expect(result.first["id"]).to eq(wf_1.id)
+      expect(result.last["id"]).to eq(wf_3.id)
     end
 
     it "returns all workflows matching name and partial subject" do
       response = get "v2/workflows/search?subject=FooModel&name=import"
-      json_response = JSON.parse(response.body)
-      expect(json_response.first["id"]).to eq(wf_1.id)
+      result = JSON.parse(response.body)
+      expect(result.first["id"]).to eq(wf_1.id)
     end
 
     it "returns all workflows with nodes in server_status matching queried status" do
@@ -124,9 +124,9 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
         current_server_status: :errored
       )
       response = get "v2/workflows/search?current_status=errored"
-      json_response = JSON.parse(response.body)
-      expect(json_response.count).to eq(1)
-      expect(json_response.first["id"]).to eq(wf_1.id)
+      result = JSON.parse(response.body)
+      expect(result.count).to eq(1)
+      expect(result.first["id"]).to eq(wf_1.id)
     end
 
     it "returns all workflows with nodes in client_status matching queried status" do
@@ -137,9 +137,9 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
         current_client_status: :errored
       )
       response = get "v2/workflows/search?current_status=errored"
-      json_response = JSON.parse(response.body)
-      expect(json_response.count).to eq(1)
-      expect(json_response.first["id"]).to eq(wf_1.id)
+      result = JSON.parse(response.body)
+      expect(result.count).to eq(1)
+      expect(result.first["id"]).to eq(wf_1.id)
     end
 
     it "returns workflows filtered by all params" do
@@ -150,9 +150,9 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
         current_client_status: :pending
       )
       response = get "v2/workflows/search?current_status=pending&name=import&subject=FooModel"
-      json_response = JSON.parse(response.body)
-      expect(json_response.count).to eq(1)
-      expect(json_response.first["id"]).to eq(wf_1.id)
+      result = JSON.parse(response.body)
+      expect(result.count).to eq(1)
+      expect(result.first["id"]).to eq(wf_1.id)
     end
 
     it "returns workflows with nodes that errored in a certain timeframe" do
@@ -173,9 +173,9 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
       status_end = 1.hours.ago.utc.iso8601
       query_params = "status_start=#{status_start}&status_end=#{status_end}&past_status=errored"
       response = get "v2/workflows/search?#{query_params}"
-      json_response = JSON.parse(response.body)
-      expect(json_response.count).to eq(1)
-      expect(json_response.first["id"]).to eq(wf_1.id)
+      result = JSON.parse(response.body)
+      expect(result.count).to eq(1)
+      expect(result.first["id"]).to eq(wf_1.id)
     end
 
     it "returns workflows with errors that are now complete" do
@@ -193,14 +193,36 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
       })
 
       response = get "v2/workflows/search?current_status=complete&past_status=errored"
-      json_response = JSON.parse(response.body)
-      expect(json_response.count).to eq(1)
-      expect(json_response.first["id"]).to eq(wf_1.id)
+      result = JSON.parse(response.body)
+      expect(result.count).to eq(1)
+      expect(result.first["id"]).to eq(wf_1.id)
     end
 
     it "returns nothing if no params are provided" do
       response = get "v2/workflows/search"
       expect(response.body).to eq("[]")
+    end
+
+    it "returns results limited by per_page" do
+      response = get "v2/workflows/search?subject=Model&per_page=2"
+      result = JSON.parse(response.body)
+
+      expect(result.count).to eq(2)
+    end
+
+    it "paginates results" do
+      response = get "v2/workflows/search?subject=Model&per_page=2&page=2"
+      result = JSON.parse(response.body)
+
+      expect(result.count).to eq(1)
+      expect(result.first["id"]).to eq(wf_3.id)
+    end
+
+    it "defaults pagination to 25 results" do
+      response = get "v2/workflows/search?subject=Model"
+      result = JSON.parse(response.body)
+
+      expect(result.count).to eq(3)
     end
   end
 

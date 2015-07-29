@@ -1,10 +1,11 @@
 module Backbeat
   module Search
     class WorkflowSearch
-      def self.filter_for(param, &block)
+      def self.filter_for(param, default = nil, &block)
         lambda do |relation, params|
-          if params[param]
-            block.call(relation, params)
+          value = params.fetch(param, default)
+          if value
+            block.call(relation, params.merge({ param => value }))
           else
             relation
           end
@@ -22,7 +23,9 @@ module Backbeat
           CurrentStatusFilter,
           PastStatusFilter,
           StatusStartFilter,
-          StatusEndFilter
+          StatusEndFilter,
+          PerPageFilter,
+          PageFilter
         )
       end
 
@@ -57,13 +60,27 @@ module Backbeat
         relation.where("status_changes.created_at <= ?", params[:status_end])
       end
 
+      PAGE_SIZE = 25
+
+      PerPageFilter = filter_for(:per_page, PAGE_SIZE) do |relation, params|
+        limit = params[:per_page].to_i
+        relation.limit(limit)
+      end
+
+      PageFilter = filter_for(:page, 1) do |relation, params|
+        per_page = params.fetch(:per_page, PAGE_SIZE).to_i
+        page = params[:page].to_i
+        offset = (page - 1) * per_page
+        relation.offset(offset)
+      end
+
       private
 
       attr_reader :params
 
       def apply_filters(*filters)
         return [] if params.empty?
-        filters.reduce(Workflow) do |relation, filter|
+        filters.reduce(Workflow.order(:created_at)) do |relation, filter|
           filter.call(relation, params)
         end
       end
