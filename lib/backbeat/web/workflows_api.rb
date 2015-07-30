@@ -3,6 +3,7 @@ require 'backbeat/errors'
 require 'backbeat/server'
 require 'backbeat/models/workflow'
 require 'backbeat/web/helpers/current_user_helper'
+require 'backbeat/search/workflow_search'
 
 module Backbeat
   module Web
@@ -50,6 +51,10 @@ module Backbeat
           workflow = find_workflow
           Server.resume_workflow(workflow)
           { success: true }
+        end
+
+        get "/search" do
+          Search::WorkflowSearch.new(params).result
         end
 
         get "/:id" do
