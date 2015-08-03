@@ -45,7 +45,7 @@ describe Backbeat, :api_test do
       activity_3 = FactoryGirl.build(:client_activity_post_to_decision).merge(mode: :non_blocking)
       activity_4 = FactoryGirl.build(:client_activity_post_to_decision).merge(mode: :fire_and_forget)
 
-      activities_to_post = { "args" => { "decisions" => [activity_1, activity_2, activity_3, activity_4] }}
+      activities_to_post = { "decisions" => [activity_1, activity_2, activity_3, activity_4] }
 
       response = post "v2/events/#{signal_node.id}/decisions", activities_to_post
 
@@ -238,7 +238,7 @@ describe Backbeat, :api_test do
       )
 
       activity = FactoryGirl.build(:client_activity_post_to_decision)
-      activities_to_post = { "args" => { "decisions" => [activity] }}
+      activities_to_post = { "decisions" => [activity] }
       response = post "v2/events/#{signal_node.id}/decisions", activities_to_post
 
       expect(signal_node.reload.attributes).to include(
@@ -302,7 +302,7 @@ describe Backbeat, :api_test do
       )
 
       activity = FactoryGirl.build(:client_activity_post_to_decision)
-      activity_to_post_signal_2 = { "args" => { "decisions" => [activity] }}
+      activity_to_post_signal_2 = { "decisions" => [activity] }
       response = post "v2/events/#{signal_node_2.id}/decisions", activity_to_post_signal_2
 
       expect(signal_node_2.reload.attributes).to include(

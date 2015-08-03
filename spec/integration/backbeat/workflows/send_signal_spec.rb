@@ -40,7 +40,7 @@ describe Backbeat, :api_test do
       )
 
       activity= FactoryGirl.build(:client_activity_post_to_decision)
-      activity_to_post = { "args" => { "decisions" => [activity] }}
+      activity_to_post = { "decisions" => [activity] }
       response = post "v2/events/#{node.id}/decisions", activity_to_post
 
       expect(node.reload.attributes).to include(

@@ -43,7 +43,7 @@ describe Backbeat, :api_test do
       flag = {name: "my_flag", type: "flag"}
       activity = FactoryGirl.build(:client_activity_post_to_decision).merge(mode: :non_blocking)
 
-      children_to_post = { "args" => { "decisions" => [flag, activity] }}
+      children_to_post = { "decisions" => [flag, activity] }
 
       response = post "v2/events/#{signal_node.id}/decisions", children_to_post
 

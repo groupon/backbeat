@@ -58,12 +58,12 @@ describe Backbeat::Web::EventsApi, :api_test do
   context "POST /events/:id/decisions" do
     it "creates the node detail with retry data" do
       parent_node = workflow.children.first
-
       activity = FactoryGirl.build(:client_activity_post_to_decision).merge(
         retry: 20,
         retry_interval: 50
       )
-      activity_to_post = { "args" => { "decisions" => [activity] }}
+      activity_to_post = { "decisions" => [activity] }
+
       post "v2/events/#{parent_node.id}/decisions", activity_to_post
       activity_node = parent_node.children.first
 
@@ -71,6 +71,19 @@ describe Backbeat::Web::EventsApi, :api_test do
       expect(activity_node.node_detail.retries_remaining).to eq(20)
       expect(activity_node.client_metadata).to eq({"version"=>"v2"})
       expect(activity_node.client_data).to eq({"could"=>"be", "any"=>"thing"})
+    end
+
+    it "handles the legacy 'args' param" do
+      parent_node = workflow.children.first
+      activity = FactoryGirl.build(:client_activity_post_to_decision).merge(
+        retry: 20,
+        retry_interval: 50
+      )
+      activity_to_post = { "args" => { "decisions" => [activity] }}
+
+      post "v2/events/#{parent_node.id}/decisions", activity_to_post
+
+      expect(parent_node.children.count).to eq(1)
     end
   end
 
@@ -167,7 +180,7 @@ describe Backbeat::Web::EventsApi, :api_test do
   context "PUT /events/:id/status/errored" do
     it "stores the client backtrace in the client node detail" do
       client_params = { "error" => { "backtrace" => "The backtrace" }}
-      put "v2/events/#{node.id}/status/errored", { "args" => client_params }
+      put "v2/events/#{node.id}/status/errored", { "result" => client_params }
       expect(node.client_node_detail.result).to eq(client_params)
     end
   end
