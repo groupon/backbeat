@@ -8,10 +8,10 @@ module Backbeat
   module Web
     module EventEndpoints
 
-      STATUS_EVENT_MAP = {
-        deciding_complete: Events::ClientComplete,
+      CLIENT_EVENTS = {
         deciding: Events::ClientProcessing,
         processing: Events::ClientProcessing,
+        deciding_complete: Events::ClientComplete,
         completed: Events::ClientComplete,
         errored: Events::ClientError,
         deactivated: Events::DeactivatePreviousNodes
@@ -43,10 +43,10 @@ module Backbeat
 
           put "/:id/status/:new_status" do
             node = find_node
-            node.client_node_detail.update_attributes(result: params[:result])
             node.touch!
             new_status = params[:new_status].to_sym
-            Server.fire_event(STATUS_EVENT_MAP[new_status], node)
+            event = CLIENT_EVENTS[new_status].new(params[:result])
+            Server.fire_event(event, node)
             { success: true }
           end
 

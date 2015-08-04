@@ -53,6 +53,15 @@ describe Backbeat::StateManager do
     expect(node.status_changes.count).to eq(2)
   end
 
+  it "create status changes with a result" do
+    node.update_attributes(current_client_status: :processing)
+    result = { "error" => nil, "result" => 100 }
+    manager = Backbeat::StateManager.new(node, result)
+    manager.transition({ current_client_status: :complete })
+
+    expect(node.status_changes.last.result).to eq(result)
+  end
+
   it "does not create an status changes if either validation fails" do
     expect {
       manager.transition(current_client_status: :received, current_server_status: :complete)
@@ -74,7 +83,7 @@ describe Backbeat::StateManager do
   context "with_rollback" do
     it "rolls back to the starting status if error occurs" do
       expect {
-        Backbeat::StateManager.with_rollback(node) do |state|
+        Backbeat::StateManager.new(node).with_rollback do |state|
           state.transition(current_client_status: :received, current_server_status: :ready)
           raise "random error"
         end
@@ -87,7 +96,7 @@ describe Backbeat::StateManager do
 
     it "rolls back to the provided status if error occurs" do
       expect {
-        Backbeat::StateManager.with_rollback(node, { current_server_status: :ready }) do |state|
+        Backbeat::StateManager.new(node).with_rollback({ current_server_status: :ready }) do |state|
           raise "random error"
         end
       }.to raise_error
@@ -99,7 +108,7 @@ describe Backbeat::StateManager do
 
     it "does not add status changes when state transition error occurs" do
       expect {
-        Backbeat::StateManager.with_rollback(node) do |state|
+        Backbeat::StateManager.new(node).with_rollback do |state|
           state.transition(current_client_status: :ready, current_server_status: :pending)
           1 + 1
         end

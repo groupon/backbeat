@@ -30,19 +30,9 @@ module Backbeat
       new(node).transition(statuses)
     end
 
-    def self.with_rollback(node, rollback_statuses = {})
-      manager = new(node)
-      starting_statuses = manager.current_statuses
-      yield manager
-    rescue InvalidStatusChange
-      raise
-    rescue => e
-      manager.rollback(starting_statuses.merge(rollback_statuses))
-      raise
-    end
-
-    def initialize(node)
+    def initialize(node, result = {})
       @node = node
+      @result = result
     end
 
     def transition(statuses)
@@ -57,24 +47,26 @@ module Backbeat
       update_statuses(statuses)
     end
 
-    def rollback(statuses)
-      return if node.is_a?(Workflow)
-
-      update_statuses(statuses)
+    def with_rollback(rollback_statuses = {})
+      starting_statuses = current_statuses
+      yield self
+    rescue InvalidStatusChange
+      raise
+    rescue => e
+      update_statuses(starting_statuses.merge(rollback_statuses))
+      raise
     end
 
-    def current_statuses
-      return if node.is_a?(Workflow)
+    private
 
+    attr_reader :node, :result
+
+    def current_statuses
       [:current_client_status, :current_server_status].reduce({}) do |statuses, status_type|
         statuses[status_type] = node.send(status_type).to_sym
         statuses
       end
     end
-
-    private
-
-    attr_reader :node
 
     def update_sql(new_statuses)
       updates = new_statuses.map { |type, val| "#{type} = '#{val}'" }.join(',')
@@ -98,7 +90,8 @@ module Backbeat
         node.status_changes.create!(
           from_status: current_statuses[status_type],
           to_status: new_status,
-          status_type: status_type
+          status_type: status_type,
+          result: result
         )
       end
     end

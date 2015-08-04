@@ -251,7 +251,7 @@ describe Backbeat::Events do
     end
 
     it "notifies the client" do
-      Backbeat::Events::ServerError.call(node)
+      Backbeat::Events::ServerError.new({ error: { message: "Failed" } }).call(node)
 
       expect(WebMock).to have_requested(:post, "http://backbeat-client:9000/notifications").with(
         body: {
@@ -263,11 +263,10 @@ describe Backbeat::Events do
               "subjectKlass" => node.subject['subject_klass'],
               "subjectId" => node.subject['subject_id'],
             },
-            "message" => "error"
+            "message" => "Server Error"
           },
           "error" => {
-            "errorKlass" => "String",
-            "message" => "Server Error"
+            "message" => "Failed"
           }
         }
       )
@@ -304,7 +303,7 @@ describe Backbeat::Events do
       end
 
       it "notifies the client" do
-        Backbeat::Events::ClientError.call(node)
+        Backbeat::Events::ClientError.new({ error: { message: "An error message" } }).call(node)
         expect(WebMock).to have_requested(:post, "http://backbeat-client:9000/notifications").with(
           body: {
             "notification" => {
@@ -315,11 +314,10 @@ describe Backbeat::Events do
                 "subjectKlass" => node.subject['subject_klass'],
                 "subjectId" => node.subject['subject_id'],
               },
-              "message" => "error"
+              "message" => "Client Error"
             },
             "error" => {
-              "errorKlass" => "String",
-              "message" => "Client Errored"
+              "message" => "An error message"
             }
           }
         )
