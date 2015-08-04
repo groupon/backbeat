@@ -28,13 +28,11 @@ module Backbeat
           end
 
           def validate(params, param, type, message)
-            value = params.fetch(param)
+            value = params[param] || params.fetch(:args, {})[param]
             unless value.is_a?(type)
               raise InvalidParameters, message
             end
             value
-          rescue KeyError
-            raise InvalidParameters, "Param #{param} is required"
           end
         end
 
@@ -45,7 +43,7 @@ module Backbeat
 
           put "/:id/status/:new_status" do
             node = find_node
-            node.client_node_detail.update_attributes(result: params[:args])
+            node.client_node_detail.update_attributes(result: params[:result])
             new_status = params[:new_status].to_sym
             Server.fire_event(STATUS_EVENT_MAP[new_status], node)
             { success: true }
@@ -64,8 +62,7 @@ module Backbeat
           end
 
           post "/:id/decisions" do
-            args = validate(params, :args, Hash, "Args parameter must be a hash")
-            decisions = validate(args, :decisions, Array, "Args must include a 'decisions' parameter")
+            decisions = validate(params, :decisions, Array, "Params must include a 'decisions' param")
             node = find_node
             decisions.each do |dec|
               node_to_add = dec.merge({ legacy_type: dec[:type] })
