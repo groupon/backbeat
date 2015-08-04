@@ -53,7 +53,7 @@ describe Backbeat::StateManager do
     expect(node.status_changes.count).to eq(2)
   end
 
-  it "create status changes with a result" do
+  it "creates status changes with a result" do
     node.update_attributes(current_client_status: :processing)
     result = { "error" => nil, "result" => 100 }
     manager = Backbeat::StateManager.new(node, result)
