@@ -45,8 +45,16 @@ module Backbeat
             node = find_node
             node.touch!
             new_status = params[:new_status].to_sym
-            event = CLIENT_EVENTS[new_status].new(params[:result])
+            event_type = CLIENT_EVENTS[new_status]
+            response = params[:response] || params[:args]
+            event = response ? event_type.new(response) : event_type
             Server.fire_event(event, node)
+            { success: true }
+          end
+
+          put "/:id/deactivate" do
+            node = find_node
+            Server.fire_event(Events::DeactivatePreviousNodes, node, Schedulers::PerformEvent)
             { success: true }
           end
 

@@ -44,8 +44,8 @@ module Backbeat
           AsyncWorker.schedule_async_event(event_class.constantize, node, new_options)
         else
           info(status: :retries_exhausted, event_class: event_class, node: node.id, options: options, error: e, backtrace: e.backtrace)
-          result = { error: { message: e.message } }
-          Server.fire_event(Events::ServerError.new(result), node)
+          response = { error: { message: e.message } }
+          Server.fire_event(Events::ServerError.new(response), node)
         end
       rescue => e
         error(status: :uncaught_exception, event_class: event_class, node: node.id, options: options, error: e, backtrace: e.backtrace)

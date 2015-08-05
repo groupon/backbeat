@@ -30,9 +30,9 @@ module Backbeat
       new(node).transition(statuses)
     end
 
-    def initialize(node, result = {})
+    def initialize(node, response = {})
       @node = node
-      @result = result
+      @response = response
     end
 
     def transition(statuses)
@@ -59,7 +59,7 @@ module Backbeat
 
     private
 
-    attr_reader :node, :result
+    attr_reader :node, :response
 
     def current_statuses
       [:current_client_status, :current_server_status].reduce({}) do |statuses, status_type|
@@ -91,7 +91,7 @@ module Backbeat
           from_status: current_statuses[status_type],
           to_status: new_status,
           status_type: status_type,
-          result: result
+          response: response
         )
       end
     end

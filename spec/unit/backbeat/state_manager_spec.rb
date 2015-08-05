@@ -53,13 +53,13 @@ describe Backbeat::StateManager do
     expect(node.status_changes.count).to eq(2)
   end
 
-  it "creates status changes with a result" do
+  it "creates status changes with a response" do
     node.update_attributes(current_client_status: :processing)
-    result = { "error" => nil, "result" => 100 }
-    manager = Backbeat::StateManager.new(node, result)
+    client_response = { "error" => nil, "result" => 100 }
+    manager = Backbeat::StateManager.new(node, client_response)
     manager.transition({ current_client_status: :complete })
 
-    expect(node.status_changes.last.result).to eq(result)
+    expect(node.status_changes.last.response).to eq(client_response)
   end
 
   it "does not create an status changes if either validation fails" do
