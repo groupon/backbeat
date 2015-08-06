@@ -37,7 +37,7 @@ describe Backbeat::Client do
       WebMock.stub_request(:post, "http://notifications.com/api/v1/workflows/notify_of").to_return(status: 404)
       expect {
         Backbeat::Client.notify_of(node, "error", nil)
-      }.to raise_error(Backbeat::HttpError, "http request to notify_of failed")
+      }.to raise_error(Backbeat::HttpError, "HTTP request for notification failed")
     end
   end
 
@@ -100,7 +100,7 @@ describe Backbeat::Client do
           headers: { 'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json'}
         ).to_return(status: 404)
 
-        expect { Backbeat::Client.perform_action(node) }.to raise_error(Backbeat::HttpError, "http request to make_decision failed")
+        expect { Backbeat::Client.perform_action(node) }.to raise_error(Backbeat::HttpError, "HTTP request for decision failed")
       end
     end
 
@@ -126,7 +126,7 @@ describe Backbeat::Client do
           :headers => { 'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json' }
         ).to_return(status: 404)
 
-        expect { Backbeat::Client.perform_action(node) }.to raise_error(Backbeat::HttpError, "http request to perform_activity failed")
+        expect { Backbeat::Client.perform_action(node) }.to raise_error(Backbeat::HttpError, "HTTP request for activity failed")
       end
     end
   end
