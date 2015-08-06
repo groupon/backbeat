@@ -51,14 +51,6 @@ module Backbeat
     delegate :subject, :decider, to: :workflow
     delegate :name, to: :workflow, prefix: :workflow
 
-    scope :incomplete, lambda {
-      where("(current_server_status <> 'complete' OR current_client_status <> 'complete')")
-    }
-
-    scope :active, lambda {
-      where("current_server_status <> 'deactivated'")
-    }
-
     before_create do
       self.seq ||= ActiveRecord::Base.connection.execute("SELECT nextval('nodes_seq_seq')").first["nextval"]
     end
