@@ -44,6 +44,7 @@ module Backbeat
           put "/:id/status/:new_status" do
             node = find_node
             node.client_node_detail.update_attributes(result: params[:result])
+            node.touch!
             new_status = params[:new_status].to_sym
             Server.fire_event(STATUS_EVENT_MAP[new_status], node)
             { success: true }

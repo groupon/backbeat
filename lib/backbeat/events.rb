@@ -37,6 +37,7 @@ module Backbeat
           StateManager.transition(node, current_server_status: :paused)
           return
         end
+        node.touch!
         StateManager.transition(node,
           current_server_status: :sent_to_client,
           current_client_status: :received

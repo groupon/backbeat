@@ -94,5 +94,18 @@ module Backbeat
     def paused?
       Workflow.where(id: workflow_id, paused: true).exists?
     end
+
+    def touch!
+      node_detail.update_attributes!(complete_by: should_complete_by)
+    end
+
+    private
+
+    def should_complete_by
+      timeout = client_data.fetch("timeout", Backbeat::Config.options["default_client_timeout"])
+      if timeout
+        Time.now + timeout
+      end
+    end
   end
 end

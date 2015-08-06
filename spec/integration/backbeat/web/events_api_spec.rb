@@ -151,6 +151,14 @@ describe Backbeat::Web::EventsApi, :api_test do
       expect(node.reload.current_client_status).to eq("processing")
     end
 
+    it "touches the node indicating client is working on it" do
+      node.update_attributes(current_client_status: :received)
+      node.node_detail.update_attributes!(complete_by: Time.now - 100)
+      put "v2/events/#{node.id}/status/processing"
+      node.node_detail.reload
+      expect(node.node_detail.complete_by.to_s).to eq (Time.now.utc + 100).to_s
+    end
+
     it "returns an error with an invalid state change" do
       node.update_attributes(current_client_status: :processing)
       response = put "v2/events/#{node.id}/status/processing"

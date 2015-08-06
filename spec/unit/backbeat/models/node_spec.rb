@@ -99,4 +99,29 @@ describe Backbeat::Node do
       expect(output).to eq(Backbeat::WorkflowTree.to_string(node) + "\n")
     end
   end
+
+  context "touch!" do
+    context "client doesn't specify timeout" do
+      before do
+        node.client_node_detail.update_attributes!(data: {})
+      end
+
+      it "uses value from config" do
+        node.touch!
+        expect(node.node_detail.complete_by).to eq(Time.now + Backbeat::Config.options["default_client_timeout"])
+      end
+
+      it "nil if config is not set" do
+        Backbeat::Config.stub(options: {"default_client_timeout" => nil})
+        node.touch!
+        expect(node.node_detail.complete_by).to eq(nil)
+      end
+    end
+
+    it "client specified time out" do
+      node.client_node_detail.update_attributes!(data: {timeout: 100})
+      node.touch!
+      expect(node.node_detail.complete_by).to eq(Time.now + 100)
+    end
+  end
 end
