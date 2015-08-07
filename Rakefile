@@ -20,8 +20,8 @@ require "foreigner"
 module DB
   def self.config
     env = Backbeat::Config.environment
-    migration_env = env == "production" ? "production_dba" : env
-    @config ||= YAML::load(IO.read('config/database.yml'))[migration_env]
+    database_config = YAML::load(IO.read('config/database.yml'))
+    @config ||= (database_config["#{env}_dba"] || database_config[env])
   end
 
   def self.with_connection(options = {})
