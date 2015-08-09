@@ -19,16 +19,17 @@ module Reports
 
     def perform
       start_time = Time.now
-
       # perform calculations
-      inconsistent_details = node_and_workflow_details(inconsistent_nodes, { include_ids: true })
-      completed_details = node_and_workflow_details(completed_nodes)
-      file_name = write_to_file(inconsistent_details[:ids])
+      inconsistent_ids = ids_grouped_by_workflow(inconsistent_nodes)
+      file_name = write_to_file(inconsistent_ids)
+
+      inconsistent_counts = counts_by_workflow_type(inconsistent_nodes)
+      completed_counts = counts_by_workflow_type(completed_nodes)
 
       # normalize the data
       report_data = OpenStruct.new({
-        inconsistent: { counts: inconsistent_details[:counts], options: inconsistent_node_options, filename: file_name},
-        completed: { counts: completed_details[:counts], options: completed_node_options },
+        inconsistent: { counts: inconsistent_counts, options: inconsistent_node_options, filename: file_name},
+        completed: { counts: completed_counts, options: completed_node_options },
         time_elapsed: (Time.now - start_time).to_i
       })
 
@@ -41,7 +42,6 @@ module Reports
       Backbeat::Node
         .where("fires_at > ?", inconsistent_node_options[:lower_bound])
         .where("fires_at < ?", inconsistent_node_options[:upper_bound])
-        .select("id, workflow_id, fires_at, current_server_status, current_client_status")
         .where("(current_server_status <> 'complete' OR current_client_status <> 'complete') AND current_server_status <> 'deactivated'")
     end
 
@@ -49,7 +49,6 @@ module Reports
       Backbeat::Node
         .where("fires_at > ?", completed_node_options[:lower_bound])
         .where("fires_at < ?", completed_node_options[:upper_bound])
-        .select("id, workflow_id, fires_at, current_server_status, current_client_status")
         .where("current_server_status = 'complete' AND current_client_status = 'complete'")
     end
 
@@ -73,27 +72,27 @@ module Reports
       end
     end
 
-    def nodes_by_workflow(nodes_arel)
-      nodes_by_workflow = Hash.new{|h, k| h[k] = Array.new}
-      nodes_arel.reorder("").select("id, workflow_id").find_each{|node| nodes_by_workflow[node.workflow.id] << node.id}
-      nodes_by_workflow
+    def counts_by_workflow_type(nodes_arel)
+      counts_by_type = {}
+      Backbeat::Workflow.joins(:nodes)
+                  .merge(nodes_arel)
+                  .reorder("")
+                  .group("workflows.name")
+                  .select("workflows.name, count(distinct workflow_id) as workflow_type_count, count(*) as node_count")
+                  .all.each do |result|
+                    counts_by_type[result.name] = {workflow_type_count: result.workflow_type_count, node_count: result.node_count}
+                  end
+      counts_by_type
     end
 
-    def node_and_workflow_details(nodes_arel, options = {})
-      workflow_ids = {}
-      nodes_by_workflow = Hash.new{|h, k| h[k] = {workflow_type_count: 0, node_count: 0}}
-      node_ids_by_workflow_id = Hash.new{ |h, k| h[k] = Array.new }
-
-      nodes_arel.reorder("").includes(:workflow).find_each do |node|
-        unless workflow_ids[node.workflow_id]
-          workflow_ids[node.workflow_id] = true
-          nodes_by_workflow[node.workflow.name][:workflow_type_count] += 1
-        end
-        node_ids_by_workflow_id[node.workflow.id] << node.id if options[:include_ids]
-        nodes_by_workflow[node.workflow.name][:node_count] += 1
+    def ids_grouped_by_workflow(nodes_arel)
+      nodes_by_workflow = {}
+      nodes_arel.select("id,workflow_id")
+                .reorder("")
+                .group_by(&:workflow_id).each_pair do |workflow_id,nodes|
+        nodes_by_workflow[workflow_id] = nodes.map(&:id)
       end
-
-      { counts: nodes_by_workflow, ids: node_ids_by_workflow_id }
+      nodes_by_workflow
     end
 
     def report_html_body(report_model)
@@ -121,13 +120,11 @@ module Reports
                     <td style='vertical-align:top;background-color:#b7b7b7;padding:5pt;border:1pt solid #ffffff' bgcolor='#b7b7b7' valign='top'>Node Count</td>
                   </tr>
                   "
-      node_and_workflow_count.each_pair do |workflow_name, details|
-        workflow_count = details[:workflow_type_count]
-        node_count = details[:node_count]
+      node_and_workflow_count.each_pair do |name, details|
         body += "<tr>
-                  <td style='vertical-align:top;background-color:#f3f3f3;padding:5pt;border:1pt solid #ffffff' bgcolor='#f3f3f3' valign='top'>#{workflow_name}</td>
-                  <td style='vertical-align:top;background-color:#f3f3f3;padding:5pt;border:1pt solid #ffffff' bgcolor='#f3f3f3' valign='top'>#{workflow_count}</td>
-                  <td style='vertical-align:top;background-color:#f3f3f3;padding:5pt;border:1pt solid #ffffff' bgcolor='#f3f3f3' valign='top'>#{node_count}</td>
+                  <td style='vertical-align:top;background-color:#f3f3f3;padding:5pt;border:1pt solid #ffffff' bgcolor='#f3f3f3' valign='top'>#{name}</td>
+                  <td style='vertical-align:top;background-color:#f3f3f3;padding:5pt;border:1pt solid #ffffff' bgcolor='#f3f3f3' valign='top'>#{details[:workflow_type_count]}</td>
+                  <td style='vertical-align:top;background-color:#f3f3f3;padding:5pt;border:1pt solid #ffffff' bgcolor='#f3f3f3' valign='top'>#{details[:node_count]}</td>
                  </tr>"
       end
       body += "</table>
