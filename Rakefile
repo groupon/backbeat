@@ -66,6 +66,13 @@ namespace :db do
       ActiveRecord::Migrator.migrate('migrations', nil)
     end
   end
+
+  desc "rollback one migration"
+  task :rollback do
+    DB.with_connection do |c|
+      ActiveRecord::Migrator.rollback('migrations')
+    end
+  end
 end
 
 namespace :app do
