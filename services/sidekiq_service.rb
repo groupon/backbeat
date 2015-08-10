@@ -1,7 +1,7 @@
 require 'sidekiq'
 require 'sidekiq-failures'
 require 'celluloid'
-require_relative '../app'
+require_relative '../config/environment.rb'
 require 'backbeat/workers/middleware/transaction_id'
 
 module Sidekiq
@@ -11,7 +11,6 @@ end
 
 require 'celluloid/autostart'
 require 'sidekiq/processor'
-require 'kiqstand'
 
 module Services
   class SidekiqService
@@ -24,7 +23,7 @@ module Services
       @config = opts.reject { |k, _| CONFIG_OPTIONS_TO_STRIP.include?(k) }.merge(opts['options']).symbolize_keys
       @mutex = Mutex.new
 
-      redis_config = YAML::load_file("./config/redis.yml")[WorkflowServer::Config.environment.to_s]
+      redis_config = YAML::load_file("./config/redis.yml")[Backbeat::Config.environment.to_s]
 
       Sidekiq.configure_server do |config|
         config.redis = { namespace: 'fed_sidekiq', url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
@@ -33,7 +32,6 @@ module Services
         config.failures_default_mode = :exhausted
         config.server_middleware do |chain|
           chain.add Backbeat::Workers::Middleware::TransactionId
-          chain.add Kiqstand::Middleware
         end
       end
 
@@ -52,7 +50,7 @@ module Services
       Sidekiq.options[:queues] = Sidekiq.options[:queues].to_a
       raise 'Sidekiq workers must have at least 1 queue!' if Sidekiq.options[:queues].size < 1
 
-      Sidekiq::Logger.logger = Backbeat::SidekiqLogger
+      Sidekiq.logger = Backbeat::SidekiqLogger
       Celluloid.logger = Backbeat::SidekiqLogger
 
       require 'sidekiq/launcher'
