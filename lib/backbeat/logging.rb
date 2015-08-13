@@ -4,7 +4,7 @@ module Backbeat
   module Logging
     [:debug, :info, :warn, :error, :fatal].each do |level|
       define_method(level) do |message = nil, &block|
-        if message.nil? && !block.nil?
+        if block
           message = block.call
         end
         message_with_metadata = {
