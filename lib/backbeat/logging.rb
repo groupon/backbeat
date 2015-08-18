@@ -3,7 +3,10 @@ require 'securerandom'
 module Backbeat
   module Logging
     [:debug, :info, :warn, :error, :fatal].each do |level|
-      define_method(level) do |message|
+      define_method(level) do |message = nil, &block|
+        if block
+          message = block.call
+        end
         message_with_metadata = {
           time: Time.now.strftime('%Y-%m-%dT%H:%M:%S.%L'),
           pid: Process.pid,
