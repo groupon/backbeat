@@ -15,7 +15,7 @@ test:
   <<: *common
   database: backbeat_test
 
-docker: &docker
+docker:
   reconnect: true
   adapter: postgresql
   username: backbeat

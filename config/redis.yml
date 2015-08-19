@@ -1,4 +1,4 @@
-defaults: &defaults
+common: &common
   namespace: backbeat
   host: localhost
   port: 6379
@@ -6,22 +6,12 @@ defaults: &defaults
   network_timeout: 5
 
 development:
-  <<: *defaults
+  <<: *common
 
 test:
-  <<: *defaults
+  <<: *common
 
-docker: &docker
+docker:
   namespace: backbeat
   host: redis
   port: 6379
-
-uat:
-  <<: *docker
-
-staging:
-  <<: *docker
-
-production:
-  <<: *docker
-
