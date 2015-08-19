@@ -1,5 +1,5 @@
 #!/bin/bash
 
-rake db:reset
-rake db:migrate
+bundle exec rake db:reset
+bundle exec rake db:migrate
 bundle exec rspec

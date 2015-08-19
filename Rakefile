@@ -75,3 +75,11 @@ namespace :app do
     end
   end
 end
+
+task :console do
+  require_relative 'script/console'
+end
+
+task :add_user do
+  require_relative 'script/add_user'
+end

@@ -99,7 +99,7 @@ $ rake db:create db:migrate
 Open a console:
 
 ```bash
-$ bin/console
+$ rake console
 ```
 
 Start the server:
