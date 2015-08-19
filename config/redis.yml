@@ -2,6 +2,8 @@ defaults: &defaults
   namespace: backbeat
   host: localhost
   port: 6379
+  size: 100
+  network_timeout: 5
 
 development:
   <<: *defaults

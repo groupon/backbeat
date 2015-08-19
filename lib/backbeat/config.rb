@@ -30,11 +30,7 @@ module Backbeat
     end
 
     def self.redis
-      @redis ||= (
-        config = YAML.load_file("#{root}/config/redis.yml")[environment.to_s]
-        config['url'] = "redis://#{config['host']}:#{config['port']}"
-        config
-      )
+      @redis ||= YAML.load_file("#{root}/config/redis.yml")[environment.to_s]
     end
 
     def self.revision

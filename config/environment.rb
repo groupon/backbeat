@@ -17,17 +17,9 @@ ActiveRecord::Base.establish_connection(Backbeat::Config.database)
 
 Sidekiq.configure_client do |config|
   config.logger.level = Backbeat::Config.log_level
-  config.redis = {
-    namespace: Backbeat::Config.redis['namespace'],
-    size: 100,
-    url: Backbeat::Config.redis['url'],
-    network_timeout: 5
-  }
+  config.redis = Backbeat::Config.redis
 end
 
 Sidekiq.configure_server do |config|
-  config.redis = {
-    namespace: Backbeat::Config.redis['namespace'],
-    url: Backbeat::Config.redis['url']
-  }
+  config.redis = Backbeat::Config.redis
 end
