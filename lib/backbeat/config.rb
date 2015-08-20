@@ -19,18 +19,18 @@ module Backbeat
     def self.options
       @options ||= (
         opts_yml = YAML.load_file("#{root}/config/options.yml")
-        opts = opts_yml[environment]
+        opts = opts_yml.fetch(environment, {})
         opts.default_proc = ->(h, k) { h.key?(k.to_s) ? h[k.to_s] : nil }
         opts
       )
     end
 
     def self.database
-      @database ||= YAML.load_file("#{root}/config/database.yml")[environment.to_s]
+      @database ||= YAML.load_file("#{root}/config/database.yml").fetch(environment)
     end
 
     def self.redis
-      @redis ||= YAML.load_file("#{root}/config/redis.yml")[environment.to_s]
+      @redis ||= YAML.load_file("#{root}/config/redis.yml").fetch(environment)
     end
 
     def self.revision
