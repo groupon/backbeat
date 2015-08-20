@@ -9,7 +9,7 @@ module Backbeat
     end
 
     def self.log_file
-      @log_file ||= ENV['LOG_FILE'] || options[:log]
+      @log_file ||= ENV['LOG_FILE'] || options[:log] || STDOUT
     end
 
     def self.log_level
