@@ -8,7 +8,6 @@ module SidekiqHelper
 
     job_count.times do |i|
       job = jobs[i]
-      Backbeat::Instrument.log(:test_log, job)
       if !job["at"] || Time.now.to_f > job["at"]
         worker = Backbeat::Workers::AsyncWorker.new
         worker.jid = job['jid']

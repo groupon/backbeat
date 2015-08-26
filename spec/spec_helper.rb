@@ -16,6 +16,7 @@ require 'webmock'
 require 'rspec-sidekiq'
 require 'pry'
 require 'securerandom'
+require 'ap'
 
 unless ENV['CONSOLE_LOG']
   log_dir = File.expand_path("../../log", __FILE__)

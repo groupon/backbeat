@@ -9,6 +9,7 @@ module Backbeat
 
     belongs_to :user
     belongs_to :workflow
+    belongs_to :link, class_name: "Backbeat::Node", foreign_key: "link_id"
     has_many :children, class_name: "Backbeat::Node", foreign_key: "parent_id", dependent: :destroy
     belongs_to :parent_node, inverse_of: :children, class_name: "Backbeat::Node", foreign_key: "parent_id"
     has_one :client_node_detail, dependent: :destroy
@@ -101,19 +102,11 @@ module Backbeat
 
     def link_complete?
       child_link = Node.where(link_id: id).first
-      if child_link
-        child_link.complete?
-      else
-        true
-      end
+      child_link.nil? || child_link.complete?
     end
 
     def nodes_to_notify
-      if link_id
-        [parent, Node.find(link_id)]
-      else
-        [parent]
-      end
+      [parent, link].compact
     end
 
     private
