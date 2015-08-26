@@ -16,3 +16,4 @@ test:
 
 docker:
   <<: *common
+  log: /tmp/backbeat.log
