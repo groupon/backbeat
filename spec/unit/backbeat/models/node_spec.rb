@@ -112,7 +112,7 @@ describe Backbeat::Node do
       end
 
       it "nil if config is not set" do
-        Backbeat::Config.stub(options: {"default_client_timeout" => nil})
+        allow(Backbeat::Config).to receive(:options).and_return({ "default_client_timeout" => nil })
         node.touch!
         expect(node.node_detail.complete_by).to eq(nil)
       end

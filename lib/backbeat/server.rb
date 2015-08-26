@@ -73,21 +73,7 @@ module Backbeat
       end
     end
 
-    STRATEGIES = {
-      Events::ClientComplete => Schedulers::PerformEvent,
-      Events::ClientError => Schedulers::PerformEvent,
-      Events::ClientProcessing => Schedulers::PerformEvent,
-      Events::DeactivatePreviousNodes => Schedulers::PerformEvent,
-      Events::MarkChildrenReady => Schedulers::PerformEvent,
-      Events::NodeComplete => Schedulers::PerformEvent,
-      Events::ResetNode => Schedulers::PerformEvent,
-      Events::RetryNode => Schedulers::ScheduleRetry,
-      Events::ScheduleNextNode => Schedulers::ScheduleNow,
-      Events::ServerError => Schedulers::PerformEvent,
-      Events::StartNode => Schedulers::ScheduleAt
-    }
-
-    def self.fire_event(event, node, scheduler = STRATEGIES[event])
+    def self.fire_event(event, node, scheduler = event.scheduler)
       return if node.deactivated?
       scheduler.call(event, node)
     end

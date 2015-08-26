@@ -1,7 +1,11 @@
+require 'backbeat/events/event'
+
 module Backbeat
   module Events
-    class MarkChildrenReady
-      def self.call(node)
+    class MarkChildrenReady < Event
+      scheduler Schedulers::PerformEvent
+
+      def call(node)
         node.active_children.each do |child_node|
           StateManager.transition(
             child_node,
@@ -13,12 +17,14 @@ module Backbeat
       end
     end
 
-    class ScheduleNextNode
-      def self.call(node)
+    class ScheduleNextNode < Event
+      scheduler Schedulers::ScheduleNow
+
+      def call(node)
         node.not_complete_children.each do |child_node|
           if child_node.current_server_status.ready?
             StateManager.transition(child_node, current_server_status: :started)
-            StateManager.with_rollback(child_node, current_server_status: :ready) do
+            StateManager.new(child_node).with_rollback(current_server_status: :ready) do
               Server.fire_event(StartNode, child_node)
             end
           end
@@ -31,8 +37,10 @@ module Backbeat
       end
     end
 
-    class StartNode
-      def self.call(node)
+    class StartNode < Event
+      scheduler Schedulers::ScheduleAt
+
+      def call(node)
         if node.paused?
           StateManager.transition(node, current_server_status: :paused)
           return
@@ -48,28 +56,36 @@ module Backbeat
           Server.fire_event(ClientComplete, node)
         end
       rescue HttpError => e
-        node.client_node_detail.update_attributes(result: { error: e, message: e.message })
-        Server.fire_event(ClientError, node)
+        response = { error: { message: e.message } }
+        Server.fire_event(ClientError.new(response), node)
       end
     end
 
-    class ClientProcessing
-      def self.call(node)
+    class ClientProcessing < Event
+      include ResponseHandler
+      scheduler Schedulers::PerformEvent
+
+      def call(node)
         StateManager.transition(node, current_client_status: :processing)
       end
     end
 
-    class ClientComplete
-      def self.call(node)
-        StateManager.with_rollback(node) do |state|
+    class ClientComplete < Event
+      include ResponseHandler
+      scheduler Schedulers::PerformEvent
+
+      def call(node)
+        StateManager.new(node, response).with_rollback do |state|
           state.transition(current_client_status: :complete, current_server_status: :processing_children)
           Server.fire_event(MarkChildrenReady, node)
         end
       end
     end
 
-    class NodeComplete
-      def self.call(node)
+    class NodeComplete < Event
+      scheduler Schedulers::PerformEvent
+
+      def call(node)
         if node.parent
           StateManager.transition(node, current_server_status: :complete)
           Server.fire_event(ScheduleNextNode, node.parent)
@@ -77,27 +93,35 @@ module Backbeat
       end
     end
 
-    class ServerError
-      def self.call(node)
-        StateManager.transition(node, current_server_status: :errored)
-        Client.notify_of(node, "error", "Server Error")
+    class ServerError < Event
+      include ResponseHandler
+      scheduler Schedulers::PerformEvent
+
+      def call(node)
+        StateManager.new(node, response).transition(current_server_status: :errored)
+        Client.notify_of(node, "Server Error", response[:error])
       end
     end
 
-    class ClientError
-      def self.call(node)
-        StateManager.transition(node, current_client_status: :errored)
+    class ClientError < Event
+      include ResponseHandler
+      scheduler Schedulers::PerformEvent
+
+      def call(node)
+        StateManager.new(node, response).transition(current_client_status: :errored)
         if node.retries_remaining > 0
           node.mark_retried!
           Server.fire_event(RetryNode, node)
         else
-          Client.notify_of(node, "error", "Client Errored")
+          Client.notify_of(node, "Client Error", response[:error])
         end
       end
     end
 
-    class RetryNode
-      def self.call(node)
+    class RetryNode < Event
+      scheduler Schedulers::ScheduleRetry
+
+      def call(node)
         StateManager.transition(node, current_client_status: :ready, current_server_status: :retrying)
         StateManager.transition(node, current_server_status: :ready)
         Server.fire_event(ResetNode, node)
@@ -105,16 +129,20 @@ module Backbeat
       end
     end
 
-    class DeactivatePreviousNodes
-      def self.call(node)
+    class DeactivatePreviousNodes < Event
+      scheduler Schedulers::PerformEvent
+
+      def call(node)
         WorkflowTree.new(node.workflow).traverse(root: false) do |child_node|
           StateManager.transition(child_node, current_server_status: :deactivated) if child_node.seq < node.seq
         end
       end
     end
 
-    class ResetNode
-      def self.call(node)
+    class ResetNode < Event
+      scheduler Schedulers::PerformEvent
+
+      def call(node)
         WorkflowTree.new(node).traverse(root: false) do |child_node|
           StateManager.transition(child_node, current_server_status: :deactivated)
         end

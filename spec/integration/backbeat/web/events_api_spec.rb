@@ -128,21 +128,6 @@ describe Backbeat::Web::EventsApi, :api_test do
     end
   end
 
-  context "PUT /events/:id/status/deactivated" do
-    it "fires the DeactivateNode event" do
-      second_node = FactoryGirl.create(
-        :node,
-        workflow: workflow,
-        parent: node,
-        user: user
-      )
-
-      put "v2/events/#{second_node.id}/status/deactivated"
-
-      expect(node.reload.current_server_status).to eq("deactivated")
-    end
-  end
-
   context "PUT /events/:id/status/processing" do
     it "fires the ClientProcessing event" do
       node.update_attributes(current_client_status: :received)
@@ -185,11 +170,29 @@ describe Backbeat::Web::EventsApi, :api_test do
     end
   end
 
+  context "PUT /events/:id/status/completed" do
+    it "marks the node as complete" do
+      node.update_attributes({
+        current_server_status: :sent_to_client,
+        current_client_status: :processing
+      })
+      client_params = { "result" => "Done", "error" => nil }
+
+      put "v2/events/#{node.id}/status/completed", { "response" => client_params }
+      node.reload
+
+      expect(node.current_client_status).to eq("complete")
+      expect(node.status_changes.last.response).to eq(client_params)
+    end
+  end
+
   context "PUT /events/:id/status/errored" do
     it "stores the client backtrace in the client node detail" do
       client_params = { "error" => { "backtrace" => "The backtrace" }}
-      put "v2/events/#{node.id}/status/errored", { "result" => client_params }
-      expect(node.client_node_detail.result).to eq(client_params)
+
+      put "v2/events/#{node.id}/status/errored", { "response" => client_params }
+
+      expect(node.status_changes.last.response).to eq(client_params)
     end
   end
 
@@ -201,6 +204,21 @@ describe Backbeat::Web::EventsApi, :api_test do
 
       expect(node.children.count).to eq(1)
       expect(child.reload.current_server_status).to eq("deactivated")
+    end
+  end
+
+  context "PUT /events/:id/deactivate" do
+    it "deactivates previous nodes from the activity" do
+      second_node = FactoryGirl.create(
+        :node,
+        workflow: workflow,
+        parent: node,
+        user: user
+      )
+
+      put "v2/events/#{second_node.id}/deactivate"
+
+      expect(node.reload.current_server_status).to eq("deactivated")
     end
   end
 end
