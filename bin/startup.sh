@@ -2,4 +2,11 @@
 
 bundle exec rake db:migrate
 bin/add_user
-bundle exec rackup
+
+webserver=$1
+
+if [[ -n "$webserver" ]]; then
+  bundle exec $webserver
+else
+  bundle exec rackup
+fi

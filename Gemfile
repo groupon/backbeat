@@ -31,6 +31,7 @@ platforms :jruby do
   gem 'torquebox-messaging', '3.0.0'
   gem 'warbler'
   gem 'torquebox-server'
+  gem 'puma'
 end
 
 group :development do

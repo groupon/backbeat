@@ -10,8 +10,3 @@ build:
     - docker --version
   run:
     - bin/test-ci.sh
-<% if( DOTCI_BRANCH =~ /deploy.*/ ) { %>
-plugins:
-  - request_deploy:
-      deploy_bot: true
-<% } %>
