@@ -12,7 +12,7 @@ describe Backbeat, :api_test do
   let(:workflow_to_link) { FactoryGirl.create(:workflow, user: user, subject: {test: :node}) }
 
   context "linked" do
-    it "linked node signals a different workflow and waits for it to run before completing" do
+    it "node signals a different workflow and waits for it to complete before completing" do
       response = post "v2/workflows/#{workflow_to_link.id}/signal/test", {link_id: node.id}
 
       signal_node = workflow_to_link.nodes.first
