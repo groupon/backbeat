@@ -1,5 +1,5 @@
 common: &common
-  log_level: DEBUG
+  log_level: INFO
   log_format: json
   async_queue: backbeat_server
   log: /var/groupon/backbeat/shared/log/backbeat.log
@@ -11,8 +11,8 @@ development:
 
 test:
   <<: *common
-  log_level: WARN
-  log: /tmp/backbeat.log
+  log_level: DEBUG
+  log: log/test.log
 
 docker:
   <<: *common

@@ -39,7 +39,9 @@ module Backbeat
       if defined?(TorqueBox)
         TorqueBox::Logger.new('backbeat_logger')
       else
-        ::Logger.new(Config.log_file)
+        logger = ::Logger.new(Config.log_file)
+        logger.level = Config.log_level
+        logger
       end
     end
 

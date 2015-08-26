@@ -9,11 +9,17 @@ module Backbeat
     end
 
     def self.log_file
-      @log_file ||= ENV['LOG_FILE'] || options[:log] || STDOUT
+      @log_file ||= (
+        from_env = ENV['LOG_FILE'] == '' ? STDOUT : ENV['LOG_FILE']
+        from_env || options[:log] || STDOUT
+      )
     end
 
     def self.log_level
-      @log_level ||= ::Logger.const_get(options[:log_level])
+      @log_level ||= (
+        level = ENV['LOG_LEVEL'] || options[:log_level] || 'INFO'
+        ::Logger.const_get(level)
+      )
     end
 
     def self.options
