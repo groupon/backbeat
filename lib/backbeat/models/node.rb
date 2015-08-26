@@ -99,6 +99,23 @@ module Backbeat
       node_detail.update_attributes!(complete_by: should_complete_by)
     end
 
+    def link_complete?
+      child_link = Node.where(link_id: id).first
+      if child_link
+        child_link.complete?
+      else
+        true
+      end
+    end
+
+    def nodes_to_notify
+      if link_id
+        [parent, Node.find(link_id)]
+      else
+        [parent]
+      end
+    end
+
     private
 
     def should_complete_by

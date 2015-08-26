@@ -44,5 +44,9 @@ module Backbeat
       children.map(&:destroy)
       super
     end
+
+    def link_complete?
+      true
+    end
   end
 end

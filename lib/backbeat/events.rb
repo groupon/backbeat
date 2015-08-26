@@ -31,7 +31,7 @@ module Backbeat
           break if child_node.blocking?
         end
 
-        Server.fire_event(NodeComplete, node) if node.all_children_complete?
+        Server.fire_event(NodeComplete, node) if node.all_children_complete? && node.link_complete?
       rescue StaleStatusChange => e
         Logger.info(message: "Aborting concurrent scheduling process", node: node.id, error: e.message)
       end
@@ -88,7 +88,7 @@ module Backbeat
       def call(node)
         if node.parent
           StateManager.transition(node, current_server_status: :complete)
-          Server.fire_event(ScheduleNextNode, node.parent)
+          node.nodes_to_notify.each{|node_to_notify| Server.fire_event(ScheduleNextNode, node_to_notify) }
         end
       end
     end
