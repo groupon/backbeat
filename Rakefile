@@ -68,7 +68,9 @@ end
 
 namespace :app do
   task :routes do
-    Backbeat::API.routes.each do |api|
+    require 'backbeat/web'
+
+    Backbeat::Web::API.routes.each do |api|
       method = api.route_method.ljust(10)
       path = api.route_path
       puts "     #{method} #{path}"
