@@ -100,6 +100,8 @@ GEM
       method_source (~> 0.8)
       slop (~> 3.4)
       spoon (~> 0.0)
+    puma (2.11.3-java)
+      rack (>= 1.1, < 2.0)
     rack (1.6.1)
     rack-accept (0.4.5)
       rack (>= 0.4)
@@ -227,6 +229,7 @@ DEPENDENCIES
   jruby-openssl
   mail
   pry
+  puma
   rack-test
   rake
   rspec (~> 3.2.0)
