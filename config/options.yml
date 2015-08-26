@@ -1,7 +1,7 @@
 common: &common
   log_level: DEBUG
   log_format: json
-  async_queue: 'backbeat_server'
+  async_queue: backbeat_server
   log: /var/groupon/backbeat/shared/log/backbeat.log
   default_client_timeout: 172800
 
