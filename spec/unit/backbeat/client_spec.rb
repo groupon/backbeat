@@ -7,7 +7,7 @@ describe Backbeat::Client do
   let(:workflow) { FactoryGirl.create(:workflow_with_node, user: user) }
   let(:node) { workflow.children.first }
 
-  context "#notify_of" do
+  context ".notify_of" do
     it "calls the notify of endpoint" do
       error = {"couldbe" => "anything"}
       notification_body = Backbeat::Client::HashKeyTransformations.camelize_keys(
@@ -41,9 +41,10 @@ describe Backbeat::Client do
     end
   end
 
-  context "perform_action" do
+  context ".perform_action" do
     it "sends a call to make decision if the node is a legacy decision" do
       node.node_detail.legacy_type = 'decision'
+
       expect(Backbeat::Client).to receive(:make_decision) do |params, user|
         expect(params).to include(
           subject: node.subject,
@@ -52,17 +53,34 @@ describe Backbeat::Client do
         )
         expect(user).to eq(node.user)
       end
+
       Backbeat::Client.perform_action(node)
     end
 
     it "sends a call to perform activity if the node is a legacy activity" do
       node.node_detail.legacy_type = 'activity'
+
       expect(Backbeat::Client).to receive(:perform_activity) do |params, user|
         expect(params).to include(
           client_data: node.client_node_detail.data
         )
         expect(user).to eq(node.user)
       end
+
+      Backbeat::Client.perform_action(node)
+    end
+
+    it "sends a call to perform activity if the client does not have a decision endpoint" do
+      node.node_detail.legacy_type = 'decision'
+      user.update_attributes!({ decision_endpoint: nil })
+
+      expect(Backbeat::Client).to receive(:perform_activity) do |params, user|
+        expect(params).to include(
+          client_data: node.client_node_detail.data
+        )
+        expect(user).to eq(node.user)
+      end
+
       Backbeat::Client.perform_action(node)
     end
   end
@@ -79,7 +97,7 @@ describe Backbeat::Client do
     let(:workflow) { FactoryGirl.create(:workflow, user: user) }
     let(:node) { FactoryGirl.create(:node, workflow: workflow, user: user) }
 
-    context "#make_decision" do
+    context ".make_decision" do
       it "calls the make decision endpoint" do
         node.legacy_type = :decision
 
@@ -104,7 +122,7 @@ describe Backbeat::Client do
       end
     end
 
-    context "#perform_activity" do
+    context ".perform_activity" do
       it "calls the perform activity endpoint" do
         node.legacy_type = :activity
 
