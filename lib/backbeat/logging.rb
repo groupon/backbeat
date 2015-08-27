@@ -15,11 +15,16 @@ module Backbeat
           level: level,
           logger: self.class.to_s,
           name: self.class.to_s,
-          message: message
+          message: message,
+          revision: revision
         }
         message_to_log = message_with_metadata.to_json + "\n"
         Logger.log(level, message_to_log)
       end
+    end
+
+    def revision
+      File.read("REVISION") if File.exists?("REVISION")
     end
   end
 
