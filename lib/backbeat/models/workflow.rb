@@ -45,8 +45,8 @@ module Backbeat
       super
     end
 
-    def link_complete?
-      true
+    def nodes_complete?
+      all_children_complete?
     end
   end
 end

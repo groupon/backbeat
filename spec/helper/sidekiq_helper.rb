@@ -1,6 +1,6 @@
 module SidekiqHelper
   # Acknowledges perform_in time and does not drain jobs that a drained job enqueues
-  def soft_drain()
+  def soft_drain
     jobs = Backbeat::Workers::AsyncWorker.jobs
 
     #only drain current jobs in the queue

@@ -100,13 +100,12 @@ module Backbeat
       node_detail.update_attributes!(complete_by: should_complete_by)
     end
 
-    def link_complete?
-      child_link = Node.where(link_id: id).first
-      child_link.nil? || child_link.complete?
-    end
-
     def nodes_to_notify
       [parent, link].compact
+    end
+
+    def nodes_complete?
+      all_children_complete? && links_complete?
     end
 
     private
@@ -116,6 +115,11 @@ module Backbeat
       if timeout
         Time.now + timeout
       end
+    end
+
+    def links_complete?
+      child_links = Node.where(link_id: id)
+      child_links.all? { |node| node.complete? }
     end
   end
 end

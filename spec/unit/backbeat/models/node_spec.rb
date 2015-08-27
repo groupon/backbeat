@@ -124,4 +124,39 @@ describe Backbeat::Node do
       expect(node.node_detail.complete_by).to eq(Time.now + 100)
     end
   end
+
+  context "links_complete?" do
+    let(:node) { FactoryGirl.build(:node) }
+
+    it "returns true if no links exist" do
+      allow(Backbeat::Node).to receive(:where).with(link_id: node.id).and_return([])
+      expect(node.send(:links_complete?)).to eq(true)
+    end
+
+    it "returns true if all links are complete" do
+      link_node = FactoryGirl.build(:node, current_server_status: :complete)
+      allow(Backbeat::Node).to receive(:where).with(link_id: node.id).and_return([link_node])
+      expect(node.send(:links_complete?)).to eq(true)
+    end
+
+    it "returns false if some links are not complete" do
+      link_node = FactoryGirl.build(:node)
+      allow(Backbeat::Node).to receive(:where).with(link_id: node.id).and_return([link_node])
+      expect(node.send(:links_complete?)).to eq(false)
+    end
+  end
+
+  context "nodes_complete?" do
+    it "returns true if all_children_complete? and links_complete? are true" do
+      allow(node).to receive(:all_children_complete?).and_return(true)
+      allow(node).to receive(:links_complete?).and_return(true)
+      expect(node.nodes_complete?).to eq(true)
+    end
+
+    it "returns false if either all_children_complete? or links_complete? are false" do
+      allow(node).to receive(:all_children_complete?).and_return(true)
+      allow(node).to receive(:links_complete?).and_return(false)
+      expect(node.nodes_complete?).to eq(false)
+    end
+  end
 end

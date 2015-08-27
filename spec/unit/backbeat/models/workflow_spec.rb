@@ -1,5 +1,6 @@
 require "spec_helper"
 require "backbeat/workflow_tree/colorize"
+require "helper/capture"
 
 describe Backbeat::Workflow do
 
@@ -104,6 +105,18 @@ describe Backbeat::Workflow do
       workflow.resume!
 
       expect(workflow.paused?).to eq(false)
+    end
+  end
+
+  context "nodes_complete?" do
+    it "returns true if all_children_complete? is true" do
+      allow(workflow).to receive(:all_children_complete?).and_return(true)
+      expect(workflow.nodes_complete?).to eq(true)
+    end
+
+   it "returns false if all_children_complete? is false" do
+      allow(workflow).to receive(:all_children_complete?).and_return(false)
+      expect(workflow.nodes_complete?).to eq(false)
     end
   end
 end
