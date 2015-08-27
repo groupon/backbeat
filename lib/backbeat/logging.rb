@@ -24,7 +24,8 @@ module Backbeat
     end
 
     def revision
-      File.read("REVISION") if File.exists?("REVISION")
+      file_path = Backbeat::Config.root + "/REVISION"
+      @revision ||= File.read(file_path) if File.exists?(file_path)
     end
   end
 
