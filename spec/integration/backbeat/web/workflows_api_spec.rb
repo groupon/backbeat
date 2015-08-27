@@ -73,8 +73,8 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
     end
 
     it "adds the link_id to the signal node" do
-      response = post "v2/workflows/#{workflow.id}/signal/test", { link_id: node.id }
-      expect(workflow.nodes.last.link_id).to eq(node.id)
+      response = post "v2/workflows/#{workflow.id}/signal/test", { parent_link_id: node.id }
+      expect(workflow.nodes.last.parent_link).to eq(node)
     end
   end
 

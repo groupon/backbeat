@@ -12,7 +12,7 @@ module Backbeat
       children.where("current_server_status != 'deactivated'")
     end
 
-    def all_children_complete?
+    def direct_children_complete?
       not_complete_children.where("mode != 'fire_and_forget'").count == 0
     end
 

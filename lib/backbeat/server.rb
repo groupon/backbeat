@@ -48,7 +48,7 @@ module Backbeat
           parent: parent_node,
           workflow_id: parent_node.workflow_id,
           user_id: user.id,
-          link_id: params[:link_id]
+          parent_link_id: params[:parent_link_id]
         )
         options = params[:options] || params
         ClientNodeDetail.create!(

@@ -45,8 +45,8 @@ module Backbeat
       super
     end
 
-    def nodes_complete?
-      all_children_complete?
+    def all_children_complete?
+      direct_children_complete?
     end
   end
 end

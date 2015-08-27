@@ -108,15 +108,15 @@ describe Backbeat::Workflow do
     end
   end
 
-  context "nodes_complete?" do
-    it "returns true if all_children_complete? is true" do
-      allow(workflow).to receive(:all_children_complete?).and_return(true)
-      expect(workflow.nodes_complete?).to eq(true)
+  context "all_children_complete?" do
+    it "returns true if direct_children_complete? is true" do
+      allow(workflow).to receive(:direct_children_complete?).and_return(true)
+      expect(workflow.all_children_complete?).to eq(true)
     end
 
-   it "returns false if all_children_complete? is false" do
-      allow(workflow).to receive(:all_children_complete?).and_return(false)
-      expect(workflow.nodes_complete?).to eq(false)
+   it "returns false if direct_children_complete? is false" do
+      allow(workflow).to receive(:direct_children_complete?).and_return(false)
+      expect(workflow.all_children_complete?).to eq(false)
     end
   end
 end
