@@ -16,16 +16,11 @@ module Backbeat
           logger: self.class.to_s,
           name: self.class.to_s,
           message: message,
-          revision: revision
+          revision: Backbeat::Config.revision
         }
         message_to_log = message_with_metadata.to_json + "\n"
         Logger.log(level, message_to_log)
       end
-    end
-
-    def revision
-      file_path = Backbeat::Config.root + "/REVISION"
-      @revision ||= File.read(file_path) if File.exists?(file_path)
     end
   end
 

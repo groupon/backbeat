@@ -6,6 +6,12 @@ describe Backbeat::Logger do
     extend Backbeat::Logging
   end
 
+  before do
+    class Backbeat::Config
+      @revision = nil
+    end
+  end
+
   it "logs the revision sha if it exists" do
     allow(File).to receive(:exists?).and_return(true)
     allow(File).to receive(:read).and_return("fake_sha")
