@@ -10,8 +10,6 @@ require 'backbeat'
 
 puts "*** Environment is #{Backbeat::Config.environment} ***"
 
-GIT_REVISION = File.read("#{Backbeat::Config.root}/REVISION").chomp rescue 'UNKNOWN'
-
 I18n.enforce_available_locales = false
 
 ActiveRecord::Base.include_root_in_json = false
