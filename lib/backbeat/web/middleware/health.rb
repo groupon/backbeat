@@ -13,7 +13,7 @@ module Backbeat
             db_ok = ActiveRecord::Base.connected?
 
             result = {
-              sha: Backbeat::Config.revision,
+              sha: Config.revision,
               time: Time.now.iso8601,
               status: db_ok ? 'OK' : 'DATABASE_UNREACHABLE'
             }
