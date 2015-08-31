@@ -8,7 +8,7 @@ describe Backbeat::Web::Middleware::Health, :api_test do
       expect(response.status).to eq(200)
       expect(response.headers["Content-Type"]).to eq("application/json")
       expect(JSON.parse(response.body)).to eq({
-        "sha" => GIT_REVISION,
+        "sha" => Backbeat::Config.revision,
         "time" => Time.now.iso8601,
         "status" => "OK"
       })

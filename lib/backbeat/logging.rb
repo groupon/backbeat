@@ -15,7 +15,8 @@ module Backbeat
           level: level,
           logger: self.class.to_s,
           name: self.class.to_s,
-          message: message
+          message: message,
+          revision: Config.revision
         }
         message_to_log = message_with_metadata.to_json + "\n"
         Logger.log(level, message_to_log)
