@@ -58,15 +58,5 @@ TorqueBox.configure do
       # Every day at noon
       cron '0 0 12 * * ?'
     end
-
-    job Reports::DailyReport do
-      # Every day at noon
-      cron '0 0 12 * * ?'
-    end
-
-    job Reports::BadEvents do
-      # Every day at 11 am (pick a time when we are not busy)
-      cron '0 0 11 * * ?'
-    end
   end
 end
