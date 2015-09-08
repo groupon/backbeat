@@ -11,7 +11,6 @@ if user_id
 
   if user
     logger.info "User exists: "
-    logger.info "id: #{user.id}"
   else
     user = Backbeat::User.new(
       decision_endpoint:     "#{client_url}/activity",
