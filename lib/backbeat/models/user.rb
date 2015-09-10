@@ -4,7 +4,6 @@ module Backbeat
     has_many :nodes
     belongs_to :user
 
-    validates :decision_endpoint, presence: true
     validates :activity_endpoint, presence: true
     validates :notification_endpoint, presence: true
   end

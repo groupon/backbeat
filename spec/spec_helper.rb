@@ -17,12 +17,6 @@ require 'rspec-sidekiq'
 require 'pry'
 require 'securerandom'
 
-unless ENV['CONSOLE_LOG']
-  log_dir = File.expand_path("../../log", __FILE__)
-  Dir.mkdir(log_dir) unless File.exist?(log_dir)
-  Backbeat::Logger.set_logger(Logger.new(File.open("#{log_dir}/test.log", "a+")))
-end
-
 FactoryGirl.find_definitions
 
 RSpec::Sidekiq.configure do |config|

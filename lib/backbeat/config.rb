@@ -9,32 +9,34 @@ module Backbeat
     end
 
     def self.log_file
-      @log_file ||= ENV['LOG_FILE'] || options[:log]
+      @log_file ||= (
+        from_env = ENV['LOG_FILE'] == '' ? STDOUT : ENV['LOG_FILE']
+        from_env || options[:log] || STDOUT
+      )
     end
 
     def self.log_level
-      @log_level ||= ::Logger.const_get(options[:log_level])
+      @log_level ||= (
+        level = ENV['LOG_LEVEL'] || options[:log_level] || 'INFO'
+        ::Logger.const_get(level)
+      )
     end
 
     def self.options
       @options ||= (
         opts_yml = YAML.load_file("#{root}/config/options.yml")
-        opts = opts_yml[environment]
+        opts = opts_yml.fetch(environment, {})
         opts.default_proc = ->(h, k) { h.key?(k.to_s) ? h[k.to_s] : nil }
         opts
       )
     end
 
     def self.database
-      @database ||= YAML.load_file("#{root}/config/database.yml")[environment.to_s]
+      @database ||= YAML.load_file("#{root}/config/database.yml").fetch(environment)
     end
 
     def self.redis
-      @redis ||= (
-        config = YAML.load_file("#{root}/config/redis.yml")[environment.to_s]
-        config['url'] = "redis://#{config['host']}:#{config['port']}"
-        config
-      )
+      @redis ||= YAML.load_file("#{root}/config/redis.yml").fetch(environment)
     end
 
     def self.revision

@@ -1,0 +1,34 @@
+web:
+  extends:
+    file: common.yml
+    service: app
+  command: bin/startup
+  ports:
+    - 9292:9292
+  environment:
+    RACK_ENV: docker
+  env_file: backbeat_user.env
+  links:
+    - database
+    - redis
+
+workers:
+  extends:
+    file: common.yml
+    service: app
+  command: bin/sidekiq
+  environment:
+    RACK_ENV: docker
+  links:
+    - database
+    - redis
+
+database:
+  extends:
+    file: common.yml
+    service: database
+
+redis:
+  extends:
+    file: common.yml
+    service: redis

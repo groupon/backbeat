@@ -1,33 +1,18 @@
-default: &default
-  log_level: DEBUG
-  log_format: json
-  async_queue: 'accounting_backbeat_server'
-  async_queue_v2: 'accounting_backbeat_server_v2'
-  signal_delegate_queue: 'accounting_backbeat_signal_delegation'
-  migrator_queue: 'accounting_backbeat_migrator'
+common: &common
+  log_level: INFO
+  async_queue: backbeat_server
   log: /var/groupon/backbeat/shared/log/backbeat.log
   default_client_timeout: 172800
 
-test:
-  <<: *default
-  log_level: WARN
-  log: /tmp/backbeat.log
-
 development:
-  <<: *default
+  <<: *common
   log: /tmp/backbeat.log
 
-uat:
-  <<: *default
-  log_level: INFO
-
-staging:
-  <<: *default
-  log_level: INFO
-
-production:
-  <<: *default
-  log_level: INFO
+test:
+  <<: *common
+  log_level: DEBUG
+  log: log/test.log
 
 docker:
-  <<: *default
+  <<: *common
+  log: /tmp/backbeat.log

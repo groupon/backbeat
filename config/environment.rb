@@ -5,7 +5,6 @@ require 'bundler/setup'
 
 require 'active_record'
 require 'sidekiq'
-require 'time/marshal_fix'
 require 'backbeat'
 
 puts "*** Environment is #{Backbeat::Config.environment} ***"
@@ -17,9 +16,9 @@ ActiveRecord::Base.establish_connection(Backbeat::Config.database)
 
 Sidekiq.configure_client do |config|
   config.logger.level = Backbeat::Config.log_level
-  config.redis = { namespace: 'fed_sidekiq', size: 100, url: Backbeat::Config.redis['url'], network_timeout: 5 }
+  config.redis = Backbeat::Config.redis
 end
 
 Sidekiq.configure_server do |config|
-  config.redis = { namespace: 'fed_sidekiq', url: Backbeat::Config.redis['url']}
+  config.redis = Backbeat::Config.redis
 end

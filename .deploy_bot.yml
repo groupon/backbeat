@@ -1,3 +1,0 @@
-deployment_repo: git@github.groupondev.com:finance-engineering/spinderella.git
-deployment_setup: bundle install --path .bundle
-deployment_command: bundle exec cap torquebox:backbeat:production deploy -S revision=GIT_SHA_TO_DEPLOY

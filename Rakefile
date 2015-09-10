@@ -1,18 +1,9 @@
 require File.expand_path('../config/environment',  __FILE__)
 require 'rake'
 
-if defined?(Torquebox)
+if defined?(TorqueBox)
   require 'torquebox-rake-support'
 end
-
-namespace :sidekiq do
-  desc "configures logging for our sidekiq workers"
-  task :logging_setup do
-    sidekiq.logger = WorkflowServer::SidekiqLogger
-  end
-end
-
-task "sidekiq:setup" => "sidekiq:logging_setup"
 
 require "active_record"
 require "foreigner"
@@ -77,10 +68,20 @@ end
 
 namespace :app do
   task :routes do
-    Backbeat::API.routes.each do |api|
+    require 'backbeat/web'
+
+    Backbeat::Web::API.routes.each do |api|
       method = api.route_method.ljust(10)
       path = api.route_path
       puts "     #{method} #{path}"
     end
   end
+end
+
+task :console do
+  require_relative 'script/console'
+end
+
+task :add_user do
+  require_relative 'script/add_user'
 end

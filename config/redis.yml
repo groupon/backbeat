@@ -1,25 +1,17 @@
-defaults: &defaults
+common: &common
+  namespace: backbeat
   host: localhost
   port: 6379
+  size: 100
+  network_timeout: 5
 
 development:
-  <<: *defaults
+  <<: *common
 
 test:
-  <<: *defaults
-
-uat:
-  host: newuat-redis-vip
-  port: 6379
-
-staging:
-  host: general-redis-staging-vip
-  port: 6379
-
-production:
-  host: general-redis-vip
-  port: 6379
+  <<: *common
 
 docker:
+  namespace: backbeat
   host: redis
   port: 6379

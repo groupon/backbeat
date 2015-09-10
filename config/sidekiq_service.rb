@@ -12,21 +12,22 @@ end
 require 'celluloid/autostart'
 require 'sidekiq/processor'
 
+require 'sidekiq/launcher'
+require 'backbeat/logging'
+require 'backbeat/workers/middleware/transaction_id'
+
 module Services
   class SidekiqService
-    attr_accessor :config, :launcher, :start_failed
+    attr_accessor :config, :launcher
 
     CONFIG_OPTIONS_TO_STRIP = ['config_file', 'daemon', 'environment', 'pidfile', 'require', 'tag', 'options']
 
     def initialize(opts = {})
-      # We merge options here because some keys will cause an error to be raised in torquebox.rb when using the configuration DSL
       @config = opts.reject { |k, _| CONFIG_OPTIONS_TO_STRIP.include?(k) }.merge(opts['options']).symbolize_keys
       @mutex = Mutex.new
 
-      redis_config = YAML::load_file("./config/redis.yml")[Backbeat::Config.environment.to_s]
-
       Sidekiq.configure_server do |config|
-        config.redis = { namespace: 'fed_sidekiq', url: "redis://#{redis_config['host']}:#{redis_config['port']}" }
+        config.redis = { namespace: Backbeat::Config.redis['namespace'], url: Backbeat::Config.redis['url'] }
         config.poll_interval = 5
         config.failures_max_count = false
         config.failures_default_mode = :exhausted
@@ -34,11 +35,12 @@ module Services
           chain.add Backbeat::Workers::Middleware::TransactionId
         end
       end
-
     end
 
     def start
-      Thread.new { @mutex.synchronize { run } }
+      Thread.new do
+        @mutex.synchronize { run }
+      end
     end
 
     def stop
@@ -53,16 +55,12 @@ module Services
       Sidekiq.logger = Backbeat::SidekiqLogger
       Celluloid.logger = Backbeat::SidekiqLogger
 
-      require 'sidekiq/launcher'
-
       @launcher = Sidekiq::Launcher.new(Sidekiq.options)
-
       launcher.run
     rescue => e
       puts e.message
       puts e.backtrace
-
-      @start_failed = true
     end
   end
 end
+

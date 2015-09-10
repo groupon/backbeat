@@ -1,12 +1,10 @@
-#!/usr/bin/env ruby
-
 require File.expand_path('../../config/environment',  __FILE__)
-
 require 'irb'
 require 'redis-namespace'
-require_relative '../script/console_helpers.rb'
+require_relative 'console_helpers'
 
 include Backbeat
 
 ActiveRecord::Base.logger = Logger.new(STDOUT)
+ARGV.clear
 IRB.start

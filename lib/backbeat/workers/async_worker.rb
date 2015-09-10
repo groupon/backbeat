@@ -8,7 +8,7 @@ module Backbeat
       include Logging
       extend Logging
 
-      sidekiq_options retry: false, queue: Config.options[:async_queue_v2]
+      sidekiq_options retry: false, queue: Config.options[:async_queue]
 
       def self.schedule_async_event(event, node, options)
         info(status: :schedule_async_event_started, node: node.id, event: event.name)

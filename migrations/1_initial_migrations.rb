@@ -7,7 +7,6 @@ class InitialMigrations < ActiveRecord::Migration
       t.string :activity_endpoint,     null: false
       t.string :notification_endpoint, null: false
     end
-    execute("alter table users alter column id set default uuid_generate_v4()")
 
     create_table :workflows, id: :uuid do |t|
       t.string  :name,     null: false
@@ -18,7 +17,6 @@ class InitialMigrations < ActiveRecord::Migration
       t.boolean :complete, default: false
       t.timestamps null: false
     end
-    execute("alter table workflows alter column id set default uuid_generate_v4()")
     add_foreign_key(:workflows, :users)
 
     create_table :nodes, id: :uuid do |t|
@@ -32,7 +30,6 @@ class InitialMigrations < ActiveRecord::Migration
       t.uuid     :user_id,               null: false
       t.timestamps null: false
     end
-    execute("alter table nodes alter column id set default uuid_generate_v4()")
     execute("alter table nodes add column seq serial")
     add_index(:nodes, :seq, unique: true)
     add_index(:nodes, :workflow_id)

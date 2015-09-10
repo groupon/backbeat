@@ -11,9 +11,9 @@ module Backbeat
         def call(env)
           if env['PATH_INFO'] == ENDPOINT
             if File.exists?("#{File.dirname(__FILE__)}/../../../../public/heartbeat.txt")
-              return [ 200, {"Content-Type" => "text/plain"}, ["We have a pulse."] ]
+              return [200, {"Content-Type" => "text/plain"}, ["We have a pulse."]]
             else
-              return [ 404, {"Content-Type" => "text/plain"}, ["It's dead, Jim."] ]
+              return [503, {"Content-Type" => "text/plain"}, ["It's dead, Jim."]]
             end
           else
             @app.call(env)
