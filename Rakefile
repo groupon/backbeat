@@ -85,3 +85,17 @@ end
 task :add_user do
   require_relative 'script/add_user'
 end
+
+namespace :license do
+  task :add do
+    license = File.readlines("./LICENSE")
+    commented_license = license.map { |line| "# #{line}" }.push("\n")
+
+    Dir['lib/**/*.rb'].each do |path|
+      file_content = File.readlines(path)
+      if file_content.grep(/#{license.first}/).empty?
+        File.write(path, (commented_license + file_content).join)
+      end
+    end
+  end
+end
