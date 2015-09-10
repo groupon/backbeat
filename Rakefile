@@ -1,12 +1,8 @@
-require File.expand_path('../config/environment',  __FILE__)
 require 'rake'
 
 if defined?(TorqueBox)
   require 'torquebox-rake-support'
 end
-
-require "active_record"
-require "foreigner"
 
 module DB
   def self.config
@@ -21,37 +17,44 @@ module DB
   end
 end
 
+task :env do
+  require File.expand_path('../config/environment',  __FILE__)
+end
+
 namespace :db do
+  require "active_record"
+  require "foreigner"
+
   desc "drops and recreates the db"
-  task :reset do
+  task :reset => :env do
     DB.with_connection('database' => 'postgres') do |connection|
       connection.recreate_database(DB.config['database'], DB.config)
     end
   end
 
   desc "drop the db"
-  task :drop do
+  task :drop => :env do
     DB.with_connection('database' => 'postgres') do |connection|
       connection.drop_database(DB.config['database'])
     end
   end
 
   desc "create the db"
-  task :create do
+  task :create => :env do
     DB.with_connection('database' => 'postgres') do |connection|
       connection.create_database(DB.config['database'], DB.config)
     end
   end
 
   desc "create the db if it doesn't already exist"
-  task :create_if_not_exists do
+  task :create_if_not_exists => :env do
     DB.with_connection('database' => 'postgres') do |connection|
       connection.execute("CREATE DATABASE IF NOT EXISTS #{DB.config['database']}")
     end
   end
 
   desc "migrate the db"
-  task :migrate do
+  task :migrate => :env do
     DB.with_connection do |c|
       Foreigner.load
       ActiveRecord::Migrator.migrate('migrations', nil)
@@ -59,7 +62,7 @@ namespace :db do
   end
 
   desc "rollback one migration"
-  task :rollback do
+  task :rollback => :env do
     DB.with_connection do |c|
       ActiveRecord::Migrator.rollback('migrations')
     end
@@ -67,7 +70,7 @@ namespace :db do
 end
 
 namespace :app do
-  task :routes do
+  task :routes => :env do
     require 'backbeat/web'
 
     Backbeat::Web::API.routes.each do |api|
@@ -89,12 +92,16 @@ end
 namespace :license do
   task :add do
     license = File.readlines("./LICENSE")
-    commented_license = license.map { |line| "# #{line}" }.push("\n")
+    trailing_whitespace = /\s+\n$/
+    commented_license = license.map do |line|
+      "# #{line}".sub(trailing_whitespace, "\n")
+    end.push("\n")
 
     Dir['lib/**/*.rb'].each do |path|
       file_content = File.readlines(path)
-      if file_content.grep(/#{license.first}/).empty?
+      if file_content.first != commented_license.first
         File.write(path, (commented_license + file_content).join)
+        puts "Added license to #{path}"
       end
     end
   end
