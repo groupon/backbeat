@@ -2,24 +2,36 @@ require 'securerandom'
 
 module Backbeat
   module Logging
-    [:debug, :info, :warn, :error, :fatal].each do |level|
+    LEVELS = [:debug, :info, :warn, :error, :fatal]
+
+    LEVELS.each_with_index do |level, level_num|
       define_method(level) do |message = nil, &block|
         if block
           message = block.call
         end
         message_with_metadata = {
-          time: Time.now.strftime('%Y-%m-%dT%H:%M:%S.%L'),
+          time: Time.now.utc.iso8601(6),
+          name: logging_name,
+          data: message,
           pid: Process.pid,
           thread_id: Thread.current.object_id,
           tid: Logger.tid || 'none',
-          level: level,
-          logger: self.class.to_s,
-          name: self.class.to_s,
-          message: message,
           revision: Config.revision
         }
-        message_to_log = message_with_metadata.to_json + "\n"
-        Logger.log(level, message_to_log)
+        Logger.add(level_num, message_with_metadata)
+      end
+    end
+
+    private
+
+    def logging_name
+      case self
+      when Class
+        self.to_s
+      when Module
+        self.to_s
+      else
+        self.class.to_s
       end
     end
   end
@@ -31,8 +43,14 @@ module Backbeat
       @logger ||= create_logger
     end
 
-    def self.log(level, message)
-      logger.__send__(level, message)
+    def self.logger=(logger)
+      @logger = logger
+    end
+
+    def self.add(level_num, message)
+      level = (Logging::LEVELS[level_num] || 'ANY').downcase
+      log_data = message.merge({ level: level }).to_json + "\n"
+      logger.add(level_num, log_data, nil)
     end
 
     def self.create_logger
@@ -41,12 +59,9 @@ module Backbeat
       else
         logger = ::Logger.new(Config.log_file)
         logger.level = Config.log_level
+        logger.formatter = lambda { |_, _, _, msg| msg }
         logger
       end
-    end
-
-    def self.set_logger(logger)
-      @logger = logger
     end
 
     def self.tid_store
@@ -75,13 +90,5 @@ module Backbeat
 
   class SidekiqLogger
     extend Logging
-
-    def self.crash(message, exception)
-      fatal({error: message, backtrace: exception.backtrace})
-    end
-
-    def self.add(level, message)
-      Logger.logger.add(level, {:name => self.to_s, :message => message}, 'sidekiq_job')
-    end
   end
 end
