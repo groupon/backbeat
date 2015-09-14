@@ -26,3 +26,24 @@ end
 def sidekiq_job_count
   Sidekiq::Workers.new.group_by { |a| a.first.split(":")[0] + " " + a.third["queue"]}.each_pair { |a,b| puts "#{a} - #{b.count}" };1
 end
+
+module Backbeat
+  module ConsoleHelpers
+    EVENT_MAP = {
+      start: Events::StartNode,
+      retry: Events::RetryNode,
+      deactivate: Events::DeactivatePreviousNodes,
+      reset: Events::ResetNode
+    }
+
+    EVENT_MAP.each do |method_name, event|
+      define_method(method_name) do
+        event.call(self)
+      end
+    end
+  end
+
+  class Node
+    include ConsoleHelpers
+  end
+end
