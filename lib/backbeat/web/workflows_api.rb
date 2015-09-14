@@ -58,6 +58,13 @@ module Backbeat
           end
         end
 
+        post "/:id/signal" do
+          workflow = find_workflow
+          signal = Server.signal(workflow, params)
+          Server.fire_event(Events::ScheduleNextNode, workflow)
+          signal
+        end
+
         post "/:id/signal/:name" do
           workflow = find_workflow
           signal = Server.signal(workflow, params)
