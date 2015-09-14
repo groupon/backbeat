@@ -6,7 +6,6 @@ describe Reports::LogCounts do
   context "perform" do
     it "calls count methods" do
       expect(subject).to receive(:log_queue_counts)
-      expect(subject).to receive(:log_ready_nodes)
       subject.perform
     end
   end
@@ -34,14 +33,6 @@ describe Reports::LogCounts do
       expected_info(:queue, "queue_2", 0)
 
       subject.send(:log_queue_counts)
-    end
-
-    it "logs the number of nodes in ready state" do
-      node_arel = double
-      expect(Backbeat::Node).to receive(:where).with(current_server_status: :ready).and_return(node_arel)
-      expect(node_arel).to receive(:count).and_return(3)
-      expected_info(:nodes, :ready_nodes, 3)
-      subject.send(:log_ready_nodes)
     end
   end
 end
