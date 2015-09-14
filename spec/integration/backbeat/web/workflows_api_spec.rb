@@ -104,6 +104,11 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
       expect(response.status).to eq(400)
       expect(workflow.children.count).to eq(1)
     end
+
+    it "adds the link_id to the signal node" do
+      response = post "v2/workflows/#{workflow.id}/signal/test", { parent_link_id: node.id }
+      expect(workflow.nodes.last.parent_link).to eq(node)
+    end
   end
 
   context "GET /workflows/search" do

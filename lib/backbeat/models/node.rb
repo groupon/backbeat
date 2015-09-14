@@ -41,6 +41,8 @@ module Backbeat
     belongs_to :workflow
     has_many :children, class_name: "Backbeat::Node", foreign_key: "parent_id", dependent: :destroy
     belongs_to :parent_node, inverse_of: :children, class_name: "Backbeat::Node", foreign_key: "parent_id"
+    has_many :child_links, class_name: "Backbeat::Node", foreign_key: "parent_link_id"
+    belongs_to :parent_link, inverse_of: :child_links, class_name: "Backbeat::Node", foreign_key: "parent_link_id"
     has_one :client_node_detail, dependent: :destroy
     has_one :node_detail, dependent: :destroy
     has_many :status_changes, dependent: :destroy
@@ -129,6 +131,14 @@ module Backbeat
       node_detail.update_attributes!(complete_by: should_complete_by)
     end
 
+    def nodes_to_notify
+      [parent, parent_link].compact
+    end
+
+    def all_children_complete?
+      direct_children_complete? && child_links_complete?
+    end
+
     private
 
     def should_complete_by
@@ -136,6 +146,10 @@ module Backbeat
       if timeout
         Time.now + timeout
       end
+    end
+
+    def child_links_complete?
+      child_links.all? { |node| node.complete? }
     end
   end
 end

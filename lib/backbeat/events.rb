@@ -118,7 +118,7 @@ module Backbeat
       def call(node)
         if node.parent
           StateManager.transition(node, current_server_status: :complete)
-          Server.fire_event(ScheduleNextNode, node.parent)
+          node.nodes_to_notify.each { |node_to_notify| Server.fire_event(ScheduleNextNode, node_to_notify) }
         end
       end
     end

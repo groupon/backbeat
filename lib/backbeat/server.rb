@@ -77,7 +77,8 @@ module Backbeat
           fires_at: params[:fires_at] || Time.now - 1.second,
           parent: parent_node,
           workflow_id: parent_node.workflow_id,
-          user_id: user.id
+          user_id: user.id,
+          parent_link_id: params[:parent_link_id]
         )
         options = params[:options] || params
         ClientNodeDetail.create!(

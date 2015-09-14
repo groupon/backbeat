@@ -74,5 +74,9 @@ module Backbeat
       children.map(&:destroy)
       super
     end
+
+    def all_children_complete?
+      direct_children_complete?
+    end
   end
 end
