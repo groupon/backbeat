@@ -14,7 +14,7 @@ module Backbeat
 
     def self.perform_action(node)
       Instrument.instrument("client_perform_action", { node: node.id, legacy_type: node.legacy_type }) do
-        if node.decision?
+        if node.decision? && node.user.decision_endpoint
           make_decision(NodeSerializer.call(node), node.user)
         else
           perform_activity(NodeSerializer.call(node), node.user)
