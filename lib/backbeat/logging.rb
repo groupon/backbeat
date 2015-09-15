@@ -41,7 +41,7 @@ module Backbeat
         end
         message_with_metadata = {
           time: Time.now.utc.iso8601(6),
-          name: logging_name,
+          source: logging_source,
           data: message,
           pid: Process.pid,
           thread_id: Thread.current.object_id,
@@ -54,7 +54,7 @@ module Backbeat
 
     private
 
-    def logging_name
+    def logging_source
       case self
       when Class
         self.to_s
