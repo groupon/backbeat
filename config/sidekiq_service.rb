@@ -27,7 +27,7 @@ module Services
       @mutex = Mutex.new
 
       Sidekiq.configure_server do |config|
-        config.redis = { namespace: Backbeat::Config.redis['namespace'], url: Backbeat::Config.redis['url'] }
+        config.redis = Backbeat::Config.redis
         config.poll_interval = 5
         config.failures_max_count = false
         config.failures_default_mode = :exhausted
