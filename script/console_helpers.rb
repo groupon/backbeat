@@ -1,6 +1,6 @@
 def establish_readonly_connection
   ActiveRecord::Base.class_eval do
-    def readonly? true end
+    def readonly?; true; end
   end
   IRB.CurrentContext.irb_name = "[PROD-RO]"
   readonly_db_config = YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")["production_readonly"]
@@ -14,7 +14,7 @@ end
 
 def establish_write_connection
   ActiveRecord::Base.class_eval do
-    def readonly? false end
+    def readonly?; false; end
   end
   IRB.CurrentContext.irb_name = "irb"
   default_db_config = YAML::load_file("#{File.dirname(__FILE__)}/config/database.yml")[Backbeat.env]
