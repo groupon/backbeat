@@ -25,10 +25,30 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
       expect(response.status).to eq(201)
 
       first_response = JSON.parse(response.body)
-      wf_in_db = Backbeat::Workflow.find(first_response['id'])
+      workflow = Backbeat::Workflow.find(first_response['id'])
 
-      expect(wf_in_db).to_not be_nil
-      expect(wf_in_db.subject).to eq({ "subject_klass" => "PaymentTerm", "subject_id" => "100" })
+      expect(workflow.subject).to eq({ "subject_klass" => "PaymentTerm", "subject_id" => "100" })
+      expect(workflow.name).to eq("WFType")
+
+      response = post 'v2/workflows', workflow_data
+      expect(first_response['id']).to eq(JSON.parse(response.body)['id'])
+    end
+
+    it "returns 201 and creates a new workflow when all parameters present using name parameter" do
+      workflow_data = {
+        name: "WFName",
+        subject: { subject_klass: "PaymentTerm", subject_id: 100 },
+        decider: "PaymentDecider"
+      }
+      response = post 'v2/workflows', workflow_data
+
+      expect(response.status).to eq(201)
+
+      first_response = JSON.parse(response.body)
+      workflow = Backbeat::Workflow.find(first_response['id'])
+
+      expect(workflow.subject).to eq({ "subject_klass" => "PaymentTerm", "subject_id" => "100" })
+      expect(workflow.name).to eq("WFName")
 
       response = post 'v2/workflows', workflow_data
       expect(first_response['id']).to eq(JSON.parse(response.body)['id'])

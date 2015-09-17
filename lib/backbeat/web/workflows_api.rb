@@ -105,7 +105,7 @@ module Backbeat
             user_id: current_user.id,
             subject: subject,
             decider: params[:decider],
-            name: params[:workflow_type]
+            name: params[:workflow_type] || params[:name]
           ).first!
         end
 
