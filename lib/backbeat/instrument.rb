@@ -60,7 +60,6 @@ module Backbeat
 
     def self.log_msg(message, args, options = {})
       info({
-        source: self.class.to_s,
         message: message,
         args: args
       }.merge(options))
