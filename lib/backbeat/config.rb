@@ -66,7 +66,7 @@ module Backbeat
     end
 
     def self.redis
-      @redis ||= YAML.load_file("#{root}/config/redis.yml").fetch(environment)
+      @redis ||= YAML.load_file("#{root}/config/redis.yml").fetch(environment).symbolize_keys
     end
 
     def self.revision
