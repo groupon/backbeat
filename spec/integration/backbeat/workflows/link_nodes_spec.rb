@@ -12,7 +12,7 @@ describe Backbeat, :api_test do
 
   context "linked" do
     it "forces a node to wait to complete until its links complete" do
-      response = post "v2/workflows/#{workflow_to_link.id}/signal/test", { parent_link_id: node.id }
+      response = post "v2/workflows/#{workflow_to_link.id}/signal/test", { options: { parent_link_id: node.id } }
 
       signal_node = workflow_to_link.nodes.first
 

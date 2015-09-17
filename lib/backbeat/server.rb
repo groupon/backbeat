@@ -69,6 +69,7 @@ module Backbeat
 
     def self.add_node(user, parent_node, params)
       Node.transaction do
+        options = params[:options] || params
         node = Node.create!(
           mode: params.fetch(:mode, :blocking).to_sym,
           current_server_status: params[:current_server_status] || :pending,
@@ -78,9 +79,8 @@ module Backbeat
           parent: parent_node,
           workflow_id: parent_node.workflow_id,
           user_id: user.id,
-          parent_link_id: params[:parent_link_id]
+          parent_link_id: options[:parent_link_id]
         )
-        options = params[:options] || params
         ClientNodeDetail.create!(
           node: node,
           metadata: options[:metadata] || {},
