@@ -34,7 +34,7 @@ module Backbeat
 
     def self.create_workflow(params, user)
       find_workflow(params, user) || Workflow.create!(
-        name: params[:workflow_type],
+        name: params[:workflow_type] || params[:name],
         subject: params[:subject],
         decider: params[:decider],
         user_id: user.id,
@@ -46,7 +46,7 @@ module Backbeat
 
     def self.find_workflow(params, user)
       Workflow.where(
-        name: params[:workflow_type],
+        name: params[:workflow_type] || params[:name],
         subject: params[:subject].to_json,
         user_id: user.id
       ).first
