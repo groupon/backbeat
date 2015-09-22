@@ -110,11 +110,11 @@ module Backbeat
     end
 
     def perform_client_action?
-      legacy_type.to_sym != :flag
+      legacy_type.try(:to_sym) != :flag
     end
 
     def decision?
-      legacy_type.to_sym == :decision
+      legacy_type.try(:to_sym) == :decision
     end
 
     PERFORMED_STATES = [:sent_to_client, :complete, :processing_children]
