@@ -159,4 +159,38 @@ describe Backbeat::Node do
       expect(node.all_children_complete?).to eq(false)
     end
   end
+
+  context "#perform_client_action?" do
+    it "returns true if legacy_type is nil" do
+      allow(node).to receive(:legacy_type).and_return(nil)
+      expect(node.perform_client_action?).to eq(true)
+    end
+
+    it "returns false if legacy_type is flag" do
+      allow(node).to receive(:legacy_type).and_return("flag")
+      expect(node.perform_client_action?).to eq(false)
+    end
+
+    it "returns false if legacy_type is not flag" do
+      allow(node).to receive(:legacy_type).and_return("blah")
+      expect(node.perform_client_action?).to eq(true)
+    end
+  end
+
+  context "#decision?" do
+    it "returns false if legacy_type is nil" do
+      allow(node).to receive(:legacy_type).and_return(nil)
+      expect(node.decision?).to eq(false)
+    end
+
+    it "returns true if legacy_type is decision" do
+      allow(node).to receive(:legacy_type).and_return("decision")
+      expect(node.decision?).to eq(true)
+    end
+
+    it "returns false if legacy_type is not decision" do
+      allow(node).to receive(:legacy_type).and_return("blah")
+      expect(node.decision?).to eq(false)
+    end
+  end
 end
