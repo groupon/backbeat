@@ -37,13 +37,24 @@ module Backbeat
         end
 
         ENDPOINT = '/heartbeat.txt'.freeze
+        HEARTBEAT = "#{Config.root}/public/heartbeat.txt"
+        HEARTBEAT_OK = [
+          200,
+          { "Content-Type" => "text/plain", "Cache-Control" => "private, no-cache, no-store, must-revalidate" },
+          ["We have a pulse."]
+        ]
+        HEARTBEAT_DOWN = [
+          503,
+          { "Content-Type" => "text/plain" },
+          ["It's dead, Jim."]
+        ]
 
         def call(env)
           if env['PATH_INFO'] == ENDPOINT
-            if File.exists?("#{File.dirname(__FILE__)}/../../../../public/heartbeat.txt")
-              return [200, {"Content-Type" => "text/plain"}, ["We have a pulse."]]
+            if File.exists?(HEARTBEAT)
+              return HEARTBEAT_OK
             else
-              return [503, {"Content-Type" => "text/plain"}, ["It's dead, Jim."]]
+              return HEARTBEAT_DOWN
             end
           else
             @app.call(env)
