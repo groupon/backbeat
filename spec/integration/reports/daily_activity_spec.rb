@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'mail'
 require_relative '../../../reports/daily_activity.rb'
 
 describe Reports::DailyActivity do
@@ -34,10 +35,14 @@ describe Reports::DailyActivity do
       )
     end
 
+    before do
+      Mail.defaults { delivery_method :test }
+    end
+
     it "calls view generation with correct model" do
       Timecop.freeze(start_time) do
         report = Reports::DailyActivity.new
-        expect(report).to receive(:send_report).with("report body")
+
         expect(report).to receive(:report_html_body) do |report_model|
           expect(report_model.marshal_dump).to eq({
             inconsistent: {
@@ -64,6 +69,10 @@ describe Reports::DailyActivity do
           "report body"
         end
         report.perform
+
+        email_sent = Mail::TestMailer.deliveries.first
+        expect(email_sent.from.first).to eq("alerts-sample@email.com")
+        expect(email_sent.to.first).to eq("sample@email.com")
       end
     end
 

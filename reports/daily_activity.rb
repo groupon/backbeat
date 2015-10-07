@@ -61,8 +61,8 @@ module Reports
 
     def send_report(body)
       Mail.deliver do
-        from    "financial-engineering+backbeat@groupon.com"
-        to      "financial-engineering-alerts@groupon.com"
+        from    Backbeat::Config.options[:alerts][:email_from]
+        to      Backbeat::Config.options[:alerts][:email_to]
         subject "Backbeat Workflow Report #{Date.today.to_s}"
 
         html_part do

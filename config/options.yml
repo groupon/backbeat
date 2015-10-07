@@ -3,6 +3,9 @@ common: &common
   async_queue: backbeat_server
   log: /var/groupon/backbeat/shared/log/backbeat.log
   default_client_timeout: 172800
+  alerts:
+    email_to: sample@email.com
+    email_from: alerts-sample@email.com
 
 development:
   <<: *common
