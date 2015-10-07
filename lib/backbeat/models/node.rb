@@ -142,7 +142,7 @@ module Backbeat
     private
 
     def should_complete_by
-      timeout = client_data.fetch("timeout", Backbeat::Config.options["default_client_timeout"])
+      timeout = client_data.fetch("timeout", Backbeat::Config.options[:default_client_timeout])
       if timeout
         Time.now + timeout
       end

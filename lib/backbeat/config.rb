@@ -55,8 +55,7 @@ module Backbeat
       @options ||= (
         opts_yml = YAML.load_file("#{root}/config/options.yml")
         opts = opts_yml.fetch(environment, {})
-        opts.default_proc = ->(h, k) { h.key?(k.to_s) ? h[k.to_s] : nil }
-        opts
+        opts.deep_symbolize_keys
       )
     end
 
