@@ -42,19 +42,15 @@ module Backbeat
           t0 = Time.now
           tid = Logger.tid(:set)
 
-          Logger.info("START - Endpoint #{env['PATH_INFO']}")
+          Logger.info({ message: "Request Start", endpoint: env['PATH_INFO'] })
 
-          envs = env['PATH_INFO'].split("/")
           status, headers, body = response = @app.call(env)
 
           Logger.info(
+            request: request_info(env),
             response: {
               status: status,
-              type: envs[2],
-              method: envs.last,
-              env: env['PATH_INFO'],
               duration: Time.now - t0,
-              route_info: route_info(env)
             }
           )
 
@@ -64,11 +60,18 @@ module Backbeat
           response
         end
 
-        def route_info(env)
+        def request_info(env)
+          request = Rack::Request.new(env)
           route_info = env["rack.routing_args"].try(:[], :route_info)
           if route_info
             options = route_info.instance_variable_get("@options")
-            options.slice(:version, :namespace, :method, :path)
+            {
+              version: options[:version],
+              namespace: options[:namespace],
+              method: options[:method],
+              path: request.path_info,
+              params: request.params
+            }
           end
         end
       end
