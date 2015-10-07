@@ -43,7 +43,7 @@ module Backbeat
             stats = Sidekiq::Stats.new
             history = Sidekiq::Stats::History.new(1)
             data = {
-              latency: stats.queues.keys.inject({}) {|h,q| h[q] = Sidekiq::Queue.new(q).latency; h },
+              latency: latency(stats),
               today: {
                 processed: history.processed.values[0],
                 failed: history.failed.values[0]
@@ -54,9 +54,16 @@ module Backbeat
               scheduled: stats.scheduled_size,
               retry_size: stats.retry_size
             }
-            [200, {"Content-Type" => "application/json"}, [data.to_json]]
+            [200, { "Content-Type" => "application/json" }, [data.to_json]]
           else
             @app.call(env)
+          end
+        end
+
+        def latency(stats)
+          stats.queues.keys.inject({}) do |h, q|
+            h[q] = Sidekiq::Queue.new(q).latency
+            h
           end
         end
       end

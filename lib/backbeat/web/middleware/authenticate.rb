@@ -43,7 +43,7 @@ module Backbeat
             env['WORKFLOW_CURRENT_USER'] = user
             @app.call(env)
           else
-            [401, {"Content-Type"=>"text/plain"}, ["Unauthorized"]]
+            [401, { "Content-Type"=>"text/plain" }, ["Unauthorized"]]
           end
         end
 
