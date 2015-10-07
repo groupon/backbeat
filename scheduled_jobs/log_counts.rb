@@ -1,7 +1,7 @@
-require_relative 'report_base'
-module Reports
-  class LogCounts < ReportBase
-    include Backbeat::Logging
+require_relative 'base'
+
+module ScheduledJobs
+  class LogCounts < Base
 
     def perform( options = {} )
       log_queue_counts
