@@ -116,10 +116,16 @@ module Backbeat
       scheduler Schedulers::PerformEvent
 
       def call(node)
-        if node.parent
+        if node.parent && !node.complete?
           StateManager.transition(node, current_server_status: :complete)
-          node.nodes_to_notify.each { |node_to_notify| Server.fire_event(ScheduleNextNode, node_to_notify) }
+          unless node.fire_and_forget?
+            node.nodes_to_notify.each do |node_to_notify|
+              Server.fire_event(ScheduleNextNode, node_to_notify)
+            end
+          end
         end
+      rescue StaleStatusChange => e
+        Logger.info(message: "Node already complete", node: node.id, error: e.message)
       end
     end
 
@@ -141,8 +147,10 @@ module Backbeat
         StateManager.new(node, response).transition(current_client_status: :errored)
         if node.retries_remaining > 0
           node.mark_retried!
+          StateManager.transition(node, current_server_status: :retrying)
           Server.fire_event(RetryNode, node)
         else
+          StateManager.transition(node, current_server_status: :retries_exhausted)
           Client.notify_of(node, "Client Error", response[:error])
         end
       end
@@ -152,8 +160,7 @@ module Backbeat
       scheduler Schedulers::ScheduleRetry
 
       def call(node)
-        StateManager.transition(node, current_client_status: :ready, current_server_status: :retrying)
-        StateManager.transition(node, current_server_status: :ready)
+        StateManager.transition(node, current_client_status: :ready, current_server_status: :ready)
         Server.fire_event(ResetNode, node)
         Server.fire_event(ScheduleNextNode, node.parent)
       end

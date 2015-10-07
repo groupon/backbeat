@@ -242,6 +242,37 @@ describe Backbeat::Events do
 
       expect(node.current_server_status).to eq("complete")
     end
+
+    it "does not fire ScheduleNextNode if the node is fire_and_forget mode" do
+      node.update_attributes(current_server_status: :complete, current_client_status: :complete)
+      child_node = FactoryGirl.create(:node, user: user, workflow: workflow, mode: :fire_and_forget)
+      child_node.update_attributes(current_server_status: :processing_children)
+
+      expect(Backbeat::Server).to_not receive(:fire_event)
+
+      Backbeat::Events::NodeComplete.call(child_node)
+    end
+
+    context "multiple complete events (i.e. two non-blocking child nodes both complete at the same time)" do
+      it "does nothing if the node is already complete" do
+        node.update_attributes(current_server_status: :complete)
+
+        expect(Backbeat::Server).to_not receive(:fire_event)
+
+        Backbeat::Events::NodeComplete.call(node)
+
+        expect { Backbeat::Events::NodeComplete.call(node) }.to_not raise_error
+      end
+
+      it "does nothing if another process completes the node at the same time" do
+        node.update_attributes(current_server_status: :processing_children)
+        Backbeat::Node.where(id: node.id).update_all(current_server_status: :complete)
+
+        Backbeat::Events::NodeComplete.call(node)
+
+        expect { Backbeat::Events::NodeComplete.call(node) }.to_not raise_error
+      end
+    end
   end
 
   context "ServerError" do
@@ -274,25 +305,39 @@ describe Backbeat::Events do
   end
 
   context "ClientError" do
+    before do
+      node.update_attributes(current_server_status: :sent_to_client)
+    end
+
     it "marks the status as errored" do
       Backbeat::Events::ClientError.call(node)
+
       expect(node.current_client_status).to eq("errored")
     end
 
     context "with remaining retries" do
       it "fires a retry with backoff event" do
         expect(Backbeat::Server).to receive(:fire_event).with(Backbeat::Events::RetryNode, node)
+
         Backbeat::Events::ClientError.call(node)
       end
 
       it "decrements the retry count" do
         Backbeat::Events::ClientError.call(node)
+
         expect(node.node_detail.retries_remaining).to eq(3)
+      end
+
+      it "marks the server status as retrying" do
+        Backbeat::Events::ClientError.call(node)
+
+        expect(node.current_server_status).to eq("retrying")
       end
     end
 
     context "with no remaining retries" do
       before do
+        node.update_attributes(current_server_status: :sent_to_client)
         node.node_detail.update_attributes(retries_remaining: 0)
       end
 
@@ -300,6 +345,9 @@ describe Backbeat::Events do
         expect(Backbeat::Server).to_not receive(:fire_event).with(Backbeat::Events::RetryNode, node)
 
         Backbeat::Events::ClientError.call(node)
+
+        expect(node.current_client_status).to eq("errored")
+        expect(node.current_server_status).to eq("retries_exhausted")
       end
 
       it "notifies the client" do
@@ -328,24 +376,20 @@ describe Backbeat::Events do
   context "RetryNode" do
     before do
       node.update_attributes(
-        current_server_status: :sent_to_client,
+        current_server_status: :retrying,
         current_client_status: :errored
       )
     end
 
-    it "marks the server status as retrying, then ready" do
+    it "marks the server status as ready" do
       Backbeat::Events::RetryNode.call(node)
+
       expect(node.status_changes.first.attributes).to include({
         "from_status" => "errored",
         "to_status" => "ready",
         "status_type" => "current_client_status"
       })
       expect(node.status_changes.second.attributes).to include({
-        "from_status" => "sent_to_client",
-        "to_status" => "retrying",
-        "status_type" => "current_server_status"
-      })
-      expect(node.status_changes.third.attributes).to include({
         "from_status" => "retrying",
         "to_status" => "ready",
         "status_type" => "current_server_status"
