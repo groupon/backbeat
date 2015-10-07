@@ -51,6 +51,16 @@ describe Backbeat::Node do
     end
   end
 
+  context "mark_complete!" do
+    it "marks the complete_by attribute as nil" do
+      node.node_detail.update_attributes!(complete_by: Time.now)
+
+      node.mark_complete!
+
+      expect(node.node_detail.complete_by).to eq(nil)
+    end
+  end
+
   context "blocking?" do
     it "returns true if the mode is blocking" do
       expect(node.blocking?).to be_truthy
@@ -108,11 +118,11 @@ describe Backbeat::Node do
 
       it "uses value from config" do
         node.touch!
-        expect(node.node_detail.complete_by).to eq(Time.now + Backbeat::Config.options[:default_client_timeout])
+        expect(node.node_detail.complete_by).to eq(Time.now + Backbeat::Config.options[:client_timeout][:length])
       end
 
       it "nil if config is not set" do
-        allow(Backbeat::Config).to receive(:options).and_return({ "default_client_timeout" => nil })
+        allow(Backbeat::Config).to receive(:options).and_return({})
         node.touch!
         expect(node.node_detail.complete_by).to eq(nil)
       end

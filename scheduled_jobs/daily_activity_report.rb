@@ -1,7 +1,8 @@
-require_relative 'report_base'
+require_relative 'base'
+require 'mail'
 
-module Reports
-  class DailyActivity < ReportBase
+module ScheduledJobs
+  class DailyActivityReport < Base
     def perform
       start_time = Time.now
 
@@ -116,13 +117,13 @@ module Reports
 
       def render
         ERB.new(
-          File.read(File.expand_path('../daily_activity/report.html.erb', __FILE__))
+          File.read(File.expand_path('../daily_activity_report/report.html.erb', __FILE__))
         ).result(binding)
       end
 
       def render_table(title, counts, options)
         ERB.new(
-          File.read(File.expand_path('../daily_activity/table.html.erb', __FILE__))
+          File.read(File.expand_path('../daily_activity_report/table.html.erb', __FILE__))
         ).result(binding)
       end
     end

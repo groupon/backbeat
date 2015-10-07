@@ -107,6 +107,7 @@ module Backbeat
       def call(node)
         StateManager.new(node, response).with_rollback do |state|
           state.transition(current_client_status: :complete, current_server_status: :processing_children)
+          node.mark_complete!
           Server.fire_event(MarkChildrenReady, node)
         end
       end
