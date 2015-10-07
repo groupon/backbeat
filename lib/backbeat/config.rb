@@ -71,7 +71,7 @@ module Backbeat
     def self.revision
       @revision ||= (
         file_path = "#{root}/REVISION"
-        File.read(file_path) if File.exists?(file_path)
+        File.read(file_path).chomp if File.exists?(file_path)
       )
     end
   end
