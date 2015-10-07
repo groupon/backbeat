@@ -57,7 +57,7 @@ module Backbeat
       private
 
       def business_perform(event_class, node_data, options)
-        options = symbolize_keys(options)
+        options = options.symbolize_keys
         node = deserialize_node(node_data)
         Server.fire_event(event_class.constantize, node, Schedulers::PerformEvent)
       rescue DeserializeError => e
@@ -80,10 +80,6 @@ module Backbeat
       rescue => e
         error(status: :uncaught_exception, event_class: event_class, node: node.id, options: options, error: e, backtrace: e.backtrace)
         raise e
-      end
-
-      def symbolize_keys(options)
-        options.reduce({}) { |m, (k, v)| m[k.to_sym] = v; m }
       end
 
       def deserialize_node(node_data)
