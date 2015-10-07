@@ -49,7 +49,7 @@ This is the server application for Backbeat, the open-source workflow service by
 8. Create backbeat role in postgres DB with your postgres user (postgres in this example)
 
   ```bash
-  $ sudo su postgres -c "psql -c \"CREATE ROLE backbeat with SUPERUSER LOGIN PASSWORD 'b4ckb347'\";"
+  $ sudo su postgres -c "psql -c \"CREATE ROLE backbeat with SUPERUSER LOGIN PASSWORD 'backbeat'\";"
   ```
   -  Note you can change your db configs to what ever you'd like in config/database.yml. The above command allows for the default values in the .yml
 
