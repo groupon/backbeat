@@ -42,17 +42,21 @@ module Backbeat
           t0 = Time.now
           tid = Logger.tid(:set)
 
-          Logger.info({ message: "Request Start", endpoint: env['PATH_INFO'] })
+          Logger.info({
+            message: "Request Start",
+            path: env['PATH_INFO']
+          })
 
           status, headers, body = response = @app.call(env)
 
-          Logger.info(
+          Logger.info({
+            message: "Request Complete",
             request: request_info(env),
             response: {
               status: status,
               duration: Time.now - t0,
             }
-          )
+          })
 
           headers[TRANSACTION_ID_HEADER] = tid
           Logger.tid(:clear)
