@@ -29,9 +29,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'spec_helper'
-require_relative '../../../scheduled_jobs/heal_nodes.rb'
 
-describe ScheduledJobs::HealNodes do
+describe Backbeat::Workers::HealNodes do
   context "complete_by expires" do
     let(:start_time) { Time.parse("2015-06-01 00:00:00 UTC") }
     let(:user) { FactoryGirl.create(:user) }
@@ -72,7 +71,7 @@ describe ScheduledJobs::HealNodes do
         expect(Backbeat::Client).to receive(:perform_action).with(expired_node)
         expect(Backbeat::Client).to_not receive(:perform_action).with(non_expired_node)
         expect(subject).to receive(:info).with(
-          source: "ScheduledJobs::HealNodes",
+          source: "Backbeat::Workers::HealNodes",
           message: "Client did not respond within the specified 'complete_by' time",
           node: expired_node.id,
           complete_by: expired_node.node_detail.complete_by
@@ -102,7 +101,7 @@ describe ScheduledJobs::HealNodes do
       expired_node.update_attributes(current_client_status: :complete, current_server_status: :complete)
       expired_node.node_detail.update_attributes!(complete_by: expired_complete_by)
       expect(subject).to receive(:info).with(
-        source: "ScheduledJobs::HealNodes",
+        source: "Backbeat::Workers::HealNodes",
         message: "Node with expired 'complete_by' is not in expected state",
         node: expired_node.id,
         complete_by: expired_node.reload.node_detail.complete_by
