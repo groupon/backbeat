@@ -31,9 +31,7 @@
 require 'spec_helper'
 require 'mail'
 
-require_relative '../../../scheduled_jobs/daily_activity_report.rb'
-
-describe ScheduledJobs::DailyActivityReport do
+describe Backbeat::Workers::DailyActivity do
   context "successful report" do
     let(:start_time) { Time.parse("2015-06-01 00:00:00") }
     let(:user) { FactoryGirl.create(:user) }
@@ -120,6 +118,7 @@ describe ScheduledJobs::DailyActivityReport do
 
         allow(subject).to receive(:send_report)
         expect(subject).to receive(:write_to_file).with(expected_file_contents)
+
         subject.perform
       end
     end

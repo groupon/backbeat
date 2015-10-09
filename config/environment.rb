@@ -5,6 +5,7 @@ require 'bundler/setup'
 
 require 'active_record'
 require 'sidekiq'
+require 'sidekiq_schedulable'
 require 'backbeat'
 
 puts "*** Environment is #{Backbeat::Config.environment} ***"
