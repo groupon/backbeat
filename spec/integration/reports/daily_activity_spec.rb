@@ -1,7 +1,6 @@
 require 'spec_helper'
 require 'mail'
 require_relative '../../../reports/daily_activity.rb'
-require 'mail'
 
 describe Reports::DailyActivity do
   context "successful report" do
