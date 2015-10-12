@@ -120,7 +120,7 @@ module Reports
         ).result(binding)
       end
 
-      def table(title, counts, options)
+      def render_table(title, counts, options)
         ERB.new(
           File.read(File.expand_path('../daily_activity/table.html.erb', __FILE__))
         ).result(binding)

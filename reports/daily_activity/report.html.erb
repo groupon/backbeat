@@ -47,11 +47,11 @@
     <% if report[:inconsistent][:counts].empty? %>
       <p>No inconsistent workflows</p>
     <% else %>
-      <%= table("Workflow Inconsistencies", report[:inconsistent][:counts], report[:inconsistent][:options]) %>
+      <%= render_table "Workflow Inconsistencies", report[:inconsistent][:counts], report[:inconsistent][:options] %>
       <p>Inconsistent workflow info stored at <%= report[:inconsistent][:filename] %></p>
     <% end %>
 
-    <%= table("Workflow Activity", report[:completed][:counts], report[:completed][:options]) %>
+    <%= render_table "Workflow Activity", report[:completed][:counts], report[:completed][:options] %>
     <p>Report finished in <%= report[:time_elapsed] %> seconds</p>
   </body>
 </html>
