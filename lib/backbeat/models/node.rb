@@ -67,6 +67,7 @@ module Backbeat
                                            :errored,
                                            :deactivated,
                                            :retrying,
+                                           :retries_exhausted,
                                            :paused]
 
     enumerize :current_client_status, in: [:pending,
@@ -99,6 +100,10 @@ module Backbeat
 
     def blocking?
       mode.to_sym == :blocking
+    end
+
+    def fire_and_forget?
+      mode.to_sym == :fire_and_forget
     end
 
     def deactivated?

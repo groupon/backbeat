@@ -42,17 +42,18 @@ module Backbeat
         complete: [:complete]
       },
       current_server_status: {
-        any: [:deactivated, :errored, :retrying],
-        deactivated: [:deactivated],
+        any: [:deactivated, :errored],
+        deactivated: [],
         pending: [:ready],
         ready: [:started],
         started: [:sent_to_client, :paused],
-        sent_to_client: [:processing_children],
-        paused: [:started],
+        sent_to_client: [:processing_children, :retrying, :retries_exhausted],
         processing_children: [:complete],
-        errored: [:retrying],
+        complete: [],
+        paused: [:started],
+        errored: [:ready],
         retrying: [:ready],
-        complete: [:complete]
+        retries_exhausted: [:ready]
       }
     }
 

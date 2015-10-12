@@ -27,6 +27,7 @@ describe Backbeat::Web::EventsApi, :api_test do
 
       it "returns 200" do
         response = put "v2/events/#{node.id}/restart"
+
         expect(response.status).to eq(200)
       end
 
@@ -192,7 +193,7 @@ describe Backbeat::Web::EventsApi, :api_test do
 
       put "v2/events/#{node.id}/status/errored", { "response" => client_params }
 
-      expect(node.status_changes.last.response).to eq(client_params)
+      expect(node.status_changes.first.response).to eq(client_params)
     end
   end
 

@@ -75,18 +75,23 @@ describe Backbeat, :api_test do
           "current_client_status" => "received",
           "current_server_status" => "sent_to_client"
         )
-        expect(activity_node.node_detail.retries_remaining).to eq(1-i)
+        expect(activity_node.node_detail.retries_remaining).to eq(1 - i)
       end
 
       response = put "v2/events/#{activity_node.id}/status/errored"
+
       expect(activity_node.reload.attributes).to include(
         "current_client_status" => "errored",
-        "current_server_status" => "sent_to_client"
+        "current_server_status" => "retries_exhausted"
       )
     end
 
     it "resets the node to handle errors in weird states" do
       node = workflow.children.first
+      node.update_attributes(
+        current_server_status: :sent_to_client,
+        current_client_status: :received
+      )
 
       2.times do
         FactoryGirl.create(
