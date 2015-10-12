@@ -3,7 +3,7 @@ source ENV.fetch('GEM_SOURCE', 'https://rubygems.org/')
 gem 'rake'
 
 gem 'grape', '~> 0.11.0'
-gem 'puma'
+gem 'puma', '~> 2.12.3'
 gem 'httparty'
 
 group :torquebox do
