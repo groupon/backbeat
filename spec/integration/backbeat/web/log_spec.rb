@@ -20,18 +20,17 @@ describe Backbeat::Web::Middleware::Log, :api_test do
       log_count += 1
       if log_count == 2
         expect(response_info).to eq({
-          :response=> {
-            :status=>200,
-            :type=>"workflows",
-            :method=> wf.id,
-            :env=>"/v2/workflows/#{wf.id}",
-            :duration=>0.0,
-            :route_info=> {
-              :version=>'v2',
-              :namespace=>"/workflows",
-              :method=>"GET",
-              :path=>"/:version/workflows/:id"
-            }
+          message: "Request Complete",
+          request: {
+            version: 'v2',
+            namespace: "/workflows",
+            method: "GET",
+            path: "/v2/workflows/#{wf.id}",
+            params: {}
+          },
+          response: {
+            status: 200,
+            duration: 0.0,
           }
         })
       end

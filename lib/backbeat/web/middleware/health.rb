@@ -40,17 +40,20 @@ module Backbeat
 
         def call(env)
           if env['PATH_INFO'] == ENDPOINT
-            db_ok = ActiveRecord::Base.connected?
-
             result = {
               sha: Config.revision,
               time: Time.now.iso8601,
-              status: db_ok ? 'OK' : 'DATABASE_UNREACHABLE'
+              status: db_ok? ? 'OK' : 'DATABASE_UNREACHABLE'
             }
-            [200, {"Content-Type" => "application/json"}, [result.to_json]]
+            [200, { "Content-Type" => "application/json" }, [result.to_json]]
           else
             @app.call(env)
           end
+        end
+
+        def db_ok?
+          ActiveRecord::Base.connection
+          ActiveRecord::Base.connected?
         end
       end
     end

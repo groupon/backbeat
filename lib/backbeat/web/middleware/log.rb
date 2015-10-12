@@ -41,22 +41,21 @@ module Backbeat
         def call(env)
           t0 = Time.now
           tid = Logger.tid(:set)
+          request = Rack::Request.new(env)
+          request_data = { path: request.path_info, params: request.params }
 
-          Logger.info("START - Endpoint #{env['PATH_INFO']}")
+          Logger.info({ message: "Request Start" }.merge(request_data))
 
-          envs = env['PATH_INFO'].split("/")
           status, headers, body = response = @app.call(env)
 
-          Logger.info(
+          Logger.info({
+            message: "Request Complete",
+            request: routing_info(env).merge(request_data),
             response: {
               status: status,
-              type: envs[2],
-              method: envs.last,
-              env: env['PATH_INFO'],
               duration: Time.now - t0,
-              route_info: route_info(env)
             }
-          )
+          })
 
           headers[TRANSACTION_ID_HEADER] = tid
           Logger.tid(:clear)
@@ -64,11 +63,17 @@ module Backbeat
           response
         end
 
-        def route_info(env)
+        def routing_info(env)
           route_info = env["rack.routing_args"].try(:[], :route_info)
           if route_info
             options = route_info.instance_variable_get("@options")
-            options.slice(:version, :namespace, :method, :path)
+            {
+              version: options[:version],
+              namespace: options[:namespace],
+              method: options[:method]
+            }
+          else
+            {}
           end
         end
       end
