@@ -22,8 +22,6 @@ describe Backbeat::Web::Middleware::Log, :api_test do
         expect(response_info).to eq({
           message: "Request Complete",
           request: {
-            version: 'v2',
-            namespace: "/workflows",
             method: "GET",
             path: "/v2/workflows/#{wf.id}",
             params: {}
