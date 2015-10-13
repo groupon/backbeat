@@ -49,13 +49,13 @@ module Backbeat
       end
 
       rescue_from :all do |e|
-        Logger.error({error_type: e.class, error: e.message, backtrace: e.backtrace})
-        Rack::Response.new({error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
+        Logger.error({ error_type: e.class, error: e.message, backtrace: e.backtrace })
+        Rack::Response.new({ error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
       end
 
       rescue_from ActiveRecord::RecordNotFound do |e|
         Logger.info(e)
-        Rack::Response.new({error: e.message }.to_json, 404, { "Content-type" => "application/json" }).finish
+        Rack::Response.new({ error: e.message }.to_json, 404, { "Content-type" => "application/json" }).finish
       end
 
       RESCUED_ERRORS = [
