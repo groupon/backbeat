@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'mail'
 require_relative '../../../reports/daily_activity.rb'
 
 describe Reports::DailyActivity do
@@ -34,37 +35,50 @@ describe Reports::DailyActivity do
       )
     end
 
+    before do
+      Mail.defaults { delivery_method :test }
+    end
+
+    it "builds the workflow data" do
+      Timecop.freeze(start_time) do
+        expect(subject).to receive(:send_report).with({
+          inconsistent: {
+            counts: {
+              "bad workflow" => { workflow_type_count: 1, node_count: 1 }
+            },
+            options: {
+              lower_bound: Time.parse("2015-04-01 00:00:00"),
+              upper_bound: Date.today
+            },
+            filename: "/tmp/inconsistent_nodes/2015-06-01.txt"
+          },
+          completed: {
+            counts: {
+              "fun workflow"=> { workflow_type_count: 1, node_count: 1 }
+            },
+            options: {
+              lower_bound: start_time - 24.hours,
+              upper_bound: start_time
+            }
+          },
+          time_elapsed: 0
+        })
+
+        subject.perform
+      end
+    end
+
     it "calls view generation with correct model" do
       Timecop.freeze(start_time) do
-        report = Reports::DailyActivity.new
-        expect(report).to receive(:send_report).with("report body")
-        expect(report).to receive(:report_html_body) do |report_model|
-          expect(report_model.marshal_dump).to eq({
-            inconsistent: {
-              counts: {
-                "bad workflow" => { workflow_type_count: 1, node_count: 1 }
-              },
-              options: {
-                lower_bound: Time.parse("2015-04-01 00:00:00"),
-                upper_bound: Date.today
-              },
-              filename: "/tmp/inconsistent_nodes/2015-06-01.txt"
-            },
-            completed: {
-              counts: {
-                "fun workflow"=> { workflow_type_count: 1, node_count: 1 }
-              },
-              options: {
-                lower_bound: start_time - 24.hours,
-                upper_bound: start_time
-              }
-            },
-            time_elapsed: 0
-          })
-          "report body"
-        end
-        report.perform
+        subject.perform
       end
+
+      email_sent = Mail::TestMailer.deliveries.first
+      body = email_sent.to_s
+
+      expect(email_sent.from.first).to eq("alerts-sample@email.com")
+      expect(email_sent.to.first).to eq("sample@email.com")
+      expect(body).to include("Report finished")
     end
 
     it "writes inconsistent details to file" do

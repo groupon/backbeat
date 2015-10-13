@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        min-width: 100%;
+      }
+
+      h2 {
+        padding-top: 14pt;
+        color: #000000;
+        font-size: 14pt;
+        font-family: Arial;
+        font-weight: bold;
+        padding-bottom: 4pt;
+      }
+
+      p {
+        direction: ltr;
+        margin: 0;
+      }
+
+      table {
+        width: 100%;
+      }
+
+      tr .header {
+        background-color: #b7b7b7;
+      }
+
+      tr .data {
+        background-color: #f3f3f3;
+      }
+
+      td {
+        vertical-align: top;
+        background-color: #b7b7b7;
+        padding: 5pt;
+        border: 1pt solid #ffffff;
+        vertical-align: top;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Backbeat Activity Report</h2>
+
+    <% if report[:inconsistent][:counts].empty? %>
+      <p>No inconsistent workflows</p>
+    <% else %>
+      <%= render_table "Workflow Inconsistencies", report[:inconsistent][:counts], report[:inconsistent][:options] %>
+      <p>Inconsistent workflow info stored at <%= report[:inconsistent][:filename] %></p>
+    <% end %>
+
+    <%= render_table "Workflow Activity", report[:completed][:counts], report[:completed][:options] %>
+    <p>Report finished in <%= report[:time_elapsed] %> seconds</p>
+  </body>
+</html>
