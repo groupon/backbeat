@@ -3,6 +3,7 @@ require_relative 'base'
 module ScheduledJobs
   class HealNodes < Base
     CLIENT_TIMEOUT_ERROR = "Client did not respond within the specified 'complete_by' time"
+    SEARCH_PADDING = 1.hour # used in case the search does not run on time
 
     def perform
       resend_expired_nodes
@@ -22,8 +23,8 @@ module ScheduledJobs
     end
 
     def expired_node_details
-      search_lower_bound = Backbeat::Config.options[:client_timeout][:search_frequency]
-      Backbeat::NodeDetail.where(complete_by: (Time.now - search_lower_bound)..Time.now).select("node_id, complete_by")
+      search_lower_bound = Time.now - Backbeat::Config.options[:job_frequency][:heal_nodes] - SEARCH_PADDING
+      Backbeat::NodeDetail.where(complete_by: (search_lower_bound..Time.now)).select("node_id, complete_by")
     end
 
     def received_by_client?(node)

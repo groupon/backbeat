@@ -52,19 +52,15 @@ module Backbeat
     end
 
     def self.options
-      @options ||= (
-        opts_yml = YAML.load_file("#{root}/config/options.yml")
-        opts = opts_yml.fetch(environment, {})
-        opts.deep_symbolize_keys
-      )
+      @options ||= config_with_defaults("options")
     end
 
     def self.database
-      @database ||= YAML.load_file("#{root}/config/database.yml").fetch(environment)
+      @database ||= config_with_defaults("database")
     end
 
     def self.redis
-      @redis ||= YAML.load_file("#{root}/config/redis.yml").fetch(environment).symbolize_keys
+      @redis ||= config_with_defaults("redis")
     end
 
     def self.revision
@@ -73,5 +69,11 @@ module Backbeat
         File.read(file_path).chomp if File.exists?(file_path)
       )
     end
+
+    def self.config_with_defaults(name)
+      defaults = YAML.load_file("#{root}/config/defaults/#{name}.yml").fetch("defaults")
+      defaults.deep_merge(YAML.load_file("#{root}/config/#{name}.yml").fetch(environment, {})).deep_symbolize_keys
+    end
+    private_class_method :config_with_defaults
   end
 end

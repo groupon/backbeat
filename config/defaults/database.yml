@@ -1,0 +1,6 @@
+defaults:
+  reconnect: true
+  adapter: postgresql
+  username: backbeat
+  password: backbeat
+  pool: 25

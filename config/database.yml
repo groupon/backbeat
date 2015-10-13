@@ -1,11 +1,8 @@
 common: &common
   reconnect: true
-  template: template0
-  encoding: unicode
   adapter: postgresql
   username: backbeat
   password: backbeat
-  pool: 200
 
 development:
   <<: *common
