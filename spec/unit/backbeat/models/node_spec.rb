@@ -118,11 +118,11 @@ describe Backbeat::Node do
 
       it "uses value from config" do
         node.touch!
-        expect(node.node_detail.complete_by).to eq(Time.now + Backbeat::Config.options[:client_timeout][:length])
+        expect(node.node_detail.complete_by).to eq(Time.now + Backbeat::Config.options[:client_timeout])
       end
 
       it "nil if config is not set" do
-        allow(Backbeat::Config).to receive(:options).and_return({})
+        allow(Backbeat::Config).to receive(:options).and_return({ "client_timeout" => nil })
         node.touch!
         expect(node.node_detail.complete_by).to eq(nil)
       end
