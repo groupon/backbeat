@@ -3,6 +3,7 @@ require_relative 'base'
 module ScheduledJobs
   class HealNodes < Base
     CLIENT_TIMEOUT_ERROR = "Client did not respond within the specified 'complete_by' time"
+    UNEXPECTED_STATE_MESSAGE = "Node with expired 'complete_by' is not in expected state"
     SEARCH_PADDING = 1.hour # used in case the search does not run on time
 
     def perform
@@ -18,6 +19,8 @@ module ScheduledJobs
         if received_by_client?(node)
           info(source: self.class.to_s, message: CLIENT_TIMEOUT_ERROR, node: node.id, complete_by: node_detail.complete_by)
           Backbeat::Server.fire_event(Backbeat::Events::ClientError.new(CLIENT_TIMEOUT_ERROR), node)
+        else
+          info(source: self.class.to_s, message: UNEXPECTED_STATE_MESSAGE, node: node.id, complete_by: node_detail.complete_by)
         end
       end
     end
