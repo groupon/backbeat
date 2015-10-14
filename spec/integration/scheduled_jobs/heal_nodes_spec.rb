@@ -66,6 +66,20 @@ describe ScheduledJobs::HealNodes do
         expect(non_expired_node.node_detail.complete_by).to eq(non_expired_complete_by)
       end
     end
+
+    it "logs when node is in unexpected state when complete_by is expired" do
+      expired_complete_by = Time.now - 1.minute
+      expired_node.update_attributes(current_client_status: :complete, current_server_status: :complete)
+      expired_node.node_detail.update_attributes!(complete_by: expired_complete_by)
+      expect(subject).to receive(:info).with(
+        source: "ScheduledJobs::HealNodes",
+        message: "Node with expired 'complete_by' is not in expected state",
+        node: expired_node.id,
+        complete_by: expired_node.reload.node_detail.complete_by
+      ).and_call_original
+
+      subject.perform
+    end
   end
 end
 
