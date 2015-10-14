@@ -51,10 +51,10 @@ module Backbeat
 
         def call(env)
           if env['PATH_INFO'] == ENDPOINT
-            if File.exists?(HEARTBEAT)
-              return HEARTBEAT_OK
+            if File.exists?(HEARTBEAT) && File.file?(HEARTBEAT)
+              HEARTBEAT_OK
             else
-              return HEARTBEAT_DOWN
+              HEARTBEAT_DOWN
             end
           else
             @app.call(env)
