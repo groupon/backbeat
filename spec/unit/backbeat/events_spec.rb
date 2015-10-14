@@ -206,8 +206,9 @@ describe Backbeat::Events do
       )
     end
 
-    it "updates the status to complete and fires MarkChildrenReady" do
+    it "updates the status to complete, marks_complete!, and fires MarkChildrenReady" do
       expect(Backbeat::Server).to receive(:fire_event).with(Backbeat::Events::MarkChildrenReady, node)
+      expect(node).to receive(:mark_complete!)
 
       Backbeat::Events::ClientComplete.call(node)
 

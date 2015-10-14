@@ -1,8 +1,8 @@
 require File.expand_path('../../config/environment',  __FILE__)
-require 'mail'
 
-module Reports
-  class ReportBase
+module ScheduledJobs
+  class Base
+    include Backbeat::Logging
 
     def perform
       raise NotImplementedError

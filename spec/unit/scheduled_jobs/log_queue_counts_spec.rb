@@ -1,8 +1,8 @@
 require 'spec_helper'
 require 'webmock/rspec'
-require_relative '../../../reports/log_counts.rb'
+require_relative '../../../scheduled_jobs/log_counts.rb'
 
-describe Reports::LogCounts do
+describe ScheduledJobs::LogCounts do
   context "perform" do
     it "calls count methods" do
       expect(subject).to receive(:log_queue_counts)
@@ -13,7 +13,7 @@ describe Reports::LogCounts do
   context "log_count" do
     def expected_info(type, count_subject, count)
       expect(subject).to receive(:info).with(
-        source: "Reports::LogCounts",
+        source: "ScheduledJobs::LogCounts",
         type: type,
         subject: count_subject,
         count: count

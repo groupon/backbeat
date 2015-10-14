@@ -114,6 +114,10 @@ module Backbeat
       node_detail.update_attributes!(retries_remaining: retries_remaining - 1)
     end
 
+    def mark_complete!
+      node_detail.update_attributes!(complete_by: nil)
+    end
+
     def perform_client_action?
       legacy_type.try(:to_sym) != :flag
     end
@@ -147,7 +151,7 @@ module Backbeat
     private
 
     def should_complete_by
-      timeout = client_data.fetch("timeout", Backbeat::Config.options[:default_client_timeout])
+      timeout = client_data.fetch("timeout", Backbeat::Config.options[:client_timeout])
       if timeout
         Time.now + timeout
       end

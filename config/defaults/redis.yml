@@ -1,0 +1,4 @@
+defaults:
+  namespace: backbeat
+  size: 100
+  network_timeout: 5

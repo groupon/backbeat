@@ -1,8 +1,9 @@
 require 'spec_helper'
 require 'mail'
-require_relative '../../../reports/daily_activity.rb'
 
-describe Reports::DailyActivity do
+require_relative '../../../scheduled_jobs/daily_activity_report.rb'
+
+describe ScheduledJobs::DailyActivityReport do
   context "successful report" do
     let(:start_time) { Time.parse("2015-06-01 00:00:00") }
     let(:user) { FactoryGirl.create(:user) }
