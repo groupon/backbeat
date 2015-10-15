@@ -86,9 +86,9 @@ module Backbeat
     end
 
     App = Rack::Builder.new do
-      use ActiveRecord::ConnectionAdapters::ConnectionManagement
       use Middleware::Log
       use Middleware::Heartbeat
+      use ActiveRecord::ConnectionAdapters::ConnectionManagement
       use Middleware::Health
       use Middleware::SidekiqStats
       use Middleware::CamelCase
