@@ -37,17 +37,17 @@ module Backbeat
         end
 
         ENDPOINT = '/heartbeat.txt'.freeze
-        HEARTBEAT = "#{Config.root}/public/heartbeat.txt"
+        HEARTBEAT = "#{Config.root}/public/heartbeat.txt".freeze
         HEARTBEAT_OK = [
           200,
           { "Content-Type" => "text/plain", "Cache-Control" => "private, no-cache, no-store, must-revalidate" },
           ["We have a pulse."]
-        ]
+        ].freeze
         HEARTBEAT_DOWN = [
           503,
           { "Content-Type" => "text/plain" },
           ["It's dead, Jim."]
-        ]
+        ].freeze
 
         def call(env)
           if env['PATH_INFO'] == ENDPOINT
