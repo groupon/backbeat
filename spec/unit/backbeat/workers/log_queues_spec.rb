@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-describe Backbeat::Workers::LogCounts do
+describe Backbeat::Workers::LogQueues do
   context "log_count" do
     def expect_info(type, count_subject, count)
       expect(Backbeat::Logger).to receive(:add) do |_, log|
-        expect(log[:source]).to eq("Backbeat::Workers::LogCounts")
+        expect(log[:source]).to eq("Backbeat::Workers::LogQueues")
         expect(log[:data][:type]).to eq(type)
         expect(log[:data][:subject]).to eq(count_subject)
         expect(log[:data][:count]).to eq(count)

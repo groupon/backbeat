@@ -9,7 +9,7 @@ module Backbeat
       include Sidekiq::Schedulable
 
       sidekiq_options retry: false, queue: Config.options[:async_queue]
-      sidekiq_schedule '0 0 12 * * *'
+      sidekiq_schedule Config.options[:schedules][:daily_activity]
 
       def perform
         start_time = Time.now

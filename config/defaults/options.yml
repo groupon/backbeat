@@ -6,5 +6,7 @@ defaults:
   alerts:
     email_to: sample@email.com
     email_from: alerts-sample@email.com
-  job_frequency:
-    heal_nodes: 7200
+  schedules:
+    heal_nodes: '0 */2 * * * *'
+    daily_activity: '0 12 * * * *'
+    log_queues: '0 */5 * * * *'
