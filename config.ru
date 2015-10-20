@@ -1,5 +1,10 @@
 require File.expand_path('../config/environment',  __FILE__)
 
 require 'backbeat/web'
+require 'sidekiq/web'
 
-run Backbeat::Web::App
+class SidekiqUI < Grape::API
+  mount Sidekiq::Web => '/sidekiq'
+end
+
+run Rack::Cascade.new([Backbeat::Web::App, SidekiqUI])
