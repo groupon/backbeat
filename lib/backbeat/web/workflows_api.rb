@@ -58,6 +58,25 @@ module Backbeat
           end
         end
 
+        get "/" do
+          subject = params[:subject].is_a?(String) ? params[:subject] : params[:subject].to_json
+          Workflow.where(
+            migrated: true,
+            user_id: current_user.id,
+            subject: subject,
+            decider: params[:decider],
+            name: params[:workflow_type] || params[:name]
+          ).first!
+        end
+
+        get "/names" do
+          Workflow.select(:name).distinct.map { |item| item["name"] }
+        end
+
+        get "/search" do
+          Search::WorkflowSearch.new(params).result
+        end
+
         post "/:id/signal" do
           workflow = find_workflow
           signal = Server.signal(workflow, params)
@@ -90,23 +109,8 @@ module Backbeat
           { success: true }
         end
 
-        get "/search" do
-          Search::WorkflowSearch.new(params).result
-        end
-
         get "/:id" do
           find_workflow
-        end
-
-        get "/" do
-          subject = params[:subject].is_a?(String) ? params[:subject] : params[:subject].to_json
-          Workflow.where(
-            migrated: true,
-            user_id: current_user.id,
-            subject: subject,
-            decider: params[:decider],
-            name: params[:workflow_type] || params[:name]
-          ).first!
         end
 
         get "/:id/tree" do

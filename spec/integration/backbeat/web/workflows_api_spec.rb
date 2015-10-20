@@ -470,4 +470,17 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
       expect(response.status).to eq(404)
     end
   end
+
+  context "GET /names" do
+    it "returns a list of all workflow names" do
+      FactoryGirl.create(:workflow, { name: "Workflow 1", user: user })
+      FactoryGirl.create(:workflow, { name: "Workflow 2", user: user })
+      FactoryGirl.create(:workflow, { name: "Workflow 3", user: user })
+
+      response = get "/v2/workflows/names"
+      body = JSON.parse(response.body)
+
+      expect(body).to eq(["Workflow 1", "Workflow 2", "Workflow 3"])
+    end
+  end
 end
