@@ -31,8 +31,18 @@
 module Backbeat
   module Web
     module CurrentUserHelper
+      def authenticate!
+        error!({ error: 'Unauthorized' }, 401) unless current_user
+      end
+
       def current_user
-        @current_user ||= env['WORKFLOW_CURRENT_USER']
+        @current_user ||= find_user(env['HTTP_CLIENT_ID'])
+      end
+
+      def find_user(id)
+        User.find(id)
+      rescue
+        false
       end
     end
   end
