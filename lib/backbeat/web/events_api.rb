@@ -48,8 +48,6 @@ module Backbeat
       }
 
       def event_api
-        helpers CurrentUserHelper
-
         helpers do
           def find_node
             query = { user_id: current_user.id }
