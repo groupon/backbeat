@@ -288,9 +288,9 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
     it "returns a workflow given an id" do
       response = get "v2/workflows/#{workflow.id}"
       expect(response.status).to eq(200)
-      json_response = JSON.parse(response.body)
+      body = JSON.parse(response.body)
 
-      expect(json_response["id"]).to eq(workflow.id)
+      expect(body["id"]).to eq(workflow.id)
     end
   end
 
@@ -306,12 +306,12 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
       response = get "v2/workflows/#{workflow.id}/children"
       expect(response.status).to eq(200)
 
-      json_response = JSON.parse(response.body)
+      body = JSON.parse(response.body)
       children = workflow.children
 
-      expect(json_response.first["id"]).to eq(children.first.id)
-      expect(json_response.second["currentServerStatus"]).to eq(children.second.current_server_status)
-      expect(json_response.count).to eq(2)
+      expect(body.first["id"]).to eq(children.first.id)
+      expect(body.second["currentServerStatus"]).to eq(children.second.current_server_status)
+      expect(body.count).to eq(2)
     end
   end
 
@@ -337,24 +337,24 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
       response = get "v2/workflows/#{workflow.id}/nodes"
       expect(response.status).to eq(200)
 
-      json_response = JSON.parse(response.body)
+      body = JSON.parse(response.body)
       nodes = workflow.nodes
 
-      expect(json_response.first["id"]).to eq(nodes.first.id)
-      expect(json_response.second["id"]).to eq(nodes.second.id)
-      expect(json_response.third["id"]).to eq(nodes.third.id)
-      expect(json_response.third["currentServerStatus"]).to eq(nodes.third.current_server_status)
-      expect(json_response.third["metadata"]).to eq({"version"=>"v2", "workflowTypeOnV2"=>true})
-      expect(json_response.count).to eq(3)
+      expect(body.first["id"]).to eq(nodes.first.id)
+      expect(body.second["id"]).to eq(nodes.second.id)
+      expect(body.third["id"]).to eq(nodes.third.id)
+      expect(body.third["currentServerStatus"]).to eq(nodes.third.current_server_status)
+      expect(body.third["metadata"]).to eq({"version"=>"v2", "workflowTypeOnV2"=>true})
+      expect(body.count).to eq(3)
     end
 
     it "returns nodes limited by query" do
       response = get "v2/workflows/#{workflow.id}/nodes?currentServerStatus=complete"
       expect(response.status).to eq(200)
 
-      json_response = JSON.parse(response.body)
-      expect(json_response.first["id"]).to eq(@third_node.id)
-      expect(json_response.count).to eq(1)
+      body = JSON.parse(response.body)
+      expect(body.first["id"]).to eq(@third_node.id)
+      expect(body.count).to eq(1)
     end
   end
 
