@@ -31,6 +31,7 @@ gem 'awesome_print'
 gem 'mail'
 gem 'sidekiq', '~> 3.5.0'
 gem 'sidekiq-failures', '~> 0.4.0'
+gem 'sinatra', require: false # for the Sidekiq UI
 
 group :development, :test do
   gem 'pry'
