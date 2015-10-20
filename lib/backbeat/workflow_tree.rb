@@ -57,6 +57,7 @@ module Backbeat
         mode: node.is_a?(Node) ? node.mode : nil,
         current_server_status: node.is_a?(Node) ? node.current_server_status : nil,
         current_client_status: node.is_a?(Node) ? node.current_client_status : nil,
+        created_at: node.created_at,
         children: children(node).map { |child| to_hash(child) }
       }
     end

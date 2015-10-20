@@ -55,6 +55,7 @@ describe Backbeat::WorkflowTree do
         subject: workflow.subject,
         mode: nil,
         name: workflow.name,
+        created_at: workflow.created_at,
         children: []
       })
     end
@@ -70,6 +71,7 @@ describe Backbeat::WorkflowTree do
         subject: workflow.subject,
         mode: nil,
         name: workflow.name,
+        created_at: workflow.created_at,
         children: [
           {
             id: uuid(workflow.children.first),
@@ -79,6 +81,7 @@ describe Backbeat::WorkflowTree do
             subject: workflow.children.first.subject,
             mode: "blocking",
             name: "Workflow child",
+            created_at: workflow.children.first.created_at,
             children: []
           }
         ]
@@ -98,6 +101,7 @@ describe Backbeat::WorkflowTree do
         subject: workflow.subject,
         mode: nil,
         name: workflow.name,
+        created_at: workflow.created_at,
         children: [
           {
             id: uuid(workflow.children.first),
@@ -107,6 +111,7 @@ describe Backbeat::WorkflowTree do
             subject: workflow.children.first.subject,
             mode: "blocking",
             name: "Workflow child",
+            created_at: workflow.children.first.created_at,
             children: [
               {
                 id: uuid(workflow.children.first.children.first),
@@ -116,6 +121,7 @@ describe Backbeat::WorkflowTree do
                 subject: workflow.children.first.children.first.subject,
                 name: "Nested child",
                 mode: "blocking",
+                created_at: workflow.children.first.children.first.created_at,
                 children: []
               }
             ]
@@ -128,6 +134,7 @@ describe Backbeat::WorkflowTree do
             subject: workflow.children.last.subject,
             mode: "blocking",
             name: "Another Workflow child",
+            created_at: workflow.children.last.created_at,
             children: []
           }
         ]
