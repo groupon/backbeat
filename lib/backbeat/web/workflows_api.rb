@@ -70,7 +70,7 @@ module Backbeat
         end
 
         get "/names" do
-          Workflow.select(:name).distinct.map { |item| item["name"] }
+          Workflow.select(:name).distinct.order(:name).map { |item| item["name"] }
         end
 
         get "/search" do
