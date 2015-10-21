@@ -29,6 +29,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'grape'
+require 'backbeat/cache'
 require 'backbeat/errors'
 require 'backbeat/server'
 require 'backbeat/models/workflow'
@@ -70,7 +71,9 @@ module Backbeat
         end
 
         get "/names" do
-          Workflow.select(:name).distinct.order(:name).map { |item| item["name"] }
+          Cache.fetch('names', { expires_in: 1.hour }) do
+            Workflow.select(:name).distinct.order(:name).map { |item| item["name"] }
+          end
         end
 
         get "/search" do
