@@ -28,7 +28,6 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# encoding: UTF-8
 require 'spec_helper'
 
 describe Backbeat::Logger do
@@ -59,12 +58,5 @@ describe Backbeat::Logger do
     Backbeat::Logger.fatal({ message: 'Goodbye' })
 
     expect(logs.size).to be > 0
-  end
-
-  xit "should handle multiple string encodings" do
-    test_message = "Rüby".encode("ASCII-8BIT")
-    expect {
-      TestLogger.debug(test_message)
-    }.to_not raise_error
   end
 end
