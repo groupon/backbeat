@@ -33,7 +33,6 @@ require 'backbeat/web/middleware/log'
 require 'backbeat/web/middleware/health'
 require 'backbeat/web/middleware/heartbeat'
 require 'backbeat/web/middleware/sidekiq_stats'
-require 'backbeat/web/middleware/authenticate'
 require 'backbeat/web/middleware/camel_case'
 require 'backbeat/web/events_api'
 require 'backbeat/web/workflows_api'
@@ -44,8 +43,11 @@ module Backbeat
     class API < Grape::API
       format :json
 
+      helpers CurrentUserHelper
+
       before do
         @params = Client::HashKeyTransformations.underscore_keys(params)
+        authenticate!
       end
 
       rescue_from :all do |e|
@@ -92,7 +94,6 @@ module Backbeat
       use Middleware::Health
       use Middleware::SidekiqStats
       use Middleware::CamelCase
-      use Middleware::Authenticate
 
       run API
     end
