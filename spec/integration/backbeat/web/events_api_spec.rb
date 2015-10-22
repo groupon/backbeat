@@ -222,4 +222,34 @@ describe Backbeat::Web::EventsApi, :api_test do
       expect(node.reload.current_server_status).to eq("deactivated")
     end
   end
+
+  context "GET /events/:id/errors" do
+    it "returns all status changes to an errored state" do
+      node.status_changes.create({
+        from_status: "ready",
+        to_status: "errored",
+        status_type: "current_server_status",
+        response: { error: { message: "Whoops" } }
+      })
+      node.status_changes.create({
+        from_status: "pending",
+        to_status: "ready",
+        status_type: "current_server_status",
+        response: { result: "Done" }
+      })
+      node.status_changes.create({
+        from_status: "sent_to_client",
+        to_status: "errored",
+        status_type: "current_client_status",
+        response: { error: { message: "An error" } }
+      })
+
+      response = get "/v2/events/#{node.id}/errors"
+      body = JSON.parse(response.body)
+
+      expect(body.count).to eq(2)
+      expect(body.first["response"]["error"]["message"]).to eq("Whoops")
+      expect(body.second["response"]["error"]["message"]).to eq("An error")
+    end
+  end
 end

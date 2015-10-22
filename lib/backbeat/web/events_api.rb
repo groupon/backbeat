@@ -69,6 +69,10 @@ module Backbeat
             find_node
           end
 
+          get "/:id/errors" do
+            find_node.status_changes.where(to_status: :errored)
+          end
+
           put "/:id/status/:new_status" do
             node = find_node
             node.touch!
