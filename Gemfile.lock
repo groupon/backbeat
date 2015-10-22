@@ -95,7 +95,7 @@ GEM
       mime-types (>= 1.16, < 3)
     method_source (0.8.2)
     mime-types (2.6.1)
-    minitest (5.8.0)
+    minitest (5.8.1)
     multi_json (1.11.2)
     multi_xml (0.5.5)
     parslet (1.4.0)
@@ -123,8 +123,13 @@ GEM
       rack (>= 1.0)
     rake (10.4.2)
     redis (3.2.1)
+    redis-activesupport (4.0.0)
+      activesupport (~> 4)
+      redis-store (~> 1.1.0)
     redis-namespace (1.5.2)
       redis (~> 3.0, >= 3.0.4)
+    redis-store (1.1.6)
+      redis (>= 2.2)
     rspec (3.2.0)
       rspec-core (~> 3.2.0)
       rspec-expectations (~> 3.2.0)
@@ -240,6 +245,7 @@ DEPENDENCIES
   puma (~> 2.13.4)
   rack-test
   rake
+  redis-activesupport (~> 4.0.0)
   rspec (~> 3.2.0)
   rspec-sidekiq
   sidekiq (~> 3.5.0)

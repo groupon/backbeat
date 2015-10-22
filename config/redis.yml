@@ -4,9 +4,11 @@ common: &common
 
 development:
   <<: *common
+  namespace: backbeat_development
 
 test:
   <<: *common
+  namespace: backbeat_test
 
 docker:
   namespace: backbeat

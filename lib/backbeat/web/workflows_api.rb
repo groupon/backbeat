@@ -71,7 +71,7 @@ module Backbeat
         end
 
         get "/names" do
-          Cache.fetch('names', { expires_in: 1.hour }) do
+          Cache.fetch('workflows:names', { expires_in: 1.hour }) do
             Workflow.select(:name).distinct.order(:name).map { |item| item["name"] }
           end
         end
