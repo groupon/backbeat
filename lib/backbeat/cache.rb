@@ -1,9 +1,5 @@
 require 'active_support/cache/redis_store'
-require 'sidekiq'
 
 module Backbeat
-  Cache = ActiveSupport::Cache::RedisStore.new({
-    pool: Sidekiq.redis_pool,
-    namespace: Config.redis[:namespace]
-  })
+  Cache = ActiveSupport::Cache::RedisStore.new(Config.redis.merge(pool_size: 5))
 end

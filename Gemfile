@@ -32,7 +32,7 @@ gem 'mail'
 gem 'sidekiq', '~> 3.5.0'
 gem 'sidekiq-failures', '~> 0.4.0'
 gem 'sinatra', require: false # for the Sidekiq UI
-gem 'redis-activesupport', '~> 4.0.0'
+gem 'redis-activesupport', '~> 4.1.0'
 
 group :development, :test do
   gem 'pry'
