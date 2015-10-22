@@ -1,0 +1,23 @@
+@startuml
+
+"Backbeat Client" -> "Backbeat Server" : Create Workflow for Contract
+
+"Backbeat Client" -> "Backbeat Server" : Signal "Make Payment"
+
+"Backbeat Client" <- "Backbeat Server" : Run "Make Payment"
+
+"Backbeat Client" -> "Backbeat Server" : Add Make Payment Child Activities
+
+"Backbeat Client" <- "Backbeat Server" : Run "Get Sold Vouchers"
+
+"Backbeat Client" -> "Backbeat Server" : "Get Sold Vouchers" Completed
+
+"Backbeat Client" <- "Backbeat Server" : Run "Create Payment"
+
+"Backbeat Client" -> "Backbeat Server" : "Create Payment" Completed
+
+"Backbeat Client" <- "Backbeat Server" : Run "Send to Bank"
+
+"Backbeat Client" -> "Backbeat Server" : "Send to Bank" Complete
+
+@enduml
