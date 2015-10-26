@@ -58,6 +58,7 @@ module Backbeat
         current_server_status: node.is_a?(Node) ? node.current_server_status : nil,
         current_client_status: node.is_a?(Node) ? node.current_client_status : nil,
         created_at: node.created_at,
+        retrying_at: retrying_at(node),
         children: children(node).map { |child| to_hash(child) }
       }
     end
@@ -90,6 +91,14 @@ module Backbeat
       @tree ||= Node.where(
         workflow_id: root.workflow_id
       ).group_by(&:parent_id)
+    end
+
+    def retrying_at(node)
+      if node.is_a?(Node) && node.current_server_status == 'retrying'
+        if job = Workers::AsyncWorker.find_job(Events::RetryNode, node)
+          job.at
+        end
+      end
     end
 
     class NodeString
