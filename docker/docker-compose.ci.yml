@@ -3,6 +3,7 @@ ci:
     file: docker/common.yml
     service: app
   command: bin/run-tests.sh
+  restart: never
   environment:
     RACK_ENV: docker
   links:
