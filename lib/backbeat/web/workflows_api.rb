@@ -29,6 +29,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'grape'
+require 'backbeat/cache'
 require 'backbeat/errors'
 require 'backbeat/server'
 require 'backbeat/models/workflow'
@@ -56,6 +57,27 @@ module Backbeat
           else
             raise InvalidParameters, wf.errors.to_hash
           end
+        end
+
+        get "/" do
+          subject = params[:subject].is_a?(String) ? params[:subject] : params[:subject].to_json
+          Workflow.where(
+            migrated: true,
+            user_id: current_user.id,
+            subject: subject,
+            decider: params[:decider],
+            name: params[:workflow_type] || params[:name]
+          ).first!
+        end
+
+        get "/names" do
+          Cache.fetch('workflows:names', { expires_in: 1.hour }) do
+            Workflow.select(:name).distinct.order(:name).map { |item| item["name"] }
+          end
+        end
+
+        get "/search" do
+          Search::WorkflowSearch.new(params).result
         end
 
         post "/:id/signal" do
@@ -90,23 +112,8 @@ module Backbeat
           { success: true }
         end
 
-        get "/search" do
-          Search::WorkflowSearch.new(params).result
-        end
-
         get "/:id" do
           find_workflow
-        end
-
-        get "/" do
-          subject = params[:subject].is_a?(String) ? params[:subject] : params[:subject].to_json
-          Workflow.where(
-            migrated: true,
-            user_id: current_user.id,
-            subject: subject,
-            decider: params[:decider],
-            name: params[:workflow_type] || params[:name]
-          ).first!
         end
 
         get "/:id/tree" do
