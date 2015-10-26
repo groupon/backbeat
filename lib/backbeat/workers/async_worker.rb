@@ -40,6 +40,19 @@ module Backbeat
 
       sidekiq_options retry: false, queue: Config.options[:async_queue]
 
+      def self.find_job(event, node)
+        Sidekiq::ScheduledSet.new.find do |job|
+          event_name, node_data, options = job.item['args']
+          event_name == event.name && node_data['node_id'] == node.id
+        end
+      end
+
+      def self.remove_job(event, node)
+        if job = find_job(event, node)
+          job.delete
+        end
+      end
+
       def self.schedule_async_event(event, node, options)
         info(status: :schedule_async_event_started, node: node.id, event: event.name)
         node_data = { node_class: node.class.name, node_id: node.id }
