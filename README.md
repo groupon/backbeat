@@ -2,6 +2,30 @@
 
 This is the server application for Backbeat, the open-source workflow service by Groupon. For more information on what Backbeat is, and documentation for using Backbeat, see [the wiki](https://github.groupondev.com/backbeat/backbeat_server/wiki).
 
+### Quick Start With Docker (Not recommended for production environments)
+
+The docker build will create a user based on the `BACKBEAT_USER_ID` and `BACKBEAT_CLIENT_URL`
+environment variables set in the `backbeat_user.env` file. Change these as necessary.
+
+Move the `backbeat_user.env.example` file into place:
+
+```bash
+$ mv docker/backbeat_user.env.example docker/backbeat_user.env
+```
+
+Start the server(starts web workers and sidekiq workers):
+
+```bash
+$ docker-compose build
+$ docker-compose -f docker/docker-compose.local.yml up
+```
+
+Run a backbeat console:
+
+```bash
+$ bin/docker_console
+```
+
 ### Setting up the Server Application
 
 1. Clone the repo:
@@ -91,39 +115,6 @@ This is the server application for Backbeat, the open-source workflow service by
   ```bash
   $ bin/sidekiq # workers can now pick up async jobs
   ```
-
-### Docker
-
-The docker build will create a user based on the `BACKBEAT_USER_ID` and `BACKBEAT_CLIENT_URL`
-environment variables set in the `backbeat_user.env` file. Change these as necessary.
-
-Move the `backbeat_user.env.example` file into place:
-
-```bash
-$ mv docker/backbeat_user.env.example docker/backbeat_user.env
-```
-
-Set the docker-compose file environment variable:
-
-```bash
-$ export COMPOSE_FILE=docker/docker-compose.local.yml
-```
-
-```bash
-$ docker-compose build
-$ docker-compose up
-```
-
-Run a console:
-
-```bash
-$ bin/docker_console
-```
-
-### Sample App
-
-The [sample backbeat client](https://github.groupondev.com/backbeat/backbeat_sample_ruby)
-is already configured to work with a local dockerized backbeat.
 
 ### Commands
 
