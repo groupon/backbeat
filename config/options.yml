@@ -6,4 +6,4 @@ test:
   log: log/test.log
 
 docker:
-  log: /tmp/backbeat.log
+  log: ~
