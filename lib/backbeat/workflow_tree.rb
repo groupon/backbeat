@@ -95,9 +95,7 @@ module Backbeat
 
     def retrying_at(node)
       if node.is_a?(Node) && node.current_server_status == 'retrying'
-        if job = Workers::AsyncWorker.find_job(Events::RetryNode, node)
-          job.at
-        end
+        node.fires_at
       end
     end
 

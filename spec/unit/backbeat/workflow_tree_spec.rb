@@ -184,20 +184,17 @@ describe Backbeat::WorkflowTree do
       end
 
       it "returns the retrying_at time" do
-        Sidekiq::Testing.disable! do
-          node = add_node(workflow, "Workflow child")
-          retry_at = Time.now + 2.hours
-          node.update_attributes(current_server_status: :retrying, current_client_status: :errored)
-          Backbeat::Workers::AsyncWorker.schedule_async_event(
-            Backbeat::Events::RetryNode,
-            node,
-            { time: retry_at }
-          )
+        node = add_node(workflow, "Workflow child")
+        retry_at = (Time.now + 2.hours).utc
+        node.update_attributes({
+          fires_at: retry_at,
+          current_server_status: :retrying,
+          current_client_status: :errored
+        })
 
-          tree = Backbeat::WorkflowTree.to_hash(workflow)
+        tree = Backbeat::WorkflowTree.to_hash(workflow)
 
-          expect(tree[:children].first[:retrying_at]).to eq(Time.at(retry_at.to_f))
-        end
+        expect(tree[:children].first[:retrying_at].to_i).to eq(retry_at.to_i)
       end
     end
   end
