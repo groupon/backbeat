@@ -100,6 +100,16 @@ describe Backbeat::Schedulers do
 
         Backbeat::Schedulers::ScheduleRetry.call(MockEvent, node)
       end
+
+      it "updates the node's fires_at time" do
+        node.node_detail.update_attributes(retries_remaining: params[:retries_remaining])
+
+        Backbeat::Schedulers::ScheduleRetry.call(MockEvent, node)
+        time = node.fires_at
+
+        expect(time).to be >= now + node.retry_interval.minutes + params[:lower_bound]
+        expect(time).to be <= now + node.retry_interval.minutes + params[:upper_bound]
+      end
     end
   end
 
