@@ -52,7 +52,9 @@ module Backbeat
       tries = DEFAULT_RETRIES - node.retries_remaining
       tries = 0 if tries < 0
       backoff = node.retry_interval + (tries ** 4) + (rand(0..30) * (tries + 1))
-      Time.now + backoff.minutes
+      time = Time.now + backoff.minutes
+      node.update_attributes(fires_at: time)
+      time
     end
 
     class PerformEvent

@@ -69,6 +69,15 @@ describe Backbeat::Web::EventsApi, :api_test do
         expect(node.reload.current_client_status).to eq("received")
         expect(node.reload.current_server_status).to eq("sent_to_client")
       end
+
+      it "removes an existing retry job" do
+        expect(Backbeat::Workers::AsyncWorker).to receive(:remove_job).with(
+          Backbeat::Events::RetryNode,
+          node
+        )
+
+        put "v2/events/#{node.id}/restart"
+      end
     end
 
     context "with invalid restart state" do

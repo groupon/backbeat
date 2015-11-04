@@ -92,6 +92,7 @@ module Backbeat
 
           put "/:id/restart" do
             node = find_node
+            Workers::AsyncWorker.remove_job(Events::RetryNode, node)
             Server.fire_event(Events::RetryNode, node, Schedulers::PerformEvent)
             { success: true }
           end

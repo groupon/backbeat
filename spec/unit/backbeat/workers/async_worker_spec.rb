@@ -40,7 +40,11 @@ describe Backbeat::Workers::AsyncWorker do
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
   end
 
-  context "schedule_async_event" do
+  after do
+    Sidekiq::ScheduledSet.new.clear
+  end
+
+  context ".schedule_async_event" do
     it "calls an event with the node" do
       expect(Backbeat::Events::MarkChildrenReady).to receive(:call).with(node)
       Backbeat::Workers::AsyncWorker.schedule_async_event(Backbeat::Events::MarkChildrenReady, node, { time: Time.now, retries: 0 })
@@ -48,7 +52,7 @@ describe Backbeat::Workers::AsyncWorker do
     end
   end
 
-  context "perform" do
+  context "#perform" do
     it "fires the event with the node" do
       expect(Backbeat::Server).to receive(:fire_event) do |event, event_node, scheduler|
         expect(event).to eq(Backbeat::Events::MarkChildrenReady)
@@ -117,6 +121,44 @@ describe Backbeat::Workers::AsyncWorker do
           { "retries" => 1 }
         )
       }.to raise_error("Error Connecting to Redis")
+    end
+  end
+
+  context ".find_job" do
+    it "finds the job for the event and node" do
+      Sidekiq::Testing.disable! do
+        Backbeat::Workers::AsyncWorker.schedule_async_event(
+          Backbeat::Events::RetryNode,
+          node,
+          { time: Time.now + 1.hour }
+        )
+
+        job = Backbeat::Workers::AsyncWorker.find_job(Backbeat::Events::RetryNode, node)
+
+        expect(job.item['args'][1]['node_id']).to eq(node.id)
+      end
+    end
+  end
+
+  context ".remove_job" do
+    it "deletes the job for the event and node" do
+      Sidekiq::Testing.disable! do
+        Backbeat::Workers::AsyncWorker.schedule_async_event(
+          Backbeat::Events::RetryNode,
+          node,
+          { time: Time.now + 1.hour }
+        )
+
+        job = Backbeat::Workers::AsyncWorker.find_job(Backbeat::Events::RetryNode, node)
+
+        expect(job.item['args'][1]['node_id']).to eq(node.id)
+
+        Backbeat::Workers::AsyncWorker.remove_job(Backbeat::Events::RetryNode, node)
+
+        job = Backbeat::Workers::AsyncWorker.find_job(Backbeat::Events::RetryNode, node)
+
+        expect(job).to be_nil
+      end
     end
   end
 end

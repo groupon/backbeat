@@ -86,6 +86,7 @@ describe Backbeat::WorkflowTree do
         mode: nil,
         name: workflow.name,
         created_at: workflow.created_at,
+        retrying_at: nil,
         children: []
       })
     end
@@ -102,6 +103,7 @@ describe Backbeat::WorkflowTree do
         mode: nil,
         name: workflow.name,
         created_at: workflow.created_at,
+        retrying_at: nil,
         children: [
           {
             id: uuid(workflow.children.first),
@@ -112,6 +114,7 @@ describe Backbeat::WorkflowTree do
             mode: "blocking",
             name: "Workflow child",
             created_at: workflow.children.first.created_at,
+            retrying_at: nil,
             children: []
           }
         ]
@@ -132,6 +135,7 @@ describe Backbeat::WorkflowTree do
         mode: nil,
         name: workflow.name,
         created_at: workflow.created_at,
+        retrying_at: nil,
         children: [
           {
             id: uuid(workflow.children.first),
@@ -142,6 +146,7 @@ describe Backbeat::WorkflowTree do
             mode: "blocking",
             name: "Workflow child",
             created_at: workflow.children.first.created_at,
+            retrying_at: nil,
             children: [
               {
                 id: uuid(workflow.children.first.children.first),
@@ -152,6 +157,7 @@ describe Backbeat::WorkflowTree do
                 name: "Nested child",
                 mode: "blocking",
                 created_at: workflow.children.first.children.first.created_at,
+                retrying_at: nil,
                 children: []
               }
             ]
@@ -165,10 +171,31 @@ describe Backbeat::WorkflowTree do
             mode: "blocking",
             name: "Another Workflow child",
             created_at: workflow.children.last.created_at,
+            retrying_at: nil,
             children: []
           }
         ]
       })
+    end
+
+    context "with a node in retrying state" do
+      after do
+        Sidekiq::ScheduledSet.new.clear
+      end
+
+      it "returns the retrying_at time" do
+        node = add_node(workflow, "Workflow child")
+        retry_at = (Time.now + 2.hours).utc
+        node.update_attributes({
+          fires_at: retry_at,
+          current_server_status: :retrying,
+          current_client_status: :errored
+        })
+
+        tree = Backbeat::WorkflowTree.to_hash(workflow)
+
+        expect(tree[:children].first[:retrying_at].to_i).to eq(retry_at.to_i)
+      end
     end
   end
 
