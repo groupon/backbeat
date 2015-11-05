@@ -162,8 +162,10 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
   end
 
   context "GET /workflows/search" do
+    let(:ids) { Array.new(3) { SecureRandom.uuid }.sort.reverse }
     let!(:wf_1) { FactoryGirl.create(
       :workflow,
+      id: ids.first,
       user: user,
       subject: { class: "FooModel", id: 1 },
       name: "import"
@@ -171,6 +173,7 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
 
     let!(:wf_2) { FactoryGirl.create(
       :workflow,
+      id: ids.second,
       user: user,
       subject: { class: "BarModel", id: 2 },
       name: "import"
@@ -178,6 +181,7 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
 
     let!(:wf_3) { FactoryGirl.create(
       :workflow,
+      id: ids.last,
       user: user,
       subject: { class: "FooModel", id: 3 },
       name: "export"
@@ -311,6 +315,35 @@ describe Backbeat::Web::WorkflowsApi, :api_test do
       result = JSON.parse(response.body)
 
       expect(result.count).to eq(3)
+    end
+
+    it "paginates results by last record id" do
+      uuids = Array.new(2) { SecureRandom.uuid }.sort.reverse
+      wf_4 = FactoryGirl.create(
+        :workflow,
+        id: uuids.first,
+        user: user,
+        subject: { class: "FooModel", id: 4 },
+        name: "export",
+        created_at: Time.now - 1.hour
+      )
+
+      wf_5 = FactoryGirl.create(
+        :workflow,
+        id: uuids.last,
+        user: user,
+        subject: { class: "FooModel", id: 5 },
+        name: "export",
+        created_at: Time.now - 1.hour
+      )
+
+
+      response = get "v2/workflows/search?subject=Model&per_page=2&last_id=#{wf_2.id}"
+      result = JSON.parse(response.body)
+
+      expect(result.count).to eq(2)
+      expect(result.first["id"]).to eq(wf_3.id)
+      expect(result.last["id"]).to eq(wf_4.id)
     end
   end
 
