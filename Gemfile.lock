@@ -149,7 +149,7 @@ GEM
     rspec-support (3.2.2)
     rubyzip (1.1.7)
     safe_yaml (1.0.4)
-    sidekiq (3.5.1)
+    sidekiq (3.5.3)
       celluloid (~> 0.17.2)
       connection_pool (~> 2.2, >= 2.2.0)
       json (~> 1.0)
@@ -157,7 +157,7 @@ GEM
       redis-namespace (~> 1.5, >= 1.5.2)
     sidekiq-failures (0.4.5)
       sidekiq (>= 2.16.0)
-    sidekiq_schedulable (0.0.2)
+    sidekiq_schedulable (0.0.3)
       parse-cron (~> 0.1.4)
       sidekiq (~> 3.0)
     sinatra (1.4.6)
@@ -254,7 +254,7 @@ DEPENDENCIES
   rspec-sidekiq
   sidekiq (~> 3.5.0)
   sidekiq-failures (~> 0.4.0)
-  sidekiq_schedulable (~> 0.0.2)
+  sidekiq_schedulable (~> 0.0.3)
   sinatra
   timecop
   torquebox (= 3.0.0)
