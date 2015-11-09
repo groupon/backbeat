@@ -33,7 +33,7 @@ require 'mail'
 
 describe Backbeat::Workers::DailyActivity do
   context "successful report" do
-    let(:start_time) { Time.parse("2015-06-01 00:00:00") }
+    let(:start_time) { Time.now }
     let(:user) { FactoryGirl.create(:user) }
     let(:fun_workflow) { FactoryGirl.create(:workflow, user: user, name: "fun workflow") }
     let(:bad_workflow) { FactoryGirl.create(:workflow, user: user, name: "bad workflow") }
@@ -55,8 +55,8 @@ describe Backbeat::Workers::DailyActivity do
         :node,
         name: "bad node",
         parent: nil,
-        fires_at: start_time - 2.days,
-        updated_at: start_time - 25.hours,
+        fires_at: start_time - 11.hours,
+        updated_at: start_time - 10.hours,
         user: user,
         current_server_status: :ready,
         current_client_status: :ready,
@@ -75,22 +75,18 @@ describe Backbeat::Workers::DailyActivity do
             counts: {
               "bad workflow" => { workflow_type_count: 1, node_count: 1 }
             },
-            options: {
-              lower_bound: Time.parse("2015-04-01 00:00:00"),
-              upper_bound: Date.today
-            },
-            filename: "/tmp/inconsistent_nodes/2015-06-01.txt"
+            filename: "/tmp/inconsistent_nodes/#{Date.today.to_s}.json"
           },
           completed: {
             counts: {
               "fun workflow"=> { workflow_type_count: 1, node_count: 1 }
-            },
-            options: {
-              lower_bound: start_time - 24.hours,
-              upper_bound: start_time
             }
           },
-          time_elapsed: 0
+          time_elapsed: 0,
+          range: {
+            lower_bound: start_time - 24.hours,
+            upper_bound: start_time
+          },
         })
 
         subject.perform

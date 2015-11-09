@@ -1,13 +1,12 @@
 <h2><%= title %></h2>
-<p>Processing window: <%= options[:lower_bound].to_s %> to <%= options[:upper_bound].to_s %></p>
 <table>
-  <tr class='header'>
-    <td>Workflow Name</td>
-    <td>Workflow Count</td>
-    <td>Node Count</td>
+  <tr class="header">
+    <th>Workflow Name</th>
+    <th>Workflow Count</th>
+    <th>Node Count</th>
   </tr>
   <% counts.each do |name, detail| %>
-    <tr class='data'>
+    <tr class="data">
       <td><%= name %></td>
       <td><%= detail[:workflow_type_count] %></td>
       <td><%= detail[:node_count] %></td>
