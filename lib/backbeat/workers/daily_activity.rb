@@ -43,7 +43,7 @@ module Backbeat
 
       def perform
         start_time = Time.now
-        report_range = report_range(start_time - 12.hours)
+        report_range = report_range(start_time)
 
         inconsistent_nodes = inconsistent_nodes(report_range)
         inconsistent_counts = counts_by_workflow_type(inconsistent_nodes)
@@ -80,8 +80,8 @@ module Backbeat
 
       def inconsistent_nodes(range)
         Backbeat::Node
-          .where("fires_at > ?", range[:lower_bound])
-          .where("fires_at < ?", range[:upper_bound])
+          .where("fires_at > ?", range[:upper_bound] - 1.year)
+          .where("fires_at < ?", range[:upper_bound] - 12.hours)
           .where("(current_server_status <> 'complete' OR current_client_status <> 'complete') AND current_server_status <> 'deactivated'")
       end
 

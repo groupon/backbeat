@@ -84,8 +84,8 @@ describe Backbeat::Workers::DailyActivity do
           },
           time_elapsed: 0,
           range: {
-            lower_bound: start_time - 36.hours,
-            upper_bound: start_time - 12.hours
+            lower_bound: start_time - 24.hours,
+            upper_bound: start_time
           },
           date: start_time.strftime("%m/%d/%Y")
         })
