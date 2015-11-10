@@ -62,7 +62,8 @@ module Backbeat
             counts: completed_counts,
           },
           time_elapsed: (Time.now - start_time).to_i,
-          range: report_range
+          range: report_range,
+          date: start_time.strftime("%m/%d/%Y")
         }
 
         send_report(report_data)
@@ -127,7 +128,7 @@ module Backbeat
         Mail.deliver do
           from     Backbeat::Config.options[:alerts][:email_from]
           to       Backbeat::Config.options[:alerts][:email_to]
-          subject "Backbeat Workflow Report #{Date.today.to_s}"
+          subject "Backbeat Workflow Report #{report[:date]}"
 
           html_part do
             content_type 'text/html; charset=UTF-8'

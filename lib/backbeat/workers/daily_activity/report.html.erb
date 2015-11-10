@@ -48,7 +48,7 @@
     <% end %>
 
     <% if report[:completed][:counts].empty? %>
-      <p>No inconsistent workflows for this period</p>
+      <p>No completed workflows for this period</p>
     <% else %>
       <%= render_table "Workflow Activity", report[:completed][:counts] %>
     <% end %>
