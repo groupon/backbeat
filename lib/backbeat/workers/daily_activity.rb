@@ -43,7 +43,7 @@ module Backbeat
 
       def perform
         start_time = Time.now
-        report_range = report_range(start_time)
+        report_range = report_range(start_time - 12.hours)
 
         inconsistent_nodes = inconsistent_nodes(report_range)
         inconsistent_counts = counts_by_workflow_type(inconsistent_nodes)
@@ -71,10 +71,10 @@ module Backbeat
 
       private
 
-      def report_range(start)
+      def report_range(upper_bound)
         {
-          lower_bound: start - 24.hours,
-          upper_bound: start
+          lower_bound: upper_bound - 24.hours,
+          upper_bound: upper_bound
         }
       end
 
