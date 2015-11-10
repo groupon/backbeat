@@ -42,8 +42,8 @@ describe Backbeat::Workers::DailyActivity do
         :node,
         name: "complete node",
         parent: nil,
-        fires_at: start_time - 12.hours,
-        updated_at: start_time - 12.hours,
+        fires_at: start_time - 13.hours,
+        updated_at: start_time - 13.hours,
         user: user,
         current_server_status: :complete,
         current_client_status: :complete,
@@ -55,8 +55,8 @@ describe Backbeat::Workers::DailyActivity do
         :node,
         name: "bad node",
         parent: nil,
-        fires_at: start_time - 11.hours,
-        updated_at: start_time - 10.hours,
+        fires_at: start_time - 15.hours,
+        updated_at: start_time - 14.hours,
         user: user,
         current_server_status: :ready,
         current_client_status: :ready,
@@ -84,8 +84,8 @@ describe Backbeat::Workers::DailyActivity do
           },
           time_elapsed: 0,
           range: {
-            lower_bound: start_time - 24.hours,
-            upper_bound: start_time
+            lower_bound: start_time - 36.hours,
+            upper_bound: start_time - 12.hours
           },
           date: start_time.strftime("%m/%d/%Y")
         })
