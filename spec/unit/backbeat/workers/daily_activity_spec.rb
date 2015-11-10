@@ -87,6 +87,7 @@ describe Backbeat::Workers::DailyActivity do
             lower_bound: start_time - 24.hours,
             upper_bound: start_time
           },
+          date: start_time.strftime("%m/%d/%Y")
         })
 
         subject.perform
