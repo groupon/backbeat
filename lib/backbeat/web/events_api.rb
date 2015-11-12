@@ -73,6 +73,10 @@ module Backbeat
             find_node.status_changes.where(to_status: :errored)
           end
 
+          get "/:id/response" do
+            find_node.status_changes.where(status_type: :current_client_status).last.try(:response)
+          end
+
           put "/:id/status/:new_status" do
             node = find_node
             node.touch!
@@ -106,11 +110,10 @@ module Backbeat
           post "/:id/decisions" do
             decisions = validate(params, :decisions, Array, "Params must include a 'decisions' param")
             node = find_node
-            decisions.each do |dec|
+            decisions.map do |dec|
               node_to_add = dec.merge({ legacy_type: dec[:type] })
-              Server.add_node(current_user, node, node_to_add)
+              Server.add_node(current_user, node, node_to_add).id
             end
-            { success: true }
           end
         end
       end
