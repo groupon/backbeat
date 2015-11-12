@@ -104,9 +104,10 @@ describe Backbeat::Web::EventsApi, :api_test do
       )
       activity_to_post = { "decisions" => [activity] }
 
-      post "v2/events/#{parent_node.id}/decisions", activity_to_post
+      response = post "v2/events/#{parent_node.id}/decisions", activity_to_post
       activity_node = parent_node.children.first
 
+      expect(JSON.parse(response.body).first).to eq(activity_node.id)
       expect(activity_node.node_detail.retry_interval).to eq(50)
       expect(activity_node.node_detail.retries_remaining).to eq(20)
       expect(activity_node.client_metadata).to eq({"version"=>"v2"})
@@ -289,6 +290,27 @@ describe Backbeat::Web::EventsApi, :api_test do
       expect(body.count).to eq(2)
       expect(body.first["response"]["error"]["message"]).to eq("Whoops")
       expect(body.second["response"]["error"]["message"]).to eq("An error")
+    end
+  end
+
+  context "GET /events/:id/response" do
+    it "returns the response for the last client status change" do
+      node.status_changes.create({
+        from_status: "sent_to_client",
+        to_status: "errored",
+        status_type: "current_client_status",
+        response: { error: { message: "An error" } }
+      })
+      node.status_changes.create({
+        from_status: "pending",
+        to_status: "ready",
+        status_type: "current_server_status"
+      })
+
+      response = get "/v2/events/#{node.id}/response"
+      body = JSON.parse(response.body)
+
+      expect(body["error"]["message"]).to eq("An error")
     end
   end
 end
