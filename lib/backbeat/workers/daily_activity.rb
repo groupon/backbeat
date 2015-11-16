@@ -79,14 +79,14 @@ module Backbeat
       end
 
       def inconsistent_nodes(range)
-        Backbeat::Node
+        Node
           .where("fires_at > ?", range[:upper_bound] - 1.year)
           .where("fires_at < ?", range[:upper_bound] - 12.hours)
           .where("(current_server_status <> 'complete' OR current_client_status <> 'complete') AND current_server_status <> 'deactivated'")
       end
 
       def completed_nodes(range)
-        Backbeat::Node
+        Node
           .where("fires_at > ?", range[:lower_bound])
           .where("fires_at < ?", range[:upper_bound])
           .where("current_server_status = 'complete' AND current_client_status = 'complete'")
@@ -125,14 +125,20 @@ module Backbeat
       end
 
       def send_report(report)
-        Mail.deliver do
-          from     Backbeat::Config.options[:alerts][:email_from]
-          to       Backbeat::Config.options[:alerts][:email_to]
-          subject "Backbeat Workflow Report #{report[:date]}"
+        email_config = Config.options[:alerts]
+        email_from   = email_config[:email_from]
+        email_to     = email_config[:email_to]
 
-          html_part do
-            content_type 'text/html; charset=UTF-8'
-            body Report.render(report)
+        if email_from && email_to
+          Mail.deliver do
+            from     email_from
+            to       email_to
+            subject "Backbeat Workflow Report #{report[:date]}"
+
+            html_part do
+              content_type 'text/html; charset=UTF-8'
+              body Report.render(report)
+            end
           end
         end
       end
