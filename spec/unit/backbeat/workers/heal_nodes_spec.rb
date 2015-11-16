@@ -87,7 +87,7 @@ describe Backbeat::Workers::HealNodes do
         expect(expired_node.current_server_status).to eq("sent_to_client")
         expect(expired_node.current_client_status).to eq("received")
         expect(expired_node.node_detail.complete_by.to_s).to eq("2015-06-01 01:02:00 UTC")
-        expect(expired_node.status_changes.first.response).to eq("Client did not respond within the specified 'complete_by' time")
+        expect(expired_node.status_changes.first.response).to eq({ "error" => "Client did not respond within the specified 'complete_by' time" })
 
         non_expired_node.reload
         expect(non_expired_node.current_server_status).to eq("sent_to_client")
