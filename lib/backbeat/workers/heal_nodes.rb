@@ -51,7 +51,7 @@ module Backbeat
 
           if received_by_client?(node)
             info(message: CLIENT_TIMEOUT_ERROR, node: node.id, complete_by: node_detail.complete_by)
-            Server.fire_event(Events::ClientError.new(CLIENT_TIMEOUT_ERROR), node)
+            Server.fire_event(Events::ClientError.new({ error: CLIENT_TIMEOUT_ERROR }), node)
           else
             info(message: UNEXPECTED_STATE_MESSAGE, node: node.id, complete_by: node_detail.complete_by)
           end
