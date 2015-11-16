@@ -4,8 +4,8 @@ defaults:
   log: ~
   client_timeout: 172800
   alerts:
-    email_to: sample@email.com
-    email_from: alerts-sample@email.com
+    email_to: ~
+    email_from: ~
   schedules:
     heal_nodes: '0 */2 * * * *'
     daily_activity: '0 12 * * * *'

@@ -94,7 +94,12 @@ describe Backbeat::Workers::DailyActivity do
       end
     end
 
-    it "calls view generation with correct model" do
+    it "sends an email with the report data" do
+      Backbeat::Config.options[:alerts] = {
+        email_to: "test@backbeat.com",
+        email_from: "backbeat@backbeat.com"
+      }
+
       Timecop.freeze(start_time) do
         subject.perform
       end
@@ -102,8 +107,8 @@ describe Backbeat::Workers::DailyActivity do
       email_sent = Mail::TestMailer.deliveries.first
       body = email_sent.to_s
 
-      expect(email_sent.from.first).to eq("alerts-sample@email.com")
-      expect(email_sent.to.first).to eq("sample@email.com")
+      expect(email_sent.from.first).to eq("backbeat@backbeat.com")
+      expect(email_sent.to.first).to eq("test@backbeat.com")
       expect(body).to include("Report finished")
     end
 
