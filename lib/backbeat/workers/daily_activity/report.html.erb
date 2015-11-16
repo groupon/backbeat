@@ -1,50 +1,13 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <style>
-      body {
-        min-width: 100%;
-      }
-
-      h2 {
-        padding-top: 14pt;
-        font-size: 14pt;
-        font-family: Arial;
-        font-weight: bold;
-        padding-bottom: 4pt;
-      }
-
-      p {
-        direction: ltr;
-        margin: 0;
-      }
-
-      table {
-        width: 100%;
-      }
-
-      th {
-        background-color: lightgrey;
-      }
-
-      td {
-        vertical-align: top;
-        padding: 5pt;
-        border: 1pt solid black;
-        vertical-align: top;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>Backbeat Activity Report</h2>
-
-    <p>Processing window: <%= report[:range][:lower_bound].to_s %> to <%= report[:range][:upper_bound].to_s %></p>
+  <body style="min-width: 100%;">
+    <h2 style="font-family: Arial;">Backbeat Activity Report</h2>
 
     <% if report[:inconsistent][:counts].empty? %>
       <p>No inconsistent workflows for this period</p>
     <% else %>
       <%= render_table "Workflow Inconsistencies", report[:inconsistent][:counts] %>
-      <p>Inconsistent workflow info stored at <%= report[:inconsistent][:filename] %></p>
+      <p>Inconsistent workflow data stored at <%= report[:inconsistent][:filename] %></p>
     <% end %>
 
     <% if report[:completed][:counts].empty? %>
@@ -54,5 +17,6 @@
     <% end %>
 
     <p>Report finished in <%= report[:time_elapsed] %> seconds</p>
+    <p>Processing window: <%= report[:range][:lower_bound].to_s %> to <%= report[:range][:upper_bound].to_s %></p>
   </body>
 </html>
