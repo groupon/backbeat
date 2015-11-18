@@ -57,14 +57,25 @@ namespace :db do
   task :migrate => :env do
     DB.with_connection do |c|
       Foreigner.load
-      ActiveRecord::Migrator.migrate('migrations', nil)
+      ActiveRecord::Migrator.migrate('db/migrations', nil)
     end
   end
 
   desc "rollback one migration"
   task :rollback => :env do
     DB.with_connection do |c|
-      ActiveRecord::Migrator.rollback('migrations')
+      ActiveRecord::Migrator.rollback('db/migrations')
+    end
+  end
+
+  namespace :schema do
+    task :dump => :env do
+      require 'active_record/schema_dumper'
+      DB.with_connection do |c|
+        File.open('db/schema.rb', 'w:utf-8') do |file|
+          ActiveRecord::SchemaDumper.dump(c, file)
+        end
+      end
     end
   end
 end
@@ -87,22 +98,4 @@ end
 
 task :add_user do
   require_relative 'script/add_user'
-end
-
-namespace :license do
-  task :add do
-    license = File.readlines("./LICENSE")
-    trailing_whitespace = /\s+\n$/
-    commented_license = license.map do |line|
-      "# #{line}".sub(trailing_whitespace, "\n")
-    end.push("\n")
-
-    Dir['lib/**/*.rb'].each do |path|
-      file_content = File.readlines(path)
-      if file_content.first != commented_license.first
-        File.write(path, (commented_license + file_content).join)
-        puts "Added license to #{path}"
-      end
-    end
-  end
 end

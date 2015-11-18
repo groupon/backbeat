@@ -48,6 +48,7 @@ module Backbeat
 
       def result
         apply_filters(
+          Workflow.order({ created_at: :desc, id: :desc }),
           NameFilter,
           SubjectFilter,
           CurrentStatusFilter,
@@ -55,7 +56,8 @@ module Backbeat
           StatusStartFilter,
           StatusEndFilter,
           PerPageFilter,
-          PageFilter
+          PageFilter,
+          LastIdFilter
         )
       end
 
@@ -104,13 +106,19 @@ module Backbeat
         relation.offset(offset)
       end
 
+      LastIdFilter = filter_for(:last_id) do |relation, params|
+        last_id = params.fetch(:last_id)
+        last_created_at = Workflow.where(id: last_id).pluck(:created_at).first
+        relation.where('(created_at, id) < (?, ?)', last_created_at, last_id)
+      end
+
       private
 
       attr_reader :params
 
-      def apply_filters(*filters)
+      def apply_filters(base, *filters)
         return [] if params.empty?
-        filters.reduce(Workflow.order(:created_at)) do |relation, filter|
+        filters.reduce(base) do |relation, filter|
           filter.call(relation, params)
         end
       end
