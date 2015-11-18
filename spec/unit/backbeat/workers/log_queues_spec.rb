@@ -28,40 +28,32 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require_relative 'base'
+require 'spec_helper'
 
-module ScheduledJobs
-  class HealNodes < Base
-    CLIENT_TIMEOUT_ERROR = "Client did not respond within the specified 'complete_by' time"
-    UNEXPECTED_STATE_MESSAGE = "Node with expired 'complete_by' is not in expected state"
-    SEARCH_PADDING = 1.hour # used in case the search does not run on time
-
-    def perform
-      resend_expired_nodes
-    end
-
-    private
-
-    def resend_expired_nodes
-      expired_node_details.each do |node_detail|
-        node = node_detail.node
-
-        if received_by_client?(node)
-          info(source: self.class.to_s, message: CLIENT_TIMEOUT_ERROR, node: node.id, complete_by: node_detail.complete_by)
-          Backbeat::Server.fire_event(Backbeat::Events::ClientError.new(CLIENT_TIMEOUT_ERROR), node)
-        else
-          info(source: self.class.to_s, message: UNEXPECTED_STATE_MESSAGE, node: node.id, complete_by: node_detail.complete_by)
-        end
+describe Backbeat::Workers::LogQueues do
+  context "log_count" do
+    def expect_info(type, count_subject, count)
+      expect(Backbeat::Logger).to receive(:add) do |_, log|
+        expect(log[:source]).to eq("Backbeat::Workers::LogQueues")
+        expect(log[:data][:type]).to eq(type)
+        expect(log[:data][:subject]).to eq(count_subject)
+        expect(log[:data][:count]).to eq(count)
       end
     end
 
-    def expired_node_details
-      search_lower_bound = Time.now - Backbeat::Config.options[:job_frequency][:heal_nodes] - SEARCH_PADDING
-      Backbeat::NodeDetail.where(complete_by: (search_lower_bound..Time.now)).select("node_id, complete_by")
-    end
+    it "logs info with the correct info" do
+      allow_any_instance_of(Sidekiq::RetrySet).to receive(:size).and_return(1)
+      allow_any_instance_of(Sidekiq::ScheduledSet).to receive(:size).and_return(3)
 
-    def received_by_client?(node)
-      node.current_server_status == "sent_to_client" && node.current_client_status == "received"
+      sidekiq_queues = {"queue_1"=>10, "queue_2"=>0}
+      allow_any_instance_of(Sidekiq::Stats).to receive(:queues).and_return(sidekiq_queues)
+
+      expect_info(:queue, "retry", 1)
+      expect_info(:queue, "schedule" ,3)
+      expect_info(:queue, "queue_1", 10)
+      expect_info(:queue, "queue_2", 0)
+
+      subject.perform
     end
   end
 end

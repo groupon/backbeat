@@ -29,9 +29,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'spec_helper'
-require_relative '../../../scheduled_jobs/heal_nodes.rb'
 
-describe ScheduledJobs::HealNodes do
+describe Backbeat::Workers::HealNodes do
   context "complete_by expires" do
     let(:start_time) { Time.parse("2015-06-01 00:00:00 UTC") }
     let(:user) { FactoryGirl.create(:user) }
@@ -58,6 +57,7 @@ describe ScheduledJobs::HealNodes do
         workflow: workflow
       )
     end
+    let(:last_run) { (Time.now - 2 * 60 * 60).to_f }
 
     it "resends nodes to client that have not heard from the client within the complete_by time" do
       Timecop.freeze(start_time) do
@@ -72,13 +72,12 @@ describe ScheduledJobs::HealNodes do
         expect(Backbeat::Client).to receive(:perform_action).with(expired_node)
         expect(Backbeat::Client).to_not receive(:perform_action).with(non_expired_node)
         expect(subject).to receive(:info).with(
-          source: "ScheduledJobs::HealNodes",
           message: "Client did not respond within the specified 'complete_by' time",
           node: expired_node.id,
           complete_by: expired_node.node_detail.complete_by
         ).and_call_original
 
-        subject.perform
+        subject.perform(last_run)
 
         # Because we use the error node event, it shares the retry logic which has a delay
         Timecop.travel(Time.now + 1.hour)
@@ -88,7 +87,7 @@ describe ScheduledJobs::HealNodes do
         expect(expired_node.current_server_status).to eq("sent_to_client")
         expect(expired_node.current_client_status).to eq("received")
         expect(expired_node.node_detail.complete_by.to_s).to eq("2015-06-01 01:02:00 UTC")
-        expect(expired_node.status_changes.first.response).to eq("Client did not respond within the specified 'complete_by' time")
+        expect(expired_node.status_changes.first.response).to eq({ "error" => "Client did not respond within the specified 'complete_by' time" })
 
         non_expired_node.reload
         expect(non_expired_node.current_server_status).to eq("sent_to_client")
@@ -102,13 +101,12 @@ describe ScheduledJobs::HealNodes do
       expired_node.update_attributes(current_client_status: :complete, current_server_status: :complete)
       expired_node.node_detail.update_attributes!(complete_by: expired_complete_by)
       expect(subject).to receive(:info).with(
-        source: "ScheduledJobs::HealNodes",
         message: "Node with expired 'complete_by' is not in expected state",
         node: expired_node.id,
         complete_by: expired_node.reload.node_detail.complete_by
       ).and_call_original
 
-      subject.perform
+      subject.perform(last_run)
     end
   end
 end

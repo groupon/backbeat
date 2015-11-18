@@ -28,19 +28,33 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require File.expand_path('../../config/environment',  __FILE__)
+require 'sidekiq'
+require 'sidekiq/schedulable'
 
-module ScheduledJobs
-  class Base
-    include Backbeat::Logging
+module Backbeat
+  module Workers
+    class LogQueues
+      include Logging
+      include Sidekiq::Worker
+      include Sidekiq::Schedulable
 
-    def perform
-      raise NotImplementedError
-    end
+      sidekiq_options retry: false, queue: Config.options[:async_queue]
+      sidekiq_schedule Config.options[:schedules][:log_queues]
 
-    def run
-      puts "Running #{self.class.name} at #{Time.now}"
-      perform
+      def perform
+        log_count(:queue, "retry", Sidekiq::RetrySet.new.size)
+        log_count(:queue, "schedule", Sidekiq::ScheduledSet.new.size)
+
+        Sidekiq::Stats.new.queues.each do |queue, size|
+          log_count(:queue, queue, size)
+        end
+      end
+
+      private
+
+      def log_count(type, subject, count)
+        info({ type: type, subject: subject, count: count || 0 })
+      end
     end
   end
 end

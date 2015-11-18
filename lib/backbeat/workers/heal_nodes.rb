@@ -28,28 +28,45 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require_relative 'base'
+require 'sidekiq'
+require 'sidekiq/schedulable'
 
-module ScheduledJobs
-  class LogCounts < Base
+module Backbeat
+  module Workers
+    class HealNodes
+      include Logging
+      include Sidekiq::Worker
+      include Sidekiq::Schedulable
 
-    def perform( options = {} )
-      log_queue_counts
-    end
+      sidekiq_options retry: false, queue: Config.options[:async_queue]
+      sidekiq_schedule Config.options[:schedules][:heal_nodes], last_run: true
 
-    private
+      CLIENT_TIMEOUT_ERROR = "Client did not respond within the specified 'complete_by' time"
+      UNEXPECTED_STATE_MESSAGE = "Node with expired 'complete_by' is not in expected state"
 
-    def log_queue_counts
-      log_count(:queue, "retry", Sidekiq::RetrySet.new.size)
-      log_count(:queue, "schedule", Sidekiq::ScheduledSet.new.size)
+      def perform(last_run)
+        last_run_time = Time.at(last_run)
+        expired_node_details(last_run_time).each do |node_detail|
+          node = node_detail.node
 
-      Sidekiq::Stats.new.queues.each do |queue, size|
-        log_count(:queue, queue, size)
+          if received_by_client?(node)
+            info(message: CLIENT_TIMEOUT_ERROR, node: node.id, complete_by: node_detail.complete_by)
+            Server.fire_event(Events::ClientError.new({ error: CLIENT_TIMEOUT_ERROR }), node)
+          else
+            info(message: UNEXPECTED_STATE_MESSAGE, node: node.id, complete_by: node_detail.complete_by)
+          end
+        end
       end
-    end
 
-    def log_count(type, subject, count)
-      info({source: self.class.to_s, type: type, subject: subject, count: count || 0 })
+      private
+
+      def expired_node_details(last_run_time)
+        NodeDetail.where(complete_by: last_run_time..Time.now).select(:node_id, :complete_by)
+      end
+
+      def received_by_client?(node)
+        node.current_server_status == "sent_to_client" && node.current_client_status == "received"
+      end
     end
   end
 end

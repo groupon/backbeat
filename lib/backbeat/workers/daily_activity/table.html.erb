@@ -1,0 +1,16 @@
+<h3 style="font-family: Arial;"><%= title %></h2>
+
+<table style="width: 100%;">
+  <tr class="header">
+    <th style="background-color: lightgrey;">Workflow Name</th>
+    <th style="background-color: lightgrey;">Workflow Count</th>
+    <th style="background-color: lightgrey;">Node Count</th>
+  </tr>
+  <% counts.each do |name, detail| %>
+    <tr class="data">
+      <td style="padding: 5pt; border: 1pt solid black;"><%= name %></td>
+      <td style="padding: 5pt; border: 1pt solid black;"><%= detail[:workflow_type_count] %></td>
+      <td style="padding: 5pt; border: 1pt solid black;"><%= detail[:node_count] %></td>
+   </tr>
+ <% end %>
+</table>
