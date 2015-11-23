@@ -42,11 +42,9 @@ describe Backbeat::Client do
       error = {"couldbe" => "anything"}
       notification_body = Backbeat::Client::HashKeyTransformations.camelize_keys(
         {
+          "node" => Backbeat::Client::NodeSerializer.call(node),
           "notification" => {
-            "type" =>"Backbeat::Node",
-            "id"=> node.id,
             "name" => node.name,
-            "subject" => node.subject,
             "message" => "error",
           },
           "error" => error
