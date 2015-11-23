@@ -53,11 +53,9 @@ module Backbeat
     class NotificationSerializer
       def self.call(node, message, error = nil)
         {
+          node: NodeSerializer.call(node),
           notification: {
-            type: node.class.to_s,
-            id: node.id,
             name: node.name,
-            subject: node.subject,
             message: message
           },
           error: ErrorSerializer.call(error)
