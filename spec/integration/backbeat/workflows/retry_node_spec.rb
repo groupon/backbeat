@@ -114,6 +114,17 @@ describe Backbeat, :api_test do
         "current_client_status" => "errored",
         "current_server_status" => "retries_exhausted"
       )
+
+      expect(WebMock).to have_requested(:post, "http://backbeat-client:9000/notifications").with({
+        body: Backbeat::Client::HashKeyTransformations.camelize_keys({
+          "node" => Backbeat::Client::NodeSerializer.call(activity_node),
+          "notification" => {
+            "name" => activity_node.name,
+            "message" => "Client Error",
+          },
+          "error" => nil
+        }).to_json
+      })
     end
 
     it "resets the node to handle errors in weird states" do
