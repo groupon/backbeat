@@ -88,12 +88,6 @@ module Backbeat
             { success: true }
           end
 
-          put "/:id/deactivate" do
-            node = find_node
-            Server.fire_event(Events::DeactivatePreviousNodes, node, Schedulers::PerformEvent)
-            { success: true }
-          end
-
           put "/:id/restart" do
             node = find_node
             Workers::AsyncWorker.remove_job(Events::RetryNode, node)
