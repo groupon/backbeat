@@ -186,5 +186,17 @@ module Backbeat
         end
       end
     end
+
+    class CancelNode < Event
+      scheduler Schedulers::PerformEvent
+
+      def call(node)
+        WorkflowTree.new(node).traverse(root: true) do |child_node|
+          StateManager.transition(child_node, current_server_status: :deactivated)
+        end
+
+        Server.fire_event(ScheduleNextNode, node.parent)
+      end
+    end
   end
 end
