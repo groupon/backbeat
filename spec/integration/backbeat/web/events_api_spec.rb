@@ -264,6 +264,17 @@ describe Backbeat::Web::EventsApi, :api_test do
     end
   end
 
+  context "PUT /events/:id/canceled" do
+    it "deactivates it self and all child nodes on the node" do
+      child = FactoryGirl.create(:node, user: user, workflow: workflow, parent: node)
+
+      put "v2/events/#{node.id}/status/canceled"
+
+      expect(node.reload.current_server_status).to eq("deactivated")
+      expect(child.reload.current_server_status).to eq("deactivated")
+    end
+  end
+
   context "GET /events/:id/errors" do
     it "returns all status changes to an errored state" do
       node.status_changes.create({

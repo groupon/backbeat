@@ -44,7 +44,8 @@ module Backbeat
         deciding_complete: Events::ClientComplete,
         completed: Events::ClientComplete,
         errored: Events::ClientError,
-        deactivated: Events::DeactivatePreviousNodes
+        deactivated: Events::DeactivatePreviousNodes,
+        canceled: Events::CancelNode
       }
 
       def event_api

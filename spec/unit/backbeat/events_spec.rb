@@ -470,4 +470,29 @@ describe Backbeat::Events do
       expect(third_node.reload.current_server_status).to eq("deactivated")
     end
   end
+
+  context "CancelNode" do
+    it "deactivates the node and its children then schedules next node on its parent" do
+      second_node = FactoryGirl.create(
+        :node,
+        workflow: workflow,
+        parent: node,
+        user: user
+      )
+      third_node = FactoryGirl.create(
+        :node,
+        workflow: workflow,
+        parent: node,
+        user: user
+      )
+
+      expect(Backbeat::Server).to receive(:fire_event).with(Backbeat::Events::ScheduleNextNode, node.parent)
+
+      Backbeat::Events::CancelNode.call(node)
+
+      expect(node.reload.current_server_status).to eq("deactivated")
+      expect(second_node.reload.current_server_status).to eq("deactivated")
+      expect(third_node.reload.current_server_status).to eq("deactivated")
+    end
+  end
 end
