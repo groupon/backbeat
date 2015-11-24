@@ -135,6 +135,7 @@ describe Backbeat::Web::EventsApi, :api_test do
       body = JSON.parse(response.body)
 
       expect(body["id"]).to eq(node.id)
+      expect(body["clientData"]).to eq(node.client_data)
     end
 
     it "returns 404 if the node does not belong to the user" do
