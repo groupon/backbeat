@@ -248,7 +248,7 @@ describe Backbeat::Web::EventsApi, :api_test do
     end
   end
 
-  context "PUT /events/:id/deactivate" do
+  context "PUT /events/:id/status/deactivated" do
     it "deactivates previous nodes from the activity" do
       second_node = FactoryGirl.create(
         :node,
@@ -257,7 +257,7 @@ describe Backbeat::Web::EventsApi, :api_test do
         user: user
       )
 
-      put "v2/events/#{second_node.id}/deactivate"
+      put "v2/events/#{second_node.id}/status/deactivated"
 
       expect(node.reload.current_server_status).to eq("deactivated")
     end
