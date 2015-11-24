@@ -66,7 +66,7 @@ module Backbeat
 
         resource 'events' do
           get "/:id" do
-            find_node
+            Client::NodeSerializer.call(find_node)
           end
 
           get "/:id/errors" do
