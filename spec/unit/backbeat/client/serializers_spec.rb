@@ -62,11 +62,9 @@ describe "Serializers" do
     it "serializers a notification" do
       expect(Backbeat::Client::NotificationSerializer.call(node, "A message")).to eq(
         {
+          node: Backbeat::Client::NodeSerializer.call(node),
           notification: {
-            type: "Backbeat::Node",
-            id: node.id,
             name: node.name,
-            subject: node.subject,
             message: "A message"
           },
           error: nil

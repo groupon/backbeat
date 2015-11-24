@@ -313,25 +313,11 @@ describe Backbeat::Events do
     end
 
     it "notifies the client" do
-      Backbeat::Events::ServerError.new({ error: { message: "Failed" } }).call(node)
+      error = { message: "Failed" }
 
-      expect(WebMock).to have_requested(:post, "http://backbeat-client:9000/notifications").with(
-        body: {
-          "notification" => {
-            "type" => "Backbeat::Node",
-            "id" => node.id,
-            "name" => node.name,
-            "subject" => {
-              "subjectKlass" => node.subject['subject_klass'],
-              "subjectId" => node.subject['subject_id'],
-            },
-            "message" => "Server Error"
-          },
-          "error" => {
-            "message" => "Failed"
-          }
-        }
-      )
+      expect(Backbeat::Client).to receive(:notify_of).with(node, "Server Error", error)
+
+      Backbeat::Events::ServerError.new({ error: error }).call(node)
     end
   end
 
@@ -382,24 +368,11 @@ describe Backbeat::Events do
       end
 
       it "notifies the client" do
-        Backbeat::Events::ClientError.new({ error: { message: "An error message" } }).call(node)
-        expect(WebMock).to have_requested(:post, "http://backbeat-client:9000/notifications").with(
-          body: {
-            "notification" => {
-              "type" => "Backbeat::Node",
-              "id" => node.id,
-              "name" => node.name,
-              "subject" => {
-                "subjectKlass" => node.subject['subject_klass'],
-                "subjectId" => node.subject['subject_id'],
-              },
-              "message" => "Client Error"
-            },
-            "error" => {
-              "message" => "An error message"
-            }
-          }
-        )
+        error = { message: "Failed" }
+
+        expect(Backbeat::Client).to receive(:notify_of).with(node, "Client Error", error)
+
+        Backbeat::Events::ClientError.new({ error: error }).call(node)
       end
     end
   end
