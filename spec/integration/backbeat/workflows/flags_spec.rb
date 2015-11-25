@@ -63,7 +63,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "v2/events/#{signal_node.id}/status/deciding"
+      response = put "v2/activities/#{signal_node.id}/status/deciding"
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
@@ -75,7 +75,7 @@ describe Backbeat, :api_test do
 
       children_to_post = { "decisions" => [flag, activity] }
 
-      response = post "v2/events/#{signal_node.id}/decisions", children_to_post
+      response = post "v2/activities/#{signal_node.id}/decisions", children_to_post
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
@@ -84,7 +84,7 @@ describe Backbeat, :api_test do
       expect(signal_node.reload.children.count).to eq(2)
 
 
-      response = put "v2/events/#{signal_node.id}/status/deciding_complete"
+      response = put "v2/activities/#{signal_node.id}/status/deciding_complete"
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "complete",

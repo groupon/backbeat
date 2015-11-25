@@ -31,7 +31,7 @@
 require 'spec_helper'
 require 'helper/request_helper'
 
-describe Backbeat::Web::EventsApi, :api_test do
+describe Backbeat::Web::EventsAPI, :api_test do
   include RequestHelper
 
   let(:user) { FactoryGirl.create(:user) }
@@ -43,286 +43,289 @@ describe Backbeat::Web::EventsApi, :api_test do
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
   end
 
-  context "PUT /events/:id/restart" do
-    context "with valid restart state" do
-      before do
-        node.update_attributes(
-          current_client_status: :errored,
-          current_server_status: :errored
-        )
-        WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-          .with(:body => activity_hash(node, {current_server_status: :sent_to_client, current_client_status: :received}))
-          .to_return(:status => 200, :body => "", :headers => {})
+  ['events', 'activities'].each do |resource|
+
+    context "PUT /#{resource}/:id/restart" do
+      context "with valid restart state" do
+        before do
+          node.update_attributes(
+            current_client_status: :errored,
+            current_server_status: :errored
+          )
+          WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
+            .with(:body => activity_hash(node, {current_server_status: :sent_to_client, current_client_status: :received}))
+            .to_return(:status => 200, :body => "", :headers => {})
+        end
+
+        it "returns 200" do
+          response = put "v2/#{resource}/#{node.id}/restart"
+
+          expect(response.status).to eq(200)
+        end
+
+        it "restarts the node" do
+          response = put "v2/#{resource}/#{node.id}/restart"
+
+          Backbeat::Workers::AsyncWorker.drain
+
+          expect(node.reload.current_client_status).to eq("received")
+          expect(node.reload.current_server_status).to eq("sent_to_client")
+        end
+
+        it "removes an existing retry job" do
+          expect(Backbeat::Workers::AsyncWorker).to receive(:remove_job).with(
+            Backbeat::Events::RetryNode,
+            node
+          )
+
+          put "v2/#{resource}/#{node.id}/restart"
+        end
       end
 
-      it "returns 200" do
-        response = put "v2/events/#{node.id}/restart"
-
-        expect(response.status).to eq(200)
+      context "with invalid restart state" do
+        it "returns 409" do
+          response = put "v2/#{resource}/#{node.id}/restart"
+          expect(response.status).to eq(409)
+        end
       end
 
-      it "restarts the node" do
-        response = put "v2/events/#{node.id}/restart"
-
-        Backbeat::Workers::AsyncWorker.drain
-
-        expect(node.reload.current_client_status).to eq("received")
-        expect(node.reload.current_server_status).to eq("sent_to_client")
-      end
-
-      it "removes an existing retry job" do
-        expect(Backbeat::Workers::AsyncWorker).to receive(:remove_job).with(
-          Backbeat::Events::RetryNode,
-          node
-        )
-
-        put "v2/events/#{node.id}/restart"
+      context "when no node found for id" do
+        it "returns a 404" do
+          response = put "v2/#{resource}/#{SecureRandom.uuid}/restart"
+          expect(response.status).to eq(404)
+        end
       end
     end
 
-    context "with invalid restart state" do
-      it "returns 409" do
-        response = put "v2/events/#{node.id}/restart"
-        expect(response.status).to eq(409)
+    context "POST /#{resource}/:id/decisions" do
+      it "creates the node detail with retry data" do
+        parent_node = workflow.children.first
+        activity = FactoryGirl.build(:client_activity_post_to_decision).merge(
+          retry: 20,
+          retry_interval: 50
+        )
+        activity_to_post = { "decisions" => [activity] }
+
+        response = post "v2/#{resource}/#{parent_node.id}/decisions", activity_to_post
+        activity_node = parent_node.children.first
+
+        expect(JSON.parse(response.body).first).to eq(activity_node.id)
+        expect(activity_node.node_detail.retry_interval).to eq(50)
+        expect(activity_node.node_detail.retries_remaining).to eq(20)
+        expect(activity_node.client_metadata).to eq({"version"=>"v2"})
+        expect(activity_node.client_data).to eq({"could"=>"be", "any"=>"thing"})
+      end
+
+      it "handles the legacy 'args' param" do
+        parent_node = workflow.children.first
+        activity = FactoryGirl.build(:client_activity_post_to_decision).merge(
+          retry: 20,
+          retry_interval: 50
+        )
+        activity_to_post = { "args" => { "decisions" => [activity] }}
+
+        post "v2/#{resource}/#{parent_node.id}/decisions", activity_to_post
+
+        expect(parent_node.children.count).to eq(1)
       end
     end
 
-    context "when no node found for id" do
-      it "returns a 404" do
-        response = put "v2/events/#{SecureRandom.uuid}/restart"
+    context "GET /#{resource}/:id" do
+      it "returns the node data" do
+        node = workflow.children.first
+        response = get "v2/#{resource}/#{node.id}"
+        body = JSON.parse(response.body)
+
+        expect(body["id"]).to eq(node.id)
+        expect(body["clientData"]).to eq(node.client_data)
+      end
+
+      it "returns 404 if the node does not belong to the user" do
+        node = FactoryGirl.create(
+          :workflow_with_node,
+          user: FactoryGirl.create(:user)
+        ).children.first
+
+        response = get "v2/workflows/#{node.workflow_id}/#{resource}/#{node.id}"
+
+        expect(response.status).to eq(404)
+      end
+
+      it "finds the node by id when no workflow id is provided" do
+        node = workflow.children.first
+        response = get "v2/#{resource}/#{node.id}"
+        body = JSON.parse(response.body)
+
+        expect(body["id"]).to eq(node.id)
+      end
+
+      it "returns 404 if the node does not belong to the workflow" do
+        node = FactoryGirl.create(
+          :workflow_with_node,
+          name: :a_unique_name,
+          user: workflow.user
+        ).children.first
+
+        response = get "v2/workflows/#{workflow.id}/#{resource}/#{node.id}"
+
         expect(response.status).to eq(404)
       end
     end
-  end
 
-  context "POST /events/:id/decisions" do
-    it "creates the node detail with retry data" do
-      parent_node = workflow.children.first
-      activity = FactoryGirl.build(:client_activity_post_to_decision).merge(
-        retry: 20,
-        retry_interval: 50
-      )
-      activity_to_post = { "decisions" => [activity] }
+    context "PUT /#{resource}/:id/status/processing" do
+      it "fires the ClientProcessing event" do
+        node.update_attributes(current_client_status: :received)
+        put "v2/#{resource}/#{node.id}/status/processing"
 
-      response = post "v2/events/#{parent_node.id}/decisions", activity_to_post
-      activity_node = parent_node.children.first
+        expect(node.reload.current_client_status).to eq("processing")
+      end
 
-      expect(JSON.parse(response.body).first).to eq(activity_node.id)
-      expect(activity_node.node_detail.retry_interval).to eq(50)
-      expect(activity_node.node_detail.retries_remaining).to eq(20)
-      expect(activity_node.client_metadata).to eq({"version"=>"v2"})
-      expect(activity_node.client_data).to eq({"could"=>"be", "any"=>"thing"})
+      it "touches the node indicating client is working on it" do
+        node.update_attributes(current_client_status: :received)
+        node.node_detail.update_attributes!(complete_by: Time.now - 100)
+        put "v2/#{resource}/#{node.id}/status/processing"
+        node.node_detail.reload
+        expect(node.node_detail.complete_by.to_s).to eq (Time.now.utc + 100).to_s
+      end
+
+      it "returns an error with an invalid state change" do
+        node.update_attributes(current_client_status: :processing)
+        response = put "v2/#{resource}/#{node.id}/status/processing"
+        body = JSON.parse(response.body)
+
+        expect(response.status).to eq(409)
+        expect(body["error"]).to eq("Cannot transition current_client_status from processing to processing")
+        expect(body["currentStatus"]).to eq("processing")
+        expect(body["attemptedStatus"]).to eq("processing")
+      end
+
+      it "does not mark the node in error state with invalid client state change" do
+        node.update_attributes(current_client_status: :processing, current_server_status: :sent_to_client)
+        response = put "v2/#{resource}/#{node.id}/status/processing"
+        expect(node.reload.current_client_status).to eq("processing")
+        expect(node.reload.current_server_status).to eq("sent_to_client")
+      end
+
+      it "does not mark the node in error state with invalid client state change" do
+        node.update_attributes(current_client_status: :processing, current_server_status: :sent_to_client)
+        response = put "v2/#{resource}/#{node.id}/status/processing"
+        expect(node.reload.current_client_status).to eq("processing")
+        expect(node.reload.current_server_status).to eq("sent_to_client")
+      end
     end
 
-    it "handles the legacy 'args' param" do
-      parent_node = workflow.children.first
-      activity = FactoryGirl.build(:client_activity_post_to_decision).merge(
-        retry: 20,
-        retry_interval: 50
-      )
-      activity_to_post = { "args" => { "decisions" => [activity] }}
+    context "PUT /#{resource}/:id/status/completed" do
+      it "marks the node as complete" do
+        node.update_attributes({
+          current_server_status: :sent_to_client,
+          current_client_status: :processing
+        })
+        client_params = { "result" => "Done", "error" => nil }
 
-      post "v2/events/#{parent_node.id}/decisions", activity_to_post
+        put "v2/#{resource}/#{node.id}/status/completed", { "response" => client_params }
+        node.reload
 
-      expect(parent_node.children.count).to eq(1)
-    end
-  end
-
-  context "GET /events/:id" do
-    it "returns the node data" do
-      node = workflow.children.first
-      response = get "v2/workflows/#{workflow.id}/events/#{node.id}"
-      body = JSON.parse(response.body)
-
-      expect(body["id"]).to eq(node.id)
-      expect(body["clientData"]).to eq(node.client_data)
+        expect(node.current_client_status).to eq("complete")
+        expect(node.status_changes.last.response).to eq(client_params)
+      end
     end
 
-    it "returns 404 if the node does not belong to the user" do
-      node = FactoryGirl.create(
-        :workflow_with_node,
-        user: FactoryGirl.create(:user)
-      ).children.first
+    context "PUT /#{resource}/:id/status/errored" do
+      it "stores the client backtrace in the client node detail" do
+        client_params = { "error" => { "backtrace" => "The backtrace" }}
 
-      response = get "v2/workflows/#{node.workflow_id}/events/#{node.id}"
+        put "v2/#{resource}/#{node.id}/status/errored", { "response" => client_params }
 
-      expect(response.status).to eq(404)
+        expect(node.status_changes.first.response).to eq(client_params)
+      end
     end
 
-    it "finds the node by id when no workflow id is provided" do
-      node = workflow.children.first
-      response = get "v2/events/#{node.id}"
-      body = JSON.parse(response.body)
+    context "PUT /#{resource}/:id/reset" do
+      it "deactivates all child nodes on the node" do
+        child = FactoryGirl.create(:node, user: user, workflow: workflow, parent: node)
 
-      expect(body["id"]).to eq(node.id)
+        put "v2/#{resource}/#{node.id}/reset"
+
+        expect(node.children.count).to eq(1)
+        expect(child.reload.current_server_status).to eq("deactivated")
+      end
     end
 
-    it "returns 404 if the node does not belong to the workflow" do
-      node = FactoryGirl.create(
-        :workflow_with_node,
-        name: :a_unique_name,
-        user: workflow.user
-      ).children.first
+    context "PUT /#{resource}/:id/status/deactivated" do
+      it "deactivates previous nodes from the activity" do
+        second_node = FactoryGirl.create(
+          :node,
+          workflow: workflow,
+          parent: node,
+          user: user
+        )
 
-      response = get "v2/workflows/#{workflow.id}/events/#{node.id}"
+        put "v2/#{resource}/#{second_node.id}/status/deactivated"
 
-      expect(response.status).to eq(404)
-    end
-  end
-
-  context "PUT /events/:id/status/processing" do
-    it "fires the ClientProcessing event" do
-      node.update_attributes(current_client_status: :received)
-      put "v2/events/#{node.id}/status/processing"
-
-      expect(node.reload.current_client_status).to eq("processing")
+        expect(node.reload.current_server_status).to eq("deactivated")
+      end
     end
 
-    it "touches the node indicating client is working on it" do
-      node.update_attributes(current_client_status: :received)
-      node.node_detail.update_attributes!(complete_by: Time.now - 100)
-      put "v2/events/#{node.id}/status/processing"
-      node.node_detail.reload
-      expect(node.node_detail.complete_by.to_s).to eq (Time.now.utc + 100).to_s
+    context "PUT /#{resource}/:id/canceled" do
+      it "deactivates it self and all child nodes on the node" do
+        child = FactoryGirl.create(:node, user: user, workflow: workflow, parent: node)
+
+        put "v2/#{resource}/#{node.id}/status/canceled"
+
+        expect(node.reload.current_server_status).to eq("deactivated")
+        expect(child.reload.current_server_status).to eq("deactivated")
+      end
     end
 
-    it "returns an error with an invalid state change" do
-      node.update_attributes(current_client_status: :processing)
-      response = put "v2/events/#{node.id}/status/processing"
-      body = JSON.parse(response.body)
+    context "GET /#{resource}/:id/errors" do
+      it "returns all status changes to an errored state" do
+        node.status_changes.create({
+          from_status: "ready",
+          to_status: "errored",
+          status_type: "current_server_status",
+          response: { error: { message: "Whoops" } }
+        })
+        node.status_changes.create({
+          from_status: "pending",
+          to_status: "ready",
+          status_type: "current_server_status",
+          response: { result: "Done" }
+        })
+        node.status_changes.create({
+          from_status: "sent_to_client",
+          to_status: "errored",
+          status_type: "current_client_status",
+          response: { error: { message: "An error" } }
+        })
 
-      expect(response.status).to eq(409)
-      expect(body["error"]).to eq("Cannot transition current_client_status from processing to processing")
-      expect(body["currentStatus"]).to eq("processing")
-      expect(body["attemptedStatus"]).to eq("processing")
+        response = get "/v2/#{resource}/#{node.id}/errors"
+        body = JSON.parse(response.body)
+
+        expect(body.count).to eq(2)
+        expect(body.first["response"]["error"]["message"]).to eq("Whoops")
+        expect(body.second["response"]["error"]["message"]).to eq("An error")
+      end
     end
 
-    it "does not mark the node in error state with invalid client state change" do
-      node.update_attributes(current_client_status: :processing, current_server_status: :sent_to_client)
-      response = put "v2/events/#{node.id}/status/processing"
-      expect(node.reload.current_client_status).to eq("processing")
-      expect(node.reload.current_server_status).to eq("sent_to_client")
-    end
+    context "GET /#{resource}/:id/response" do
+      it "returns the response for the last client status change" do
+        node.status_changes.create({
+          from_status: "sent_to_client",
+          to_status: "errored",
+          status_type: "current_client_status",
+          response: { error: { message: "An error" } }
+        })
+        node.status_changes.create({
+          from_status: "pending",
+          to_status: "ready",
+          status_type: "current_server_status"
+        })
 
-    it "does not mark the node in error state with invalid client state change" do
-      node.update_attributes(current_client_status: :processing, current_server_status: :sent_to_client)
-      response = put "v2/events/#{node.id}/status/processing"
-      expect(node.reload.current_client_status).to eq("processing")
-      expect(node.reload.current_server_status).to eq("sent_to_client")
-    end
-  end
+        response = get "/v2/#{resource}/#{node.id}/response"
+        body = JSON.parse(response.body)
 
-  context "PUT /events/:id/status/completed" do
-    it "marks the node as complete" do
-      node.update_attributes({
-        current_server_status: :sent_to_client,
-        current_client_status: :processing
-      })
-      client_params = { "result" => "Done", "error" => nil }
-
-      put "v2/events/#{node.id}/status/completed", { "response" => client_params }
-      node.reload
-
-      expect(node.current_client_status).to eq("complete")
-      expect(node.status_changes.last.response).to eq(client_params)
-    end
-  end
-
-  context "PUT /events/:id/status/errored" do
-    it "stores the client backtrace in the client node detail" do
-      client_params = { "error" => { "backtrace" => "The backtrace" }}
-
-      put "v2/events/#{node.id}/status/errored", { "response" => client_params }
-
-      expect(node.status_changes.first.response).to eq(client_params)
-    end
-  end
-
-  context "PUT /events/:id/reset" do
-    it "deactivates all child nodes on the node" do
-      child = FactoryGirl.create(:node, user: user, workflow: workflow, parent: node)
-
-      put "v2/events/#{node.id}/reset"
-
-      expect(node.children.count).to eq(1)
-      expect(child.reload.current_server_status).to eq("deactivated")
-    end
-  end
-
-  context "PUT /events/:id/status/deactivated" do
-    it "deactivates previous nodes from the activity" do
-      second_node = FactoryGirl.create(
-        :node,
-        workflow: workflow,
-        parent: node,
-        user: user
-      )
-
-      put "v2/events/#{second_node.id}/status/deactivated"
-
-      expect(node.reload.current_server_status).to eq("deactivated")
-    end
-  end
-
-  context "PUT /events/:id/canceled" do
-    it "deactivates it self and all child nodes on the node" do
-      child = FactoryGirl.create(:node, user: user, workflow: workflow, parent: node)
-
-      put "v2/events/#{node.id}/status/canceled"
-
-      expect(node.reload.current_server_status).to eq("deactivated")
-      expect(child.reload.current_server_status).to eq("deactivated")
-    end
-  end
-
-  context "GET /events/:id/errors" do
-    it "returns all status changes to an errored state" do
-      node.status_changes.create({
-        from_status: "ready",
-        to_status: "errored",
-        status_type: "current_server_status",
-        response: { error: { message: "Whoops" } }
-      })
-      node.status_changes.create({
-        from_status: "pending",
-        to_status: "ready",
-        status_type: "current_server_status",
-        response: { result: "Done" }
-      })
-      node.status_changes.create({
-        from_status: "sent_to_client",
-        to_status: "errored",
-        status_type: "current_client_status",
-        response: { error: { message: "An error" } }
-      })
-
-      response = get "/v2/events/#{node.id}/errors"
-      body = JSON.parse(response.body)
-
-      expect(body.count).to eq(2)
-      expect(body.first["response"]["error"]["message"]).to eq("Whoops")
-      expect(body.second["response"]["error"]["message"]).to eq("An error")
-    end
-  end
-
-  context "GET /events/:id/response" do
-    it "returns the response for the last client status change" do
-      node.status_changes.create({
-        from_status: "sent_to_client",
-        to_status: "errored",
-        status_type: "current_client_status",
-        response: { error: { message: "An error" } }
-      })
-      node.status_changes.create({
-        from_status: "pending",
-        to_status: "ready",
-        status_type: "current_server_status"
-      })
-
-      response = get "/v2/events/#{node.id}/response"
-      body = JSON.parse(response.body)
-
-      expect(body["error"]["message"]).to eq("An error")
+        expect(body["error"]["message"]).to eq("An error")
+      end
     end
   end
 end

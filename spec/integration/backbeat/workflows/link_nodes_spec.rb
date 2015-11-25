@@ -50,7 +50,7 @@ describe Backbeat, :api_test do
       expect(signal_node.parent_link).to eq(node)
       expect(node.child_links).to eq([signal_node])
 
-      put "v2/events/#{node.id}/status/completed"
+      put "v2/activities/#{node.id}/status/completed"
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
        .with(:body => decision_hash(signal_node, {current_server_status: :sent_to_client, current_client_status: :received}))
@@ -63,7 +63,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "processing_children"
       )
 
-      put "v2/events/#{signal_node.id}/status/completed"
+      put "v2/activities/#{signal_node.id}/status/completed"
 
       SidekiqHelper.soft_drain
 
