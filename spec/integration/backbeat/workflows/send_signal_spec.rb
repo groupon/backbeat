@@ -63,7 +63,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "v2/events/#{node.id}/status/deciding"
+      response = put "v2/activities/#{node.id}/status/deciding"
       expect(node.reload.attributes).to include(
         "current_client_status" => "processing",
         "current_server_status" => "sent_to_client"
@@ -71,7 +71,7 @@ describe Backbeat, :api_test do
 
       activity= FactoryGirl.build(:client_activity_post_to_decision)
       activity_to_post = { "decisions" => [activity] }
-      response = post "v2/events/#{node.id}/decisions", activity_to_post
+      response = post "v2/activities/#{node.id}/decisions", activity_to_post
 
       expect(node.reload.attributes).to include(
         "current_client_status" => "processing",
@@ -79,7 +79,7 @@ describe Backbeat, :api_test do
       )
       expect(node.reload.children.count).to eq(1)
 
-      response = put "v2/events/#{node.id}/status/deciding_complete"
+      response = put "v2/activities/#{node.id}/status/deciding_complete"
       expect(node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"
@@ -102,7 +102,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "v2/events/#{activity_node.id}/status/completed"
+      response = put "v2/activities/#{activity_node.id}/status/completed"
       expect(activity_node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"

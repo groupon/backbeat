@@ -35,7 +35,7 @@ require 'backbeat/web/helpers/current_user_helper'
 
 module Backbeat
   module Web
-    class DebugApi < Grape::API
+    class DebugAPI < Grape::API
       helpers CurrentUserHelper
       version 'v2', using: :path
 

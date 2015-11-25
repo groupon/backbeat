@@ -31,7 +31,7 @@
 require 'spec_helper'
 require 'helper/request_helper'
 
-describe Backbeat::Web::WorkflowsApi, :api_test do
+describe Backbeat::Web::WorkflowsAPI, :api_test do
   include RequestHelper
 
   let(:user) { FactoryGirl.create(:user) }

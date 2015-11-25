@@ -38,7 +38,7 @@ require 'backbeat/search/workflow_search'
 
 module Backbeat
   module Web
-    class WorkflowsApi < Grape::API
+    class WorkflowsAPI < Grape::API
       version 'v2', using: :path
 
       helpers CurrentUserHelper
