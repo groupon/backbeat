@@ -358,7 +358,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
   end
 
   context "GET /workflows/:id/children" do
-    it "returns the workflows immediate" do
+    it "returns the workflows immediate child nodes" do
       second_node = FactoryGirl.create(
         :node,
         workflow: workflow,
@@ -367,6 +367,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       )
 
       response = get "workflows/#{workflow.id}/children"
+
       expect(response.status).to eq(200)
 
       body = JSON.parse(response.body)
