@@ -40,7 +40,7 @@ describe Backbeat, :api_test do
 
   context "Pause Workflow" do
     it "prevents all nodes from running until resumed" do
-      response = post "v2/workflows/#{workflow.id}/signal/test", options: {
+      response = post "workflows/#{workflow.id}/signal/test", options: {
         client_data: { data: '123' },
         client_metadata: { metadata: '456'}
       }
@@ -52,7 +52,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "ready"
       )
 
-      put "v2/workflows/#{workflow.id}/pause"
+      put "workflows/#{workflow.id}/pause"
 
       Backbeat::Workers::AsyncWorker.drain
 
@@ -61,7 +61,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "paused"
       )
 
-      response = put "v2/workflows/#{workflow.id}/resume"
+      response = put "workflows/#{workflow.id}/resume"
 
       expect(response.status).to eq(200)
 
