@@ -67,7 +67,7 @@ GEM
     ffi (1.9.10-java)
     foreigner (1.7.4)
       activerecord (>= 3.0.0)
-    grape (0.11.0)
+    grape (0.13.0)
       activesupport
       builder
       hashie (>= 2.1.0)
@@ -77,7 +77,7 @@ GEM
       rack-accept
       rack-mount
       virtus (>= 1.0.0)
-    hashie (3.4.2)
+    hashie (3.4.3)
     hitimes (1.2.3)
     hitimes (1.2.3-java)
     httparty (0.13.5)
@@ -95,7 +95,7 @@ GEM
       mime-types (>= 1.16, < 3)
     method_source (0.8.2)
     mime-types (2.6.1)
-    minitest (5.8.1)
+    minitest (5.8.3)
     multi_json (1.11.2)
     multi_xml (0.5.5)
     parse-cron (0.1.4)
@@ -240,7 +240,7 @@ DEPENDENCIES
   enumerize
   factory_girl
   foreigner
-  grape (~> 0.11.0)
+  grape (~> 0.13.0)
   httparty
   jdbc-postgres
   jruby-openssl

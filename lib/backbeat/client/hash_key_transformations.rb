@@ -55,6 +55,10 @@ module Backbeat
           object.map do |value|
             transform_keys(value, &block)
           end
+        when ActiveRecord::Base
+          transform_keys(object.attributes, &block)
+        when ActiveRecord::Relation
+          transform_keys(object.to_a, &block)
         else
           if object.respond_to?(:to_hash)
             transform_keys(object.to_hash, &block)

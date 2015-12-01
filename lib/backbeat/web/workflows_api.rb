@@ -53,11 +53,11 @@ module Backbeat
 
         resource 'workflows' do
           post "/" do
-            wf = Server.create_workflow(params, current_user)
-            if wf.valid?
-              wf
+            workflow = Server.create_workflow(params, current_user)
+            if workflow.valid?
+              workflow
             else
-              raise InvalidParameters, wf.errors.to_hash
+              raise InvalidParameters, workflow.errors.to_hash
             end
           end
 
