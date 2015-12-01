@@ -39,7 +39,7 @@ describe Backbeat, :api_test do
 
   context "flags" do
     it "completes a workflow with a flag" do
-      response = post "v2/workflows/#{workflow.id}/signal/test", options: {
+      response = post "workflows/#{workflow.id}/signal/test", options: {
         client_data: { data: '123' },
           client_metadata: { metadata: '456'}
       }
@@ -53,7 +53,7 @@ describe Backbeat, :api_test do
       )
 
       WebMock.stub_request(:post, "http://backbeat-client:9000/decision")
-        .with(:body => decision_hash(signal_node, {current_server_status: :sent_to_client, current_client_status: :received}))
+        .with(:body => decision_hash(signal_node, { current_server_status: :sent_to_client, current_client_status: :received }))
         .to_return(:status => 200, :body => "", :headers => {})
 
       Backbeat::Workers::AsyncWorker.drain
@@ -63,7 +63,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "v2/activities/#{signal_node.id}/status/deciding"
+      response = put "activities/#{signal_node.id}/status/deciding"
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
@@ -75,7 +75,7 @@ describe Backbeat, :api_test do
 
       children_to_post = { "decisions" => [flag, activity] }
 
-      response = post "v2/activities/#{signal_node.id}/decisions", children_to_post
+      response = post "activities/#{signal_node.id}/decisions", children_to_post
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
@@ -84,7 +84,7 @@ describe Backbeat, :api_test do
       expect(signal_node.reload.children.count).to eq(2)
 
 
-      response = put "v2/activities/#{signal_node.id}/status/deciding_complete"
+      response = put "activities/#{signal_node.id}/status/deciding_complete"
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "complete",

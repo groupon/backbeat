@@ -50,7 +50,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
         subject: { subject_klass: "PaymentTerm", subject_id: 100 },
         decider: "PaymentDecider"
       }
-      response = post 'v2/workflows', workflow_data
+      response = post 'workflows', workflow_data
 
       expect(response.status).to eq(201)
 
@@ -60,7 +60,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       expect(workflow.subject).to eq({ "subject_klass" => "PaymentTerm", "subject_id" => "100" })
       expect(workflow.name).to eq("WFType")
 
-      response = post 'v2/workflows', workflow_data
+      response = post 'workflows', workflow_data
       expect(first_response['id']).to eq(JSON.parse(response.body)['id'])
     end
 
@@ -70,7 +70,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
         subject: { subject_klass: "PaymentTerm", subject_id: 100 },
         decider: "PaymentDecider"
       }
-      response = post 'v2/workflows', workflow_data
+      response = post 'workflows', workflow_data
 
       expect(response.status).to eq(201)
 
@@ -80,7 +80,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       expect(workflow.subject).to eq({ "subject_klass" => "PaymentTerm", "subject_id" => "100" })
       expect(workflow.name).to eq("WFName")
 
-      response = post 'v2/workflows', workflow_data
+      response = post 'workflows', workflow_data
       expect(first_response['id']).to eq(JSON.parse(response.body)['id'])
     end
   end
@@ -95,7 +95,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     }}
 
     it "creates a signal on the workflow" do
-      response = post "v2/workflows/#{workflow.id}/signal", signal_params
+      response = post "workflows/#{workflow.id}/signal", signal_params
 
       expect(response.status).to eq(201)
       expect(workflow.children.count).to eq(2)
@@ -107,14 +107,14 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     it "calls schedule next node after creating the signal" do
       expect(Backbeat::Server).to receive(:fire_event).with(Backbeat::Events::ScheduleNextNode, workflow)
 
-      response = post "v2/workflows/#{workflow.id}/signal", signal_params
+      response = post "workflows/#{workflow.id}/signal", signal_params
     end
 
     it "returns a 400 response if the workflow is complete" do
       workflow.complete!
       expect(workflow.children.count).to eq(1)
 
-      response = post "v2/workflows/#{workflow.id}/signal", signal_params
+      response = post "workflows/#{workflow.id}/signal", signal_params
 
       expect(response.status).to eq(400)
       expect(workflow.children.count).to eq(1)
@@ -130,7 +130,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     }}
 
     it "creates a signal on the workflow" do
-      response = post "v2/workflows/#{workflow.id}/signal/new_signal", signal_params
+      response = post "workflows/#{workflow.id}/signal/new_signal", signal_params
 
       expect(response.status).to eq(201)
       expect(workflow.children.count).to eq(2)
@@ -142,21 +142,21 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     it "calls schedule next node after creating the signal" do
       expect(Backbeat::Server).to receive(:fire_event).with(Backbeat::Events::ScheduleNextNode, workflow)
 
-      response = post "v2/workflows/#{workflow.id}/signal/new_signal", signal_params
+      response = post "workflows/#{workflow.id}/signal/new_signal", signal_params
     end
 
     it "returns a 400 response if the workflow is complete" do
       workflow.complete!
       expect(workflow.children.count).to eq(1)
 
-      response = post "v2/workflows/#{workflow.id}/signal/new_signal", signal_params
+      response = post "workflows/#{workflow.id}/signal/new_signal", signal_params
 
       expect(response.status).to eq(400)
       expect(workflow.children.count).to eq(1)
     end
 
     it "adds the link_id to the signal node" do
-      response = post "v2/workflows/#{workflow.id}/signal/test", { options: { parent_link_id: node.id } }
+      response = post "workflows/#{workflow.id}/signal/test", { options: { parent_link_id: node.id } }
       expect(workflow.nodes.last.parent_link).to eq(node)
     end
   end
@@ -188,14 +188,14 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     )}
 
     it "returns all workflows with matching name" do
-      response = get "v2/workflows/search?name=import"
+      response = get "workflows/search?name=import"
       result = JSON.parse(response.body)
       expect(result.count).to eq(2)
       expect(result.map{ |wf| wf["name"] }).to_not include("bar")
     end
 
     it "returns all workflows partially matching on subject" do
-      response = get "v2/workflows/search?subject=FooModel"
+      response = get "workflows/search?subject=FooModel"
       result = JSON.parse(response.body)
       expect(result.count).to eq(2)
       expect(result.first["id"]).to eq(wf_1.id)
@@ -203,7 +203,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     end
 
     it "returns all workflows matching name and partial subject" do
-      response = get "v2/workflows/search?subject=FooModel&name=import"
+      response = get "workflows/search?subject=FooModel&name=import"
       result = JSON.parse(response.body)
       expect(result.first["id"]).to eq(wf_1.id)
     end
@@ -215,7 +215,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
         user: user,
         current_server_status: :errored
       )
-      response = get "v2/workflows/search?current_status=errored"
+      response = get "workflows/search?current_status=errored"
       result = JSON.parse(response.body)
       expect(result.count).to eq(1)
       expect(result.first["id"]).to eq(wf_1.id)
@@ -228,7 +228,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
         user: user,
         current_client_status: :errored
       )
-      response = get "v2/workflows/search?current_status=errored"
+      response = get "workflows/search?current_status=errored"
       result = JSON.parse(response.body)
       expect(result.count).to eq(1)
       expect(result.first["id"]).to eq(wf_1.id)
@@ -241,7 +241,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
         user: user,
         current_client_status: :pending
       )
-      response = get "v2/workflows/search?current_status=pending&name=import&subject=FooModel"
+      response = get "workflows/search?current_status=pending&name=import&subject=FooModel"
       result = JSON.parse(response.body)
       expect(result.count).to eq(1)
       expect(result.first["id"]).to eq(wf_1.id)
@@ -264,7 +264,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       status_start = 3.hours.ago.utc.iso8601
       status_end = 1.hours.ago.utc.iso8601
       query_params = "status_start=#{status_start}&status_end=#{status_end}&past_status=errored"
-      response = get "v2/workflows/search?#{query_params}"
+      response = get "workflows/search?#{query_params}"
       result = JSON.parse(response.body)
       expect(result.count).to eq(1)
       expect(result.first["id"]).to eq(wf_1.id)
@@ -284,26 +284,26 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
         created_at: 1.hours.ago.utc
       })
 
-      response = get "v2/workflows/search?current_status=complete&past_status=errored"
+      response = get "workflows/search?current_status=complete&past_status=errored"
       result = JSON.parse(response.body)
       expect(result.count).to eq(1)
       expect(result.first["id"]).to eq(wf_1.id)
     end
 
     it "returns nothing if no params are provided" do
-      response = get "v2/workflows/search"
+      response = get "workflows/search"
       expect(response.body).to eq("[]")
     end
 
     it "returns results limited by per_page" do
-      response = get "v2/workflows/search?subject=Model&per_page=2"
+      response = get "workflows/search?subject=Model&per_page=2"
       result = JSON.parse(response.body)
 
       expect(result.count).to eq(2)
     end
 
     it "paginates results" do
-      response = get "v2/workflows/search?subject=Model&per_page=2&page=2"
+      response = get "workflows/search?subject=Model&per_page=2&page=2"
       result = JSON.parse(response.body)
 
       expect(result.count).to eq(1)
@@ -311,7 +311,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     end
 
     it "defaults pagination to 25 results" do
-      response = get "v2/workflows/search?subject=Model"
+      response = get "workflows/search?subject=Model"
       result = JSON.parse(response.body)
 
       expect(result.count).to eq(3)
@@ -338,7 +338,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       )
 
 
-      response = get "v2/workflows/search?subject=Model&per_page=2&last_id=#{wf_2.id}"
+      response = get "workflows/search?subject=Model&per_page=2&last_id=#{wf_2.id}"
       result = JSON.parse(response.body)
 
       expect(result.count).to eq(2)
@@ -349,7 +349,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
 
   context "GET /workflows/:id" do
     it "returns a workflow given an id" do
-      response = get "v2/workflows/#{workflow.id}"
+      response = get "workflows/#{workflow.id}"
       expect(response.status).to eq(200)
       body = JSON.parse(response.body)
 
@@ -366,7 +366,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
         user: user
       )
 
-      response = get "v2/workflows/#{workflow.id}/children"
+      response = get "workflows/#{workflow.id}/children"
       expect(response.status).to eq(200)
 
       body = JSON.parse(response.body)
@@ -397,7 +397,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     end
 
     it "returns the workflows nodes in ClientNodeSerializer" do
-      response = get "v2/workflows/#{workflow.id}/nodes"
+      response = get "workflows/#{workflow.id}/nodes"
       expect(response.status).to eq(200)
 
       body = JSON.parse(response.body)
@@ -412,7 +412,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     end
 
     it "returns nodes limited by query" do
-      response = get "v2/workflows/#{workflow.id}/nodes?currentServerStatus=complete"
+      response = get "workflows/#{workflow.id}/nodes?currentServerStatus=complete"
       expect(response.status).to eq(200)
 
       body = JSON.parse(response.body)
@@ -423,7 +423,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
 
   context "GET /workflows/:id/tree" do
     it "returns the workflow tree as a hash" do
-      response = get "v2/workflows/#{workflow.id}/tree"
+      response = get "workflows/#{workflow.id}/tree"
       body = JSON.parse(response.body)
 
       expect(body["id"]).to eq(workflow.id.to_s)
@@ -432,7 +432,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
 
   context "GET /workflows/:id/tree/print" do
     it "returns the workflow tree as a string" do
-      response = get "v2/workflows/#{workflow.id}/tree/print"
+      response = get "workflows/#{workflow.id}/tree/print"
       body = JSON.parse(response.body)
 
       expect(body["print"]).to include(workflow.name)
@@ -441,7 +441,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
 
   context "PUT /workflows/:id/complete" do
     it "marks the workflow as complete" do
-      response = put "v2/workflows/#{workflow.id}/complete"
+      response = put "workflows/#{workflow.id}/complete"
 
       expect(response.status).to eq(200)
       expect(workflow.reload.complete?).to eq(true)
@@ -450,7 +450,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
 
   context "PUT /workflows/:id/pause" do
     it "marks the workflow as paused" do
-      response = put "v2/workflows/#{workflow.id}/pause"
+      response = put "workflows/#{workflow.id}/pause"
 
       expect(response.status).to eq(200)
       expect(workflow.reload.paused?).to eq(true)
@@ -461,7 +461,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     it "resumes the workflow" do
       workflow.pause!
 
-      response = put "v2/workflows/#{workflow.id}/resume"
+      response = put "workflows/#{workflow.id}/resume"
 
       expect(response.status).to eq(200)
       expect(workflow.reload.paused?).to eq(false)
@@ -478,7 +478,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     it "returns the first workflow matching the decider and subject" do
       workflow.update_attributes(migrated: true)
 
-      response = get "v2/workflows", query
+      response = get "workflows", query
       body = JSON.parse(response.body)
 
       expect(response.status).to eq(200)
@@ -489,7 +489,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       it "returns 404 if a workflow is not found by #{param}" do
         workflow.update_attributes(migrated: true)
 
-        response = get "v2/workflows", query.merge(param => "Foo")
+        response = get "workflows", query.merge(param => "Foo")
 
         expect(response.status).to eq(404)
       end
@@ -498,7 +498,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     it "returns 404 if the workflow is not fully migrated" do
       workflow.update_attributes(migrated: false)
 
-      response = get "v2/workflows", query
+      response = get "workflows", query
 
       expect(response.status).to eq(404)
     end
@@ -510,7 +510,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       FactoryGirl.create(:workflow, { name: "A Workflow", user: user })
       FactoryGirl.create(:workflow, { name: "C Workflow", user: user })
 
-      response = get "/v2/workflows/names"
+      response = get "/workflows/names"
       body = JSON.parse(response.body)
 
       expect(body).to eq(["A Workflow", "B Workflow", "C Workflow"])
@@ -520,14 +520,14 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       FactoryGirl.create(:workflow, { name: "B Workflow", user: user })
       FactoryGirl.create(:workflow, { name: "A Workflow", user: user })
       FactoryGirl.create(:workflow, { name: "C Workflow", user: user })
-      response = get "/v2/workflows/names"
+      response = get "/workflows/names"
       body = JSON.parse(response.body)
 
       expect(body.size).to eq(3)
 
       FactoryGirl.create(:workflow, { name: "D Workflow", user: user })
 
-      response = get "/v2/workflows/names"
+      response = get "/workflows/names"
       body = JSON.parse(response.body)
 
       expect(body.size).to eq(3)

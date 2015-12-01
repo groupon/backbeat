@@ -28,113 +28,114 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'grape'
 require 'backbeat/cache'
 require 'backbeat/errors'
 require 'backbeat/server'
 require 'backbeat/models/workflow'
-require 'backbeat/web/helpers/current_user_helper'
 require 'backbeat/search/workflow_search'
+require 'backbeat/web/versioned_api'
+require 'backbeat/web/helpers/current_user_helper'
 
 module Backbeat
   module Web
-    class WorkflowsAPI < Grape::API
-      version 'v2', using: :path
+    class WorkflowsAPI < VersionedAPI
 
-      helpers CurrentUserHelper
+      VALID_NODE_FILTERS = [:current_server_status, :current_client_status]
 
-      helpers do
-        def find_workflow
-          Workflow.where(user_id: current_user.id).find(params[:id])
-        end
-      end
+      api do
+        helpers CurrentUserHelper
 
-      resource 'workflows' do
-        post "/" do
-          wf = Server.create_workflow(params, current_user)
-          if wf.valid?
-            wf
-          else
-            raise InvalidParameters, wf.errors.to_hash
+        helpers do
+          def find_workflow
+            Workflow.where(user_id: current_user.id).find(params[:id])
           end
         end
 
-        get "/" do
-          subject = params[:subject].is_a?(String) ? params[:subject] : params[:subject].to_json
-          Workflow.where(
-            migrated: true,
-            user_id: current_user.id,
-            subject: subject,
-            decider: params[:decider],
-            name: params[:workflow_type] || params[:name]
-          ).first!
-        end
-
-        get "/names" do
-          Cache.fetch('workflows:names', { expires_in: 1.hour }) do
-            Workflow.select(:name).distinct.order(:name).map { |item| item["name"] }
+        resource 'workflows' do
+          post "/" do
+            wf = Server.create_workflow(params, current_user)
+            if wf.valid?
+              wf
+            else
+              raise InvalidParameters, wf.errors.to_hash
+            end
           end
-        end
 
-        get "/search" do
-          Search::WorkflowSearch.new(params).result
-        end
+          get "/" do
+            subject = params[:subject].is_a?(String) ? params[:subject] : params[:subject].to_json
+            Workflow.where(
+              migrated: true,
+              user_id: current_user.id,
+              subject: subject,
+              decider: params[:decider],
+              name: params[:workflow_type] || params[:name]
+            ).first!
+          end
 
-        post "/:id/signal" do
-          workflow = find_workflow
-          signal = Server.signal(workflow, params)
-          Server.fire_event(Events::ScheduleNextNode, workflow)
-          signal
-        end
+          get "/names" do
+            Cache.fetch('workflows:names', { expires_in: 1.hour }) do
+              Workflow.select(:name).distinct.order(:name).map { |item| item["name"] }
+            end
+          end
 
-        post "/:id/signal/:name" do
-          workflow = find_workflow
-          signal = Server.signal(workflow, params)
-          Server.fire_event(Events::ScheduleNextNode, workflow)
-          signal
-        end
+          get "/search" do
+            Search::WorkflowSearch.new(params).result
+          end
 
-        put "/:id/complete" do
-          workflow = find_workflow
-          workflow.complete!
-          { success: true }
-        end
+          post "/:id/signal" do
+            workflow = find_workflow
+            signal = Server.signal(workflow, params)
+            Server.fire_event(Events::ScheduleNextNode, workflow)
+            signal
+          end
 
-        put "/:id/pause" do
-          workflow = find_workflow
-          workflow.pause!
-          { success: true }
-        end
+          post "/:id/signal/:name" do
+            workflow = find_workflow
+            signal = Server.signal(workflow, params)
+            Server.fire_event(Events::ScheduleNextNode, workflow)
+            signal
+          end
 
-        put "/:id/resume" do
-          workflow = find_workflow
-          Server.resume_workflow(workflow)
-          { success: true }
-        end
+          put "/:id/complete" do
+            workflow = find_workflow
+            workflow.complete!
+            { success: true }
+          end
 
-        get "/:id" do
-          find_workflow
-        end
+          put "/:id/pause" do
+            workflow = find_workflow
+            workflow.pause!
+            { success: true }
+          end
 
-        get "/:id/tree" do
-          workflow = find_workflow
-          WorkflowTree.to_hash(workflow)
-        end
+          put "/:id/resume" do
+            workflow = find_workflow
+            Server.resume_workflow(workflow)
+            { success: true }
+          end
 
-        get "/:id/tree/print" do
-          workflow = find_workflow
-          { print: WorkflowTree.to_string(workflow) }
-        end
+          get "/:id" do
+            find_workflow
+          end
 
-        get "/:id/children" do
-          find_workflow.children
-        end
+          get "/:id/tree" do
+            workflow = find_workflow
+            WorkflowTree.to_hash(workflow)
+          end
 
-        VALID_NODE_FILTERS = [:current_server_status, :current_client_status]
+          get "/:id/tree/print" do
+            workflow = find_workflow
+            { print: WorkflowTree.to_string(workflow) }
+          end
 
-        get "/:id/nodes" do
-          search_params = params.slice(*VALID_NODE_FILTERS).to_hash
-          find_workflow.nodes.where(search_params).map { |node| Client::NodeSerializer.call(node) }
+          get "/:id/children" do
+            find_workflow.children
+          end
+
+          get "/:id/nodes" do
+            search_params = params.slice(*VALID_NODE_FILTERS).to_hash
+            find_workflow.nodes.where(search_params).map { |node| Client::NodeSerializer.call(node) }
+          end
         end
       end
     end

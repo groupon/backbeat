@@ -93,7 +93,7 @@ describe Backbeat, :api_test do
       soft_drain
       expect(activity_node.reload.current_server_status).to eq("sent_to_client")
 
-      put "v2/activities/#{activity_node.id}/status/completed"
+      put "activities/#{activity_node.id}/status/completed"
       soft_drain
       expect(activity_node.reload.current_server_status).to eq("complete")
 
@@ -113,7 +113,7 @@ describe Backbeat, :api_test do
       soft_drain
 
       expect(timed_activity_node.reload.current_server_status).to eq("sent_to_client")
-      put "v2/activities/#{timed_activity_node.id}/status/completed"
+      put "activities/#{timed_activity_node.id}/status/completed"
 
       soft_drain
       expect(timed_activity_node.reload.current_server_status).to eq("complete")

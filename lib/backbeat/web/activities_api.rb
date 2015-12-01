@@ -28,15 +28,15 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'grape'
 require 'backbeat/errors'
 require 'backbeat/server'
 require 'backbeat/models/node'
+require 'backbeat/web/versioned_api'
 require 'backbeat/web/helpers/current_user_helper'
 
 module Backbeat
   module Web
-    module ActivityEndpoints
+    class ActivitiesAPI < VersionedAPI
 
       CLIENT_EVENTS = {
         deciding: Events::ClientProcessing,
@@ -48,7 +48,7 @@ module Backbeat
         canceled: Events::CancelNode
       }
 
-      def activity_api
+      api do
         helpers do
           def find_node
             query = { user_id: current_user.id }
@@ -109,22 +109,6 @@ module Backbeat
             Server.add_node(current_user, node, node_to_add).id
           end
         end
-      end
-    end
-
-    class ActivitiesAPI < Grape::API
-      extend ActivityEndpoints
-      version 'v2', using: :path
-      resource 'activities' do
-        activity_api
-      end
-    end
-
-    class EventsAPI < Grape::API
-      extend ActivityEndpoints
-      version 'v2', using: :path
-      resource 'events' do
-        activity_api
       end
     end
   end
