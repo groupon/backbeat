@@ -68,11 +68,12 @@ module Backbeat
         end
 
         get "/:id" do
-          Client::NodeSerializer.call(find_node)
+          present find_node, with: NodePresenter
         end
 
         get "/:id/errors" do
-          find_node.status_changes.where(to_status: :errored)
+          errors = find_node.status_changes.where(to_status: :errored)
+          present errors, with: StatusPresenter
         end
 
         get "/:id/response" do

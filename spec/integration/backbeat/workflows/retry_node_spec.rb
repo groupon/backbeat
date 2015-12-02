@@ -116,14 +116,14 @@ describe Backbeat, :api_test do
       )
 
       expect(WebMock).to have_requested(:post, "http://backbeat-client:9000/notifications").with({
-        body: Backbeat::Client::HashKeyTransformations.camelize_keys({
-          "node" => Backbeat::Client::NodeSerializer.call(activity_node),
+        body: {
+          "node" => Backbeat::NodePresenter.present(activity_node),
           "notification" => {
             "name" => activity_node.name,
             "message" => "Client Error",
           },
-          "error" => nil
-        }).to_json
+          "error" => {}
+        }.to_json
       })
     end
 

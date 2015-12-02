@@ -42,27 +42,19 @@ module Backbeat
     class API < Grape::API
       format :json
 
-      formatter :json, ->(body, _) do
-        Client::HashKeyTransformations.camelize_keys(body).to_json
-      end
-
-      error_formatter :json, ->(message, _, _, _) do
-        Client::HashKeyTransformations.camelize_keys(message).to_json
-      end
-
       before do
-        @params = Client::HashKeyTransformations.underscore_keys(params)
+        @params = Util.underscore(params)
         authenticate!
       end
 
       rescue_from :all do |e|
         Logger.error({ error_type: e.class, error: e.message, backtrace: e.backtrace })
-        error!({ error: e.message }, 500)
+        error!(ErrorPresenter.present(e), 500)
       end
 
       rescue_from ActiveRecord::RecordNotFound do |e|
         Logger.info(e)
-        error!({ error: e.message }, 404)
+        error!(ErrorPresenter.present(e), 404)
       end
 
       RESCUED_ERRORS = [
@@ -73,17 +65,17 @@ module Backbeat
 
       rescue_from *RESCUED_ERRORS do |e|
         Logger.info(e)
-        error!({ error: e.message }, 400)
+        error!(ErrorPresenter.present(e), 400)
       end
 
       rescue_from InvalidServerStatusChange do |e|
         Logger.info(e)
-        error!({ error: e.message }, 500)
+        error!(ErrorPresenter.present(e), 500)
       end
 
       rescue_from InvalidClientStatusChange do |e|
         Logger.info(e)
-        error!(e.data.merge(error: e.message), 409)
+        error!(ErrorPresenter.present(e), 409)
       end
 
       mount WorkflowsAPI.versioned('/')

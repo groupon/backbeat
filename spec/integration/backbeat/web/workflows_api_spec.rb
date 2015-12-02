@@ -425,9 +425,12 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
   context "GET /workflows/:id/tree" do
     it "returns the workflow tree as a hash" do
       response = get "workflows/#{workflow.id}/tree"
+
       body = JSON.parse(response.body)
 
       expect(body["id"]).to eq(workflow.id.to_s)
+      expect(body["userId"]).to eq(workflow.user_id)
+      expect(body["children"].count).to eq(1)
     end
   end
 

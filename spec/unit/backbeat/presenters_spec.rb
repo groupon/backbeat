@@ -30,81 +30,68 @@
 
 require "spec_helper"
 
-describe "Serializers" do
+describe "Presenters" do
 
   let(:user) { FactoryGirl.create(:user) }
   let(:workflow) { FactoryGirl.create(:workflow_with_node, user: user) }
   let(:node) { workflow.children.first }
 
-  context "NodeSerializer" do
+  describe Backbeat::NodePresenter do
     it "serializes a node" do
-      expect(Backbeat::Client::NodeSerializer.call(node)).to eq(
+      expect(Backbeat::NodePresenter.present(node)).to eq(
         {
           id: node.id,
           mode: node.mode,
           name: node.name,
-          workflow_id: node.workflow_id,
-          parent_id: node.parent_id,
-          user_id: node.user_id,
-          client_data: node.client_data,
+          workflowId: node.workflow_id,
+          parentId: node.parent_id,
+          userId: node.user_id,
+          clientData: node.client_data,
           metadata: node.client_metadata,
           subject: node.subject,
           decider: node.decider,
-          workflow_name: node.workflow.name,
-          current_server_status: node.current_server_status,
-          current_client_status: node.current_client_status
+          workflowName: node.workflow.name,
+          currentServerStatus: node.current_server_status,
+          currentClientStatus: node.current_client_status
         }
       )
     end
   end
 
-  context "NotificationSerializer" do
+  describe Backbeat::NotificationPresenter do
     it "serializers a notification" do
-      expect(Backbeat::Client::NotificationSerializer.call(node, "A message")).to eq(
+      expect(Backbeat::NotificationPresenter.new("A message").present(node)).to eq(
         {
-          node: Backbeat::Client::NodeSerializer.call(node),
+          node: Backbeat::NodePresenter.present(node),
           notification: {
             name: node.name,
             message: "A message"
           },
-          error: nil
+          error: {}
         }
       )
     end
   end
 
-  context "ErrorSerializer" do
+  context Backbeat::ErrorPresenter do
     it "formats the hash for StandardErrors" do
       error = StandardError.new('some_error')
-      expect(Backbeat::Client::ErrorSerializer.call(error)).to eq({
-        error_klass: error.class.to_s,
+      expect(Backbeat::ErrorPresenter.present(error)).to eq({
+        errorClass: error.class.to_s,
         message: error.message
       })
     end
 
-    it "adds backtrace if it exists" do
-      begin
-        raise StandardError.new('some_error')
-      rescue => error
-        expect(Backbeat::Client::ErrorSerializer.call(error)).to eq({
-          error_klass: error.class.to_s,
-          message: error.message,
-          backtrace: error.backtrace
-        })
-      end
-    end
-
     it "formats the hash for strings" do
-      error = "blah"
-      expect(Backbeat::Client::ErrorSerializer.call(error)).to eq({
-        error_klass: error.class.to_s,
-        message: error
-      })
+      error = "an error message"
+
+      expect(Backbeat::ErrorPresenter.present(error)).to eq({ message: error })
     end
 
-    it "doesn't format for other other class types" do
+    it "returns an empty hash for other other class types" do
       error = 1
-      expect(Backbeat::Client::ErrorSerializer.call(error)).to eq(1)
+
+      expect(Backbeat::ErrorPresenter.present(error)).to eq({})
     end
   end
 end
