@@ -40,16 +40,14 @@ describe Backbeat::Client do
   context ".notify_of" do
     it "calls the notify of endpoint" do
       error = {"couldbe" => "anything"}
-      notification_body = Backbeat::Client::HashKeyTransformations.camelize_keys(
-        {
-          "node" => Backbeat::Client::NodeSerializer.call(node),
-          "notification" => {
-            "name" => node.name,
-            "message" => "error",
-          },
-          "error" => error
-        }
-      )
+      notification_body = {
+        "node" => Backbeat::NodePresenter.present(node),
+        "notification" => {
+          "name" => node.name,
+          "message" => "error",
+        },
+        "error" => error
+      }
       WebMock.stub_request(:post, "http://notifications.com/api/v1/workflows/notify_of")
         .with(body: notification_body.to_json)
         .to_return(status: 200, body: "", headers: {})
@@ -74,11 +72,11 @@ describe Backbeat::Client do
       node.node_detail.legacy_type = 'decision'
 
       expect(Backbeat::Client).to receive(:make_decision) do |params, user|
-        expect(params).to include(
+        expect(params).to include({
           subject: node.subject,
           decider: node.decider,
-          client_data: node.client_node_detail.data
-        )
+          clientData: node.client_node_detail.data
+        })
         expect(user).to eq(node.user)
       end
 
@@ -89,9 +87,7 @@ describe Backbeat::Client do
       node.node_detail.legacy_type = 'activity'
 
       expect(Backbeat::Client).to receive(:perform_activity) do |params, user|
-        expect(params).to include(
-          client_data: node.client_node_detail.data
-        )
+        expect(params).to include(clientData: node.client_node_detail.data)
         expect(user).to eq(node.user)
       end
 
@@ -103,9 +99,7 @@ describe Backbeat::Client do
       user.update_attributes!({ decision_endpoint: nil })
 
       expect(Backbeat::Client).to receive(:perform_activity) do |params, user|
-        expect(params).to include(
-          client_data: node.client_node_detail.data
-        )
+        expect(params).to include(clientData: node.client_node_detail.data)
         expect(user).to eq(node.user)
       end
 
@@ -130,7 +124,7 @@ describe Backbeat::Client do
         node.legacy_type = :decision
 
         stub = WebMock.stub_request(:post, "http://decisions.com/api/v1/workflows/make_decision").with(
-          body: { decision: Backbeat::Client::HashKeyTransformations.camelize_keys(Backbeat::Client::NodeSerializer.call(node)) }.to_json,
+          body: { decision: Backbeat::NodePresenter.present(node) }.to_json,
           headers: { 'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json'}
         )
         Backbeat::Client.perform_action(node)
@@ -142,7 +136,7 @@ describe Backbeat::Client do
         node.legacy_type = :decision
 
         WebMock.stub_request(:post, "http://decisions.com/api/v1/workflows/make_decision").with(
-          body: { decision: Backbeat::Client::HashKeyTransformations.camelize_keys(Backbeat::Client::NodeSerializer.call(node)) }.to_json,
+          body: { decision: Backbeat::NodePresenter.present(node) }.to_json,
           headers: { 'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json'}
         ).to_return(status: 404)
 
@@ -155,7 +149,7 @@ describe Backbeat::Client do
         node.legacy_type = :activity
 
         stub = WebMock.stub_request(:post, "http://activity.com/api/v1/workflows/perform_activity").with(
-          :body => { activity: Backbeat::Client::HashKeyTransformations.camelize_keys(Backbeat::Client::NodeSerializer.call(node)) }.to_json,
+          :body => { activity: Backbeat::NodePresenter.present(node) }.to_json,
           :headers => { 'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json' }
         )
 
@@ -168,7 +162,7 @@ describe Backbeat::Client do
         node.legacy_type = :activity
 
         stub = WebMock.stub_request(:post, "http://activity.com/api/v1/workflows/perform_activity").with(
-          :body => { activity: Backbeat::Client::HashKeyTransformations.camelize_keys(Backbeat::Client::NodeSerializer.call(node)) }.to_json,
+          :body => { activity: Backbeat::NodePresenter.present(node) }.to_json,
           :headers => { 'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json' }
         ).to_return(status: 404)
 

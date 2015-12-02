@@ -29,14 +29,13 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'httparty'
-require 'backbeat/client/serializers'
 
 module Backbeat
   module Client
     def self.notify_of(node, message, error = nil)
       user = node.user
       if url = user.notification_endpoint
-        notification = NotificationSerializer.call(node, message, error)
+        notification = NotificationPresenter.new(message, error).present(node)
         response = post(url, notification)
         raise HttpError.new("HTTP request for notification failed", response) unless response.code.between?(200, 299)
       end
@@ -45,9 +44,9 @@ module Backbeat
     def self.perform_action(node)
       Instrument.instrument("client_perform_action", { node: node.id, legacy_type: node.legacy_type }) do
         if node.decision? && node.user.decision_endpoint
-          make_decision(NodeSerializer.call(node), node.user)
+          make_decision(NodePresenter.present(node), node.user)
         else
-          perform_activity(NodeSerializer.call(node), node.user)
+          perform_activity(NodePresenter.present(node), node.user)
         end
       end
     end
@@ -69,7 +68,7 @@ module Backbeat
     private_class_method :make_decision
 
     def self.post(url, params = {})
-      body = HashKeyTransformations.camelize_keys(params).to_json
+      body = params.to_json
       HTTParty.post(url, {
         body: body,
         headers: {

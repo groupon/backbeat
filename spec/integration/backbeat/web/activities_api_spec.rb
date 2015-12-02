@@ -194,7 +194,7 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
         body = JSON.parse(response.body)
 
         expect(response.status).to eq(409)
-        expect(body["error"]).to eq("Cannot transition current_client_status from processing to processing")
+        expect(body["message"]).to eq("Cannot transition current_client_status from processing to processing")
         expect(body["currentStatus"]).to eq("processing")
         expect(body["attemptedStatus"]).to eq("processing")
       end
