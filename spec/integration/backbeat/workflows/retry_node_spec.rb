@@ -56,7 +56,7 @@ describe Backbeat, :api_test do
       )
       expect(activity_node.node_detail.retries_remaining).to eq(4)
 
-      response = put "v2/events/#{activity_node.id}/status/errored"
+      response = put "activities/#{activity_node.id}/status/errored"
 
       Backbeat::Workers::AsyncWorker.drain
 
@@ -66,7 +66,7 @@ describe Backbeat, :api_test do
       )
       expect(activity_node.node_detail.retries_remaining).to eq(3)
 
-      response = put "v2/events/#{activity_node.id}/status/completed"
+      response = put "activities/#{activity_node.id}/status/completed"
       expect(activity_node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"
@@ -97,7 +97,7 @@ describe Backbeat, :api_test do
         .to_return(:status => 200, :body => "", :headers => {})
 
       2.times do |i|
-        response = put "v2/events/#{activity_node.id}/status/errored"
+        response = put "activities/#{activity_node.id}/status/errored"
 
         Backbeat::Workers::AsyncWorker.drain
 
@@ -108,7 +108,7 @@ describe Backbeat, :api_test do
         expect(activity_node.node_detail.retries_remaining).to eq(1 - i)
       end
 
-      response = put "v2/events/#{activity_node.id}/status/errored"
+      response = put "activities/#{activity_node.id}/status/errored"
 
       expect(activity_node.reload.attributes).to include(
         "current_client_status" => "errored",
@@ -149,7 +149,7 @@ describe Backbeat, :api_test do
         Backbeat::Server.fire_event(Backbeat::Events::ClientComplete, node)
       end
 
-      put "v2/events/#{node.id}/status/errored"
+      put "activities/#{node.id}/status/errored"
 
       Backbeat::Workers::AsyncWorker.drain
       node.reload

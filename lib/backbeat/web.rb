@@ -34,8 +34,8 @@ require 'backbeat/web/middleware/health'
 require 'backbeat/web/middleware/heartbeat'
 require 'backbeat/web/middleware/sidekiq_stats'
 require 'backbeat/web/middleware/camel_case'
-require 'backbeat/web/events_api'
 require 'backbeat/web/workflows_api'
+require 'backbeat/web/activities_api'
 require 'backbeat/web/debug_api'
 
 module Backbeat
@@ -81,10 +81,13 @@ module Backbeat
         Rack::Response.new(e.data.merge(error: e.message).to_json, 409, { "Content-type" => "application/json" }).finish
       end
 
-      mount WorkflowsApi
-      mount EventsApi
-      mount WorkflowEventsApi
-      mount DebugApi
+      mount WorkflowsAPI.versioned('/')
+      mount ActivitiesAPI.versioned('/activities')
+
+      # Deprecated V2 API
+      mount WorkflowsAPI.versioned('/v2')
+      mount ActivitiesAPI.versioned('/v2/events')
+      mount DebugAPI.versioned('/v2')
     end
 
     App = Rack::Builder.new do

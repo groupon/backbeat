@@ -39,7 +39,7 @@ describe Backbeat, :api_test do
 
   context "modes" do
     it "completes a workflow with blocking, non_blocking and fire_and_forget nodes" do
-      response = post "v2/workflows/#{workflow.id}/signal/test", options: {
+      response = post "workflows/#{workflow.id}/signal/test", options: {
         client_data: { data: '123' },
         metadata: { metadata: '456'}
       }
@@ -63,7 +63,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "v2/events/#{signal_node.id}/status/deciding"
+      response = put "activities/#{signal_node.id}/status/deciding"
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
@@ -77,7 +77,7 @@ describe Backbeat, :api_test do
 
       activities_to_post = { "decisions" => [activity_1, activity_2, activity_3, activity_4] }
 
-      response = post "v2/events/#{signal_node.id}/decisions", activities_to_post
+      response = post "activities/#{signal_node.id}/decisions", activities_to_post
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
@@ -85,7 +85,7 @@ describe Backbeat, :api_test do
       )
       expect(signal_node.reload.children.count).to eq(4)
 
-      response = put "v2/events/#{signal_node.id}/status/deciding_complete"
+      response = put "activities/#{signal_node.id}/status/deciding_complete"
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "complete",
@@ -135,8 +135,8 @@ describe Backbeat, :api_test do
         "current_server_status" => "ready"
       )
 
-      put "v2/events/#{activity_nodes[0].id}/status/completed"
-      put "v2/events/#{activity_nodes[1].id}/status/completed"
+      put "activities/#{activity_nodes[0].id}/status/completed"
+      put "activities/#{activity_nodes[1].id}/status/completed"
 
       expect(activity_nodes[0].reload.attributes).to include(
         "current_client_status" => "complete",
@@ -176,7 +176,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "processing_children"
       )
 
-      put "v2/events/#{activity_nodes[2].id}/status/completed"
+      put "activities/#{activity_nodes[2].id}/status/completed"
 
       expect(activity_nodes[2].reload.attributes).to include(
         "current_client_status" => "complete",
@@ -202,7 +202,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      put "v2/events/#{activity_nodes[3].id}/status/completed"
+      put "activities/#{activity_nodes[3].id}/status/completed"
 
       expect(activity_nodes[3].reload.attributes).to include(
         "current_client_status" => "complete",
@@ -222,7 +222,7 @@ describe Backbeat, :api_test do
     end
 
     it "completes a workflow with two signals" do
-      response = post "v2/workflows/#{workflow.id}/signal/test", options: {
+      response = post "workflows/#{workflow.id}/signal/test", options: {
         client_data: { data: '123' },
         client_metadata: { metadata: '456'}
       }
@@ -235,7 +235,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "ready"
       )
 
-      response_2 = post "v2/workflows/#{workflow.id}/signal/test_2", options: {
+      response_2 = post "workflows/#{workflow.id}/signal/test_2", options: {
         client_data: { data: '124' },
         client_metadata: { metadata: '457'}
       }
@@ -261,7 +261,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "v2/events/#{signal_node.id}/status/deciding"
+      response = put "activities/#{signal_node.id}/status/deciding"
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
         "current_server_status" => "sent_to_client"
@@ -269,7 +269,7 @@ describe Backbeat, :api_test do
 
       activity = FactoryGirl.build(:client_activity_post_to_decision)
       activities_to_post = { "decisions" => [activity] }
-      response = post "v2/events/#{signal_node.id}/decisions", activities_to_post
+      response = post "activities/#{signal_node.id}/decisions", activities_to_post
 
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "processing",
@@ -277,7 +277,7 @@ describe Backbeat, :api_test do
       )
       expect(signal_node.reload.children.count).to eq(1)
 
-      response = put "v2/events/#{signal_node.id}/status/deciding_complete"
+      response = put "activities/#{signal_node.id}/status/deciding_complete"
       expect(signal_node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"
@@ -300,7 +300,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "v2/events/#{activity_node.id}/status/completed"
+      response = put "activities/#{activity_node.id}/status/completed"
       expect(activity_node.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"
@@ -325,7 +325,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "v2/events/#{signal_node_2.id}/status/deciding"
+      response = put "activities/#{signal_node_2.id}/status/deciding"
       expect(signal_node_2.reload.attributes).to include(
         "current_client_status" => "processing",
         "current_server_status" => "sent_to_client"
@@ -333,7 +333,7 @@ describe Backbeat, :api_test do
 
       activity = FactoryGirl.build(:client_activity_post_to_decision)
       activity_to_post_signal_2 = { "decisions" => [activity] }
-      response = post "v2/events/#{signal_node_2.id}/decisions", activity_to_post_signal_2
+      response = post "activities/#{signal_node_2.id}/decisions", activity_to_post_signal_2
 
       expect(signal_node_2.reload.attributes).to include(
         "current_client_status" => "processing",
@@ -341,7 +341,7 @@ describe Backbeat, :api_test do
       )
       expect(signal_node_2.reload.children.count).to eq(1)
 
-      response = put "v2/events/#{signal_node_2.id}/status/deciding_complete"
+      response = put "activities/#{signal_node_2.id}/status/deciding_complete"
       expect(signal_node_2.reload.attributes).to include(
         "current_client_status" => "complete",
         "current_server_status" => "processing_children"
@@ -363,7 +363,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      response = put "v2/events/#{activity_node_signal_2.id}/status/completed"
+      response = put "activities/#{activity_node_signal_2.id}/status/completed"
 
       Backbeat::Workers::AsyncWorker.drain
 
