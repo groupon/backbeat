@@ -18,6 +18,8 @@ require 'backbeat/workers/middleware/transaction_id'
 
 module Services
   class SidekiqService
+    include Sidekiq::Util
+
     attr_accessor :config, :launcher
 
     CONFIG_OPTIONS_TO_STRIP = ['config_file', 'daemon', 'environment', 'pidfile', 'require', 'tag', 'options']
@@ -38,6 +40,10 @@ module Services
     end
 
     def start
+      # we have to manually boot sidekiq schedulable because of a torquebox sidekiq loading issue
+      SidekiqSchedulable.boot!
+      fire_event(:startup)
+
       Thread.new do
         @mutex.synchronize { run }
       end
