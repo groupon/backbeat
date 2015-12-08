@@ -394,7 +394,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
         user: user,
         current_server_status: :complete
       )
-      @third_node.client_node_detail.update_attributes!(metadata: {"version"=>"v2", "workflow_type_on_v2"=>true})
+      @third_node.client_node_detail.update_attributes!(metadata: {"some_data"=>true})
     end
 
     it "returns the workflows nodes in ClientNodeSerializer" do
@@ -408,7 +408,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       expect(body.second["id"]).to eq(nodes.second.id)
       expect(body.third["id"]).to eq(nodes.third.id)
       expect(body.third["currentServerStatus"]).to eq(nodes.third.current_server_status)
-      expect(body.third["metadata"]).to eq({"version"=>"v2", "workflowTypeOnV2"=>true})
+      expect(body.third["metadata"]).to eq({"some_data"=>true})
       expect(body.count).to eq(3)
     end
 
