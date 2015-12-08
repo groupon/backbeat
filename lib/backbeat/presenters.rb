@@ -78,7 +78,7 @@ module Backbeat
         parentId: node.parent_id,
         userId: node.user_id,
         clientData: node.client_data,
-        metadata: Util.camelize(node.client_metadata),
+        metadata: node.client_metadata,
         subject: node.subject,
         decider: node.decider,
         workflowName: node.workflow_name,
