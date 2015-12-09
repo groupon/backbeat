@@ -52,7 +52,8 @@ describe "Presenters" do
           decider: node.decider,
           workflowName: node.workflow.name,
           currentServerStatus: node.current_server_status,
-          currentClientStatus: node.current_client_status
+          currentClientStatus: node.current_client_status,
+          createdAt: node.created_at
         }
       )
     end
