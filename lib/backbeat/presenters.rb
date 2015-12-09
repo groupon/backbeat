@@ -83,7 +83,8 @@ module Backbeat
         decider: node.decider,
         workflowName: node.workflow_name,
         currentServerStatus: node.current_server_status,
-        currentClientStatus: node.current_client_status
+        currentClientStatus: node.current_client_status,
+        createdAt: node.created_at
       }
     end
   end
