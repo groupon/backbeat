@@ -30,33 +30,38 @@
 
 module Backbeat
   class Util
-    def self.camelize(object)
-      transform_keys(object) do |key|
+    def self.camelize(object, options = {})
+      transform_keys(object, options) do |key|
         key.to_s.camelize(:lower).to_sym
       end
     end
 
-    def self.underscore(object)
-      transform_keys(object) do |key|
+    def self.underscore(object, options = {})
+      transform_keys(object, options) do |key|
         key.to_s.underscore.to_sym
       end
     end
 
-    def self.transform_keys(object, &block)
+    def self.transform_keys(object, options, &block)
+      ignored_keys = options.fetch(:ignore, [])
       case object
       when Hash
         object.reduce({}) do |memo, (key, value)|
           new_key = block.call(key)
-          memo[new_key] = transform_keys(value, &block)
+          if ignored_keys.include?(new_key)
+            memo[new_key] = value
+          else
+            memo[new_key] = transform_keys(value, options, &block)
+          end
           memo
         end
       when Array
         object.map do |value|
-          transform_keys(value, &block)
+          transform_keys(value, options, &block)
         end
       else
         if object.respond_to?(:to_hash)
-          transform_keys(object.to_hash, &block)
+          transform_keys(object.to_hash, options, &block)
         else
           object
         end

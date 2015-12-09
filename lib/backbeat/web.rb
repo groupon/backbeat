@@ -42,8 +42,10 @@ module Backbeat
     class API < Grape::API
       format :json
 
+      helpers CurrentUserHelper
+
       before do
-        @params = Util.underscore(params)
+        @params = Util.underscore(params, { ignore: [:client_data, :metadata] })
         authenticate!
       end
 

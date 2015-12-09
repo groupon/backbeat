@@ -69,7 +69,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      activity= FactoryGirl.build(:client_activity_post_to_decision)
+      activity= FactoryGirl.build(:client_activity_data)
       activity_to_post = { "decisions" => [activity] }
       response = post "activities/#{node.id}/decisions", activity_to_post
 
