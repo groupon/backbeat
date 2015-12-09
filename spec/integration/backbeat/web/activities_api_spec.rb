@@ -100,7 +100,7 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
     context "POST /#{path}/:id/decisions" do
       it "creates the node detail with retry data" do
         parent_node = workflow.children.first
-        activity = FactoryGirl.build(:client_activity_post_to_decision).merge(
+        activity = FactoryGirl.build(:client_activity_data).merge(
           retry: 20,
           retry_interval: 50
         )
@@ -113,12 +113,12 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
         expect(activity_node.node_detail.retry_interval).to eq(50)
         expect(activity_node.node_detail.retries_remaining).to eq(20)
         expect(activity_node.client_metadata).to eq({"version"=>"v2"})
-        expect(activity_node.client_data).to eq({"could"=>"be", "any"=>"thing"})
+        expect(activity_node.client_data).to eq({"params" => [{"firstName" => "John", "lastName" => "Smith"}, "123"]})
       end
 
       it "handles the legacy 'args' param" do
         parent_node = workflow.children.first
-        activity = FactoryGirl.build(:client_activity_post_to_decision).merge(
+        activity = FactoryGirl.build(:client_activity_data).merge(
           retry: 20,
           retry_interval: 50
         )
