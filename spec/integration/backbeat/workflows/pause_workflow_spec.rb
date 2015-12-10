@@ -69,7 +69,7 @@ describe Backbeat, :api_test do
         .with(:body => decision_hash(node))
         .to_return(:status => 200, :body => "", :headers => {})
 
-      allow(Backbeat::Client).to receive(:perform_action)
+      allow(Backbeat::Client).to receive(:perform)
 
       SidekiqHelper.soft_drain
 

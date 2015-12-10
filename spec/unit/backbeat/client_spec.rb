@@ -67,7 +67,7 @@ describe Backbeat::Client do
     end
   end
 
-  context ".perform_action" do
+  context ".perform" do
     it "sends a call to make decision if the node is a legacy decision" do
       node.node_detail.legacy_type = 'decision'
 
@@ -80,7 +80,7 @@ describe Backbeat::Client do
         expect(user).to eq(node.user)
       end
 
-      Backbeat::Client.perform_action(node)
+      Backbeat::Client.perform(node)
     end
 
     it "sends a call to perform activity if the node is a legacy activity" do
@@ -91,7 +91,7 @@ describe Backbeat::Client do
         expect(user).to eq(node.user)
       end
 
-      Backbeat::Client.perform_action(node)
+      Backbeat::Client.perform(node)
     end
 
     it "sends a call to perform activity if the client does not have a decision endpoint" do
@@ -103,7 +103,7 @@ describe Backbeat::Client do
         expect(user).to eq(node.user)
       end
 
-      Backbeat::Client.perform_action(node)
+      Backbeat::Client.perform(node)
     end
   end
 
@@ -125,9 +125,9 @@ describe Backbeat::Client do
 
         stub = WebMock.stub_request(:post, "http://decisions.com/api/v1/workflows/make_decision").with(
           body: { decision: Backbeat::NodePresenter.present(node) }.to_json,
-          headers: { 'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json'}
+          headers: { 'Content-Type'=>'application/json'}
         )
-        Backbeat::Client.perform_action(node)
+        Backbeat::Client.perform(node)
 
         expect(stub).to have_been_requested
       end
@@ -137,10 +137,10 @@ describe Backbeat::Client do
 
         WebMock.stub_request(:post, "http://decisions.com/api/v1/workflows/make_decision").with(
           body: { decision: Backbeat::NodePresenter.present(node) }.to_json,
-          headers: { 'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json'}
+          headers: { 'Content-Type'=>'application/json'}
         ).to_return(status: 404)
 
-        expect { Backbeat::Client.perform_action(node) }.to raise_error(Backbeat::HttpError, "HTTP request for decision failed")
+        expect { Backbeat::Client.perform(node) }.to raise_error(Backbeat::HttpError, "HTTP request for decision failed")
       end
     end
 
@@ -150,10 +150,10 @@ describe Backbeat::Client do
 
         stub = WebMock.stub_request(:post, "http://activity.com/api/v1/workflows/perform_activity").with(
           :body => { activity: Backbeat::NodePresenter.present(node) }.to_json,
-          :headers => { 'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json' }
+          :headers => { 'Content-Type'=>'application/json' }
         )
 
-        Backbeat::Client.perform_action(node)
+        Backbeat::Client.perform(node)
 
         expect(stub).to have_been_requested
       end
@@ -163,10 +163,10 @@ describe Backbeat::Client do
 
         stub = WebMock.stub_request(:post, "http://activity.com/api/v1/workflows/perform_activity").with(
           :body => { activity: Backbeat::NodePresenter.present(node) }.to_json,
-          :headers => { 'Content-Length'=>/\d*\w/, 'Content-Type'=>'application/json' }
+          :headers => { 'Content-Type'=>'application/json' }
         ).to_return(status: 404)
 
-        expect { Backbeat::Client.perform_action(node) }.to raise_error(Backbeat::HttpError, "HTTP request for activity failed")
+        expect { Backbeat::Client.perform(node) }.to raise_error(Backbeat::HttpError, "HTTP request for activity failed")
       end
     end
   end
