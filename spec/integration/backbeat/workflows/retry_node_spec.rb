@@ -145,7 +145,7 @@ describe Backbeat, :api_test do
         )
       end
 
-      allow(Backbeat::Client).to receive(:perform_action) do |node|
+      allow(Backbeat::Client).to receive(:perform) do |node|
         Backbeat::Server.fire_event(Backbeat::Events::ClientComplete, node)
       end
 

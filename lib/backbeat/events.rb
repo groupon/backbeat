@@ -81,7 +81,7 @@ module Backbeat
           current_client_status: :received
         )
         if node.perform_client_action?
-          Client.perform_action(node)
+          Client.perform(node)
         else
           Server.fire_event(ClientComplete, node)
         end
