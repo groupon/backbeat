@@ -29,35 +29,18 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 FactoryGirl.define do
-  factory :client_decision, class: Hash do
-     initialize_with { attributes }
-  end
-
-  factory :client_post_node_activity, class: Hash do
-    id "some_id"
-    mode :blocking
-    type 'activity'
-    name 'name_1'
-    client_data { {could: :be, any: :thing} }
-    always false
-    retry_interval 6.hours
-    time_out 3.hours
-    valid_next_decisions [:some, :thing]
-    orphan_decision false
-    initialize_with { attributes }
-  end
-
-  factory :client_activity_post_to_decision, class: Hash do
+  factory :client_activity_data, class: Hash do
      type 'activity'
      name 'name_1'
-     client_data { {could: :be, any: :thing} }
-     metadata { { version: "v2" } }
+     client_data({
+       params: [
+         { firstName: "John", lastName: "Smith" },
+         123
+       ]
+     })
+     metadata({ version: "v2" })
      mode :blocking
-     always false
      retry_interval 6.hours
-     time_out 3.hours
-     valid_next_decisions [:some, :thing]
-     orphan_decision false
      initialize_with { attributes }
   end
 end

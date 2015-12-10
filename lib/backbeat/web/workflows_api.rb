@@ -53,23 +53,24 @@ module Backbeat
 
         resource 'workflows' do
           post "/" do
-            wf = Server.create_workflow(params, current_user)
-            if wf.valid?
-              wf
+            workflow = Server.create_workflow(params, current_user)
+            if workflow.valid?
+              present workflow, with: WorkflowPresenter
             else
-              raise InvalidParameters, wf.errors.to_hash
+              raise InvalidParameters, workflow.errors.to_hash
             end
           end
 
           get "/" do
             subject = params[:subject].is_a?(String) ? params[:subject] : params[:subject].to_json
-            Workflow.where(
+            workflow = Workflow.where(
               migrated: true,
               user_id: current_user.id,
               subject: subject,
               decider: params[:decider],
               name: params[:workflow_type] || params[:name]
             ).first!
+            present workflow, with: WorkflowPresenter
           end
 
           get "/names" do
@@ -79,21 +80,22 @@ module Backbeat
           end
 
           get "/search" do
-            Search::WorkflowSearch.new(params).result
+            nodes = Search::WorkflowSearch.new(params).result
+            present nodes, with: WorkflowPresenter
           end
 
           post "/:id/signal" do
             workflow = find_workflow
             signal = Server.signal(workflow, params)
             Server.fire_event(Events::ScheduleNextNode, workflow)
-            signal
+            present signal, with: NodePresenter
           end
 
           post "/:id/signal/:name" do
             workflow = find_workflow
             signal = Server.signal(workflow, params)
             Server.fire_event(Events::ScheduleNextNode, workflow)
-            signal
+            present signal, with: NodePresenter
           end
 
           put "/:id/complete" do
@@ -115,12 +117,12 @@ module Backbeat
           end
 
           get "/:id" do
-            find_workflow
+            present find_workflow, with: WorkflowPresenter
           end
 
           get "/:id/tree" do
             workflow = find_workflow
-            WorkflowTree.to_hash(workflow)
+            present WorkflowTree.to_hash(workflow), with: TreePresenter
           end
 
           get "/:id/tree/print" do
@@ -129,12 +131,13 @@ module Backbeat
           end
 
           get "/:id/children" do
-            find_workflow.children
+            present find_workflow.children, with: NodePresenter
           end
 
           get "/:id/nodes" do
             search_params = params.slice(*VALID_NODE_FILTERS).to_hash
-            find_workflow.nodes.where(search_params).map { |node| Client::NodeSerializer.call(node) }
+            nodes = find_workflow.nodes.where(search_params)
+            present nodes, with: NodePresenter
           end
         end
       end

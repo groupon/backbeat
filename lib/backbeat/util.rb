@@ -29,31 +29,41 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module Backbeat
-  module Web
-    module Middleware
-      class CamelCase
-        def initialize(app)
-          @app = app
-        end
+  class Util
+    def self.camelize(object, options = {})
+      transform_keys(object, options) do |key|
+        key.to_s.camelize(:lower).to_sym
+      end
+    end
 
-        def call(env)
-          status, headers, response = @app.call(env)
-          if headers['Content-Type'] == 'application/json'
-            original_body  = response.body.map { |str| JSON.parse(str) }
-            camelized      = Client::HashKeyTransformations.camelize_keys(original_body)
-            camelized_json = camelized.map(&:to_json)
-            response.body  = camelized_json
-            headers['Content-Length'] = content_length(camelized_json)
+    def self.underscore(object, options = {})
+      transform_keys(object, options) do |key|
+        key.to_s.underscore.to_sym
+      end
+    end
+
+    def self.transform_keys(object, options, &block)
+      ignored_keys = options.fetch(:ignore, [])
+      case object
+      when Hash
+        object.reduce({}) do |memo, (key, value)|
+          new_key = block.call(key)
+          if ignored_keys.include?(new_key)
+            memo[new_key] = value
+          else
+            memo[new_key] = transform_keys(value, options, &block)
           end
-          [status, headers, response]
+          memo
         end
-
-        private
-
-        def content_length(body)
-          body.reduce(0) do |length, str|
-            length += Rack::Utils.bytesize(str)
-          end.to_s
+      when Array
+        object.map do |value|
+          transform_keys(value, options, &block)
+        end
+      else
+        if object.respond_to?(:to_hash)
+          transform_keys(object.to_hash, options, &block)
+        else
+          object
         end
       end
     end
