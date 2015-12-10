@@ -33,7 +33,7 @@ require 'spec_helper'
 describe Backbeat::Web::Middleware::Heartbeat, :api_test do
 
   def with_no_heartbeat
-    heartbeat = "#{File.dirname(__FILE__)}/../../../../public/heartbeat.txt"
+    heartbeat = "#{File.dirname(__FILE__)}/../../../public/heartbeat.txt"
     begin
       File.delete(heartbeat)
       yield
