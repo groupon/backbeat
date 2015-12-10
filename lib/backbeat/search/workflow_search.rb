@@ -120,7 +120,7 @@ module Backbeat
         return [] if params.empty?
         filters.reduce(base) do |relation, filter|
           filter.call(relation, params)
-        end
+        end.distinct
       end
     end
   end
