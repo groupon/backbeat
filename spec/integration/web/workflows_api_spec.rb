@@ -258,10 +258,16 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
         from_status: :pending,
         to_status: :errored,
         status_type: :current_server_status,
+        created_at: 3.hours.ago.utc
+      })
+      errored_node.status_changes.create({
+        from_status: :pending,
+        to_status: :errored,
+        status_type: :current_server_status,
         created_at: 2.hours.ago.utc
       })
 
-      status_start = 3.hours.ago.utc.iso8601
+      status_start = 4.hours.ago.utc.iso8601
       status_end = 1.hours.ago.utc.iso8601
       query_params = "status_start=#{status_start}&status_end=#{status_end}&past_status=errored"
       response = get "workflows/search?#{query_params}"

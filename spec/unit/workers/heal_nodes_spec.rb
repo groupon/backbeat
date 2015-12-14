@@ -69,8 +69,8 @@ describe Backbeat::Workers::HealNodes do
         non_expired_node.client_node_detail.update_attributes!(data: {timeout: 120})
         non_expired_node.node_detail.update_attributes!(complete_by: non_expired_complete_by)
 
-        expect(Backbeat::Client).to receive(:perform_action).with(expired_node)
-        expect(Backbeat::Client).to_not receive(:perform_action).with(non_expired_node)
+        expect(Backbeat::Client).to receive(:perform).with(expired_node)
+        expect(Backbeat::Client).to_not receive(:perform).with(non_expired_node)
         expect(subject).to receive(:info).with(
           message: "Client did not respond within the specified 'complete_by' time",
           node: expired_node.id,

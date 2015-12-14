@@ -40,7 +40,7 @@ module Backbeat
         user_id: user.id,
         migrated: true
       )
-    rescue ActiveRecord::RecordNotUnique => e
+    rescue ActiveRecord::RecordNotUnique
       find_workflow(params, user)
     end
 

@@ -144,12 +144,12 @@ describe Backbeat::Events do
   context "StartNode" do
     before do
       node.update_attributes(current_server_status: :started)
-      allow(Backbeat::Client).to receive(:perform_action).with(node)
+      allow(Backbeat::Client).to receive(:perform).with(node)
     end
 
     context "with client action" do
       it "updates the node statuses" do
-        allow(Backbeat::Client).to receive(:perform_action).with(node)
+        allow(Backbeat::Client).to receive(:perform).with(node)
 
         Backbeat::Events::StartNode.call(node)
 
@@ -163,13 +163,13 @@ describe Backbeat::Events do
       end
 
       it "sends the node to the client" do
-        expect(Backbeat::Client).to receive(:perform_action).with(node)
+        expect(Backbeat::Client).to receive(:perform).with(node)
 
         Backbeat::Events::StartNode.call(node)
       end
 
       it "fires the ClientError event if the client call fails" do
-        allow(Backbeat::Client).to receive(:perform_action).with(node) { raise Backbeat::HttpError.new("Failed", {}) }
+        allow(Backbeat::Client).to receive(:perform).with(node) { raise Backbeat::HttpError.new("Failed", {}) }
 
         expect(Backbeat::Server).to receive(:fire_event).with(Backbeat::Events::ClientError, node)
 
@@ -201,7 +201,7 @@ describe Backbeat::Events do
       it "does not start the node" do
         node.workflow.pause!
 
-        expect(Backbeat::Client).to_not receive(:perform_action)
+        expect(Backbeat::Client).to_not receive(:perform)
 
         Backbeat::Events::StartNode.call(node)
       end

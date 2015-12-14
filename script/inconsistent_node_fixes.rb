@@ -29,7 +29,7 @@ Backbeat::Node
 Backbeat::Node
   .where(current_server_status: :sent_to_client, current_client_status: :received)
   .where("fires_at < ?", time)
-  .each { |n| Backbeat::Client.perform_action(n) if n.children.count == 0 }
+  .each { |n| Backbeat::Client.perform(n) if n.children.count == 0 }
 
 Backbeat::Node
   .where("fires_at < ?", time)
