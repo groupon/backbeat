@@ -54,6 +54,8 @@ module Backbeat
         def db_ok?
           ActiveRecord::Base.connection
           ActiveRecord::Base.connected?
+        rescue
+          false
         end
       end
     end
