@@ -28,30 +28,12 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'backbeat/models/node'
-require 'backbeat/models/workflow'
-require 'backbeat/web/versioned_api'
-require 'backbeat/web/helpers/current_user_helper'
-
 module Backbeat
   module Web
-    class DebugAPI < VersionedAPI
-      api do
-        helpers CurrentUserHelper
-
-        before do
-          authenticate!
-        end
-
-        resource 'debug' do
-          get "/error_workflows" do
-            workflow_ids = Node.where(
-              user_id: current_user.id,
-              current_client_status: :errored
-            ).pluck(:workflow_id).uniq
-
-            Workflow.where("id IN (?)", workflow_ids)
-          end
+    class UsersAPI < Grape::API
+      resource 'users' do
+        get '/' do
+          present Backbeat::User.order(:name), with: UserPresenter
         end
       end
     end

@@ -67,6 +67,10 @@ module Backbeat
           end
         end
 
+        before do
+          authenticate!
+        end
+
         get "/:id" do
           present find_node, with: NodePresenter
         end
