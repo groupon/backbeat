@@ -194,6 +194,16 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       expect(result.map{ |wf| wf["name"] }).to_not include("bar")
     end
 
+    it "scopes workflows to the current user" do
+      user_2 = FactoryGirl.create(:user)
+      FactoryGirl.create(:workflow, user: user_2, subject: "New subject", name: "import")
+
+      response = get "workflows/search?name=import"
+      result = JSON.parse(response.body)
+
+      expect(result.count).to eq(2)
+    end
+
     it "returns all workflows partially matching on subject" do
       response = get "workflows/search?subject=FooModel"
       result = JSON.parse(response.body)
@@ -524,6 +534,18 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       body = JSON.parse(response.body)
 
       expect(body).to eq(["A Workflow", "B Workflow", "C Workflow"])
+    end
+
+    it "scopes workflows to the current user" do
+      user_1 = user
+      user_2 = FactoryGirl.create(:user)
+      FactoryGirl.create(:workflow, { name: "A Workflow", user: user_1 })
+      FactoryGirl.create(:workflow, { name: "B Workflow", user: user_2 })
+
+      response = get "/workflows/names"
+      body = JSON.parse(response.body)
+
+      expect(body).to eq(["A Workflow"])
     end
 
     it "caches the results" do
