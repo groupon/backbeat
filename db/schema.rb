@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 9) do
+ActiveRecord::Schema.define(version: 11) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -73,6 +73,8 @@ ActiveRecord::Schema.define(version: 9) do
     t.string "decision_endpoint"
     t.string "activity_endpoint",     null: false
     t.string "notification_endpoint", null: false
+    t.string "name"
+    t.string "auth_token"
   end
 
   create_table "workflows", id: :uuid, default: "uuid_generate_v4()", force: true do |t|
