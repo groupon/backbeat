@@ -28,32 +28,27 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'backbeat/models/node'
-require 'backbeat/models/workflow'
-require 'backbeat/web/versioned_api'
-require 'backbeat/web/helpers/current_user_helper'
+require "spec_helper"
 
-module Backbeat
-  module Web
-    class DebugAPI < VersionedAPI
-      api do
-        helpers CurrentUserHelper
+describe Backbeat::Web::UsersAPI, :api_test do
 
-        before do
-          authenticate!
-        end
-
-        resource 'debug' do
-          get "/error_workflows" do
-            workflow_ids = Node.where(
-              user_id: current_user.id,
-              current_client_status: :errored
-            ).pluck(:workflow_id).uniq
-
-            Workflow.where("id IN (?)", workflow_ids)
-          end
-        end
+  context "GET /" do
+    it "returns all user names and ids" do
+      2.times do |i|
+        Backbeat::User.create!({
+          name: "User #{i}",
+          activity_endpoint: "http://#{i}.com",
+          notification_endpoint: "http://#{i}.com"
+        })
       end
+
+      response = get "/users"
+      body = JSON.parse(response.body)
+
+      expect(body.size).to eq(2)
+      expect(body.first['name']).to eq("User 0")
+      expect(body.first['id']).to eq(Backbeat::User.order(:name).first.id)
+      expect(body.first.keys).to_not include('auth_token')
     end
   end
 end

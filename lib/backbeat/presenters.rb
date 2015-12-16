@@ -31,7 +31,7 @@
 module Backbeat
   class Presenter
 
-    # Required interface for `present x with: XPresenter` in Grape endpoints
+    # Required interface for `present x, with: XPresenter` in Grape endpoints
     def self.represent(obj, _grape_env)
       present(obj)
     end
@@ -139,6 +139,15 @@ module Backbeat
         statusType: status.status_type,
         response: status.response,
         createdAt: status.created_at
+      }
+    end
+  end
+
+  class UserPresenter < Presenter
+    def present(user)
+      {
+        id: user.id,
+        name: user.name
       }
     end
   end

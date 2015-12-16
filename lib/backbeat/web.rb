@@ -36,6 +36,7 @@ require 'backbeat/web/middleware/sidekiq_stats'
 require 'backbeat/web/workflows_api'
 require 'backbeat/web/activities_api'
 require 'backbeat/web/debug_api'
+require 'backbeat/web/users_api'
 
 module Backbeat
   module Web
@@ -46,7 +47,6 @@ module Backbeat
 
       before do
         @params = Util.underscore(params, { ignore: [:client_data, :metadata] })
-        authenticate!
       end
 
       rescue_from :all do |e|
@@ -82,6 +82,7 @@ module Backbeat
 
       mount WorkflowsAPI.versioned('/')
       mount ActivitiesAPI.versioned('/activities')
+      mount UsersAPI
 
       # Deprecated V2 API
       mount WorkflowsAPI.versioned('/v2')

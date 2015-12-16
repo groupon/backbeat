@@ -51,6 +51,10 @@ module Backbeat
           end
         end
 
+        before do
+          authenticate!
+        end
+
         resource 'workflows' do
           post "/" do
             workflow = Server.create_workflow(params, current_user)
