@@ -52,24 +52,13 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
             current_client_status: :errored,
             current_server_status: :errored
           )
-          WebMock.stub_request(:post, "http://backbeat-client:9000/activity")
-            .with(:body => activity_hash(node, {current_server_status: :sent_to_client, current_client_status: :received}))
-            .to_return(:status => 200, :body => "", :headers => {})
-        end
-
-        it "returns 200" do
-          response = put "#{path}/#{node.id}/restart"
-
-          expect(response.status).to eq(200)
         end
 
         it "restarts the node" do
           response = put "#{path}/#{node.id}/restart"
 
-          Backbeat::Workers::AsyncWorker.drain
-
-          expect(node.reload.current_client_status).to eq("received")
-          expect(node.reload.current_server_status).to eq("sent_to_client")
+          expect(node.reload.current_client_status).to eq("ready")
+          expect(node.reload.current_server_status).to eq("ready")
         end
 
         it "removes an existing retry job" do
@@ -127,6 +116,14 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
         post "#{path}/#{parent_node.id}/decisions", activity_to_post
 
         expect(parent_node.children.count).to eq(1)
+      end
+
+      it "returns a 401 response if the auth token is not provided" do
+        header "Authorization", ""
+
+        response = post "#{path}/#{parent_node.id}/decisions", { decisions: [] }
+
+        expect(response.status).to eq(401)
       end
     end
 

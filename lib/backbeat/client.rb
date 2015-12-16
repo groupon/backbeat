@@ -47,9 +47,9 @@ module Backbeat
       def perform(node)
         Instrument.instrument("client_perform_activity", { node: node.id }) do
           if node.decision? && node.user.decision_endpoint
-            make_decision(NodePresenter.present(node), node.user)
+            make_decision(ActivityPresenter.present(node), node.user)
           else
-            perform_activity(NodePresenter.present(node), node.user)
+            perform_activity(ActivityPresenter.present(node), node.user)
           end
         end
       end

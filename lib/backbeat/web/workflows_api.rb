@@ -91,6 +91,7 @@ module Backbeat
           end
 
           post "/:id/signal" do
+            require_auth_token!
             workflow = find_workflow
             signal = Server.signal(workflow, params)
             Server.fire_event(Events::ScheduleNextNode, workflow)
@@ -98,6 +99,7 @@ module Backbeat
           end
 
           post "/:id/signal/:name" do
+            require_auth_token!
             workflow = find_workflow
             signal = Server.signal(workflow, params)
             Server.fire_event(Events::ScheduleNextNode, workflow)
