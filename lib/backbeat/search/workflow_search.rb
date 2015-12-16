@@ -42,13 +42,14 @@ module Backbeat
         end
       end
 
-      def initialize(params)
+      def initialize(params, user_id)
         @params = params
+        @user_id = user_id
       end
 
       def result
         apply_filters(
-          Workflow.order({ created_at: :desc, id: :desc }),
+          Workflow.where(user_id: user_id).order({ created_at: :desc, id: :desc }),
           NameFilter,
           SubjectFilter,
           CurrentStatusFilter,
@@ -114,7 +115,7 @@ module Backbeat
 
       private
 
-      attr_reader :params
+      attr_reader :params, :user_id
 
       def apply_filters(base, *filters)
         return [] if params.empty?
