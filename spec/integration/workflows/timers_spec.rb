@@ -30,8 +30,8 @@
 
 require 'spec_helper'
 require 'sidekiq/testing'
-require 'helper/request_helper'
-require 'helper/sidekiq_helper'
+require 'support/request_helper'
+require 'support/sidekiq_helper'
 
 describe Backbeat, :api_test do
   include RequestHelper

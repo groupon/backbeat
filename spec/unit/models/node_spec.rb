@@ -29,7 +29,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require "spec_helper"
-require "helper/capture"
+require "support/capture"
 require "backbeat/workflow_tree/colorize"
 
 describe Backbeat::Node do
