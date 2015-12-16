@@ -119,6 +119,14 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       expect(response.status).to eq(400)
       expect(workflow.children.count).to eq(1)
     end
+
+    it "returns a 401 response if the auth token is not provided" do
+      header "Authorization", ""
+
+      response = post "workflows/#{workflow.id}/signal", signal_params
+
+      expect(response.status).to eq(401)
+    end
   end
 
   context "POST /workflows/:id/signal/:name" do
@@ -157,7 +165,16 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
 
     it "adds the link_id to the signal node" do
       response = post "workflows/#{workflow.id}/signal/test", { options: { parent_link_id: node.id } }
+
       expect(workflow.nodes.last.parent_link).to eq(node)
+    end
+
+    it "returns a 401 response if the auth token is not provided" do
+      header "Authorization", ""
+
+      response = post "workflows/#{workflow.id}/signal", signal_params
+
+      expect(response.status).to eq(401)
     end
   end
 

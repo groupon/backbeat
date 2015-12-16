@@ -109,6 +109,7 @@ module Backbeat
         end
 
         post "/:id/decisions" do
+          require_auth_token!
           decisions = validate(params, :decisions, Array, "Params must include a 'decisions' param")
           node = find_node
           decisions.map do |dec|

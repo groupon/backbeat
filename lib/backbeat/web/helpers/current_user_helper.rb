@@ -32,7 +32,23 @@ module Backbeat
   module Web
     module CurrentUserHelper
       def authenticate!
-        error!({ error: 'Unauthorized' }, 401) unless current_user
+        unauthorized unless current_user
+      end
+
+      def require_auth_token!
+        unauthorized unless current_user && current_user.auth_token == auth_token
+      end
+
+      def auth_token
+        if auth = request.headers['Authorization']
+          if match = auth.match(/Token token="(?<token>.+)"$/)
+            match['token']
+          end
+        end
+      end
+
+      def unauthorized
+        error!({ error: 'Unauthorized' }, 401)
       end
 
       def current_user

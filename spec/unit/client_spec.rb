@@ -41,7 +41,7 @@ describe Backbeat::Client do
     it "calls the notify of endpoint" do
       error = {"couldbe" => "anything"}
       notification_body = {
-        "node" => Backbeat::NodePresenter.present(node),
+        "activity" => Backbeat::ActivityPresenter.present(node),
         "notification" => {
           "name" => node.name,
           "message" => "error",
@@ -124,7 +124,7 @@ describe Backbeat::Client do
         node.legacy_type = :decision
 
         stub = WebMock.stub_request(:post, "http://decisions.com/api/v1/workflows/make_decision").with(
-          body: { decision: Backbeat::NodePresenter.present(node) }.to_json,
+          body: { decision: Backbeat::ActivityPresenter.present(node) }.to_json,
           headers: { 'Content-Type'=>'application/json'}
         )
         Backbeat::Client.perform(node)
@@ -136,7 +136,7 @@ describe Backbeat::Client do
         node.legacy_type = :decision
 
         WebMock.stub_request(:post, "http://decisions.com/api/v1/workflows/make_decision").with(
-          body: { decision: Backbeat::NodePresenter.present(node) }.to_json,
+          body: { decision: Backbeat::ActivityPresenter.present(node) }.to_json,
           headers: { 'Content-Type'=>'application/json'}
         ).to_return(status: 404)
 
@@ -149,7 +149,7 @@ describe Backbeat::Client do
         node.legacy_type = :activity
 
         stub = WebMock.stub_request(:post, "http://activity.com/api/v1/workflows/perform_activity").with(
-          :body => { activity: Backbeat::NodePresenter.present(node) }.to_json,
+          :body => { activity: Backbeat::ActivityPresenter.present(node) }.to_json,
           :headers => { 'Content-Type'=>'application/json' }
         )
 
@@ -162,7 +162,7 @@ describe Backbeat::Client do
         node.legacy_type = :activity
 
         stub = WebMock.stub_request(:post, "http://activity.com/api/v1/workflows/perform_activity").with(
-          :body => { activity: Backbeat::NodePresenter.present(node) }.to_json,
+          :body => { activity: Backbeat::ActivityPresenter.present(node) }.to_json,
           :headers => { 'Content-Type'=>'application/json' }
         ).to_return(status: 404)
 
