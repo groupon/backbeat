@@ -35,12 +35,27 @@ describe Backbeat::Web::Middleware::Health, :api_test do
   context "/health" do
     it "includes running SHA, current time and status" do
       response = get '/health'
+
       expect(response.status).to eq(200)
       expect(response.headers["Content-Type"]).to eq("application/json")
       expect(JSON.parse(response.body)).to eq({
         "sha" => Backbeat::Config.revision,
         "time" => Time.now.iso8601,
         "status" => "OK"
+      })
+    end
+
+    it "returns the status when the db cannot be reached" do
+      allow(ActiveRecord::Base).to receive(:connection) { raise "Cannot connect" }
+
+      response = get '/health'
+
+      expect(response.status).to eq(200)
+      expect(response.headers["Content-Type"]).to eq("application/json")
+      expect(JSON.parse(response.body)).to eq({
+        "sha" => Backbeat::Config.revision,
+        "time" => Time.now.iso8601,
+        "status" => "DATABASE_UNREACHABLE"
       })
     end
   end
