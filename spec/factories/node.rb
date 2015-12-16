@@ -33,12 +33,16 @@ FactoryGirl.define do
     mode :blocking
     current_server_status :pending
     current_client_status :ready
-    name :test_node
+    name "Test-Node"
     fires_at Time.now
 
     after(:create) do |node|
-      FactoryGirl.create(:node_detail, node: node)
-      FactoryGirl.create(:client_node_detail, node: node)
+      Backbeat::NodeDetail.create!({ node: node, legacy_type: 'activity' })
+      Backbeat::ClientNodeDetail.create!({
+        node: node,
+        metadata: {},
+        data: { method: "foo", params: ["bar"] }
+      })
     end
   end
 end

@@ -38,7 +38,7 @@ describe Backbeat::Server do
 
   class MockScheduler
     def self.call(event, node)
-      event.call(node.name + "_called")
+      event.call(node.name + " called")
     end
   end
 
@@ -50,7 +50,7 @@ describe Backbeat::Server do
 
   context ".fire_event" do
     it "schedules the event with the node" do
-      expect(Backbeat::Server.fire_event(MockEvent, node, MockScheduler)).to eq("test_node_called")
+      expect(Backbeat::Server.fire_event(MockEvent, node, MockScheduler)).to eq("Test-Node called")
     end
 
     it "noops if node is deactivated" do

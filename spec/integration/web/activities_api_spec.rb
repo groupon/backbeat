@@ -29,7 +29,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'spec_helper'
-require 'helper/request_helper'
+require 'support/request_helper'
 
 describe Backbeat::Web::ActivitiesAPI, :api_test do
   include RequestHelper
@@ -98,12 +98,13 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
     end
 
     context "POST /#{path}/:id/decisions" do
+      let(:parent_node) { workflow.children.first }
+
       it "creates the node detail with retry data" do
-        parent_node = workflow.children.first
-        activity = FactoryGirl.build(:client_activity_data).merge(
+        activity = RequestHelper.client_activity_data({
           retry: 20,
           retry_interval: 50
-        )
+        })
         activity_to_post = { "decisions" => [activity] }
 
         response = post "#{path}/#{parent_node.id}/decisions", activity_to_post
@@ -117,11 +118,10 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
       end
 
       it "handles the legacy 'args' param" do
-        parent_node = workflow.children.first
-        activity = FactoryGirl.build(:client_activity_data).merge(
+        activity = RequestHelper.client_activity_data({
           retry: 20,
           retry_interval: 50
-        )
+        })
         activity_to_post = { "args" => { "decisions" => [activity] }}
 
         post "#{path}/#{parent_node.id}/decisions", activity_to_post
@@ -181,15 +181,18 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
       end
 
       it "touches the node indicating client is working on it" do
+        Backbeat::Config.options[:client_timeout] = 100
         node.update_attributes(current_client_status: :received)
-        node.node_detail.update_attributes!(complete_by: Time.now - 100)
+
         put "#{path}/#{node.id}/status/processing"
+
         node.node_detail.reload
-        expect(node.node_detail.complete_by.to_s).to eq (Time.now.utc + 100).to_s
+        expect(node.node_detail.complete_by.to_s).to eq((Time.now.utc + 100).to_s)
       end
 
       it "returns an error with an invalid state change" do
         node.update_attributes(current_client_status: :processing)
+
         response = put "#{path}/#{node.id}/status/processing"
         body = JSON.parse(response.body)
 
@@ -201,14 +204,18 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
 
       it "does not mark the node in error state with invalid client state change" do
         node.update_attributes(current_client_status: :processing, current_server_status: :sent_to_client)
+
         response = put "#{path}/#{node.id}/status/processing"
+
         expect(node.reload.current_client_status).to eq("processing")
         expect(node.reload.current_server_status).to eq("sent_to_client")
       end
 
       it "does not mark the node in error state with invalid client state change" do
         node.update_attributes(current_client_status: :processing, current_server_status: :sent_to_client)
+
         response = put "#{path}/#{node.id}/status/processing"
+
         expect(node.reload.current_client_status).to eq("processing")
         expect(node.reload.current_server_status).to eq("sent_to_client")
       end

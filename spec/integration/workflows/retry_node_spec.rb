@@ -29,8 +29,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'spec_helper'
-require 'helper/request_helper'
-require 'helper/sidekiq_helper'
+require 'support/request_helper'
+require 'support/sidekiq_helper'
 
 describe Backbeat, :api_test do
   include RequestHelper

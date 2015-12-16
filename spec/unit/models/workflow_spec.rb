@@ -30,7 +30,7 @@
 
 require "spec_helper"
 require "backbeat/workflow_tree/colorize"
-require "helper/capture"
+require "support/capture"
 
 describe Backbeat::Workflow do
 

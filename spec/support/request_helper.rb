@@ -28,19 +28,31 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-FactoryGirl.define do
-  factory :client_activity_data, class: Hash do
-     type 'activity'
-     name 'name_1'
-     client_data({
-       params: [
-         { firstName: "John", lastName: "Smith" },
-         123
-       ]
-     })
-     metadata({ version: "v2" })
-     mode :blocking
-     retry_interval 6.hours
-     initialize_with { attributes }
+module RequestHelper
+  def client_activity_data(data = {})
+    {
+      type: 'activity',
+      name: 'name_1',
+      client_data: {
+        params: [
+          { firstName: "John", lastName: "Smith" },
+          123
+        ]
+      },
+      metadata: { version: "v2" },
+      mode: :blocking,
+      retry_interval: 6.hours
+    }.merge(data)
+  end
+  module_function :client_activity_data
+
+  def activity_hash(activity_node, attributes = {})
+    attributes = Backbeat::Util.camelize(attributes)
+    { "activity" => Backbeat::ActivityPresenter.present(activity_node).merge(attributes) }.to_json
+  end
+
+  def decision_hash(decision_node, attributes = {})
+    attributes = Backbeat::Util.camelize(attributes)
+    { "decision" => Backbeat::ActivityPresenter.present(decision_node).merge(attributes) }.to_json
   end
 end
