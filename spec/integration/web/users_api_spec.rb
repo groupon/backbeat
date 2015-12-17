@@ -51,4 +51,31 @@ describe Backbeat::Web::UsersAPI, :api_test do
       expect(body.first.keys).to_not include('auth_token')
     end
   end
+
+  context "GET /:id" do
+    it "returns the name and id of a user" do
+      user = Backbeat::User.create!({
+        name: "User 1",
+        activity_endpoint: "http://i.com",
+        notification_endpoint: "http://i.com"
+      })
+
+      response = get "/users/#{user.id}"
+      body = JSON.parse(response.body)
+
+      expect(body.keys).to match_array(['name', 'id'])
+      expect(body['name']).to eq('User 1')
+      expect(body['id']).to eq(user.id)
+    end
+
+    it "400s if bad user id provided" do
+      response = get "/users/1"
+      expect(response.status).to eq(400)
+    end
+
+    it "404s if no user found for given uuid" do
+      response = get "/users/#{SecureRandom.uuid}"
+      expect(response.status).to eq(404)
+    end
+  end
 end

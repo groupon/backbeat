@@ -62,7 +62,8 @@ module Backbeat
       RESCUED_ERRORS = [
         WorkflowComplete,
         Grape::Exceptions::Validation,
-        Grape::Exceptions::ValidationErrors
+        Grape::Exceptions::ValidationErrors,
+        ActiveRecord::StatementInvalid
       ]
 
       rescue_from *RESCUED_ERRORS do |e|
