@@ -55,7 +55,7 @@ module Backbeat
       end
 
       rescue_from ActiveRecord::RecordNotFound do |e|
-        Logger.info(e)
+        Logger.info(e.message)
         error!(ErrorPresenter.present(e), 404)
       end
 
@@ -67,17 +67,17 @@ module Backbeat
       ]
 
       rescue_from *RESCUED_ERRORS do |e|
-        Logger.info(e)
+        Logger.info(e.message)
         error!(ErrorPresenter.present(e), 400)
       end
 
       rescue_from InvalidServerStatusChange do |e|
-        Logger.info(e)
+        Logger.info(e.message)
         error!(ErrorPresenter.present(e), 500)
       end
 
       rescue_from InvalidClientStatusChange do |e|
-        Logger.info(e)
+        Logger.info(e.message)
         error!(ErrorPresenter.present(e), 409)
       end
 
