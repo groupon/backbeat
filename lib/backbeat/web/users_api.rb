@@ -35,6 +35,10 @@ module Backbeat
         get '/' do
           present Backbeat::User.order(:name), with: UserPresenter
         end
+
+        get '/:id' do
+          present Backbeat::User.find(params[:id]), with: UserPresenter
+        end
       end
     end
   end
