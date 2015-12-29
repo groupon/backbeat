@@ -441,7 +441,7 @@ describe Backbeat::Events do
         parent: node,
         user: user
       )
-      Backbeat::Events::DeactivatePreviousNodes.call(second_node)
+      Backbeat::Events::DeactivatePreviousNodes.call(second_node.reload)
 
       expect(node.reload.current_server_status).to eq("deactivated")
       expect(second_node.reload.current_server_status).to eq("pending")
