@@ -84,10 +84,6 @@ module Backbeat
     delegate :subject, :decider, to: :workflow
     delegate :name, to: :workflow, prefix: :workflow
 
-    before_create do
-      self.seq ||= ActiveRecord::Base.connection.execute("SELECT nextval('nodes_seq_seq')").first["nextval"]
-    end
-
     include ChildQueries
 
     def parent=(node)
