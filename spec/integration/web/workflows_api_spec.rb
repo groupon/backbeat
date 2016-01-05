@@ -212,7 +212,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     end
 
     it "scopes workflows to the current user" do
-      user_2 = FactoryGirl.create(:user)
+      user_2 = FactoryGirl.create(:user, name: "User 2")
       FactoryGirl.create(:workflow, user: user_2, subject: "New subject", name: "import")
 
       response = get "workflows/search?name=import"
@@ -555,7 +555,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
 
     it "scopes workflows to the current user" do
       user_1 = user
-      user_2 = FactoryGirl.create(:user)
+      user_2 = FactoryGirl.create(:user, name: "user 2")
       FactoryGirl.create(:workflow, { name: "A Workflow", user: user_1 })
       FactoryGirl.create(:workflow, { name: "B Workflow", user: user_2 })
 

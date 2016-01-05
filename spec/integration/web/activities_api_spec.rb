@@ -140,7 +140,7 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
       it "returns 404 if the node does not belong to the user" do
         node = FactoryGirl.create(
           :workflow_with_node,
-          user: FactoryGirl.create(:user)
+          user: FactoryGirl.create(:user, name: "New user")
         ).children.first
 
         response = get "workflows/#{node.workflow_id}/#{path}/#{node.id}"
