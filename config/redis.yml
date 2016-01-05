@@ -10,7 +10,9 @@ test:
   <<: *common
   namespace: backbeat_test
 
-docker:
-  namespace: backbeat
+docker: &docker
   host: redis
   port: 6379
+
+ci:
+  <<: *docker

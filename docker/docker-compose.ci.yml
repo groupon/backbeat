@@ -5,7 +5,7 @@ ci:
   command: bin/run-tests.sh
   restart: never
   environment:
-    RACK_ENV: docker
+    RACK_ENV: ci
   links:
     - database
     - redis
