@@ -68,6 +68,12 @@ namespace :db do
     end
   end
 
+  desc "seed the db for development testing"
+  task :seed => :env do
+    return unless Backbeat::Config.environment == 'development'
+    load File.expand_path('../script/seed.rb', __FILE__)
+  end
+
   namespace :schema do
     task :dump => :env do
       require 'active_record/schema_dumper'
