@@ -97,7 +97,7 @@ describe Backbeat::Server do
 
     it "does not return another users workflow if the subject is the same" do
       params = { workflow_type: "UniqueName", subject: "Subject", decider: "Decider" }
-      user2 = FactoryGirl.create(:user)
+      user2 = FactoryGirl.create(:user, name: "User 2")
       workflow1 = Backbeat::Server.create_workflow(params, user)
       workflow2 = Backbeat::Server.create_workflow(params, user2)
 
