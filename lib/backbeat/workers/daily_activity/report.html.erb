@@ -7,7 +7,7 @@
       <p>No inconsistent workflows for this period</p>
     <% else %>
       <%= render_table "Workflow Inconsistencies", report[:inconsistent][:counts] %>
-      <p>Inconsistent workflow data stored at <%= report[:inconsistent][:filename] %></p>
+      <p>Inconsistent workflow data stored at <%= report[:inconsistent][:filename] %> on <%= report[:inconsistent][:hostname] %></p>
     <% end %>
 
     <% if report[:completed][:counts].empty? %>
