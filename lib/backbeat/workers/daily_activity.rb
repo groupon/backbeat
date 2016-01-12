@@ -56,7 +56,8 @@ module Backbeat
         report_data = {
           inconsistent: {
             counts: inconsistent_counts,
-            filename: file_name
+            filename: file_name,
+            hostname: `hostname`
           },
           completed: {
             counts: completed_counts,

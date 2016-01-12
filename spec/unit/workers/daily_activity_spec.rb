@@ -75,7 +75,8 @@ describe Backbeat::Workers::DailyActivity do
             counts: {
               "bad workflow" => { workflow_type_count: 1, node_count: 1 }
             },
-            filename: "/tmp/inconsistent_nodes/#{Date.today.to_s}.json"
+            filename: "/tmp/inconsistent_nodes/#{Date.today.to_s}.json",
+            hostname: `hostname`
           },
           completed: {
             counts: {
