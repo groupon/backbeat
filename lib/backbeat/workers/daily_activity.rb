@@ -57,7 +57,7 @@ module Backbeat
           inconsistent: {
             counts: inconsistent_counts,
             filename: file_name,
-            hostname: `hostname`
+            hostname: Config.hostname
           },
           completed: {
             counts: completed_counts,

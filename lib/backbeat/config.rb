@@ -63,6 +63,10 @@ module Backbeat
       @redis ||= config_with_defaults("redis")
     end
 
+    def self.hostname
+      @hostname ||= `hostname`
+    end
+
     def self.revision
       @revision ||= (
         file_path = "#{root}/REVISION"
