@@ -69,13 +69,16 @@ describe Backbeat::Workers::DailyActivity do
     end
 
     it "builds the workflow data" do
+      allow(Backbeat::Config).to receive(:hostname).and_return("somehost")
+
       Timecop.freeze(start_time) do
         expect(subject).to receive(:send_report).with({
           inconsistent: {
             counts: {
               "bad workflow" => { workflow_type_count: 1, node_count: 1 }
             },
-            filename: "/tmp/inconsistent_nodes/#{Date.today.to_s}.json"
+            filename: "/tmp/inconsistent_nodes/#{Date.today.to_s}.json",
+            hostname: "somehost"
           },
           completed: {
             counts: {
