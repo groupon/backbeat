@@ -32,20 +32,20 @@ module Backbeat
   module Instrument
     extend Logging
 
-    def self.instrument(event, *args)
+    def self.instrument(event_name, *args)
       t0 = Time.now
-      log_msg("#{event}_started", args)
+      log_msg("#{event_name}_started", args)
       result = yield
-      log_msg("#{event}_succeeded", args, duration: Time.now - t0)
+      log_msg("#{event_name}_succeeded", args, duration: Time.now - t0)
       return result
     rescue Exception => error
-      handle_exception(event, error, t0,  *args)
+      handle_exception(event_name, error, t0, args)
       raise error
     end
 
-    def self.handle_exception(event, error, t0,  *args)
+    def self.handle_exception(event_name, error, t0, args)
       log_msg(
-        "#{event}_errored",
+        "#{event_name}_errored",
         args,
         error_class: error.class.name,
         error: error.to_s,
@@ -53,7 +53,7 @@ module Backbeat
         duration: Time.now - t0
       )
     rescue Exception => error
-      info(event_name: :error_logging_error, name: event.name)
+      info({ message: :error_logging_error, event_name: event_name })
       raise error
     end
 
