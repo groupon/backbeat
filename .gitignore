@@ -18,5 +18,5 @@ test/tmp
 test/version_tmp
 tmp
 .DS_store
-log/
+log/*.log
 docker/*.env
