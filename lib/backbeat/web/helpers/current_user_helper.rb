@@ -58,7 +58,7 @@ module Backbeat
       def find_user(id)
         User.find(id)
       rescue => e
-        Logger.info(message: "error occured while finding user", error: e.message, backtrace: e.backtrace)
+        Logger.info(message: "Error occurred while finding user", error: e.message, backtrace: e.backtrace)
         false
       end
     end
