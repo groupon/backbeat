@@ -28,13 +28,22 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+require 'securerandom'
+
 module Backbeat
   class User < ActiveRecord::Base
     has_many :workflows
     has_many :nodes
     belongs_to :user
 
+    validates :name, presence: true
     validates :activity_endpoint, presence: true
     validates :notification_endpoint, presence: true
+
+    before_create :generate_auth_token
+
+    def generate_auth_token
+      self.auth_token = SecureRandom.urlsafe_base64
+    end
   end
 end

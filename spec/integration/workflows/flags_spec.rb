@@ -29,7 +29,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'spec_helper'
-require 'helper/request_helper'
+require 'support/request_helper'
 
 describe Backbeat, :api_test do
   include RequestHelper
@@ -71,7 +71,7 @@ describe Backbeat, :api_test do
       )
 
       flag = {name: "my_flag", type: "flag"}
-      activity = FactoryGirl.build(:client_activity_data).merge(mode: :non_blocking)
+      activity = RequestHelper.client_activity_data({ mode: :non_blocking })
 
       children_to_post = { "decisions" => [flag, activity] }
 

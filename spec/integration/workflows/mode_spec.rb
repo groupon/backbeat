@@ -29,7 +29,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'spec_helper'
-require 'helper/request_helper'
+require 'support/request_helper'
 
 describe Backbeat, :api_test do
   include RequestHelper
@@ -70,10 +70,10 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      activity_1 = FactoryGirl.build(:client_activity_data).merge(mode: :non_blocking)
-      activity_2 = FactoryGirl.build(:client_activity_data)
-      activity_3 = FactoryGirl.build(:client_activity_data).merge(mode: :non_blocking)
-      activity_4 = FactoryGirl.build(:client_activity_data).merge(mode: :fire_and_forget)
+      activity_1 = RequestHelper.client_activity_data({ mode: :non_blocking })
+      activity_2 = RequestHelper.client_activity_data
+      activity_3 = RequestHelper.client_activity_data({ mode: :non_blocking })
+      activity_4 = RequestHelper.client_activity_data({ mode: :fire_and_forget })
 
       activities_to_post = { "decisions" => [activity_1, activity_2, activity_3, activity_4] }
 
@@ -267,7 +267,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      activity = FactoryGirl.build(:client_activity_data)
+      activity = RequestHelper.client_activity_data
       activities_to_post = { "decisions" => [activity] }
       response = post "activities/#{signal_node.id}/decisions", activities_to_post
 
@@ -331,7 +331,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      activity = FactoryGirl.build(:client_activity_data)
+      activity = RequestHelper.client_activity_data
       activity_to_post_signal_2 = { "decisions" => [activity] }
       response = post "activities/#{signal_node_2.id}/decisions", activity_to_post_signal_2
 

@@ -12,7 +12,7 @@ test:
   <<: *common
   database: backbeat_test
 
-docker:
+docker: &docker
   <<: *common
   reconnect: true
   adapter: postgresql
@@ -21,3 +21,6 @@ docker:
   database: backbeat_docker
   host: database
   schema_search_path: public
+
+ci:
+  <<: *docker

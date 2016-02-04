@@ -28,19 +28,18 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-FactoryGirl.define do
-  factory :client_activity_data, class: Hash do
-     type 'activity'
-     name 'name_1'
-     client_data({
-       params: [
-         { firstName: "John", lastName: "Smith" },
-         123
-       ]
-     })
-     metadata({ version: "v2" })
-     mode :blocking
-     retry_interval 6.hours
-     initialize_with { attributes }
+module Backbeat
+  module Web
+    class UsersAPI < Grape::API
+      resource 'users' do
+        get '/' do
+          present Backbeat::User.order(:name), with: UserPresenter
+        end
+
+        get '/:id' do
+          present Backbeat::User.find(params[:id]), with: UserPresenter
+        end
+      end
+    end
   end
 end

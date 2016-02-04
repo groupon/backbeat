@@ -28,35 +28,54 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'spec_helper'
+require "spec_helper"
 
-describe Backbeat::Web::Middleware::Heartbeat, :api_test do
+describe Backbeat::Web::UsersAPI, :api_test do
 
-  def with_no_heartbeat
-    heartbeat = "#{File.dirname(__FILE__)}/../../../public/heartbeat.txt"
-    begin
-      File.delete(heartbeat)
-      yield
-    ensure
-      File.open(heartbeat, 'w')
+  context "GET /" do
+    it "returns all user names and ids" do
+      2.times do |i|
+        Backbeat::User.create!({
+          name: "User #{i}",
+          activity_endpoint: "http://#{i}.com",
+          notification_endpoint: "http://#{i}.com"
+        })
+      end
+
+      response = get "/users"
+      body = JSON.parse(response.body)
+
+      expect(body.size).to eq(2)
+      expect(body.first['name']).to eq("User 0")
+      expect(body.first['id']).to eq(Backbeat::User.order(:name).first.id)
+      expect(body.first.keys).to_not include('auth_token')
     end
   end
 
-  context "/heartbeat.txt" do
-    it "returns 200 if heartbeat present" do
-      response = get '/heartbeat.txt'
-      expect(response.status).to eq(200)
-      expect(response.headers["Content-Type"]).to eq("text/plain")
-      expect(response.body).to eq("We have a pulse.")
+  context "GET /:id" do
+    it "returns the name and id of a user" do
+      user = Backbeat::User.create!({
+        name: "User 1",
+        activity_endpoint: "http://i.com",
+        notification_endpoint: "http://i.com"
+      })
+
+      response = get "/users/#{user.id}"
+      body = JSON.parse(response.body)
+
+      expect(body.keys).to match_array(['name', 'id'])
+      expect(body['name']).to eq('User 1')
+      expect(body['id']).to eq(user.id)
     end
 
-    it "returns 503 if heartbeat missing" do
-      with_no_heartbeat do
-        response = get '/heartbeat.txt'
-        expect(response.status).to eq(503)
-        expect(response.headers["Content-Type"]).to eq("text/plain")
-        expect(response.body).to eq("It's dead, Jim.")
-      end
+    it "400s if bad user id provided" do
+      response = get "/users/1"
+      expect(response.status).to eq(400)
+    end
+
+    it "404s if no user found for given uuid" do
+      response = get "/users/#{SecureRandom.uuid}"
+      expect(response.status).to eq(404)
     end
   end
 end

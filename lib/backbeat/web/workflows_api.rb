@@ -51,6 +51,10 @@ module Backbeat
           end
         end
 
+        before do
+          authenticate!
+        end
+
         resource 'workflows' do
           post "/" do
             workflow = Server.create_workflow(params, current_user)
@@ -74,17 +78,20 @@ module Backbeat
           end
 
           get "/names" do
-            Cache.fetch('workflows:names', { expires_in: 1.hour }) do
-              Workflow.select(:name).distinct.order(:name).map { |item| item["name"] }
+            Cache.fetch("workflows:names:#{current_user.id}", { expires_in: 1.hour }) do
+              Workflow
+                .where(user_id: current_user.id)
+                .select(:name).distinct.order(:name).map { |item| item["name"] }
             end
           end
 
           get "/search" do
-            nodes = Search::WorkflowSearch.new(params).result
+            nodes = Search::WorkflowSearch.new(params, current_user.id).result
             present nodes, with: WorkflowPresenter
           end
 
           post "/:id/signal" do
+            require_auth_token!
             workflow = find_workflow
             signal = Server.signal(workflow, params)
             Server.fire_event(Events::ScheduleNextNode, workflow)
@@ -92,6 +99,7 @@ module Backbeat
           end
 
           post "/:id/signal/:name" do
+            require_auth_token!
             workflow = find_workflow
             signal = Server.signal(workflow, params)
             Server.fire_event(Events::ScheduleNextNode, workflow)

@@ -28,9 +28,19 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-FactoryGirl.define do
-  factory :client_node_detail, class: Backbeat::ClientNodeDetail do
-   metadata {}
-   data({"could"=>"be", "any"=>"thing", "timeout"=>100})
+require "spec_helper"
+
+describe Backbeat::User do
+
+  context "#generate_auth_token" do
+    it "creates a random auth token" do
+      user = Backbeat::User.create({
+        name: "Name",
+        activity_endpoint: "/activity",
+        notification_endpoint: "/notify"
+      })
+
+      expect(user.auth_token).to_not be_nil
+    end
   end
 end

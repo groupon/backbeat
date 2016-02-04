@@ -39,6 +39,10 @@ module Backbeat
       api do
         helpers CurrentUserHelper
 
+        before do
+          authenticate!
+        end
+
         resource 'debug' do
           get "/error_workflows" do
             workflow_ids = Node.where(

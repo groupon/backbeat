@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 9) do
+ActiveRecord::Schema.define(version: 11) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -38,17 +38,17 @@ ActiveRecord::Schema.define(version: 9) do
   add_index "node_details", ["node_id"], name: "index_node_details_on_node_id", unique: true, using: :btree
 
   create_table "nodes", id: :uuid, default: "uuid_generate_v4()", force: true do |t|
-    t.string   "mode",                                                                 null: false
-    t.string   "current_server_status",                                                null: false
-    t.string   "current_client_status",                                                null: false
-    t.string   "name",                                                                 null: false
+    t.string   "mode",                  null: false
+    t.string   "current_server_status", null: false
+    t.string   "current_client_status", null: false
+    t.string   "name",                  null: false
     t.datetime "fires_at"
     t.uuid     "parent_id"
-    t.uuid     "workflow_id",                                                          null: false
-    t.uuid     "user_id",                                                              null: false
-    t.datetime "created_at",                                                           null: false
-    t.datetime "updated_at",                                                           null: false
-    t.integer  "seq",                   default: "nextval('nodes_seq_seq'::regclass)", null: false
+    t.uuid     "workflow_id",           null: false
+    t.uuid     "user_id",               null: false
+    t.datetime "created_at",            null: false
+    t.datetime "updated_at",            null: false
+    t.integer  "seq",                   null: false
     t.uuid     "parent_link_id"
   end
 
@@ -73,7 +73,12 @@ ActiveRecord::Schema.define(version: 9) do
     t.string "decision_endpoint"
     t.string "activity_endpoint",     null: false
     t.string "notification_endpoint", null: false
+    t.string "name"
+    t.string "auth_token"
   end
+
+  add_index "users", ["auth_token"], name: "index_users_on_auth_token", unique: true, using: :btree
+  add_index "users", ["name"], name: "index_users_on_name", unique: true, using: :btree
 
   create_table "workflows", id: :uuid, default: "uuid_generate_v4()", force: true do |t|
     t.string   "name",                       null: false

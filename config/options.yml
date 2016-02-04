@@ -7,3 +7,6 @@ test:
 
 docker:
   log: ~
+
+ci:
+  log: /dev/null

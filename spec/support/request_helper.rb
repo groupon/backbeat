@@ -29,6 +29,23 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module RequestHelper
+  def client_activity_data(data = {})
+    {
+      type: 'activity',
+      name: 'name_1',
+      client_data: {
+        params: [
+          { firstName: "John", lastName: "Smith" },
+          123
+        ]
+      },
+      metadata: { version: "v2" },
+      mode: :blocking,
+      retry_interval: 6.hours
+    }.merge(data)
+  end
+  module_function :client_activity_data
+
   def activity_hash(activity_node, attributes = {})
     attributes = Backbeat::Util.camelize(attributes)
     { "activity" => Backbeat::NodePresenter.present(activity_node).merge(attributes) }.to_json

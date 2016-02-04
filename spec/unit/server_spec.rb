@@ -38,7 +38,7 @@ describe Backbeat::Server do
 
   class MockScheduler
     def self.call(event, node)
-      event.call(node.name + "_called")
+      event.call(node.name + " called")
     end
   end
 
@@ -50,7 +50,7 @@ describe Backbeat::Server do
 
   context ".fire_event" do
     it "schedules the event with the node" do
-      expect(Backbeat::Server.fire_event(MockEvent, node, MockScheduler)).to eq("test_node_called")
+      expect(Backbeat::Server.fire_event(MockEvent, node, MockScheduler)).to eq("Test-Node called")
     end
 
     it "noops if node is deactivated" do
@@ -97,7 +97,7 @@ describe Backbeat::Server do
 
     it "does not return another users workflow if the subject is the same" do
       params = { workflow_type: "UniqueName", subject: "Subject", decider: "Decider" }
-      user2 = FactoryGirl.create(:user)
+      user2 = FactoryGirl.create(:user, name: "User 2")
       workflow1 = Backbeat::Server.create_workflow(params, user)
       workflow2 = Backbeat::Server.create_workflow(params, user2)
 

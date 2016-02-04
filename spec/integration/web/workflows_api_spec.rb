@@ -29,7 +29,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'spec_helper'
-require 'helper/request_helper'
+require 'support/request_helper'
 
 describe Backbeat::Web::WorkflowsAPI, :api_test do
   include RequestHelper
@@ -119,6 +119,14 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       expect(response.status).to eq(400)
       expect(workflow.children.count).to eq(1)
     end
+
+    it "returns a 401 response if the auth token is not provided" do
+      header "Authorization", ""
+
+      response = post "workflows/#{workflow.id}/signal", signal_params
+
+      expect(response.status).to eq(401)
+    end
   end
 
   context "POST /workflows/:id/signal/:name" do
@@ -157,7 +165,16 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
 
     it "adds the link_id to the signal node" do
       response = post "workflows/#{workflow.id}/signal/test", { options: { parent_link_id: node.id } }
+
       expect(workflow.nodes.last.parent_link).to eq(node)
+    end
+
+    it "returns a 401 response if the auth token is not provided" do
+      header "Authorization", ""
+
+      response = post "workflows/#{workflow.id}/signal", signal_params
+
+      expect(response.status).to eq(401)
     end
   end
 
@@ -192,6 +209,16 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       result = JSON.parse(response.body)
       expect(result.count).to eq(2)
       expect(result.map{ |wf| wf["name"] }).to_not include("bar")
+    end
+
+    it "scopes workflows to the current user" do
+      user_2 = FactoryGirl.create(:user, name: "User 2")
+      FactoryGirl.create(:workflow, user: user_2, subject: "New subject", name: "import")
+
+      response = get "workflows/search?name=import"
+      result = JSON.parse(response.body)
+
+      expect(result.count).to eq(2)
     end
 
     it "returns all workflows partially matching on subject" do
@@ -524,6 +551,18 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       body = JSON.parse(response.body)
 
       expect(body).to eq(["A Workflow", "B Workflow", "C Workflow"])
+    end
+
+    it "scopes workflows to the current user" do
+      user_1 = user
+      user_2 = FactoryGirl.create(:user, name: "user 2")
+      FactoryGirl.create(:workflow, { name: "A Workflow", user: user_1 })
+      FactoryGirl.create(:workflow, { name: "B Workflow", user: user_2 })
+
+      response = get "/workflows/names"
+      body = JSON.parse(response.body)
+
+      expect(body).to eq(["A Workflow"])
     end
 
     it "caches the results" do

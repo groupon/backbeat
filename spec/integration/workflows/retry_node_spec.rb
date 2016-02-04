@@ -29,8 +29,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'spec_helper'
-require 'helper/request_helper'
-require 'helper/sidekiq_helper'
+require 'support/request_helper'
+require 'support/sidekiq_helper'
 
 describe Backbeat, :api_test do
   include RequestHelper
@@ -117,7 +117,7 @@ describe Backbeat, :api_test do
 
       expect(WebMock).to have_requested(:post, "http://backbeat-client:9000/notifications").with({
         body: {
-          "node" => Backbeat::NodePresenter.present(activity_node),
+          "activity" => Backbeat::NodePresenter.present(activity_node),
           "notification" => {
             "name" => activity_node.name,
             "message" => "Client Error",

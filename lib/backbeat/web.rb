@@ -36,6 +36,7 @@ require 'backbeat/web/middleware/sidekiq_stats'
 require 'backbeat/web/workflows_api'
 require 'backbeat/web/activities_api'
 require 'backbeat/web/debug_api'
+require 'backbeat/web/users_api'
 
 module Backbeat
   module Web
@@ -46,7 +47,6 @@ module Backbeat
 
       before do
         @params = Util.underscore(params, { ignore: [:client_data, :metadata] })
-        authenticate!
       end
 
       rescue_from :all do |e|
@@ -55,33 +55,35 @@ module Backbeat
       end
 
       rescue_from ActiveRecord::RecordNotFound do |e|
-        Logger.info(e)
+        Logger.info(e.message)
         error!(ErrorPresenter.present(e), 404)
       end
 
       RESCUED_ERRORS = [
         WorkflowComplete,
         Grape::Exceptions::Validation,
-        Grape::Exceptions::ValidationErrors
+        Grape::Exceptions::ValidationErrors,
+        ActiveRecord::StatementInvalid
       ]
 
       rescue_from *RESCUED_ERRORS do |e|
-        Logger.info(e)
+        Logger.info(e.message)
         error!(ErrorPresenter.present(e), 400)
       end
 
       rescue_from InvalidServerStatusChange do |e|
-        Logger.info(e)
+        Logger.info(e.message)
         error!(ErrorPresenter.present(e), 500)
       end
 
       rescue_from InvalidClientStatusChange do |e|
-        Logger.info(e)
+        Logger.info(e.message)
         error!(ErrorPresenter.present(e), 409)
       end
 
       mount WorkflowsAPI.versioned('/')
       mount ActivitiesAPI.versioned('/activities')
+      mount UsersAPI
 
       # Deprecated V2 API
       mount WorkflowsAPI.versioned('/v2')

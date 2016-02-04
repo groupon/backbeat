@@ -29,7 +29,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'spec_helper'
-require 'helper/request_helper'
+require 'support/request_helper'
 
 describe Backbeat, :api_test do
   include RequestHelper
@@ -69,7 +69,7 @@ describe Backbeat, :api_test do
         "current_server_status" => "sent_to_client"
       )
 
-      activity= FactoryGirl.build(:client_activity_data)
+      activity = RequestHelper.client_activity_data
       activity_to_post = { "decisions" => [activity] }
       response = post "activities/#{node.id}/decisions", activity_to_post
 

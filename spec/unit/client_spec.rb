@@ -41,7 +41,7 @@ describe Backbeat::Client do
     it "calls the notify of endpoint" do
       error = {"couldbe" => "anything"}
       notification_body = {
-        "node" => Backbeat::NodePresenter.present(node),
+        "activity" => Backbeat::NodePresenter.present(node),
         "notification" => {
           "name" => node.name,
           "message" => "error",
