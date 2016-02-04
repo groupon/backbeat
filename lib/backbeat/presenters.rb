@@ -89,12 +89,6 @@ module Backbeat
     end
   end
 
-  class ActivityPresenter < Presenter
-    def present(node)
-      NodePresenter.present(node).merge({ authToken: node.user.auth_token })
-    end
-  end
-
   class NotificationPresenter < Presenter
     def initialize(message = nil, error = {})
       @message = message
@@ -103,7 +97,7 @@ module Backbeat
 
     def present(node)
       {
-        activity: ActivityPresenter.present(node),
+        activity: NodePresenter.present(node),
         notification: {
           name: node.name,
           message: @message

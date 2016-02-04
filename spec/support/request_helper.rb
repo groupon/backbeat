@@ -48,11 +48,11 @@ module RequestHelper
 
   def activity_hash(activity_node, attributes = {})
     attributes = Backbeat::Util.camelize(attributes)
-    { "activity" => Backbeat::ActivityPresenter.present(activity_node).merge(attributes) }.to_json
+    { "activity" => Backbeat::NodePresenter.present(activity_node).merge(attributes) }.to_json
   end
 
   def decision_hash(decision_node, attributes = {})
     attributes = Backbeat::Util.camelize(attributes)
-    { "decision" => Backbeat::ActivityPresenter.present(decision_node).merge(attributes) }.to_json
+    { "decision" => Backbeat::NodePresenter.present(decision_node).merge(attributes) }.to_json
   end
 end
