@@ -63,7 +63,7 @@ describe "Presenters" do
     it "serializers a notification" do
       expect(Backbeat::NotificationPresenter.new("A message").present(node)).to eq(
         {
-          activity: Backbeat::ActivityPresenter.present(node),
+          activity: Backbeat::NodePresenter.present(node),
           notification: {
             name: node.name,
             message: "A message"

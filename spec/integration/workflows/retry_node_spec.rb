@@ -117,7 +117,7 @@ describe Backbeat, :api_test do
 
       expect(WebMock).to have_requested(:post, "http://backbeat-client:9000/notifications").with({
         body: {
-          "activity" => Backbeat::ActivityPresenter.present(activity_node),
+          "activity" => Backbeat::NodePresenter.present(activity_node),
           "notification" => {
             "name" => activity_node.name,
             "message" => "Client Error",
