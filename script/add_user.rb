@@ -3,6 +3,8 @@ require 'logger'
 
 user_id = ENV['BACKBEAT_USER_ID']
 client_url = ENV['BACKBEAT_CLIENT_URL']
+name =  ENV['BACKBEAT_USER_NAME']
+
 logger = Logger.new(STDOUT)
 
 if user_id
@@ -15,7 +17,8 @@ if user_id
     user = Backbeat::User.new(
       decision_endpoint:     "#{client_url}/activity",
       activity_endpoint:     "#{client_url}/activity",
-      notification_endpoint: "#{client_url}/notification"
+      notification_endpoint: "#{client_url}/notification",
+      name: name
     )
     user.id = user_id
     user.save!
