@@ -78,7 +78,7 @@ module Backbeat
           fires_at: params[:fires_at] || Time.now - 1.second,
           parent: parent_node,
           workflow_id: parent_node.workflow_id,
-          user_id: user.id,
+          user_id: params[:client_id] || user.id,
           parent_link_id: options[:parent_link_id]
         )
         ClientNodeDetail.create!(
@@ -88,7 +88,7 @@ module Backbeat
         )
         NodeDetail.create!(
           node: node,
-          legacy_type: params[:legacy_type],
+          legacy_type: params[:legacy_type] || :activity,
           retry_interval: params[:retry_interval],
           retries_remaining: params[:retry]
         )
