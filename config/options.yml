@@ -1,5 +1,5 @@
 development:
-  log: /tmp/backbeat.log
+  log: log/development.log
 
 test:
   log_level: DEBUG
