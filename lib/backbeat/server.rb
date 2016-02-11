@@ -71,7 +71,7 @@ module Backbeat
       Node.transaction do
         options = params[:options] || params
         node = Node.create!(
-          mode: params.fetch(:mode, :blocking).to_sym,
+          mode: (params[:mode] || :blocking).to_sym,
           current_server_status: params[:current_server_status] || :pending,
           current_client_status: params[:current_client_status] || :pending,
           name: params[:name],
