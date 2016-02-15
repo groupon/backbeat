@@ -75,7 +75,15 @@ $ bin/docker_console
   ```bash
   $ sudo su postgres -c "psql -c \"CREATE ROLE backbeat with SUPERUSER LOGIN PASSWORD 'backbeat'\";"
   ```
-  -  Note you can change your db configs to what ever you'd like in config/database.yml. The above command allows for the default values in the .yml
+  - Note you can change your db configs to what ever you'd like in config/database.yml. The above command allows for the default values in the .yml
+  - Note, on Lion+ you may already have a postgres user, `_postgres`.
+  - Note, you might not be able to get this working, so try [Postgres.app](http://postgresapp.com).
+
+9. Create the database
+
+  ```bash
+  $ bundle exec rake db:create
+  ```
 
 9. Run the database migrations using the following
 
