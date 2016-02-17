@@ -4,9 +4,11 @@ development:
 test:
   log_level: DEBUG
   log: log/test.log
+  require_auth_token: true
 
 docker:
   log: ~
 
 ci:
   log: /dev/null
+  require_auth_token: true

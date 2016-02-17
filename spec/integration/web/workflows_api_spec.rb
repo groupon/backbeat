@@ -127,6 +127,22 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
 
       expect(response.status).to eq(401)
     end
+
+    context "require_auth_token option" do
+      around do |example|
+        Backbeat::Config.options[:require_auth_token] = false
+        example.run
+        Backbeat::Config.options[:require_auth_token] = true
+      end
+
+      it "returns 201 if the auth token option is set to false" do
+        header "Authorization", ""
+
+        response = post "workflows/#{workflow.id}/signal", signal_params
+
+        expect(response.status).to eq(201)
+      end
+    end
   end
 
   context "POST /workflows/:id/signal/:name" do
