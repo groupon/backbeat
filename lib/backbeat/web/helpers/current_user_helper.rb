@@ -36,7 +36,15 @@ module Backbeat
       end
 
       def require_auth_token!
-        unauthorized unless current_user && current_user.auth_token == auth_token
+        unauthorized unless current_user && has_auth_token?
+      end
+
+      def has_auth_token?
+        if Config.options[:require_auth_token]
+          current_user.auth_token == auth_token
+        else
+          true
+        end
       end
 
       def auth_token

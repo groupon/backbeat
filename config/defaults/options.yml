@@ -3,6 +3,7 @@ defaults:
   async_queue: backbeat_server
   log: ~
   client_timeout: 172800
+  require_auth_token: false
   alerts:
     email_to: ~
     email_from: ~
