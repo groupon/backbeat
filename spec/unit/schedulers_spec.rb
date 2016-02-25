@@ -86,7 +86,10 @@ describe Backbeat::Schedulers do
 
     retries.each do |params|
       it "calculates retry interval by progressively backing off as remaining retries decrease from 4" do
-        node.node_detail.update_attributes(retries_remaining: params[:retries_remaining])
+        node.node_detail.update_attributes({
+          retries_remaining: params[:retries_remaining],
+          retry_interval: 20.minutes
+        })
 
         expect(Backbeat::Workers::AsyncWorker).to receive(:schedule_async_event) do |event, evented_node, args|
           expect(event).to eq(MockEvent)
@@ -94,21 +97,24 @@ describe Backbeat::Schedulers do
 
           time = args[:time]
 
-          expect(time).to be >= now + node.retry_interval.minutes + params[:lower_bound]
-          expect(time).to be <= now + node.retry_interval.minutes + params[:upper_bound]
+          expect(time).to be >= now + node.retry_interval + params[:lower_bound]
+          expect(time).to be <= now + node.retry_interval + params[:upper_bound]
         end
 
         Backbeat::Schedulers::ScheduleRetry.call(MockEvent, node)
       end
 
       it "updates the node's fires_at time" do
-        node.node_detail.update_attributes(retries_remaining: params[:retries_remaining])
+        node.node_detail.update_attributes({
+          retries_remaining: params[:retries_remaining],
+          retry_interval: 20.minutes
+        })
 
         Backbeat::Schedulers::ScheduleRetry.call(MockEvent, node)
         time = node.fires_at
 
-        expect(time).to be >= now + node.retry_interval.minutes + params[:lower_bound]
-        expect(time).to be <= now + node.retry_interval.minutes + params[:upper_bound]
+        expect(time).to be >= now + node.retry_interval + params[:lower_bound]
+        expect(time).to be <= now + node.retry_interval + params[:upper_bound]
       end
     end
   end
