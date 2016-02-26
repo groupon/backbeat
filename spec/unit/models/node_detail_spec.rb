@@ -38,4 +38,12 @@ describe Backbeat::NodeDetail do
       expect(detail.errors["retries_remaining"]).to_not be_empty
     end
   end
+
+  context "retry_interval" do
+    it "sets the default retry interval to 20 minutes in seconds" do
+      detail = described_class.new
+      expect(detail.valid?).to eq(true)
+      expect(detail.retry_interval).to eq(20 * 60)
+    end
+  end
 end

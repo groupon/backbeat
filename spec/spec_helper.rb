@@ -77,7 +77,7 @@ RSpec.configure do |config|
 
   config.before(:each, :api_test) do
     if defined?(user)
-      header 'Client-id', user.id
+      header 'Client-Id', user.id
       header "Authorization", "Token token=\"#{user.auth_token}\""
     end
   end

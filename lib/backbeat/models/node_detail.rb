@@ -38,7 +38,7 @@ module Backbeat
 
     before_validation do
       self.retries_remaining ||= 4
-      self.retry_interval ||= 20
+      self.retry_interval ||= 20.minutes
     end
   end
 end

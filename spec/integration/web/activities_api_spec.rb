@@ -125,6 +125,21 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
 
         expect(response.status).to eq(401)
       end
+
+      it "creates nodes for different clients" do
+        parent_node = workflow.children.first
+        client_B = FactoryGirl.create(:user, name: "Client B", activity_endpoint: 'http://clientb.org')
+        activity = {
+          name: "Other client activity",
+          client_id: client_B.id
+        }
+        activity_to_post = { "decisions" => [activity] }
+
+        post "#{path}/#{parent_node.id}/decisions", activity_to_post
+        activity_node = parent_node.children.first
+
+        expect(activity_node.user_id).to eq(client_B.id)
+      end
     end
 
     context "GET /#{path}/:id" do

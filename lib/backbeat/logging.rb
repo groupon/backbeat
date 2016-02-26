@@ -94,27 +94,13 @@ module Backbeat
       end
     end
 
-    def self.tid_store
-      @tid ||= {}
-    end
-
     def self.tid(option = nil)
       if option == :set
-        self.tid = SecureRandom.uuid.to_s.slice(0,7)
-      elsif option.kind_of?(String)
-        self.tid = option
+        Thread.current[:tid] = SecureRandom.uuid.to_s.slice(0,7)
       elsif option == :clear
-        self.tid = nil
+        Thread.current[:tid] = nil
       end
-      tid_store[Thread.current.object_id]
-    end
-
-    def self.tid=(value)
-      if value.nil?
-        tid_store.delete(Thread.current.object_id)
-      else
-        tid_store[Thread.current.object_id] = value
-      end
+      Thread.current[:tid]
     end
   end
 
