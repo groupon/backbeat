@@ -20,3 +20,4 @@ tmp
 .DS_store
 log/*.log
 docker/*.env
+.idea

@@ -75,6 +75,13 @@ $ bin/docker_console
   ```bash
   $ sudo su postgres -c "psql -c \"CREATE ROLE backbeat with SUPERUSER LOGIN PASSWORD 'backbeat'\";"
   ```
+  
+  ```bash
+  $ psql -d postgres
+  # CREATE ROLE backbeat with SUPERUSER LOGIN PASSWORD 'backbeat';
+  > CREATE ROLE
+  ```
+  
   - Note you can change your db configs to what ever you'd like in config/database.yml. The above command allows for the default values in the .yml
   - Note, on Lion+ you may already have a postgres user, `_postgres`.
   - Note, you might not be able to get this working, so try [Postgres.app](http://postgresapp.com).
@@ -107,23 +114,15 @@ $ bin/docker_console
     $ brew install redis
     ```
   - [Install on Linux](http://redis.io/topics/quickstart)
-  - Start Redis
-
-    ```bash
-    $ redis-server
-    ```
 12. Start Web Server and Workers
   - For testing you can run these as daemons or in different terminal windows 
   - For production you will want to use some sort of monitoring on these processes. We provide an option using God as explained [here]().
-
+  - See the Procfile for a summary of the processes
+  
   ```bash
-  $ bundle exec rackup # you can now hit backbeat from http://localhost:9292 or expose the port externally
+  $ foreman start
   ```
-
-  ```bash
-  $ bin/sidekiq # workers can now pick up async jobs
-  ```
-
+  
 ### Commands
 
 Running the tests:
