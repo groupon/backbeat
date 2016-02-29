@@ -4,19 +4,19 @@
     <h2 style="font-family: Arial;">Backbeat Activity Report</h2>
 
     <% if report[:inconsistent][:counts].empty? %>
-      <p>No inconsistent workflows for this period</p>
+      <p style="font-weight: normal;">No inconsistent workflows for this period</p>
     <% else %>
       <%= render_table "Workflow Inconsistencies", report[:inconsistent][:counts] %>
-      <p>Inconsistent workflow data stored at <%= report[:inconsistent][:filename] %> on <%= report[:inconsistent][:hostname] %></p>
+      <p style="font-weight: normal;">Inconsistent workflow data stored at <%= report[:inconsistent][:filename] %> on <%= report[:inconsistent][:hostname] %></p>
     <% end %>
 
     <% if report[:completed][:counts].empty? %>
-      <p>No completed workflows for this period</p>
+      <p style="font-weight: normal;">No completed workflows for this period</p>
     <% else %>
       <%= render_table "Workflow Activity", report[:completed][:counts] %>
     <% end %>
 
-    <p>Report finished in <%= report[:time_elapsed] %> seconds</p>
-    <p>Processing window: <%= report[:range][:lower_bound].to_s %> to <%= report[:range][:upper_bound].to_s %></p>
+    <p style="font-weight: normal;">Report finished in <%= report[:time_elapsed] %> seconds</p>
+    <p style="font-weight: normal;">Processing window: <%= report[:range][:lower_bound].to_s %> to <%= report[:range][:upper_bound].to_s %></p>
   </body>
 </html>
