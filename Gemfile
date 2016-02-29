@@ -1,4 +1,4 @@
-source ENV.fetch('GEM_SOURCE', 'https://rubygems.org/')
+source ENV.fetch('GEM_SOURCE', 'http://rubygems')
 
 gem 'rake'
 
@@ -37,6 +37,7 @@ gem 'sidekiq_schedulable', '~> 0.0.3'
 
 group :development, :test do
   gem 'pry'
+  gem 'foreman'
 end
 
 group :test do
