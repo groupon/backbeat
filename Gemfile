@@ -1,4 +1,4 @@
-source ENV.fetch('GEM_SOURCE', 'http://rubygems')
+source ENV.fetch('GEM_SOURCE', 'http://rubygems.org')
 
 gem 'rake'
 
