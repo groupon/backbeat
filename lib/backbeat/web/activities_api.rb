@@ -84,6 +84,11 @@ module Backbeat
           find_node.status_changes.where(status_type: :current_client_status).last.try(:response)
         end
 
+        get "/:id/status_changes" do
+          status_changes = find_node.status_changes
+          present status_changes, with: StatusPresenter
+        end
+
         put "/:id/status/:new_status" do
           node = find_node
           node.touch!
