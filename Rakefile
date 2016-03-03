@@ -64,6 +64,7 @@ namespace :db do
   desc "rollback one migration"
   task :rollback => :env do
     DB.with_connection do |c|
+      Foreigner.load
       ActiveRecord::Migrator.rollback('db/migrations')
     end
   end
