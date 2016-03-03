@@ -326,6 +326,27 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
       end
     end
 
+    context "GET #{path}/:id/status_changes" do
+      it "returns all status changes" do
+        node.status_changes.create({
+          from_status: "pending",
+          to_status: "ready",
+          status_type: "current_server_status",
+        })
+        node.status_changes.create({
+          from_status: "ready",
+          to_status: "started",
+          status_type: "current_server_status",
+        })
+
+        response = get "#{path}/#{node.id}/status_changes"
+        body = JSON.parse(response.body)
+
+        expect(body.first["toStatus"]).to eq "ready"
+        expect(body.last["toStatus"]).to eq "started"
+      end
+    end
+
     context "GET #{path}/:id/response" do
       it "returns the response for the last client status change" do
         node.status_changes.create({
