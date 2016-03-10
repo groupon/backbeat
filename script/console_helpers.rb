@@ -30,6 +30,54 @@ def sidekiq_job_count
   nil
 end
 
+def system_status(options = {})
+  range = options[:range] || { lower_bound: 24.hours.ago, upper_bound: Time.now }
+  status = options[:status]
+  workflow_names = options[:workflow_names]
+  activity_names = options[:activity_names]
+  omit_regex = options[:omit]
+
+  nodes_arel = Node.where('nodes.fires_at > ?', range[:lower_bound]).where('nodes.fires_at < ?', range[:upper_bound]).joins(:workflow).reorder("")
+  nodes_arel = nodes_arel.where(current_client_status: status) if status
+  nodes_arel = nodes_arel.where("workflows.name" => workflow_names) if workflow_names
+  nodes_arel = nodes_arel.where(name: activity_names) if activity_names
+  count_arel = nodes_arel.group("nodes.name, wf_name, nodes.current_client_status").select("COUNT(nodes.name) AS node_count, nodes.name, nodes.current_client_status, workflows.name AS wf_name")
+
+  count_hash = Hash.new{|h,k| h[k] = Hash.new{|h,k| h[k] = Hash.new{|h,k| h[k] = 0}}}
+
+  count_arel.each do |activity|
+    unless activity.name =~ omit_regex
+      count_hash[activity.current_client_status][activity.wf_name][activity.name] += activity.node_count
+    end
+  end
+  print_table(count_hash)
+  count_hash
+end
+
+def print_table(count_hash)
+  wf_width = 50
+  activity_width = 80
+  border_width = 160
+  border = "-"*border_width
+  piping = "-"*border_width + '|'
+  puts border
+  puts("System status")
+  puts border
+  count_hash.each do |status, workflows|
+    puts("Status: " + status.upcase)
+    puts piping
+    workflows.each do |wf_name, activities|
+      puts(wf_name.rjust(wf_width) + ' |'.rjust(border_width - wf_width + 1))
+      puts piping
+      puts "Activities".ljust(activity_width) + "Count\n\n"
+      activities.sort_by{ |a| a.first.downcase }.each do |activity_name, count|
+        puts(activity_name.ljust(activity_width) + count.to_s)
+      end
+      puts piping
+    end
+  end
+end
+
 module Backbeat
   module ConsoleHelpers
     EVENT_MAP = {
