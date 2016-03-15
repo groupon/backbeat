@@ -31,6 +31,7 @@
 require 'backbeat/errors'
 require 'backbeat/server'
 require 'backbeat/models/node'
+require 'backbeat/search/activity_search'
 require 'backbeat/web/versioned_api'
 require 'backbeat/web/helpers/current_user_helper'
 
@@ -69,6 +70,11 @@ module Backbeat
 
         before do
           authenticate!
+        end
+
+        get "/search" do
+          nodes = Search::ActivitySearch.new(params, current_user.id).result
+          present nodes, with: NodePresenter
         end
 
         get "/:id" do
