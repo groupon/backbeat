@@ -33,27 +33,25 @@ module Backbeat
 
     VALID_STATE_CHANGES = {
       current_client_status: {
-        any: [:errored],
-        pending: [:ready],
-        ready: [:received],
-        received: [:processing, :complete],
-        processing: [:complete],
-        errored: [:ready],
+        pending: [:ready, :errored],
+        ready: [:received, :errored],
+        received: [:processing, :complete, :errored],
+        processing: [:complete, :errored],
+        errored: [:ready, :errored],
         complete: [:complete]
       },
       current_server_status: {
-        any: [:deactivated, :errored],
-        deactivated: [],
-        pending: [:ready],
-        ready: [:started],
-        started: [:sent_to_client, :paused],
-        sent_to_client: [:processing_children, :retrying, :retries_exhausted],
-        processing_children: [:complete],
-        complete: [],
-        paused: [:started],
-        errored: [:ready],
-        retrying: [:ready],
-        retries_exhausted: [:ready]
+        pending: [:ready, :deactivated, :errored],
+        ready: [:started, :deactivated, :errored],
+        started: [:sent_to_client, :paused, :deactivated, :errored],
+        sent_to_client: [:processing_children, :retrying, :retries_exhausted, :deactivated, :errored],
+        processing_children: [:complete, :deactivated, :errored],
+        complete: [:deactivated],
+        paused: [:started, :deactivated, :errored],
+        errored: [:ready, :deactivated, :errored],
+        retrying: [:ready, :deactivated, :errored],
+        retries_exhausted: [:ready, :deactivated, :errored],
+        deactivated: [:deactivated]
       }
     }
 
@@ -146,8 +144,7 @@ module Backbeat
 
     def valid_state_changes(status_type)
       current_status = current_statuses[status_type]
-      VALID_STATE_CHANGES[status_type][current_status] +
-        VALID_STATE_CHANGES[status_type][:any]
+      VALID_STATE_CHANGES[status_type][current_status]
     end
   end
 end
