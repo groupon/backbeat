@@ -43,6 +43,130 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
     WebMock.stub_request(:post, "http://backbeat-client:9000/notifications")
   end
 
+  context "GET /activities/search" do
+    before do
+      node # Make sure the node is created
+      wf_1 = FactoryGirl.create(
+        :workflow_with_node,
+        user: user,
+        created_at: Time.now - 1.hour,
+        subject: { class: "FooModel", id: 1 }
+      )
+      wf_2 = FactoryGirl.create(
+        :workflow_with_node,
+        user: user,
+        created_at: Time.now - 1.hour,
+        subject: { class: "BarModel", id: 2 }
+      )
+
+      node.update_attributes(created_at: 1.hour.ago)
+      wf_1.nodes.first.update_attributes(created_at: 2.hours.ago)
+      wf_2.nodes.first.update_attributes(created_at: 3.hours.ago)
+    end
+
+    it "returns nothing if no params are provided" do
+      response = get "activities/search"
+      expect(response.body).to eq("[]")
+    end
+
+    it "returns all nodes in server_status matching queried status" do
+      Backbeat::StateManager.transition(node, current_server_status: :ready)
+      Backbeat::StateManager.transition(node, current_server_status: :started)
+
+      response = get "activities/search?current_status=started"
+      result = JSON.parse(response.body)
+      expect(result.count).to eq(1)
+      expect(result.first["id"]).to eq(node.id)
+    end
+
+    it "returns all nodes in client_status matching queried status" do
+      Backbeat::StateManager.transition(node, current_client_status: :received)
+
+      response = get "activities/search?current_status=received"
+      result = JSON.parse(response.body)
+      expect(result.count).to eq(1)
+      expect(result.first["id"]).to eq(node.id)
+    end
+
+    it "returns all nodes with past status matching queried status" do
+      Backbeat::StateManager.transition(node, current_client_status: :received)
+      Backbeat::StateManager.transition(node, current_client_status: :processing)
+
+      response = get "activities/search?past_status=received"
+      result = JSON.parse(response.body)
+
+      expect(result.count).to eq(1)
+      expect(result.first["id"]).to eq(node.id)
+    end
+
+    it "returns all nodes with matching name" do
+      node.update_attributes!(name: "amazing")
+      response = get "activities/search?name=amazing"
+      result = JSON.parse(response.body)
+      expect(result.count).to eq(1)
+    end
+
+    it "returns nodes that were created in a certain timeframe" do
+      node.status_changes.create({
+        from_status: :pending,
+        to_status: :errored,
+        status_type: :current_server_status,
+        created_at: 3.hours.ago.utc
+      })
+      node.status_changes.create({
+        from_status: :pending,
+        to_status: :errored,
+        status_type: :current_server_status,
+        created_at: 2.hours.ago.utc
+      })
+
+      status_start = 4.hours.ago.utc.iso8601
+      status_end = 1.hours.ago.utc.iso8601
+      query_params = "status_start=#{status_start}&status_end=#{status_end}"
+      response = get "activities/search?#{query_params}"
+      result = JSON.parse(response.body)
+      expect(result.count).to eq(1)
+      expect(result.first["id"]).to eq(node.id)
+    end
+
+    it "returns all nodes partially matching on metadata" do
+      uuid = SecureRandom.uuid
+      node.client_node_detail.update_attributes!(metadata: { place_uuid: uuid })
+
+      response = get "activities/search?metadata=#{uuid}"
+      result = JSON.parse(response.body)
+      expect(result.count).to eq(1)
+      expect(result.first["id"]).to eq(node.id)
+    end
+
+    it "returns results limited by per_page" do
+      response = get "activities/search?per_page=2"
+      result = JSON.parse(response.body)
+
+      expect(result.count).to eq(2)
+    end
+
+    it "paginates results" do
+      response = get "activities/search?per_page=2&page=2"
+      result = JSON.parse(response.body)
+
+      expect(result.count).to eq(1)
+    end
+
+    it "paginates results by last record id" do
+      response = get "activities/search?per_page=2"
+      first_page_result = JSON.parse(response.body)
+
+      after_id = first_page_result[1]["id"]
+
+      response = get "activities/search?per_page=2&last_id=#{after_id}"
+      result = JSON.parse(response.body)
+
+      expect(result.first["subject"]["id"]).to eq(2)
+      expect(result.first["subject"]["class"]).to eq("BarModel")
+    end
+  end
+
   ['v2/events', '/activities'].each do |path|
 
     context "PUT #{path}/:id/restart" do
