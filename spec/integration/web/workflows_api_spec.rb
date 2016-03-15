@@ -394,6 +394,24 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       expect(result.first["id"]).to eq(wf_3.id)
       expect(result.last["id"]).to eq(wf_4.id)
     end
+
+    it "Can combine pagination with filtering" do
+      uuids = Array.new(2) { SecureRandom.uuid }.sort.reverse
+      wf = FactoryGirl.create(
+        :workflow_with_node_running,
+        id: uuids.first,
+        user: user,
+        subject: { class: "FooModel", id: 4 },
+        name: "export",
+        created_at: Time.now - 1.hour
+      )
+
+      response = get "workflows/search?current_status=processing_children&per_page=2&last_id=#{wf_2.id}"
+      result = JSON.parse(response.body)
+
+      expect(result.count).to eq(1)
+      expect(result.first["id"]).to eq(wf.id)
+    end
   end
 
   context "GET /workflows/:id" do

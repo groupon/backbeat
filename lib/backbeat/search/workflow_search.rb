@@ -110,7 +110,7 @@ module Backbeat
       LastIdFilter = filter_for(:last_id) do |relation, params|
         last_id = params.fetch(:last_id)
         last_created_at = Workflow.where(id: last_id).pluck(:created_at).first
-        relation.where('(created_at, id) < (?, ?)', last_created_at, last_id)
+        relation.where("(#{relation.table_name}.created_at, #{relation.table_name}.id) < (?, ?)", last_created_at, last_id)
       end
 
       private
