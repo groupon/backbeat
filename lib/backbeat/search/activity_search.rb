@@ -32,7 +32,7 @@ require 'backbeat/search/filter'
 
 module Backbeat
   module Search
-    class WorkflowSearch
+    class ActivitySearch
       def initialize(params, user_id)
         @params = params
         @user_id = user_id
@@ -42,7 +42,7 @@ module Backbeat
         filter.apply_filters(
           params,
           filter.name,
-          subject_filter,
+          metadata_filter,
           filter.current_status,
           filter.past_status,
           filter.status_start,
@@ -58,14 +58,13 @@ module Backbeat
       attr_reader :params, :user_id
 
       def filter
-        @filter ||= Filter.new(
-          Workflow.where(user_id: user_id).order({ created_at: :desc, id: :desc }).joins(:nodes)
-        )
+        @filter ||= Filter.new(Node.where(user_id: user_id).order({ created_at: :desc, id: :desc }))
       end
 
-      def subject_filter
-        filter.filter_for(:subject) do |relation, params|
-          relation.where("workflows.subject LIKE ?", "%#{params[:subject]}%")
+      def metadata_filter
+        filter.filter_for(:metadata) do |relation, params|
+          relation.joins("JOIN client_node_details ON client_node_details.node_id = nodes.id")
+            .where("client_node_details.metadata LIKE ?", "%#{params[:metadata]}%")
         end
       end
     end

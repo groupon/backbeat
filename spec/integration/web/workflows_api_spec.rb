@@ -197,7 +197,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
   context "GET /workflows/search" do
     let(:ids) { Array.new(3) { SecureRandom.uuid }.sort.reverse }
     let!(:wf_1) { FactoryGirl.create(
-      :workflow,
+      :workflow_with_node,
       id: ids.first,
       user: user,
       subject: { class: "FooModel", id: 1 },
@@ -205,7 +205,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     )}
 
     let!(:wf_2) { FactoryGirl.create(
-      :workflow,
+      :workflow_with_node,
       id: ids.second,
       user: user,
       subject: { class: "BarModel", id: 2 },
@@ -213,7 +213,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     )}
 
     let!(:wf_3) { FactoryGirl.create(
-      :workflow,
+      :workflow_with_node,
       id: ids.last,
       user: user,
       subject: { class: "FooModel", id: 3 },
@@ -369,7 +369,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
     it "paginates results by last record id" do
       uuids = Array.new(2) { SecureRandom.uuid }.sort.reverse
       wf_4 = FactoryGirl.create(
-        :workflow,
+        :workflow_with_node,
         id: uuids.first,
         user: user,
         subject: { class: "FooModel", id: 4 },
@@ -378,7 +378,7 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       )
 
       wf_5 = FactoryGirl.create(
-        :workflow,
+        :workflow_with_node,
         id: uuids.last,
         user: user,
         subject: { class: "FooModel", id: 5 },
