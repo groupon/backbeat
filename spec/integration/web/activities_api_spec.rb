@@ -383,6 +383,23 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
       end
     end
 
+    context "PUT /#{path}/:id/status/resolved" do
+      it "marks the node as complete" do
+        node.update_attributes({
+          current_server_status: :retries_exhausted,
+          current_client_status: :errored
+        })
+        client_params = { "result" => "Done", "error" => nil }
+
+        put "#{path}/#{node.id}/status/resolved", { "response" => client_params }
+        node.reload
+
+        expect(node.current_client_status).to eq("resolved")
+        expect(node.current_server_status).to eq("processing_children")
+        expect(node.status_changes.last.response).to eq(client_params)
+      end
+    end
+
     context "PUT #{path}/:id/reset" do
       it "deactivates all child nodes on the node" do
         child = FactoryGirl.create(:node, user: user, workflow: workflow, parent: node)

@@ -45,6 +45,7 @@ module Backbeat
         deciding_complete: Events::ClientComplete,
         completed: Events::ClientComplete,
         errored: Events::ClientError,
+        resolved: Events::ClientResolved,
         deactivated: Events::DeactivatePreviousNodes,
         canceled: Events::CancelNode
       }

@@ -113,6 +113,19 @@ module Backbeat
       end
     end
 
+    class ClientResolved < Event
+      include ResponseHandler
+      scheduler Schedulers::PerformEvent
+
+      def call(node)
+        StateManager.new(node, response).with_rollback do |state|
+          state.transition(current_client_status: :resolved, current_server_status: :processing_children)
+          node.mark_complete!
+          Server.fire_event(MarkChildrenReady, node)
+        end
+      end
+    end
+
     class NodeComplete < Event
       scheduler Schedulers::PerformEvent
 

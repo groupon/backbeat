@@ -75,6 +75,7 @@ module Backbeat
                                            :received,
                                            :processing,
                                            :complete,
+                                           :resolved,
                                            :errored]
 
     delegate :retries_remaining, :retry_interval, :legacy_type, :legacy_type=, to: :node_detail

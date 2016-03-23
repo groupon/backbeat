@@ -255,6 +255,33 @@ describe Backbeat::Events do
     end
   end
 
+  context "ClientResolved" do
+    before do
+      node.update_attributes(
+        current_client_status: :errored,
+        current_server_status: :retries_exhausted
+      )
+    end
+
+    it "updates the status to resolve, marks_complete!, and fires MarkChildrenReady" do
+      expect(Backbeat::Server).to receive(:fire_event).with(Backbeat::Events::MarkChildrenReady, node)
+      expect(node).to receive(:mark_complete!)
+
+      Backbeat::Events::ClientResolved.call(node)
+
+      expect(node.current_server_status).to eq("processing_children")
+      expect(node.current_client_status).to eq("resolved")
+    end
+
+    it "rolls back if error occurs" do
+      expect(Backbeat::Server).to receive(:fire_event).with(Backbeat::Events::MarkChildrenReady, node).and_raise "error"
+      expect { Backbeat::Events::ClientResolved.call(node) }.to raise_error
+
+      expect(node.current_server_status).to eq("retries_exhausted")
+      expect(node.current_client_status).to eq("errored")
+    end
+  end
+
   context "NodeComplete" do
     before do
       node.update_attributes(current_server_status: :processing_children)
