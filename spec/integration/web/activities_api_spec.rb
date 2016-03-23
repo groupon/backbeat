@@ -420,6 +420,44 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
       end
     end
 
+    context "PUT #{path}/:id/schedule" do
+      require 'support/sidekiq_helper'
+
+      it "schedules the next ready child activity for the node" do
+        child = FactoryGirl.create(
+          :node,
+          user: user,
+          workflow: workflow,
+          parent: node,
+          current_server_status: :ready,
+          current_client_status: :ready
+        )
+
+        put "#{path}/#{node.id}/schedule"
+        SidekiqHelper.soft_drain
+
+        expect(child.reload.current_server_status).to eq("started")
+      end
+    end
+
+    context "PUT #{path}/:id/shutdown" do
+      it "deactivates the node and following siblings" do
+        sibling = FactoryGirl.create(
+          :node,
+          user: user,
+          workflow: workflow,
+          parent: node.parent,
+          current_server_status: :ready,
+          current_client_status: :ready
+        )
+
+        put "#{path}/#{node.id}/shutdown"
+
+        expect(node.reload.current_server_status).to eq("deactivated")
+        expect(sibling.reload.current_server_status).to eq("deactivated")
+      end
+    end
+
     context "GET #{path}/:id/errors" do
       it "returns all status changes to an errored state" do
         node.status_changes.create({

@@ -106,6 +106,18 @@ module Backbeat
           { success: true }
         end
 
+        put "/:id/schedule" do
+          node = find_node
+          node.touch!
+          Server.fire_event(Events::ScheduleNextNode, node)
+        end
+
+        put "/:id/shutdown" do
+          node = find_node
+          node.touch!
+          Server.fire_event(Events::ShutdownNode, node)
+        end
+
         put "/:id/restart" do
           node = find_node
           Workers::AsyncWorker.remove_job(Events::RetryNode, node)

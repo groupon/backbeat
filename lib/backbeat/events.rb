@@ -187,6 +187,16 @@ module Backbeat
       end
     end
 
+    class ShutdownNode < Event
+      scheduler Schedulers::PerformEvent
+
+      def call(node)
+        node.parent.children.each do |child|
+          StateManager.transition(child, current_server_status: :deactivated) if child.seq >= node.seq
+        end
+      end
+    end
+
     class CancelNode < Event
       scheduler Schedulers::PerformEvent
 

@@ -495,4 +495,33 @@ describe Backbeat::Events do
       expect(third_node.reload.current_server_status).to eq("deactivated")
     end
   end
+
+  context "ShutdownNode" do
+    it "deactivates the node and its following siblings" do
+      child_1 = FactoryGirl.create(:node,
+        workflow: workflow,
+        parent: node,
+        user: user
+      )
+      child_2 = FactoryGirl.create(:node,
+        workflow: workflow,
+        parent: node,
+        user: user
+      )
+      child_3 = FactoryGirl.create(:node,
+        workflow: workflow,
+        parent: node,
+        user: user
+      )
+      child_1.update_attributes({ current_server_status: :complete, current_client_status: :complete })
+      child_2.update_attributes({ current_server_status: :retries_exhausted, current_client_status: :errored })
+      child_3.update_attributes({ current_server_status: :ready, current_client_status: :ready })
+
+      Backbeat::Events::ShutdownNode.call(child_2.reload)
+
+      expect(child_1.reload.current_server_status).to eq("complete")
+      expect(child_2.reload.current_server_status).to eq("deactivated")
+      expect(child_3.reload.current_server_status).to eq("deactivated")
+    end
+  end
 end
