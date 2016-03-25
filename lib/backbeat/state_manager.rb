@@ -37,7 +37,7 @@ module Backbeat
         ready: [:received, :errored],
         received: [:processing, :complete, :errored],
         processing: [:complete, :errored],
-        errored: [:ready, :errored, :resolved],
+        errored: [:ready, :errored, :resolved, :shutdown],
         complete: [:complete]
       },
       current_server_status: {

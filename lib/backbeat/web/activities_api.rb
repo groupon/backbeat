@@ -40,12 +40,13 @@ module Backbeat
     class ActivitiesAPI < VersionedAPI
 
       CLIENT_EVENTS = {
-        deciding: Events::ClientProcessing,
+        deciding: Events::ClientProcessing, # Legacy status
         processing: Events::ClientProcessing,
-        deciding_complete: Events::ClientComplete,
+        deciding_complete: Events::ClientComplete, # Legacy status
         completed: Events::ClientComplete,
         errored: Events::ClientError,
         resolved: Events::ClientResolved,
+        shutdown: Events::ShutdownNode,
         deactivated: Events::DeactivatePreviousNodes,
         canceled: Events::CancelNode
       }
@@ -111,12 +112,6 @@ module Backbeat
           node = find_node
           node.touch!
           Server.fire_event(Events::ScheduleNextNode, node)
-        end
-
-        put "/:id/shutdown" do
-          node = find_node
-          node.touch!
-          Server.fire_event(Events::ShutdownNode, node)
         end
 
         put "/:id/restart" do

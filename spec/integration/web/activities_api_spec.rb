@@ -437,6 +437,31 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
       end
     end
 
+    context "PUT #{path}/:id/status/shutdown" do
+      it "runs the shutdown transition" do
+        node.update_attributes({
+          current_client_status: :errored,
+          current_server_status: :retries_exhausted
+        })
+        sibling = FactoryGirl.create(
+          :node,
+          user: user,
+          workflow: workflow,
+          parent: node.parent,
+          current_server_status: :ready,
+          current_client_status: :ready
+        )
+
+        put "#{path}/#{node.id}/status/shutdown"
+        node.reload
+        sibling.reload
+
+        expect(node.current_server_status).to eq("processing_children")
+        expect(node.current_client_status).to eq("shutdown")
+        expect(sibling.current_server_status).to eq("deactivated")
+      end
+    end
+
     context "PUT #{path}/:id/schedule" do
       require 'support/sidekiq_helper'
 
@@ -454,24 +479,6 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
         SidekiqHelper.soft_drain
 
         expect(child.reload.current_server_status).to eq("started")
-      end
-    end
-
-    context "PUT #{path}/:id/shutdown" do
-      it "deactivates the node and following siblings" do
-        sibling = FactoryGirl.create(
-          :node,
-          user: user,
-          workflow: workflow,
-          parent: node.parent,
-          current_server_status: :ready,
-          current_client_status: :ready
-        )
-
-        put "#{path}/#{node.id}/shutdown"
-
-        expect(node.reload.current_server_status).to eq("deactivated")
-        expect(sibling.reload.current_server_status).to eq("deactivated")
       end
     end
 
