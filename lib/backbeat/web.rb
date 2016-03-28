@@ -81,6 +81,10 @@ module Backbeat
         error!(ErrorPresenter.present(e), 409)
       end
 
+      rescue_from UnknownStatus do |e|
+        error!(ErrorPresenter.present(e), 400)
+      end
+
       mount WorkflowsAPI.versioned('/')
       mount ActivitiesAPI.versioned('/activities')
       mount UsersAPI

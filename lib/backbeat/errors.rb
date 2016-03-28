@@ -30,6 +30,7 @@
 
 module Backbeat
   class InvalidStatusChange < StandardError; end
+  class UnknownStatus < StandardError; end
   class InvalidServerStatusChange < InvalidStatusChange; end
   class InvalidClientStatusChange < InvalidStatusChange
     attr_reader :data

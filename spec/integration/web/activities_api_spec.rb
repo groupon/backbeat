@@ -308,6 +308,14 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
       end
     end
 
+    context "PUT /#{path}/:id/status" do
+      it "returns 400 for an unknown status change" do
+        response = put "#{path}/#{node.id}/status/done"
+
+        expect(response.status).to eq(400)
+      end
+    end
+
     context "PUT /#{path}/:id/status/processing" do
       it "fires the ClientProcessing event" do
         node.update_attributes(current_client_status: :received)

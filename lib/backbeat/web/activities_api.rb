@@ -101,7 +101,9 @@ module Backbeat
           node = find_node
           node.touch!
           new_status = params[:new_status].to_sym
-          event_type = CLIENT_EVENTS[new_status]
+          event_type = CLIENT_EVENTS.fetch(new_status) do
+            raise UnknownStatus, "Unknown status change #{new_status}"
+          end
           response = params[:response] || params[:args]
           event = response ? event_type.new(response) : event_type
           Server.fire_event(event, node)
