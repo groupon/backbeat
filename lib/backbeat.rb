@@ -51,6 +51,3 @@ require 'backbeat/models/node_detail'
 require 'backbeat/models/client_node_detail'
 require 'backbeat/models/status_change'
 require 'backbeat/models/workflow'
-
-module Backbeat
-end
