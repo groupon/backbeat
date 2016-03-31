@@ -1,8 +1,10 @@
 ![Backbeat](documentation/images/backbeat_logo.png)
 
-# Backbeat Server
+# Backbeat
 
-This is the server application for Backbeat, the open-source workflow service by Groupon. For more information on what Backbeat is, and documentation for using Backbeat, see [the wiki](https://github.groupondev.com/backbeat/backbeat_server/wiki).
+This is the server application for Backbeat, the open-source workflow service
+by Groupon. For more information on what Backbeat is, and documentation for
+using Backbeat, see [the wiki](https://github.groupondev.com/backbeat/backbeat_server/wiki).
 
 ### Quick Start With Docker (Not recommended for production environments)
 
