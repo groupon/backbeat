@@ -1,3 +1,5 @@
+![Backbeat](documentation/images/backbeat_logo.png)
+
 # Backbeat Server
 
 This is the server application for Backbeat, the open-source workflow service by Groupon. For more information on what Backbeat is, and documentation for using Backbeat, see [the wiki](https://github.groupondev.com/backbeat/backbeat_server/wiki).
@@ -75,13 +77,13 @@ $ bin/docker_console
   ```bash
   $ sudo su postgres -c "psql -c \"CREATE ROLE backbeat with SUPERUSER LOGIN PASSWORD 'backbeat'\";"
   ```
-  
+
   ```bash
   $ psql -d postgres
   # CREATE ROLE backbeat with SUPERUSER LOGIN PASSWORD 'backbeat';
   > CREATE ROLE
   ```
-  
+
   - Note you can change your db configs to what ever you'd like in config/database.yml. The above command allows for the default values in the .yml
   - Note, on Lion+ you may already have a postgres user, `_postgres`.
   - Note, you might not be able to get this working, so try [Postgres.app](http://postgresapp.com).
@@ -102,7 +104,7 @@ $ bin/docker_console
   ```bash
   $ bundle exec rake console
   ```
-  
+
   ```ruby
   Workflow.last # should return nil
   ```
@@ -115,14 +117,14 @@ $ bin/docker_console
     ```
   - [Install on Linux](http://redis.io/topics/quickstart)
 12. Start Web Server and Workers
-  - For testing you can run these as daemons or in different terminal windows 
+  - For testing you can run these as daemons or in different terminal windows
   - For production you will want to use some sort of monitoring on these processes. We provide an option using God as explained [here]().
   - See the Procfile for a summary of the processes
-  
+
   ```bash
   $ foreman start
   ```
-  
+
 ### Commands
 
 Running the tests:
