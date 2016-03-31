@@ -4,7 +4,7 @@
 
 This is the server application for Backbeat, the open-source workflow service
 by Groupon. For more information on what Backbeat is, and documentation for
-using Backbeat, see [the wiki](https://github.groupondev.com/backbeat/backbeat_server/wiki).
+using Backbeat, see [the wiki](https://github.com/groupon/backbeat/wiki).
 
 ### Quick Start With Docker (Not recommended for production environments)
 
@@ -35,7 +35,7 @@ $ bin/docker_console
 1. Clone the repo:
 
   ```bash
-  $ git clone git@github.groupondev.com:backbeat/backbeat_server.git
+  $ git clone git@github.com:groupon/backbeat.git
   ```
 
 2. Install a Ruby version manager if necessary:
@@ -65,7 +65,7 @@ $ bin/docker_console
   $ bundle install
   ```
 
-7. Install Postgres or [use an existing Postgres db](https://github.groupondev.com/backbeat/backbeat_server/wiki/Customize-Backbeat#postgres)
+7. Install Postgres or [use an existing Postgres db](https://github.com/groupon/backbeat/wiki/Customize-Backbeat#postgres)
  	- We recommend postgresql-9.4 but Backbeat currently supports any postgres version that allows the uuid-ossp extension
 	- Install on Mac OS
 
@@ -110,7 +110,7 @@ $ bin/docker_console
   ```ruby
   Workflow.last # should return nil
   ```
-11. Install Redis or [use an existing Redis instance](https://github.groupondev.com/backbeat/backbeat_server/wiki/Customize-Backbeat#redis)
+11. Install Redis or [use an existing Redis instance](https://github.com/groupon/backbeat/wiki/Customize-Backbeat#redis)
   - Redis is used for processing of asynchronous and scheduled jobs with Sidekiq
   - Install on Mac OS
 
