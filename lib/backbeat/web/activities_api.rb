@@ -40,11 +40,13 @@ module Backbeat
     class ActivitiesAPI < VersionedAPI
 
       CLIENT_EVENTS = {
-        deciding: Events::ClientProcessing,
+        deciding: Events::ClientProcessing, # Legacy status
         processing: Events::ClientProcessing,
-        deciding_complete: Events::ClientComplete,
+        deciding_complete: Events::ClientComplete, # Legacy status
         completed: Events::ClientComplete,
         errored: Events::ClientError,
+        resolved: Events::ClientResolved,
+        shutdown: Events::ShutdownNode,
         deactivated: Events::DeactivatePreviousNodes,
         canceled: Events::CancelNode
       }
@@ -99,11 +101,19 @@ module Backbeat
           node = find_node
           node.touch!
           new_status = params[:new_status].to_sym
-          event_type = CLIENT_EVENTS[new_status]
+          event_type = CLIENT_EVENTS.fetch(new_status) do
+            raise UnknownStatus, "Unknown status change #{new_status}"
+          end
           response = params[:response] || params[:args]
           event = response ? event_type.new(response) : event_type
           Server.fire_event(event, node)
           { success: true }
+        end
+
+        put "/:id/schedule" do
+          node = find_node
+          node.touch!
+          Server.fire_event(Events::ScheduleNextNode, node)
         end
 
         put "/:id/restart" do

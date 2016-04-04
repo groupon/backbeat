@@ -308,6 +308,14 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
       end
     end
 
+    context "PUT /#{path}/:id/status" do
+      it "returns 400 for an unknown status change" do
+        response = put "#{path}/#{node.id}/status/done"
+
+        expect(response.status).to eq(400)
+      end
+    end
+
     context "PUT /#{path}/:id/status/processing" do
       it "fires the ClientProcessing event" do
         node.update_attributes(current_client_status: :received)
@@ -383,6 +391,23 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
       end
     end
 
+    context "PUT /#{path}/:id/status/resolved" do
+      it "marks the node as complete" do
+        node.update_attributes({
+          current_server_status: :retries_exhausted,
+          current_client_status: :errored
+        })
+        client_params = { "result" => "Done", "error" => nil }
+
+        put "#{path}/#{node.id}/status/resolved", { "response" => client_params }
+        node.reload
+
+        expect(node.current_client_status).to eq("resolved")
+        expect(node.current_server_status).to eq("processing_children")
+        expect(node.status_changes.last.response).to eq(client_params)
+      end
+    end
+
     context "PUT #{path}/:id/reset" do
       it "deactivates all child nodes on the node" do
         child = FactoryGirl.create(:node, user: user, workflow: workflow, parent: node)
@@ -417,6 +442,51 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
 
         expect(node.reload.current_server_status).to eq("deactivated")
         expect(child.reload.current_server_status).to eq("deactivated")
+      end
+    end
+
+    context "PUT #{path}/:id/status/shutdown" do
+      it "runs the shutdown transition" do
+        node.update_attributes({
+          current_client_status: :errored,
+          current_server_status: :retries_exhausted
+        })
+        sibling = FactoryGirl.create(
+          :node,
+          user: user,
+          workflow: workflow,
+          parent: node.parent,
+          current_server_status: :ready,
+          current_client_status: :ready
+        )
+
+        put "#{path}/#{node.id}/status/shutdown"
+        node.reload
+        sibling.reload
+
+        expect(node.current_server_status).to eq("processing_children")
+        expect(node.current_client_status).to eq("shutdown")
+        expect(sibling.current_server_status).to eq("deactivated")
+      end
+    end
+
+    context "PUT #{path}/:id/schedule" do
+      require 'support/sidekiq_helper'
+
+      it "schedules the next ready child activity for the node" do
+        child = FactoryGirl.create(
+          :node,
+          user: user,
+          workflow: workflow,
+          parent: node,
+          current_server_status: :ready,
+          current_client_status: :ready
+        )
+
+        put "#{path}/#{node.id}/schedule"
+        SidekiqHelper.soft_drain
+
+        expect(child.reload.current_server_status).to eq("started")
       end
     end
 

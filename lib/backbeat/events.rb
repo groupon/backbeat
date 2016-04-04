@@ -113,6 +113,39 @@ module Backbeat
       end
     end
 
+    class ClientResolved < Event
+      include ResponseHandler
+      scheduler Schedulers::PerformEvent
+
+      def call(node)
+        StateManager.new(node, response).transition({
+          current_client_status: :resolved,
+          current_server_status: :processing_children
+        })
+        node.mark_complete!
+        Server.fire_event(MarkChildrenReady, node)
+      end
+    end
+
+    class ShutdownNode < Event
+      include ResponseHandler
+      scheduler Schedulers::PerformEvent
+
+      def call(node)
+        StateManager.new(node, response).transition({
+          current_client_status: :shutdown,
+          current_server_status: :processing_children
+        })
+        node.mark_complete!
+        if node.blocking?
+          node.parent.children.each do |child|
+            StateManager.transition(child, current_server_status: :deactivated) if child.seq > node.seq
+          end
+        end
+        Server.fire_event(MarkChildrenReady, node)
+      end
+    end
+
     class NodeComplete < Event
       scheduler Schedulers::PerformEvent
 

@@ -255,6 +255,25 @@ describe Backbeat::Events do
     end
   end
 
+  context "ClientResolved" do
+    before do
+      node.update_attributes(
+        current_client_status: :errored,
+        current_server_status: :retries_exhausted
+      )
+    end
+
+    it "updates the status to resolve, marks_complete!, and fires MarkChildrenReady" do
+      expect(Backbeat::Server).to receive(:fire_event).with(Backbeat::Events::MarkChildrenReady, node)
+      expect(node).to receive(:mark_complete!)
+
+      Backbeat::Events::ClientResolved.call(node)
+
+      expect(node.current_server_status).to eq("processing_children")
+      expect(node.current_client_status).to eq("resolved")
+    end
+  end
+
   context "NodeComplete" do
     before do
       node.update_attributes(current_server_status: :processing_children)
@@ -493,6 +512,75 @@ describe Backbeat::Events do
       expect(node.reload.current_server_status).to eq("deactivated")
       expect(second_node.reload.current_server_status).to eq("deactivated")
       expect(third_node.reload.current_server_status).to eq("deactivated")
+    end
+  end
+
+  context "ShutdownNode" do
+    let!(:child_1) {
+      FactoryGirl.create(
+        :node,
+        workflow: workflow,
+        parent: node,
+        user: user,
+        current_server_status: :complete,
+        current_client_status: :complete
+      ).reload
+    }
+
+    let!(:child_2) {
+      FactoryGirl.create(
+        :node,
+        workflow: workflow,
+        parent: node,
+        user: user,
+        current_server_status: :retries_exhausted,
+        current_client_status: :errored
+      ).reload
+    }
+
+    let!(:child_3) {
+      FactoryGirl.create(
+        :node,
+        workflow: workflow,
+        parent: node,
+        user: user,
+        current_server_status: :ready,
+        current_client_status: :ready
+      ).reload
+    }
+
+    it "transitions the node's client status to resolved" do
+      Backbeat::Events::ShutdownNode.call(child_2)
+
+      expect(child_2.current_client_status).to eq("shutdown")
+      expect(child_2.current_server_status).to eq("processing_children")
+    end
+
+    it "calls mark_complete! on the node to update the complete_by time" do
+      Backbeat::Events::ShutdownNode.call(child_2)
+
+      expect(child_2.node_detail.complete_by).to be_nil
+    end
+
+    it "deactivates any following siblings" do
+      Backbeat::Events::ShutdownNode.call(child_2)
+
+      expect(child_1.reload.current_server_status).to eq("complete")
+      expect(child_3.reload.current_server_status).to eq("deactivated")
+    end
+
+    it "does not deactivate siblings if the evented node is non_blocking" do
+      child_2.update_attributes({ mode: :non_blocking})
+      Backbeat::Events::ShutdownNode.call(child_2)
+
+      expect(child_1.reload.current_server_status).to eq("complete")
+      expect(child_3.reload.current_server_status).to eq("ready")
+    end
+
+    it "fires the mark children ready event to run any child nodes" do
+      expect(Backbeat::Events::MarkChildrenReady).to receive(:call).with(child_2)
+
+      Backbeat::Events::ShutdownNode.call(child_2)
     end
   end
 end
