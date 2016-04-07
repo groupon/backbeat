@@ -68,7 +68,7 @@ describe Backbeat::Workers::DailyActivity do
       Mail.defaults { delivery_method :test }
     end
 
-    it "builds the workflow data" do
+    it "builds the workflow data with default options" do
       allow(Backbeat::Config).to receive(:hostname).and_return("somehost")
 
       Timecop.freeze(start_time) do
@@ -87,9 +87,41 @@ describe Backbeat::Workers::DailyActivity do
           },
           time_elapsed: 0,
           range: {
-            lower_bound: start_time - 24.hours,
-            upper_bound: start_time
+            completed_upper_bound: start_time,
+            completed_lower_bound: start_time - 24.hours,
+            inconsistent_upper_bound: start_time - 12.hours,
+            inconsistent_lower_bound: start_time - 1.year
+           },
+          date: start_time.strftime("%m/%d/%Y")
+        })
+
+        subject.perform
+      end
+    end
+
+    it "builds the workflow data with specific options" do
+      allow(Backbeat::Config).to receive(:hostname).and_return("somehost")
+      allow(Backbeat::Config).to receive(:options).and_return(Backbeat::Config.options.merge(reporting: {completed_lower_bound: 82800, inconsistent_upper_bound: 10800, inconsistent_lower_bound: 14400}))
+
+      Timecop.freeze(start_time) do
+        expect(subject).to receive(:send_report).with({
+          inconsistent: {
+            counts: {},
+            filename: "/tmp/inconsistent_nodes/#{Date.today.to_s}.json",
+            hostname: "somehost"
           },
+          completed: {
+            counts: {
+              "fun workflow"=> { workflow_type_count: 1, node_count: 1 }
+            }
+          },
+          time_elapsed: 0,
+          range: {
+            completed_upper_bound: start_time,
+            completed_lower_bound: start_time - 23.hours,
+            inconsistent_upper_bound: start_time - 3.hours,
+            inconsistent_lower_bound: start_time - 4.hours
+           },
           date: start_time.strftime("%m/%d/%Y")
         })
 

@@ -43,7 +43,13 @@ module Backbeat
 
       def perform
         start_time = Time.now
-        report_range = report_range(start_time)
+
+        report_range = {
+          completed_upper_bound: start_time,
+          completed_lower_bound: start_time - (Config.options[:reporting][:completed_lower_bound] || 24.hours).to_i,
+          inconsistent_upper_bound: start_time - (Config.options[:reporting][:inconsistent_upper_bound] || 12.hours).to_i,
+          inconsistent_lower_bound: start_time - (Config.options[:reporting][:inconsistent_lower_bound] || 366.days).to_i
+        }
 
         inconsistent_nodes = inconsistent_nodes(report_range)
         inconsistent_counts = counts_by_workflow_type(inconsistent_nodes)
@@ -72,24 +78,17 @@ module Backbeat
 
       private
 
-      def report_range(upper_bound)
-        {
-          lower_bound: upper_bound - 24.hours,
-          upper_bound: upper_bound
-        }
-      end
-
       def inconsistent_nodes(range)
         Node
-          .where("fires_at > ?", range[:upper_bound] - 1.year)
-          .where("fires_at < ?", range[:upper_bound] - 12.hours)
+          .where("fires_at > ?", range[:inconsistent_lower_bound])
+          .where("fires_at < ?", range[:inconsistent_upper_bound])
           .where("(current_server_status <> 'complete' OR current_client_status <> 'complete') AND current_server_status <> 'deactivated'")
       end
 
       def completed_nodes(range)
         Node
-          .where("fires_at > ?", range[:lower_bound])
-          .where("fires_at < ?", range[:upper_bound])
+          .where("fires_at > ?", range[:completed_lower_bound])
+          .where("fires_at < ?", range[:completed_upper_bound])
           .where("current_server_status = 'complete' AND current_client_status = 'complete'")
       end
 
