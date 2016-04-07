@@ -11,3 +11,5 @@ defaults:
     heal_nodes: '0 */2 * * * *'
     daily_activity: '0 12 * * * *'
     log_queues: '0 */5 * * * *'
+  reporting:
+    intervals: ~
