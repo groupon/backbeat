@@ -1,6 +1,6 @@
 ![Backbeat](documentation/images/backbeat_logo.png)
 
-# Backbeat
+# Backbeat [![Build Status](https://travis-ci.org/groupon/backbeat.svg?branch=master)](https://travis-ci.org/groupon/backbeat)
 
 This is the server application for Backbeat, the open-source workflow service
 by Groupon. For more information on what Backbeat is, and documentation for
