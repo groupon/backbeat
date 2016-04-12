@@ -1,0 +1,17 @@
+sudo: required
+
+language: ruby
+
+services:
+  - postgresql
+  - redis
+
+before_script:
+  - gem install bundler
+  - bundle install
+  - psql -c "CREATE ROLE backbeat with SUPERUSER LOGIN PASSWORD 'backbeat';" -U postgres
+  - RACK_ENV=test bundle exec rake db:create
+  - RACK_ENV=test bundle exec rake db:migrate
+
+script:
+  - bundle exec rspec spec
