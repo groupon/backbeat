@@ -361,7 +361,7 @@ describe Backbeat::Events do
       it "decrements the retry count" do
         Backbeat::Events::ClientError.call(node)
 
-        expect(node.node_detail.retries_remaining).to eq(3)
+        expect(node.node_detail.retries_remaining).to eq(5)
       end
 
       it "marks the server status as retrying" do

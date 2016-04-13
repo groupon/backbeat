@@ -37,7 +37,7 @@ module Backbeat
     serialize :valid_next_events, JSON
 
     before_validation do
-      self.retries_remaining ||= 4
+      self.retries_remaining ||= 6
       self.retry_interval ||= 20.minutes
     end
   end
