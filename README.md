@@ -120,7 +120,7 @@ $ bin/docker_console
   - [Install on Linux](http://redis.io/topics/quickstart)
 12. Start Web Server and Workers
   - For testing you can run these as daemons or in different terminal windows
-  - For production you will want to use some sort of monitoring on these processes. We provide an option using God as explained [here]().
+  - For production you will want to use some sort of monitoring on these processes.
   - See the Procfile for a summary of the processes
 
   ```bash
