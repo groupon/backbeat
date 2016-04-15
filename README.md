@@ -105,8 +105,9 @@ $ bin/docker_console
     $ redis-server
     ```
 12. Start Web Server and Workers
-  - For testing you can run these as daemons or in different terminal windows 
-  - For production you will want to use some sort of monitoring on these processes. We provide an option using God as explained [here]().
+  - For testing you can run these as daemons or in different terminal windows
+  - For production you will want to use some sort of monitoring on these processes.
+  - See the Procfile for a summary of the processes
 
   ```bash
   $ bundle exec rackup # you can now hit backbeat from http://localhost:9292 or expose the port externally
