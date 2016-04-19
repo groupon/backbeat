@@ -1,6 +1,0 @@
-run:
-  ci:
-<% if( DOTCI_BRANCH =~ /deploy.*/) { %>
-plugins:
-  - publish: 'ci'
-<% } %>
