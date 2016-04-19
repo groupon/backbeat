@@ -1,6 +1,13 @@
-sudo: required
+sudo: false
 
 language: ruby
+
+rvm:
+  - 2.0.0
+  - 2.1.6
+  - 2.2.3
+  - 2.3.0
+  - jruby-1.7.20
 
 services:
   - postgresql

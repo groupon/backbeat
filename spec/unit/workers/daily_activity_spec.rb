@@ -72,28 +72,30 @@ describe Backbeat::Workers::DailyActivity do
       allow(Backbeat::Config).to receive(:hostname).and_return("somehost")
 
       Timecop.freeze(start_time) do
-        expect(subject).to receive(:send_report).with({
-          inconsistent: {
-            counts: {
-              "bad workflow" => { workflow_type_count: 1, node_count: 1 }
+        expect(subject).to receive(:send_report) do |arg|
+          arg == {
+            inconsistent: {
+              counts: {
+                "bad workflow" => { workflow_type_count: 1, node_count: 1 }
+              },
+              filename: "/tmp/inconsistent_nodes/#{Date.today.to_s}.json",
+              hostname: "somehost"
             },
-            filename: "/tmp/inconsistent_nodes/#{Date.today.to_s}.json",
-            hostname: "somehost"
-          },
-          completed: {
-            counts: {
-              "fun workflow"=> { workflow_type_count: 1, node_count: 1 }
-            }
-          },
-          time_elapsed: 0,
-          range: {
-            completed_upper_bound: start_time,
-            completed_lower_bound: start_time - 24.hours,
-            inconsistent_upper_bound: start_time - 12.hours,
-            inconsistent_lower_bound: start_time - 1.year
-           },
-          date: start_time.strftime("%m/%d/%Y")
-        })
+            completed: {
+              counts: {
+                "fun workflow"=> { workflow_type_count: 1, node_count: 1 }
+              }
+            },
+            time_elapsed: 0,
+            range: {
+              completed_upper_bound: start_time,
+              completed_lower_bound: start_time - 24.hours,
+              inconsistent_upper_bound: start_time - 12.hours,
+              inconsistent_lower_bound: start_time - 1.year
+             },
+            date: start_time.strftime("%m/%d/%Y")
+          }
+        end
 
         subject.perform
       end
