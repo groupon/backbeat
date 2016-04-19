@@ -41,7 +41,7 @@ $ bin/docker_console
 
 3. Install any of the supported Ruby versions:
   - JRuby 1.7.3 - 1.7.20
-  - MRI 1.9.3 - 2.1.6
+  - MRI 2.0.0 - 2.1.6
 
 4. Install [Bundler](http://gembundler.com/) if necessary:
 
