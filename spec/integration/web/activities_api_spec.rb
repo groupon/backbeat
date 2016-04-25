@@ -193,6 +193,17 @@ describe Backbeat::Web::ActivitiesAPI, :api_test do
 
           put "#{path}/#{node.id}/restart"
         end
+
+        it "skips checking retry jobs if the node status is retries_exhausted" do
+          node.update_attributes!(current_server_status: :retries_exhausted)
+
+          expect(Backbeat::Workers::AsyncWorker).to_not receive(:remove_job).with(
+            Backbeat::Events::RetryNode,
+            node
+          )
+
+          put "#{path}/#{node.id}/restart"
+        end
       end
 
       context "with invalid restart state" do

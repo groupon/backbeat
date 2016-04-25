@@ -118,7 +118,12 @@ module Backbeat
 
         put "/:id/restart" do
           node = find_node
-          Workers::AsyncWorker.remove_job(Events::RetryNode, node)
+
+          unless node.current_server_status == 'retries_exhausted'
+            # remove any async jobs which might auto-retry running this node
+            Workers::AsyncWorker.remove_job(Events::RetryNode, node)
+          end
+
           Server.fire_event(Events::RetryNode, node, Schedulers::PerformEvent)
           { success: true }
         end
