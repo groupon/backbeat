@@ -73,11 +73,11 @@ describe Backbeat::Node do
 
   context "mark_retried!" do
     it "decrements the retries remaining" do
-      expect(node.retries_remaining).to eq(4)
+      expect(node.retries_remaining).to eq(6)
 
       node.mark_retried!
 
-      expect(node.reload.retries_remaining).to eq(3)
+      expect(node.reload.retries_remaining).to eq(5)
     end
   end
 

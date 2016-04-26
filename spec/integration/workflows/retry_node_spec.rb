@@ -54,7 +54,7 @@ describe Backbeat, :api_test do
         "current_client_status" => "received",
         "current_server_status" => "sent_to_client"
       )
-      expect(activity_node.node_detail.retries_remaining).to eq(4)
+      expect(activity_node.node_detail.retries_remaining).to eq(6)
 
       response = put "activities/#{activity_node.id}/status/errored"
 
@@ -64,7 +64,7 @@ describe Backbeat, :api_test do
         "current_client_status" => "received",
         "current_server_status" => "sent_to_client"
       )
-      expect(activity_node.node_detail.retries_remaining).to eq(3)
+      expect(activity_node.node_detail.retries_remaining).to eq(5)
 
       response = put "activities/#{activity_node.id}/status/completed"
       expect(activity_node.reload.attributes).to include(
