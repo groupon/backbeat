@@ -37,7 +37,7 @@ module Backbeat
         name: params[:workflow_type] || params[:name],
         subject: params[:subject],
         decider: params[:decider],
-        user_id: user.id,
+        user_id: params.fetch(:user_id, user.id), # TODO Actually test this, should be possible in unit tests.
         migrated: true
       )
     rescue ActiveRecord::RecordNotUnique

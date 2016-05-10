@@ -56,9 +56,9 @@ module Backbeat
 
         helpers do
           def find_node
-            query = { user_id: current_user.id }
-            query[:workflow_id] = params[:workflow_id] if params[:workflow_id]
-            Node.where(query).find(params[:id])
+            relation = Node.all
+            relation = relation.where(workflow_id: params[:workflow_id]) if params[:workflow_id]
+            relation.find(params[:id])
           end
 
           def validate(params, param, type, message)
