@@ -103,6 +103,15 @@ describe Backbeat::Server do
 
       expect(workflow1).to_not eq(workflow2)
     end
+
+    it 'Allows you to set the owner of the workflow to another user' do
+      user2 = FactoryGirl.create(:user, name: 'User 2')
+      params = { workflow_type: 'UniqueName', subject: 'Subject',
+                 decider: 'Decider', user_id: user2.id }
+
+      workflow = Backbeat::Server.create_workflow(params, user)
+      expect(workflow.user_id).to eq(user2.id)
+    end
   end
 
   context ".signal" do

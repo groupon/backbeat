@@ -83,6 +83,55 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       response = post 'workflows', workflow_data
       expect(first_response['id']).to eq(JSON.parse(response.body)['id'])
     end
+
+    it 'returns 201 and creates a new workflow belonging to another user' do
+      user2 = FactoryGirl.create(:user, name: 'User 2')
+
+      workflow_data = {
+        name: 'WFName',
+        subject: { subject_klass: 'PaymentTerm', subject_id: 100 },
+        decider: 'PaymentDecider',
+        user_id: user2.id
+      }
+      response = post 'workflows', workflow_data
+
+      expect(response.status).to eq(201)
+
+      first_response = JSON.parse(response.body)
+      workflow = Backbeat::Workflow.find(first_response['id'])
+
+      expect(workflow.user_id).to eq(user2.reload.id)
+
+      # Verify that the non-unique branch still fetches the same workflow
+      response = post 'workflows', workflow_data
+      expect(first_response['id']).to eq(JSON.parse(response.body)['id'])
+    end
+
+    it 'other users can create new workflows' do
+      workflow_data = {
+        workflow_type: 'WFType',
+        subject: { subject_klass: 'PaymentTerm', subject_id: 100 },
+        decider: 'PaymentDecider'
+      }
+      user2 = FactoryGirl.create(:user, name: 'User 2')
+
+      header 'Client-Id', user2.id
+      header 'Authorization', "Token token=\'#{user2.auth_token}\'"
+      response = post 'workflows', workflow_data
+
+      expect(response.status).to eq(201)
+
+      first_response = JSON.parse(response.body)
+      expect(first_response['userId']).to eq(user2.id)
+      workflow = Backbeat::Workflow.find(first_response['id'])
+
+      expect(workflow.subject).to eq('subject_klass' => 'PaymentTerm',
+                                     'subject_id' => '100')
+      expect(workflow.name).to eq('WFType')
+
+      response = post 'workflows', workflow_data
+      expect(first_response['id']).to eq(JSON.parse(response.body)['id'])
+    end
   end
 
   context "POST /workflows/:id/signal" do
@@ -421,6 +470,16 @@ describe Backbeat::Web::WorkflowsAPI, :api_test do
       body = JSON.parse(response.body)
 
       expect(body["id"]).to eq(workflow.id)
+    end
+
+    it 'returns a workflow for a different user if the user_id is provided' do
+      user2 = FactoryGirl.create(:user, name: 'User 2')
+      wf2 = FactoryGirl.create(:workflow_with_node, user: user2)
+      response = get("workflows/#{wf2.id}")
+      expect(response.status).to eq(200)
+      body = JSON.parse(response.body)
+
+      expect(body['id']).to eq(wf2.id)
     end
   end
 

@@ -47,7 +47,7 @@ module Backbeat
 
         helpers do
           def find_workflow
-            Workflow.where(user_id: current_user.id).find(params[:id])
+            Workflow.find(params[:id])
           end
         end
 
