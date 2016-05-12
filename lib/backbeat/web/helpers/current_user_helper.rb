@@ -61,7 +61,7 @@ module Backbeat
 
       def current_user
         Logger.info("Trying to determine current user")
-        return @current_user if defined?(@current_user)
+        return @current_user unless @current_user.nil?
         @current_user = find_user(env['HTTP_CLIENT_ID'])
         Logger.info({ env: env['HTTP_CLIENT_ID'], current_user: @current_user, headers: headers })
         @current_user
