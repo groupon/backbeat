@@ -96,11 +96,11 @@ module Backbeat
     end
 
     App = Rack::Builder.new do
-      # use Middleware::Log
-      # use Middleware::Heartbeat
+      use Middleware::Log
+      use Middleware::Heartbeat
       use ActiveRecord::ConnectionAdapters::ConnectionManagement
-      # use Middleware::Health
-      # use Middleware::SidekiqStats
+      use Middleware::Health
+      use Middleware::SidekiqStats
 
       run API
     end

@@ -7,5 +7,4 @@ class SidekiqUI < Grape::API
   mount Sidekiq::Web => '/sidekiq'
 end
 
-# run Rack::Cascade.new([Backbeat::Web::App, SidekiqUI])
-run Backbeat::Web::App
+run Rack::Cascade.new([Backbeat::Web::App, SidekiqUI])
