@@ -60,8 +60,9 @@ module Backbeat
       end
 
       def current_user
-        Logger.info({ message: "FOO BAR" })
         @current_user ||= find_user(env['HTTP_CLIENT_ID'])
+        Logger.info({ env: env.to_s, current_user: @current_user })
+        @current_user
       end
 
       def find_user(id)
