@@ -51,21 +51,21 @@ module Backbeat
 
           Logger.info({ message: "Request Start" }.merge(request_data))
 
-          status, headers, body = response = @app.call(env)
+          res_status, res_headers, res_body = res = @app.call(env)
 
           Logger.info({
             message: "Request Complete",
             request: request_data,
             response: {
-              status: status,
+              status: res_status,
               duration: Time.now - t0,
             }
           })
 
-          headers[TRANSACTION_ID_HEADER] = tid
+          res_headers[TRANSACTION_ID_HEADER] = tid
           Logger.tid(:clear)
 
-          response
+          res
         end
       end
     end
