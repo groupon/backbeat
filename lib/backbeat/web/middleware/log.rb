@@ -46,7 +46,7 @@ module Backbeat
             path: request.path_info,
             method: request.request_method,
             params: request.params,
-            headers: request.headers
+            client_id: env['HTTP_CLIENT_ID']
           }
 
           Logger.info({ message: "Request Start" }.merge(request_data))
