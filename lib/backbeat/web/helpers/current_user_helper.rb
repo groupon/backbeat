@@ -61,7 +61,7 @@ module Backbeat
 
       def current_user
         @current_user ||= find_user(env['HTTP_CLIENT_ID'])
-        Logger.info({ env: env.to_s, current_user: @current_user })
+        Logger.info({ env: env['HTTP_CLIENT_ID'], current_user: @current_user })
         @current_user
       end
 
