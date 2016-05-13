@@ -60,10 +60,7 @@ module Backbeat
       end
 
       def current_user
-        return @current_user unless @current_user.nil?
-        @current_user = find_user(env['HTTP_CLIENT_ID'] || env['HTTP_X_FOO_ID'])
-        Logger.info({ env: env['HTTP_CLIENT_ID'], current_user: @current_user, headers: headers, request_headers: request.headers })
-        @current_user
+        @current_user ||= find_user(env['HTTP_CLIENT_ID'])
       end
 
       def find_user(id)
