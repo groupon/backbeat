@@ -54,7 +54,8 @@ describe Backbeat::Web::Middleware::Log, :api_test do
           request: {
             method: "GET",
             path: "/v2/workflows/#{wf.id}",
-            params: {}
+            params: {},
+            client_id: user.id
           },
           response: {
             status: 200,
