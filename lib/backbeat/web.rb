@@ -51,7 +51,7 @@ module Backbeat
       end
 
       rescue_from :all do |e|
-        Logger.error({ error_type: e.class, error: e.message, backtrace: e.backtrace })
+        Logger.error({ error_type: e.class.to_s, error: e.message, backtrace: e.backtrace })
         Rack::Response.new({ error: e.message }.to_json, 500, { "Content-type" => "application/json" }).finish
       end
 
