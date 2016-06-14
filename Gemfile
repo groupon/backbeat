@@ -33,7 +33,7 @@ gem 'mail'
 gem 'sidekiq', '~> 3.5.0'
 gem 'sidekiq-failures', '~> 0.4.0'
 gem 'sinatra', require: false # for the Sidekiq UI
-gem 'sidekiq_schedulable', '~> 0.0.3'
+gem 'sidekiq_schedulable', '~> 0.1.1'
 
 group :development, :test do
   gem 'pry'
