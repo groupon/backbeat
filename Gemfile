@@ -1,7 +1,7 @@
 source ENV.fetch('GEM_SOURCE', 'https://rubygems.org')
 
 gem 'rake'
-
+gem 'newrelic_rpm', '>= 3.15.2.317'
 gem 'grape', '~> 0.13.0'
 gem 'puma', '~> 2.13.4'
 gem 'httparty'
