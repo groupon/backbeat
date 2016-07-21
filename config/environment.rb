@@ -37,6 +37,7 @@ require 'active_record'
 require 'sidekiq'
 require 'sidekiq_schedulable'
 require 'backbeat'
+require 'newrelic_rpm'
 
 puts "*** Environment is #{Backbeat::Config.environment} ***"
 
