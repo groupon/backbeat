@@ -64,7 +64,7 @@ module Backbeat
     end
 
     def self.hostname
-      @hostname ||= `hostname`
+      @hostname ||= `hostname -f`
     end
 
     def self.revision
