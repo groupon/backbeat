@@ -50,7 +50,7 @@ module Backbeat
       end
 
       rescue_from :all do |e|
-        Logger.error({ error_type: e.class, error: e.message, backtrace: e.backtrace })
+        Logger.error({ error_type: e.class.to_s, error: e.message, backtrace: e.backtrace })
         error!(ErrorPresenter.present(e), 500)
       end
 
