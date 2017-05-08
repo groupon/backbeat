@@ -107,7 +107,7 @@ module Backbeat
       result = Node.connection.execute(update_sql(statuses))
       rows_affected = result.respond_to?(:cmd_tuples) ? result.cmd_tuples : result # The jruby adapter does not return a PG::Result
       if rows_affected == 0
-        raise StaleStatusChange, "Stale status change data for node #{node.id}"
+        raise Backbeat::StaleStatusChange, "Stale status change data for node #{node.id}"
       else
         create_status_changes(statuses)
         node.reload
