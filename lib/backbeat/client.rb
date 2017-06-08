@@ -75,8 +75,8 @@ module Backbeat
           body: params.to_json,
           headers: { "Content-Type" => "application/json" }
         })
-      rescue
-        raise HttpError.new("Could not POST #{url}")
+      rescue => e
+        raise HttpError.new("Could not POST #{url}, error: #{e.class}, #{e.message}")
       end
     end
   end
