@@ -77,8 +77,8 @@ module Backbeat
           "Content-Length" => body.size.to_s
         }
       })
-    rescue
-      raise HttpError.new("Could not POST #{url}", nil)
+    rescue => e
+      raise HttpError.new("Could not POST #{url}, error: #{e.class}, #{e.message}", nil)
     end
     private_class_method :post
   end
