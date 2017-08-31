@@ -4,6 +4,7 @@ defaults:
   log: ~
   client_timeout: 172800
   require_auth_token: false
+  connection_error_wait: 30
   alerts:
     email_to: ~
     email_from: ~

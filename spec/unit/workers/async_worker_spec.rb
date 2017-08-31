@@ -79,6 +79,21 @@ describe Backbeat::Workers::AsyncWorker do
       expect(Backbeat::Workers::AsyncWorker.jobs.count).to eq(1)
     end
 
+    it "waits for a client complete response if the server receives a connection reset" do
+      allow(Backbeat::Server).to receive(:fire_event) { raise Errno::ECONNRESET }
+      allow(Backbeat::Config).to receive(:options).and_return({connection_error_wait: 0.01})
+
+      expect(Kernel).to receive(:sleep).with(0.01)
+
+      Backbeat::Workers::AsyncWorker.new.perform(
+        Backbeat::Events::MarkChildrenReady.name,
+        { "node_class" => node.class.name, "node_id" => node.id },
+        { "retries" => 1 }
+      )
+
+      expect(Backbeat::Workers::AsyncWorker.jobs.count).to eq(1)
+    end
+
     it "retries the job if there is an error deserializing the node" do
       expect(Backbeat::Node).to receive(:find) { raise "Could not connect to the database" }
 
