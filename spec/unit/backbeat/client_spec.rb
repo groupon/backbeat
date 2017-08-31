@@ -180,7 +180,7 @@ describe Backbeat::Client do
 
         expect(HTTParty).to receive(:post).and_raise(HTTParty::Error.new("Request failure"))
 
-        expect { Backbeat::Client.perform(node) }.to raise_error(Backbeat::HttpError, "Could not POST http://activity.com/api/v1/workflows/perform_activity, error: HTTParty::Error, Request failure")
+        expect { Backbeat::Client.perform_action(node) }.to raise_error(Backbeat::HttpError, "Could not POST http://activity.com/api/v1/workflows/perform_activity, error: HTTParty::Error, Request failure")
       end
     end
   end
