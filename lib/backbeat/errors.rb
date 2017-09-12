@@ -63,4 +63,12 @@ module Backbeat
       super(message)
     end
   end
+
+  class NetworkError < StandardError
+    attr_reader :response
+    def initialize(message, response = nil)
+      @response = response
+      super(message)
+    end
+  end
 end

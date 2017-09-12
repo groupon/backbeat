@@ -76,7 +76,7 @@ module Backbeat
       rescue DeserializeError => e
         error(status: :deserialize_node_error, node: node_data["node_id"], error: e, backtrace: e.backtrace)
         raise e
-      rescue Errno::ECONNRESET => e
+      rescue NetworkError => e
         Kernel.sleep(Config.options[:connection_error_wait])
         if (node.reload.current_client_status != :complete)
           handle_processing_error(e, event_class, node, options)
