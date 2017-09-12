@@ -78,7 +78,7 @@ module Backbeat
         }
       })
     rescue => e
-      raise HttpError.new("Could not POST #{url}, error: #{e.class}, #{e.message}", nil)
+      raise NetworkError.new("Could not POST #{url}, error: #{e.class}, #{e.message}", nil)
     end
     private_class_method :post
   end
