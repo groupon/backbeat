@@ -142,6 +142,17 @@ describe Backbeat::Client do
 
         expect { Backbeat::Client.perform(node) }.to raise_error(Backbeat::HttpError, "HTTP request for decision failed")
       end
+
+      it "raises a network error if the connection is reset" do
+        node.legacy_type = :decision
+
+        WebMock.stub_request(:post, "http://decisions.com/api/v1/workflows/make_decision").with(
+          body: { decision: Backbeat::NodePresenter.present(node) }.to_json,
+          headers: { 'Content-Type'=>'application/json'}
+        ).to_raise(Errno::ECONNRESET)
+
+        expect { Backbeat::Client.perform(node) }.to raise_error(Backbeat::NetworkError)
+      end
     end
 
     context ".perform_activity" do
@@ -169,12 +180,23 @@ describe Backbeat::Client do
         expect { Backbeat::Client.perform(node) }.to raise_error(Backbeat::HttpError, "HTTP request for activity failed")
       end
 
-      it "raises an http error if HTTParty fails" do
+      it "raises a network error if the connection is reset" do
+        node.legacy_type = :activity
+
+        stub = WebMock.stub_request(:post, "http://activity.com/api/v1/workflows/perform_activity").with(
+          :body => { activity: Backbeat::NodePresenter.present(node) }.to_json,
+          :headers => { 'Content-Type'=>'application/json' }
+        ).to_raise(Errno::ECONNRESET)
+
+        expect { Backbeat::Client.perform(node) }.to raise_error(Backbeat::NetworkError)
+      end
+
+      it "raises an network error if HTTParty fails" do
         node.legacy_type = :activity
 
         expect(HTTParty).to receive(:post).and_raise(HTTParty::Error.new("Request failure"))
 
-        expect { Backbeat::Client.perform(node) }.to raise_error(Backbeat::HttpError, "Could not POST http://activity.com/api/v1/workflows/perform_activity, error: HTTParty::Error, Request failure")
+        expect { Backbeat::Client.perform(node) }.to raise_error(Backbeat::NetworkError, "Could not POST http://activity.com/api/v1/workflows/perform_activity, error: HTTParty::Error, Request failure")
       end
     end
   end
