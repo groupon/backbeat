@@ -85,6 +85,12 @@ module Backbeat
         else
           Server.fire_event(ClientComplete, node)
         end
+      rescue NetworkError => e
+        Kernel.sleep(Config.options[:connection_error_wait])
+        if (node.reload.current_client_status != :complete)
+          response = { error: { message: e.message } }
+          Server.fire_event(ClientError.new(response), node)
+        end
       rescue HttpError => e
         response = { error: { message: e.message } }
         Server.fire_event(ClientError.new(response), node)

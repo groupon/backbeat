@@ -168,9 +168,19 @@ describe Backbeat::Events do
         Backbeat::Events::StartNode.call(node)
       end
 
-      it "fires the ClientError event if the client call fails" do
+      it "fires the ClientError event if the client call fails with an HttpError" do
         allow(Backbeat::Client).to receive(:perform_action).with(node) { raise Backbeat::HttpError.new("Failed", {}) }
 
+        expect(Backbeat::Server).to receive(:fire_event).with(Backbeat::Events::ClientError, node)
+
+        Backbeat::Events::StartNode.call(node)
+      end
+
+      it "waits for ClientComplete event if the client call fails with a NetworkError" do
+        allow(Backbeat::Client).to receive(:perform_action).with(node) { raise Backbeat::NetworkError.new("Errno::ECONNRESET", {}) }
+        allow(Backbeat::Config).to receive(:options).and_return({connection_error_wait: 0.01})
+
+        expect(Kernel).to receive(:sleep).with(0.01)
         expect(Backbeat::Server).to receive(:fire_event).with(Backbeat::Events::ClientError, node)
 
         Backbeat::Events::StartNode.call(node)
