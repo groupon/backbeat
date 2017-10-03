@@ -256,6 +256,23 @@ describe Backbeat::Events do
       expect(node.current_client_status).to eq("complete")
     end
 
+    it "does not change state, but logs if the node is already complete" do
+      node.update_attributes(
+        current_client_status: :complete,
+        current_server_status: :complete
+      )
+
+      expect(Backbeat::Server).to_not receive(:fire_event).with(Backbeat::Events::MarkChildrenReady, node)
+      expect(node).to_not receive(:mark_complete!)
+
+      expect(Backbeat::Logger).to receive(:info).with(message: "Node already complete", node: node.id)
+
+      Backbeat::Events::ClientComplete.call(node)
+
+      expect(node.current_server_status).to eq("complete")
+      expect(node.current_client_status).to eq("complete")
+    end
+
     it "rolls back if error occurs" do
       expect(Backbeat::Server).to receive(:fire_event).with(Backbeat::Events::MarkChildrenReady, node).and_raise "error"
       expect { Backbeat::Events::ClientComplete.call(node) }.to raise_error
