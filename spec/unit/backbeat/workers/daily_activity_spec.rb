@@ -37,6 +37,8 @@ describe Backbeat::Workers::DailyActivity do
     let(:user) { FactoryGirl.create(:user) }
     let(:fun_workflow) { FactoryGirl.create(:workflow, user: user, name: "fun workflow") }
     let(:bad_workflow) { FactoryGirl.create(:workflow, user: user, name: "bad workflow") }
+    let(:untriggered_workflow) { FactoryGirl.create(:workflow, user: user, name: "untriggered workflow") }
+
     let!(:complete_node) do
       FactoryGirl.create(
         :node,
@@ -50,6 +52,7 @@ describe Backbeat::Workers::DailyActivity do
         workflow: fun_workflow
       )
     end
+
     let!(:inconsistent_node) do
       FactoryGirl.create(
         :node,
@@ -61,6 +64,21 @@ describe Backbeat::Workers::DailyActivity do
         current_server_status: :ready,
         current_client_status: :ready,
         workflow: bad_workflow
+      )
+    end
+
+    let!(:untriggered_fire_and_forget_node) do
+      FactoryGirl.create(
+        :node,
+        name: "stalled node",
+        parent: nil,
+        fires_at: start_time - 400.days,
+        updated_at: start_time - 399.days,
+        user: user,
+        current_server_status: :ready,
+        current_client_status: :ready,
+        mode: :fire_and_forget,
+        workflow: untriggered_workflow
       )
     end
 
@@ -103,13 +121,25 @@ describe Backbeat::Workers::DailyActivity do
 
     it "builds the workflow data with specific options" do
       allow(Backbeat::Config).to receive(:hostname).and_return("somehost")
-      allow(Backbeat::Config).to receive(:options).and_return(Backbeat::Config.options.merge(reporting: {completed_lower_bound: 82800, inconsistent_upper_bound: 10800, inconsistent_lower_bound: 14400}))
+      allow(Backbeat::Config).to receive(:options).and_return(
+        Backbeat::Config.options.merge(reporting: {completed_lower_bound: 23.hours.to_i,
+                                                   inconsistent_upper_bound: 3.hours.to_i,
+                                                   inconsistent_lower_bound: 4.hours.to_i,
+                                                   untriggered_fire_and_forget_upper_bound: 7.hours.to_i}
+        ))
 
       Timecop.freeze(start_time) do
         expect(subject).to receive(:send_report).with({
           inconsistent: {
             counts: {},
             filename: "/tmp/inconsistent_nodes/#{Date.today.to_s}.json",
+            hostname: "somehost"
+          },
+          untriggered_fire_and_forget: {
+            counts: {
+              "untriggered workflow" => { workflow_type_count: 1, node_count: 1 }
+            },
+            filename: "/tmp/untriggered_fire_and_forget_nodes/untriggered_fire_and_forget_nodes_#{Date.today.to_s}.json",
             hostname: "somehost"
           },
           completed: {
@@ -122,7 +152,8 @@ describe Backbeat::Workers::DailyActivity do
             completed_upper_bound: start_time,
             completed_lower_bound: start_time - 23.hours,
             inconsistent_upper_bound: start_time - 3.hours,
-            inconsistent_lower_bound: start_time - 4.hours
+            inconsistent_lower_bound: start_time - 4.hours,
+            untriggered_fire_and_forget_upper_bound: start_time - 7.hours
            },
           date: start_time.strftime("%m/%d/%Y")
         })
@@ -156,7 +187,7 @@ describe Backbeat::Workers::DailyActivity do
         }
 
         allow(subject).to receive(:send_report)
-        expect(subject).to receive(:write_to_file).with(expected_file_contents)
+        expect(subject).to receive(:write_inconsistent_nodes_to_file).with(expected_file_contents)
 
         subject.perform
       end

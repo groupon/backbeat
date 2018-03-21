@@ -10,6 +10,13 @@
       <p>Inconsistent workflow data stored at <%= report[:inconsistent][:hostname].strip %>:<%= report[:inconsistent][:filename] %></p>
     <% end %>
 
+    <% if report[:untriggered_fire_and_forget][:counts].empty? %>
+      <p>No untriggered fire_and_forget nodes for this period</p>
+    <% else %>
+      <%= render_table "Untriggered fire_and_forget", report[:untriggered_fire_and_forget][:counts] %>
+      <p>Untriggered fire_and_forget nodes data stored at <%= report[:untriggered_fire_and_forget][:hostname].strip %>:<%= report[:untriggered_fire_and_forget][:filename] %> </p>
+    <% end %>
+
     <% if report[:completed][:counts].empty? %>
       <p>No completed workflows for this period</p>
     <% else %>
